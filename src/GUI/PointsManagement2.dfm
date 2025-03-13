@@ -1,4 +1,4 @@
-object Form2: TForm2
+object Form3: TForm3
   Left = 0
   Top = 0
   Caption = 'Form2'
@@ -22,14 +22,5 @@ object Form2: TForm2
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goFixedRowDefAlign]
     TabOrder = 0
-  end
-  object MaskEdit1: TMaskEdit
-    Left = 88
-    Top = 376
-    Width = 121
-    Height = 23
-    TabOrder = 1
-    Text = 'MaskEdit1'
-    Visible = False
   end
 end

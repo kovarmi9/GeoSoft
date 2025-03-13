@@ -37,7 +37,7 @@ end;
 procedure ValidateQualityCode(Grid: TStringGrid; var Key: Char);
 begin
   // Povolení pouze èíslic 0–8 a klávesy Backspace, Enter
-  if (Grid.Col = 4) and not TRegEx.IsMatch(Key, '[0-8#8#13]') then
+  if (Grid.Col = 4) and not TRegEx.IsMatch(Key, '^[0-8]$|^#8$|^#13$|^#46$|^#37$|^#38$|^#39$|^#40$') then
   begin
     Key := #0;
     Exit;

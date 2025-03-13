@@ -8,7 +8,7 @@ uses
   System.SysUtils,
   Point,
   PointsUtils,
-  ValidationUtils in '..\Utils\ValidationUtils.pas';
+  ValidationUtils;// in '..\Utils\ValidationUtils.pas';
 
 var
   PointDict: TPointDictionary;
@@ -30,14 +30,14 @@ begin
       PointDict.AddPoint(-9, -8, 200.0, 1, 'Sample Point2');
       PointDict.AddPoint(3, 100.0, 200.0, 1, 'Sample Point3');
 
-      //PointDict.ImportFromTXT('points98.txt');
+      // PointDict.ImportFromTXT('points98.txt');
 
       // Export the dictionary to a CSV file
       PointDict.ExportToTXT('points.txt');
       PointDict.ExportToCSV('points.csv');
       PointDict.ExportToBinary('points.bin');
 
-      Writeln('Point added and exported to CSV successfully.');
+      Writeln('Point added and exported successfully.');
     finally
       // Free the point dictionary
       PointDict.Free;

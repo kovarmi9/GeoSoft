@@ -30,7 +30,7 @@ type
     // Checks if a point exists in the dictionary
     function PointExists(const PointNumber: Integer): Boolean;
     // Iterates over all points in the dictionary
-    procedure IteratePoints(const Proc: TProc<TPoint>);
+//    procedure IteratePoints(const Proc: TProc<TPoint>);
     // Exports points to a TXT file with tab as delimiter
     procedure ExportToTXT(const FileName: string);
     // Exports points to a CSV file
@@ -83,13 +83,13 @@ begin
   if FPointDict.ContainsKey(APoint.PointNumber) then
     FPointDict[APoint.PointNumber] := APoint
   else
-    raise Exception.CreateFmt('Point with number %d not found for update.', [APoint.PointNumber]);  // Improved error message
+    raise Exception.CreateFmt('Point with number %d not found for update.', [APoint.PointNumber]);
 end;
 
 function TPointDictionary.GetPoint(const PointNumber: Integer): TPoint;
 begin
   if not FPointDict.TryGetValue(PointNumber, Result) then
-    raise Exception.CreateFmt('Point with number %d not found.', [PointNumber]);  // Improved error message
+    raise Exception.CreateFmt('Point with number %d not found.', [PointNumber]);
 end;
 
 procedure TPointDictionary.RemovePoint(const PointNumber: Integer);
@@ -97,7 +97,7 @@ begin
   if FPointDict.ContainsKey(PointNumber) then
     FPointDict.Remove(PointNumber)
   else
-    raise Exception.CreateFmt('Point with number %d not found for removal.', [PointNumber]);  // Improved error message
+    raise Exception.CreateFmt('Point with number %d not found for removal.', [PointNumber]);
 end;
 
 function TPointDictionary.GetPointCount: Integer;
@@ -110,13 +110,13 @@ begin
   Result := FPointDict.ContainsKey(PointNumber);
 end;
 
-procedure TPointDictionary.IteratePoints(const Proc: TProc<TPoint>);
-var
-  Point: TPoint;
-begin
-  for Point in FPointDict.Values do
-    Proc(Point);
-end;
+//procedure TPointDictionary.IteratePoints(const Proc: TProc<TPoint>);
+//var
+//  Point: TPoint;
+//begin
+//  for Point in FPointDict.Values do
+//    Proc(Point);
+//end;
 
 procedure TPointDictionary.ExportToTXT(const FileName: string);
 var

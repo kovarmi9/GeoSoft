@@ -1,7 +1,7 @@
 object Form2: TForm2
   Left = 0
   Top = 0
-  Caption = 'Form2'
+  Caption = 'Points management 1'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace

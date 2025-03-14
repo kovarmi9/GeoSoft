@@ -8,6 +8,7 @@ uses
 procedure ValidatePointNumber(Grid: TStringGrid; var Key: Char);
 procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
 procedure ValidateQualityCode(Grid: TStringGrid; var Key: Char);
+procedure HandleBackspace(Grid: TStringGrid; var Key: Char);
 
 implementation
 
@@ -41,6 +42,16 @@ begin
   begin
     Key := #0;
     Exit;
+  end;
+end;
+
+procedure HandleBackspace(Grid: TStringGrid; var Key: Char);
+begin
+  if Key = #8 then // Zpracování klávesy Backspace
+  begin
+    // Odstranìní posledního znaku v aktuální buòce
+    Grid.Cells[Grid.Col, Grid.Row] := Copy(Grid.Cells[Grid.Col, Grid.Row], 1, Length(Grid.Cells[Grid.Col, Grid.Row]) - 1);
+    Key := #0; // Zamezení dalšímu zpracování klávesy
   end;
 end;
 

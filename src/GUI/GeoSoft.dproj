@@ -140,6 +140,10 @@
         <DCCReference Include="StringGridValidationUtils.pas">
             <Form>$R *.res</Form>
         </DCCReference>
+        <DCCReference Include="PointsManagement3.pas">
+            <Form>Form4</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

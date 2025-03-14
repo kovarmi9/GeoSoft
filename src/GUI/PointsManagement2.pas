@@ -56,14 +56,15 @@ begin
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
 end;
 
-procedure TForm3.StringGrid1KeyPress(Sender: TObject; var Key: Char); // Změněno z TForm2 na TForm3
+procedure TForm3.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
+  HandleBackspace(StringGrid1, Key);
   ValidatePointNumber(StringGrid1, Key);
   ValidateCoordinates(StringGrid1, Key);
   ValidateQualityCode(StringGrid1, Key);
 end;
 
-procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); // Změněno z TForm2 na TForm3
+procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = VK_RETURN then
   begin
@@ -76,10 +77,10 @@ begin
     end
     else
     begin
-      // Pokud jsme na posledním sloupci, přejdeme na první sloupec dalšího řádku
+      // Pokud poslední sloupec, přechod na první sloupec dalšího řádku
       if StringGrid1.Row = StringGrid1.RowCount - 1 then
       begin
-        // Pokud jsme na posledním řádku, přidáme nový řádek
+        // Pokud poslední řádek, přidat nový řádek
         StringGrid1.RowCount := StringGrid1.RowCount + 1;
       end;
       StringGrid1.Row := StringGrid1.Row + 1;

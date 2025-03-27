@@ -1,10 +1,10 @@
-﻿unit PointsManagement2;
+﻿unit PointsManagement;
 
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, System.Math, ComObj,
   StringGridValidationUtils;
 
 type
@@ -14,6 +14,7 @@ type
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); // Procedura pro zpracování stisknutí klávesy
   private
+    function EvaluateExpression(const Expr: string): Double;
     { Private declarations }
   public
     { Public declarations }
@@ -58,6 +59,12 @@ end;
 
 procedure TForm3.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
+
+  if Key = '.' then
+    Key := FormatSettings.DecimalSeparator  // Přepíše tečku na systémový oddělovač (čárku, pokud je v systému)
+  else if Key = ',' then
+    Key := FormatSettings.DecimalSeparator; // Přepíše čárku na systémový oddělovač (tečku, pokud je v systému)
+
   HandleBackspace(StringGrid1, Key);
   ValidatePointNumber(StringGrid1, Key);
   ValidateCoordinates(StringGrid1, Key);
@@ -65,10 +72,26 @@ begin
 end;
 
 procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  Expr: string;
+  Result: Double;
 begin
   if Key = VK_RETURN then
   begin
-    Key := 0; // Zamezit dalšímu zpracování Enteru
+    Key := 0; // Zamezí dalšímu zpracování Enteru
+
+    // Vyhodnocení výrazu a vyplnění výsledků
+    if StringGrid1.Col in [1, 2, 3] then
+    begin
+      Expr := StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row];
+      try
+        Result := EvaluateExpression(Expr);
+        StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := FloatToStr(Result);
+      except
+        on E: Exception do
+          ShowMessage('Chyba při vyhodnocování výrazu: ' + E.Message);
+      end;
+    end;
 
     // Přechod na další buňku
     if StringGrid1.Col < StringGrid1.ColCount - 1 then
@@ -89,7 +112,26 @@ begin
   end
   else if Key = VK_DELETE then
   begin
-    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Povolit mazání obsahu buněk
+    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Mazání obsahu buněk
+  end;
+end;
+
+function TForm3.EvaluateExpression(const Expr: string): Double;
+var
+  ScriptEngine: OleVariant;
+  FixedExpr: string;
+begin
+  try
+    FixedExpr := StringReplace(Expr, ',', '.', [rfReplaceAll]); // Nahradí čárky za tečky
+    ScriptEngine := CreateOleObject('MSScriptControl.ScriptControl');
+    ScriptEngine.Language := 'VBScript';
+    Result := ScriptEngine.Eval(FixedExpr);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('Chyba při vyhodnocování výrazu: ' + E.Message);
+      Result := 0;
+    end;
   end;
 end;
 

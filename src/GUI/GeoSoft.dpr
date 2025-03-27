@@ -3,7 +3,7 @@ program GeoSoft;
 uses
   Vcl.Forms,
   MainForm in 'MainForm.pas' {Form1},
-  PointsManagement2 in 'PointsManagement2.pas' {Form3},
+  PointsManagement in 'PointsManagement.pas' {Form3},
   StringGridValidationUtils in 'StringGridValidationUtils.pas' {$R *.res};
 
 {$R *.res}

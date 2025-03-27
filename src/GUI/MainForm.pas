@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Point, Vcl.StdCtrls,
   Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  PointsManagement2;
+  PointsManagement;
 
 type
   TForm1 = class(TForm)

@@ -130,7 +130,7 @@
             <Form>Form1</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="PointsManagement2.pas">
+        <DCCReference Include="PointsManagement.pas">
             <Form>Form3</Form>
         </DCCReference>
         <DCCReference Include="StringGridValidationUtils.pas">

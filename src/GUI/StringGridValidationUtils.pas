@@ -22,14 +22,27 @@ begin
   end;
 end;
 
+//procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
+//var
+//  DecSeparator: Char;
+//begin
+//  DecSeparator := FormatSettings.DecimalSeparator;
+//
+//  // Povolit pouze èíslice, mínus, desetinný oddìlovaè a backspace pro sloupce X, Y, Z
+//  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\-#8#13' + DecSeparator + ']') then
+//  begin
+//    Key := #0; // Zrušení neplatných znakù
+//  end;
+//end;
+
 procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
 var
   DecSeparator: Char;
 begin
   DecSeparator := FormatSettings.DecimalSeparator;
 
-  // Povolit pouze èíslice, mínus, desetinný oddìlovaè a backspace pro sloupce X, Y, Z
-  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\-#8#13' + DecSeparator + ']') then
+  // Povolit èíslice, mínus, plus, desetinný oddìlovaè, závorky, backspace a enter pro sloupce X, Y, Z
+  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\-\+\(\)' + DecSeparator + '#8#13]') then
   begin
     Key := #0; // Zrušení neplatných znakù
   end;

@@ -34,10 +34,6 @@ object Form1: TForm1
         Caption = 'Otev'#345#237't seznam 2'
         OnClick = Open2Click
       end
-      object Open3: TMenuItem
-        Caption = 'Otev'#345#237't seznam 3'
-        OnClick = Open3Click
-      end
       object Vytvoitseznam1: TMenuItem
         Caption = 'Vytvo'#345'it seznam'
       end

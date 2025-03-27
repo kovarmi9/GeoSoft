@@ -18,7 +18,6 @@ type
     Vytvoitseznam1: TMenuItem;
     Vypocty: TMenuItem;
     Open2: TMenuItem;
-    Open3: TMenuItem;
     procedure Open1Click(Sender: TObject);
     procedure Open2Click(Sender: TObject);
     procedure Open3Click(Sender: TObject);

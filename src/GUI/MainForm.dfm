@@ -26,12 +26,8 @@ object Form1: TForm1
     Top = 192
     object N1: TMenuItem
       Caption = 'Soubor'
-      object Open1: TMenuItem
-        Caption = 'Otev'#345#237't seznam'
-        OnClick = Open1Click
-      end
       object Open2: TMenuItem
-        Caption = 'Otev'#345#237't seznam 2'
+        Caption = 'Otev'#345#237't seznam'
         OnClick = Open2Click
       end
       object Vytvoitseznam1: TMenuItem

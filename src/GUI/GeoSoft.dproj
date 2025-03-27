@@ -130,10 +130,6 @@
             <Form>Form1</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="PointsManagement.pas">
-            <Form>Form2</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
         <DCCReference Include="PointsManagement2.pas">
             <Form>Form3</Form>
         </DCCReference>

@@ -42,7 +42,7 @@ begin
   DecSeparator := FormatSettings.DecimalSeparator;
 
   // Povolit èíslice, mínus, plus, desetinný oddìlovaè, závorky, backspace a enter pro sloupce X, Y, Z
-  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\-\+\(\)' + DecSeparator + '#8#13]') then
+  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\+\-\*\/\(\)' + DecSeparator + '#8#13]') then
   begin
     Key := #0; // Zrušení neplatných znakù
   end;
@@ -50,12 +50,16 @@ end;
 
 procedure ValidateQualityCode(Grid: TStringGrid; var Key: Char);
 begin
-  // Povolení pouze èíslic 0–8 a klávesy Backspace, Enter
+  // Povolení pouze èíslic 0–8 a kláves Backspace, Enter, Delete, šipky
   if (Grid.Col = 4) and not TRegEx.IsMatch(Key, '^[0-8]$|^#8$|^#13$|^#46$|^#37$|^#38$|^#39$|^#40$') then
   begin
     Key := #0;
     Exit;
   end;
+
+  // Kontrola délky: pokud už je znak zadaný a není to mazání, zamezíme dalšímu zadání
+  if (Grid.Col = 4) and (Length(Grid.Cells[Grid.Col, Grid.Row]) >= 1) and (Key in ['0'..'8']) then
+    Key := #0;
 end;
 
 procedure HandleBackspace(Grid: TStringGrid; var Key: Char);

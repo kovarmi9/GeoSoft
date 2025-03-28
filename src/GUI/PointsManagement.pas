@@ -14,7 +14,6 @@ type
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); // Procedura pro zpracování stisknutí klávesy
   private
-    function EvaluateExpression(const Expr: string): Double;
     { Private declarations }
   public
     { Public declarations }
@@ -59,12 +58,6 @@ end;
 
 procedure TForm3.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
-
-  if Key = '.' then
-    Key := FormatSettings.DecimalSeparator  // Přepíše tečku na systémový oddělovač (čárku, pokud je v systému)
-  else if Key = ',' then
-    Key := FormatSettings.DecimalSeparator; // Přepíše čárku na systémový oddělovač (tečku, pokud je v systému)
-
   HandleBackspace(StringGrid1, Key);
   ValidatePointNumber(StringGrid1, Key);
   ValidateCoordinates(StringGrid1, Key);
@@ -113,25 +106,6 @@ begin
   else if Key = VK_DELETE then
   begin
     StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Mazání obsahu buněk
-  end;
-end;
-
-function TForm3.EvaluateExpression(const Expr: string): Double;
-var
-  ScriptEngine: OleVariant;
-  FixedExpr: string;
-begin
-  try
-    FixedExpr := StringReplace(Expr, ',', '.', [rfReplaceAll]); // Nahradí čárky za tečky
-    ScriptEngine := CreateOleObject('MSScriptControl.ScriptControl');
-    ScriptEngine.Language := 'VBScript';
-    Result := ScriptEngine.Eval(FixedExpr);
-  except
-    on E: Exception do
-    begin
-      ShowMessage('Chyba při vyhodnocování výrazu: ' + E.Message);
-      Result := 0;
-    end;
   end;
 end;
 

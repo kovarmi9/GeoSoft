@@ -3,12 +3,14 @@ unit StringGridValidationUtils;
 interface
 
 uses
-  Vcl.Grids, System.RegularExpressions, System.SysUtils;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, System.RegularExpressions, System.Math, ComObj;
 
 procedure ValidatePointNumber(Grid: TStringGrid; var Key: Char);
 procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
 procedure ValidateQualityCode(Grid: TStringGrid; var Key: Char);
 procedure HandleBackspace(Grid: TStringGrid; var Key: Char);
+function EvaluateExpression(const Expr: string): Double;
 
 implementation
 
@@ -22,24 +24,16 @@ begin
   end;
 end;
 
-//procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
-//var
-//  DecSeparator: Char;
-//begin
-//  DecSeparator := FormatSettings.DecimalSeparator;
-//
-//  // Povolit pouze èíslice, mínus, desetinný oddìlovaè a backspace pro sloupce X, Y, Z
-//  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\-#8#13' + DecSeparator + ']') then
-//  begin
-//    Key := #0; // Zrušení neplatných znakù
-//  end;
-//end;
-
 procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
 var
   DecSeparator: Char;
 begin
   DecSeparator := FormatSettings.DecimalSeparator;
+
+  if Key = '.' then
+    Key := FormatSettings.DecimalSeparator  // Pøepíše teèku na systémový oddìlovaè (èárku, pokud je v systému)
+  else if Key = ',' then
+    Key := FormatSettings.DecimalSeparator; // Pøepíše èárku na systémový oddìlovaè (teèku, pokud je v systému)
 
   // Povolit èíslice, mínus, plus, desetinný oddìlovaè, závorky, backspace a enter pro sloupce X, Y, Z
   if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\+\-\*\/\(\)' + DecSeparator + '#8#13]') then
@@ -69,6 +63,25 @@ begin
     // Odstranìní posledního znaku v aktuální buòce
     Grid.Cells[Grid.Col, Grid.Row] := Copy(Grid.Cells[Grid.Col, Grid.Row], 1, Length(Grid.Cells[Grid.Col, Grid.Row]) - 1);
     Key := #0; // Zamezení dalšímu zpracování klávesy
+  end;
+end;
+
+function EvaluateExpression(const Expr: string): Double;
+var
+  ScriptEngine: OleVariant;
+  FixedExpr: string;
+begin
+  try
+    FixedExpr := StringReplace(Expr, ',', '.', [rfReplaceAll]); // Nahradí èárky za teèky
+    ScriptEngine := CreateOleObject('MSScriptControl.ScriptControl');
+    ScriptEngine.Language := 'VBScript';
+    Result := ScriptEngine.Eval(FixedExpr);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('Chyba pøi vyhodnocování výrazu: ' + E.Message);
+      Result := 0;
+    end;
   end;
 end;
 

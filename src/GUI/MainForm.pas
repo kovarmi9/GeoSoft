@@ -17,7 +17,9 @@ type
     Vytvoitseznam1: TMenuItem;
     Vypocty: TMenuItem;
     Open2: TMenuItem;
+    Polrnmetoda1: TMenuItem;
     procedure Open2Click(Sender: TObject);
+    procedure Polrnmetoda1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -31,9 +33,16 @@ implementation
 
 {$R *.dfm}
 
+uses polarMethod;
+
 procedure TForm1.Open2Click(Sender: TObject);
 begin
 Form3.Show;
+end;
+
+procedure TForm1.Polrnmetoda1Click(Sender: TObject);
+begin
+Form2.Show;
 end;
 
 end.

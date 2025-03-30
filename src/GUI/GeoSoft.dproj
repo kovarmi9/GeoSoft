@@ -133,6 +133,9 @@
         <DCCReference Include="PointsManagement.pas">
             <Form>Form3</Form>
         </DCCReference>
+        <DCCReference Include="PolarMethod.pas">
+            <Form>Form2</Form>
+        </DCCReference>
         <DCCReference Include="StringGridValidationUtils.pas">
             <Form>$R *.res</Form>
         </DCCReference>

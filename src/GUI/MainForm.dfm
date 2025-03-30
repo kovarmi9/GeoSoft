@@ -36,6 +36,10 @@ object Form1: TForm1
     end
     object Vypocty: TMenuItem
       Caption = 'V'#253'po'#269'ty'
+      object Polrnmetoda1: TMenuItem
+        Caption = 'Pol'#225'rn'#237' metoda'
+        OnClick = Polrnmetoda1Click
+      end
     end
   end
 end

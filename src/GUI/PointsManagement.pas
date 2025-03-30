@@ -440,7 +440,7 @@ begin
         if TPointDictionary.GetInstance.PointExists(PointNumber) then
         begin
           NewPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
-          ShowMessage(Format('Bod %d byl úspěšně vložen: X=%.2f, Y=%.2f, Z=%.2f, Kvalita=%d, Popis=%s',
+          ShowMessage(Format('Bod %d byl vložen do ss: X=%.2f, Y=%.2f, Z=%.2f, Kvalita=%d, Popis=%s',
             [NewPoint.PointNumber, NewPoint.X, NewPoint.Y, NewPoint.Z, NewPoint.Quality, NewPoint.Description]));
         end
         else

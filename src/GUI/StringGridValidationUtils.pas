@@ -31,9 +31,9 @@ begin
   DecSeparator := FormatSettings.DecimalSeparator;
 
   if Key = '.' then
-    Key := FormatSettings.DecimalSeparator  // Pøepíše teèku na systémový oddìlovaè (èárku, pokud je v systému)
+    Key := FormatSettings.DecimalSeparator  // Pøepíše teèku na systémový oddìlovaè (èárku, pokud je nastavená v systému)
   else if Key = ',' then
-    Key := FormatSettings.DecimalSeparator; // Pøepíše èárku na systémový oddìlovaè (teèku, pokud je v systému)
+    Key := FormatSettings.DecimalSeparator; // Pøepíše èárku na systémový oddìlovaè (teèku, pokud je nastavená v systému)
 
   // Povolit èíslice, mínus, plus, desetinný oddìlovaè, závorky, backspace a enter pro sloupce X, Y, Z
   if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\+\-\*\/\(\)' + DecSeparator + '#8#13]') then

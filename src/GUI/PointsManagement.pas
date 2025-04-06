@@ -92,7 +92,7 @@ var
   Description: string;
   NewPoint: TPoint;
 begin
-  if Key = VK_RETURN then
+  if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
     Key := 0; // Zamezí dalšímu zpracování Enteru
 

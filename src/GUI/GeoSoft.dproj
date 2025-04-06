@@ -131,10 +131,13 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="PointsManagement.pas">
-            <Form>Form3</Form>
+            <Form>Form2</Form>
         </DCCReference>
         <DCCReference Include="PolarMethod.pas">
-            <Form>Form2</Form>
+            <Form>Form3</Form>
+        </DCCReference>
+        <DCCReference Include="OrthogonalMethod.pas">
+            <Form>Form4</Form>
         </DCCReference>
         <DCCReference Include="StringGridValidationUtils.pas">
             <Form>$R *.res</Form>

@@ -1,7 +1,7 @@
-object Form3: TForm3
+object Form2: TForm2
   Left = 0
   Top = 0
-  Caption = 'Points management'
+  Caption = 'Seznam sou'#345'adnic'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace

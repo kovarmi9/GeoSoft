@@ -21,6 +21,7 @@ type
     Ortogonlnmetoda1: TMenuItem;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
+    procedure Ortogonlnmetoda1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -34,16 +35,21 @@ implementation
 
 {$R *.dfm}
 
-uses polarMethod;
+uses polarMethod, OrthogonalMethod;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
-Form3.Show;
+Form2.Show;
 end;
 
 procedure TForm1.Polrnmetoda1Click(Sender: TObject);
 begin
-Form2.Show;
+Form3.Show;
+end;
+
+procedure TForm1.Ortogonlnmetoda1Click(Sender: TObject);
+begin
+Form4.Show;
 end;
 
 end.

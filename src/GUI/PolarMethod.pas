@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, PointsUtilsSingleton, Point;
 
 type
-  TForm2 = class(TForm)
+  TForm3 = class(TForm)
     StringGrid1: TStringGrid;
     procedure FormCreate(Sender: TObject);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -18,18 +18,18 @@ type
   end;
 
 var
-  Form2: TForm2;
+  Form3: TForm3;
 
 implementation
 
 {$R *.dfm}
 
-procedure TForm2.FormCreate(Sender: TObject);
+procedure TForm3.FormCreate(Sender: TObject);
 begin
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
 end;
 
-procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
   Point: TPoint;

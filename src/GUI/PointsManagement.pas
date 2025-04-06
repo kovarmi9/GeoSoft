@@ -8,7 +8,7 @@ uses
   StringGridValidationUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point;// in '..\Utils\ValidationUtils.pas';
 
 type
-  TForm3 = class(TForm)
+  TForm2 = class(TForm)
     StringGrid1: TStringGrid;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -28,7 +28,7 @@ type
   end;
 
 var
-  Form3: TForm3;
+  Form2: TForm2;
   PointDict: TPointDictionary;
   Point: TPoint;
 
@@ -36,12 +36,12 @@ implementation
 
 {$R *.dfm}
 
-procedure TForm3.File2Click(Sender: TObject);
+procedure TForm2.File2Click(Sender: TObject);
 begin
   // otevřít
 end;
 
-procedure TForm3.FormCreate(Sender: TObject); // Změněno z TForm2 na TForm3
+procedure TForm2.FormCreate(Sender: TObject); // Změněno z TForm2 na TForm3
 begin
   // Nastavení sloupců a řádků pro StringGrid1 (tabulka pro zadávání souřadnic)
   StringGrid1.ColCount := 6; // Počet sloupců: Číslo bodu, X, Y, Z, Popis
@@ -71,7 +71,7 @@ begin
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
 end;
 
-procedure TForm3.StringGrid1KeyPress(Sender: TObject; var Key: Char);
+procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
   HandleBackspace(StringGrid1, Key);
   ValidatePointNumber(StringGrid1, Key);
@@ -79,12 +79,12 @@ begin
   ValidateQualityCode(StringGrid1, Key);
 end;
 
-procedure TForm3.SaveAs1Click(Sender: TObject);
+procedure TForm2.SaveAs1Click(Sender: TObject);
 begin
   // uložit
 end;
 
-procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
   X, Y, Z: Double;

@@ -1,7 +1,7 @@
-object Form2: TForm2
+object Form3: TForm3
   Left = 0
   Top = 0
-  Caption = 'Form2'
+  Caption = 'Pol'#225'rn'#237' metoda'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace

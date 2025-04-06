@@ -8,7 +8,7 @@ uses
   StringGridValidationUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point;// in '..\Utils\ValidationUtils.pas';
 
 type
-  TForm3 = class(TForm) // Změněno z TForm2 na TForm3
+  TForm3 = class(TForm)
     StringGrid1: TStringGrid;
     MainMenu1: TMainMenu;
     File1: TMenuItem;

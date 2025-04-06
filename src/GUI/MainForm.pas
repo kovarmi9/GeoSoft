@@ -18,6 +18,7 @@ type
     Vypocty: TMenuItem;
     Open2: TMenuItem;
     Polrnmetoda1: TMenuItem;
+    Ortogonlnmetoda1: TMenuItem;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
   private

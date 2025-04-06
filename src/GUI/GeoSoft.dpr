@@ -6,7 +6,9 @@ uses
   PointsManagement in 'PointsManagement.pas' {Form2},
   PolarMethod in 'PolarMethod.pas' {Form3},
   OrthogonalMethod in 'OrthogonalMethod.pas' {Form4},
-  StringGridValidationUtils in 'StringGridValidationUtils.pas' {$R *.res};
+  StringGridValidationUtils in 'StringGridValidationUtils.pas' {$R *.res},
+  GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
+  GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas';
 
 {$R *.res}
 

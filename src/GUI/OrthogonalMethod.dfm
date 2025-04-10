@@ -11,6 +11,7 @@ object Form4: TForm4
   Font.Name = 'Segoe UI'
   Font.Style = []
   OnCreate = FormCreate
+  OnKeyDown = StringGrid1KeyDown
   TextHeight = 15
   object StringGrid1: TStringGrid
     Left = 80
@@ -18,8 +19,8 @@ object Form4: TForm4
     Width = 465
     Height = 145
     ColCount = 6
+    RowCount = 4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 0
-    OnClick = StringGrid1Click
   end
 end

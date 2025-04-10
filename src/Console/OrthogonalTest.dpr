@@ -24,47 +24,33 @@ begin
 
     // K – koncový bod mìøické pøímky
     K.PointNumber := 5200;
-    K.X := 48.75;
-    K.Y := 0;
+    K.X := 6;
+    K.Y := 6;
     K.Z := 0.0;
     K.Quality := 1;
     K.Description := 'K';
 
     // Nastavení základních bodù u algoritmu
-    TOrthogonalMethodAlgorithm.BasePoint := P;
+    TOrthogonalMethodAlgorithm.StartPoint := P;
     TOrthogonalMethodAlgorithm.EndPoint := K;
     // Mìøítko zkreslení
     TAlgorithm.Scale := 1.0;
 
-    SetLength(DetailPoints, 4);
+    SetLength(DetailPoints, 2);
 
-    DetailPoints[0].PointNumber := 17;
-    DetailPoints[0].X := -3.54;  // stanièení
-    DetailPoints[0].Y := 2.18;   // kolmice
+    DetailPoints[0].PointNumber := 1;
+    DetailPoints[0].X := 4.242640687;  // stanièení
+    DetailPoints[0].Y := 0;   // kolmice
     DetailPoints[0].Z := 0.0;
     DetailPoints[0].Quality := 0;
     DetailPoints[0].Description := 'bod 1';
 
-    DetailPoints[1].PointNumber := 18;
-    DetailPoints[1].X := 5.14;
-    DetailPoints[1].Y := -2.35;
+    DetailPoints[1].PointNumber := 2;
+    DetailPoints[1].X := 4.242640687;
+    DetailPoints[1].Y := 4.242640687;
     DetailPoints[1].Z := 0.0;
     DetailPoints[1].Quality := 0;
     DetailPoints[1].Description := 'bod 2';
-
-    DetailPoints[2].PointNumber := 19;
-    DetailPoints[2].X := 12.37;
-    DetailPoints[2].Y := -1.15;
-    DetailPoints[2].Z := 0.0;
-    DetailPoints[2].Quality := 0;
-    DetailPoints[2].Description := 'bod 3';
-
-    DetailPoints[3].PointNumber := 20;
-    DetailPoints[3].X := 15.50;
-    DetailPoints[3].Y := -2.78;
-    DetailPoints[3].Z := 0.0;
-    DetailPoints[3].Quality := 0;
-    DetailPoints[3].Description := 'bod 4';
 
     ResultPoints := TOrthogonalMethodAlgorithm.Calculate(DetailPoints);
 

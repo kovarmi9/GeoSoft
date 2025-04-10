@@ -8,9 +8,9 @@ uses
 type
   TOrthogonalMethodAlgorithm = class(TAlgorithm)
   private
-    class var FBasePoint, FEndPoint: TPoint;
+    class var FStartPoint, FEndPoint: TPoint;
   public
-    class property BasePoint: TPoint read FBasePoint write FBasePoint;
+    class property StartPoint: TPoint read FStartPoint write FStartPoint;
     class property EndPoint: TPoint read FEndPoint write FEndPoint;
     class function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
   end;
@@ -24,13 +24,11 @@ var
   measuredS, measuredK: Double;
 begin
   // Vektor od BasePoint k EndPoint
-  dX := FEndPoint.X - FBasePoint.X;
-  dY := FEndPoint.Y - FBasePoint.Y;
+  dX := FEndPoint.X - FStartPoint.X;
+  dY := FEndPoint.Y - FStartPoint.Y;
   d := Sqrt(Sqr(dX) + Sqr(dY));
-  if d = 0 then
-    raise Exception.Create('BasePoint and EndPoint are identical.');
 
-  // Jednotkový vektor ve smìru mìøické pøímky
+  // Jednotkový vektor v (ve smìru mìøické pøímky)
   ux := dX / d;
   uy := dY / d;
   // Kolmý vektor
@@ -44,8 +42,8 @@ begin
     measuredS := InputPoints[i].X;
     measuredK := InputPoints[i].Y;
 
-    Result[i].X := FBasePoint.X + Scale * (measuredS * ux + measuredK * vx);
-    Result[i].Y := FBasePoint.Y + Scale * (measuredS * uy + measuredK * vy);
+    Result[i].X := FStartPoint.X + Scale * (measuredS * ux + measuredK * vx);
+    Result[i].Y := FStartPoint.Y + Scale * (measuredS * uy + measuredK * vy);
     Result[i].PointNumber := InputPoints[i].PointNumber;
     Result[i].Z := InputPoints[i].Z;
     Result[i].Quality := InputPoints[i].Quality;

@@ -76,7 +76,7 @@ begin
       StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(Pt.X);
       StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(Pt.Y);
     end
-    else if (StringGrid1.Row = 0) or (StringGrid1.Row = 1) then
+    else if (StringGrid1.Row = 1) or (StringGrid1.Row = 2) then
       ShowMessage(Format('Bod %d nebyl nalezen.', [PointNumber]));
 
     // Logika navigování

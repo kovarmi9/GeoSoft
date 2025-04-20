@@ -5,13 +5,25 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
-  PointsUtilsSingleton, Point, GeoAlgorithmBase;
+  PointsUtilsSingleton, Point, GeoAlgorithmBase, Vcl.StdCtrls, Vcl.ActnMan,
+  Vcl.ActnCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.ExtCtrls;
 
 type
   TForm4 = class(TForm)
     StringGrid1: TStringGrid;
+    ToolBar1: TToolBar;
+    ToolBar2: TToolBar;
+    ComboBox1: TComboBox;
+    ComboBox2: TComboBox;
+    ComboBox3: TComboBox;
+    ToolButton3: TToolButton;
+    ToolButton2: TToolButton;
+    Panel1: TPanel;
+    StatusBar1: TStatusBar;
     procedure FormCreate(Sender: TObject); // Inicializace formuláøe a nastavení gridu
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+    procedure UpdateCurrentDirectoryPath;
   private
     { Private declarations }
   public
@@ -50,6 +62,36 @@ begin
 
   // Pøiøazení události pro stisk klávesy (Enter, Delete apod.)
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
+
+  // Pøiøazení události pro vykreslení fixních bunìk
+  StringGrid1.OnDrawCell := StringGrid1DrawCell;
+
+  // Zobraz aktuální adresáø ve stavovém øádku
+  UpdateCurrentDirectoryPath;
+end;
+
+procedure TForm4.UpdateCurrentDirectoryPath;
+begin
+  if StatusBar1.Panels.Count > 0 then
+    StatusBar1.Panels[0].Text := GetCurrentDir;
+end;
+
+procedure TForm4.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+  Rect: TRect; State: TGridDrawState);
+begin
+  with StringGrid1.Canvas do
+  begin
+    // Pokud je buòka "fixed" (záhlaví), nastavíme šedé pozadí
+    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
+      Brush.Color := clMenuBar
+    else
+      Brush.Color := clWhite;
+
+    FillRect(Rect);
+
+    // Zobrazíme text v buòce
+    TextRect(Rect, Rect.Left + 4, Rect.Top + 2, StringGrid1.Cells[ACol, ARow]);
+  end;
 end;
 
 procedure TForm4.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

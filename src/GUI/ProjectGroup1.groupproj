@@ -1,12 +1,12 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{B76A1879-C5B3-405D-BD02-68036791C2AB}</ProjectGuid>
+        <ProjectGuid>{EB4C840A-A993-4C21-958D-29F42A3CC74D}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="..\Console\OrthogonalTest.dproj">
+        <Projects Include="GeoSoft.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="GeoSoft.dproj">
+        <Projects Include="C:\Users\kovar\Desktop\oblouk_delphi_opravy_vypoctu\oblouk_delphi_opravy_vypoctu.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -17,15 +17,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="OrthogonalTest">
-        <MSBuild Projects="..\Console\OrthogonalTest.dproj"/>
-    </Target>
-    <Target Name="OrthogonalTest:Clean">
-        <MSBuild Projects="..\Console\OrthogonalTest.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="OrthogonalTest:Make">
-        <MSBuild Projects="..\Console\OrthogonalTest.dproj" Targets="Make"/>
-    </Target>
     <Target Name="GeoSoft">
         <MSBuild Projects="GeoSoft.dproj"/>
     </Target>
@@ -35,14 +26,23 @@
     <Target Name="GeoSoft:Make">
         <MSBuild Projects="GeoSoft.dproj" Targets="Make"/>
     </Target>
+    <Target Name="oblouk_delphi_opravy_vypoctu">
+        <MSBuild Projects="C:\Users\kovar\Desktop\oblouk_delphi_opravy_vypoctu\oblouk_delphi_opravy_vypoctu.dproj"/>
+    </Target>
+    <Target Name="oblouk_delphi_opravy_vypoctu:Clean">
+        <MSBuild Projects="C:\Users\kovar\Desktop\oblouk_delphi_opravy_vypoctu\oblouk_delphi_opravy_vypoctu.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="oblouk_delphi_opravy_vypoctu:Make">
+        <MSBuild Projects="C:\Users\kovar\Desktop\oblouk_delphi_opravy_vypoctu\oblouk_delphi_opravy_vypoctu.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="OrthogonalTest;GeoSoft"/>
+        <CallTarget Targets="GeoSoft;oblouk_delphi_opravy_vypoctu"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="OrthogonalTest:Clean;GeoSoft:Clean"/>
+        <CallTarget Targets="GeoSoft:Clean;oblouk_delphi_opravy_vypoctu:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="OrthogonalTest:Make;GeoSoft:Make"/>
+        <CallTarget Targets="GeoSoft:Make;oblouk_delphi_opravy_vypoctu:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -54,7 +54,7 @@ begin
 
     ResultPoints := TOrthogonalMethodAlgorithm.Calculate(DetailPoints);
 
-    Writeln('Výsledné souøadnice detailních bodù:');
+    Writeln('Výsledné souøadnice podrobných bodù:');
     for i := 0 to High(ResultPoints) do
     begin
       Writeln(Format('Bod %d: X = %.3f, Y = %.3f, Z = %.3f, Popis: %s',

@@ -6,56 +6,76 @@ uses
   System.SysUtils, Math, GeoAlgorithmBase, Point;
 
 type
+  // Záznam pro jeden orientační bod a měřený směr na něj
+  TOrientation = record
+    B: TPoint;       // orientační bod
+    psi_B: Double;   // měřený směr na bod B [gon]
+  end;
+
+  TOrientations = array of TOrientation;
+
   TPolarMethodAlgorithm = class(TAlgorithm)
   private
     class var
-      FPoint_A, FPoint_B: TPoint;
-      Fpsi_B: Double; // měřený směr na orientační bod B v gonech
+      FA: TPoint;               // stanovisko A
+      FB: TOrientations;        // orientační body B
   public
-    class property StationPoint: TPoint read FPoint_A write FPoint_A; // A
-    class property OrientationPoint: TPoint read FPoint_B write FPoint_B; // B
-    class property MeasuredDirection_Orientation: Double read Fpsi_B write Fpsi_B; // ψ_B [gon]
+    // Veřejné vlastnosti pro přístup ke stanovisku a orientačním bodům
+    class property A: TPoint read FA write FA;
+    class property B: TOrientations read FB write FB;
 
-    class function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
+    // Hlavní výpočetní funkce – vrací pole vypočtených bodů
+    class function Calculate(const Body: TPointsArray): TPointsArray; override;
   end;
 
 implementation
 
-class function TPolarMethodAlgorithm.Calculate(const InputPoints: TPointsArray): TPointsArray;
+class function TPolarMethodAlgorithm.Calculate(const Body: TPointsArray): TPointsArray;
 var
-  sigma_AB, psi_B_rad, delta, sigma_AP, psi_P_rad, X, Y: Double;
-  i: Integer;
-  d: Double;
+  i, j: Integer;
+  d, psi, sigma_AP, sigma_AB, delta, psi_B_rad, sum_delta: Double;
+  X, Y: Double;
+  n: Integer;
 begin
-  // Výpočet směrníku mezi A a B (σ_AB), v radiánech
-  sigma_AB := arctan2(FPoint_B.Y - FPoint_A.Y, FPoint_B.X - FPoint_A.X);
+  // Výpočet průměrného orientačního posunu Δ
+  n := Length(FB);
+  if n = 0 then
+    raise Exception.Create('Nejsou zadány orientační body.');
 
-  // Měřený směr ψ_B převedený na radiány
-  psi_B_rad := Fpsi_B * Pi / 200;
-
-  // Výpočet orientačního posunu: Δ = σ_AB - ψ_B
-  delta := sigma_AB - psi_B_rad;
-
-  SetLength(Result, Length(InputPoints));
-  for i := 0 to High(InputPoints) do
+  sum_delta := 0;
+  for i := 0 to n - 1 do
   begin
-    d := InputPoints[i].Y; // délka
-    psi_P_rad := InputPoints[i].X * Pi / 200; // ψ_P
+    // výpočet směrníku σ_AB mezi A a Bᵢ
+    sigma_AB := arctan2(FB[i].B.Y - FA.Y,
+                        FB[i].B.X - FA.X);
+    // převedení měřeného směru ψ_Bᵢ na radiány
+    psi_B_rad := FB[i].psi_B * Pi / 200;
 
-    // Výpočet směrníku na podrobný bod: σ_AP = Δ + ψ_P
-    sigma_AP := delta + psi_P_rad;
+    // rozdíl mezi skutečným směrem a měřeným směrem = orientační posun
+    sum_delta := sum_delta + (sigma_AB - psi_B_rad);
+  end;
 
-    // Výpočet souřadnic
-    X := FPoint_A.X + d * cos(sigma_AP);
-    Y := FPoint_A.Y + d * sin(sigma_AP);
+  delta := sum_delta / n; // průměrný orientační posun
 
-    // Výstupní bod
-    Result[i].X := X;
-    Result[i].Y := Y;
-    Result[i].Z := InputPoints[i].Z;
-    Result[i].PointNumber := InputPoints[i].PointNumber;
-    Result[i].Quality := InputPoints[i].Quality;
-    Result[i].Description := InputPoints[i].Description;
+  // Výpočet podrobných bodů s tímto Δ
+  SetLength(Result, Length(Body));
+  for j := 0 to High(Body) do
+  begin
+    d := Body[j].Y;                  // měřená délka
+    psi := Body[j].X * Pi / 200;    // měřený směr ψ_P převedený na radiány
+    sigma_AP := delta + psi;        // směrník na určovaný bod
+
+    // výpočet souřadnic podrobného bodu
+    X := FA.X + d * cos(sigma_AP);
+    Y := FA.Y + d * sin(sigma_AP);
+
+    // uložení do výstupního pole
+    Result[j].X := X;
+    Result[j].Y := Y;
+    Result[j].Z := Body[j].Z;
+    Result[j].PointNumber := Body[j].PointNumber;
+    Result[j].Quality := Body[j].Quality;
+    Result[j].Description := Body[j].Description;
   end;
 end;
 

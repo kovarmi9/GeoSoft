@@ -18,6 +18,9 @@ type
     FStation: TPoint;
     FOrientations: TOrientations;
   public
+    constructor Create; overload;
+    constructor Create(const AStation: TPoint; const AOrientations: TOrientations); overload;
+
     property Station: TPoint read FStation write FStation;
     property Orientations: TOrientations read FOrientations write FOrientations;
 
@@ -25,6 +28,18 @@ type
   end;
 
 implementation
+
+constructor TPolarMethodAlgorithm.Create;
+begin
+  inherited Create;
+end;
+
+constructor TPolarMethodAlgorithm.Create(const AStation: TPoint; const AOrientations: TOrientations);
+begin
+  inherited Create;
+  FStation := AStation;
+  FOrientations := AOrientations;
+end;
 
 function TPolarMethodAlgorithm.Calculate(const Body: TPointsArray): TPointsArray;
 var

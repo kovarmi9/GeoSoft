@@ -8,7 +8,7 @@ uses
   System.SysUtils,
   Point,
   PointsUtils,
-  ValidationUtils;// in '..\Utils\ValidationUtils.pas';
+  ValidationUtils;
 
 var
   PointDict: TPointDictionary;

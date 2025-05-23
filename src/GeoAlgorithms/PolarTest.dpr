@@ -6,10 +6,11 @@ uses
   SysUtils,
   GeoAlgorithmBase,
   GeoAlgorithmPolar in '..\GeoAlgorithmPolar.pas',
-  Point;
+  Point,
+  GeoAlgorithmOrthogonal in 'GeoAlgorithmOrthogonal.pas';
 
 var
-  M: TPointsArray; // měřená data: X = úhel (psi), Y = délka
+  M: TPointsArray; // měřená data: X = směr, Y = délka
   R: TPointsArray; // výsledky
   StationPoint, OrientationPoint: TPoint;
   Orientace: TOrientations;
@@ -17,7 +18,7 @@ var
   i: Integer;
 begin
   try
-    // Vytvoření stanoviště (Station)
+    // Nastavení stanoviště
     StationPoint.PointNumber := 1000;
     StationPoint.X := 0.0;
     StationPoint.Y := 0.0;
@@ -25,7 +26,7 @@ begin
     StationPoint.Description := 'Stanovisko A';
     StationPoint.Quality := 1;
 
-    // Vytvoření jednoho orientačního bodu (B)
+    // Nastavení orientačního bodu (B)
     SetLength(Orientace, 1);
     OrientationPoint.PointNumber := 1001;
     OrientationPoint.X := 10.0;
@@ -37,26 +38,21 @@ begin
     Orientace[0].B := OrientationPoint;
     Orientace[0].psi_B := 50.0; // měřený směr na bod B v gonech
 
-    // Vytvoření instance algoritmu
-    Alg := TPolarMethodAlgorithm.Create;
+    // Vytvoření instance algoritmu s využitím přetíženého konstruktoru
+    Alg := TPolarMethodAlgorithm.Create(StationPoint, Orientace);
     try
-      Alg.Station := StationPoint;
-      Alg.Orientations := Orientace;
-
       // Vstupní měřená data
       SetLength(M, 2);
 
-      // Bod 1 – vzdálenost 10 m, úhel 50 gon
       M[0].PointNumber := 2001;
-      M[0].X := 50.0; // ψ na bod 1 [gon]
-      M[0].Y := 10.0; // délka
+      M[0].X := 50.0;  // směr na bod 1 [gon]
+      M[0].Y := 10.0;  // délka
       M[0].Z := 0.0;
       M[0].Description := 'bod 1';
       M[0].Quality := 0;
 
-      // Bod 2 – vzdálenost 10 m, úhel 100 gon
       M[1].PointNumber := 2002;
-      M[1].X := 100.0; // ψ na bod 2 [gon]
+      M[1].X := 100.0; // směr na bod 2 [gon]
       M[1].Y := 10.0;
       M[1].Z := 0.0;
       M[1].Description := 'bod 2';
@@ -65,7 +61,7 @@ begin
       // Výpočet
       R := Alg.Calculate(M);
 
-      // Výpis výsledků
+      // Výstup
       Writeln('Výsledné souřadnice podrobných bodů:');
       for i := 0 to High(R) do
       begin
@@ -78,7 +74,7 @@ begin
     end;
 
     Readln;
-  except
+    except
     on E: Exception do
       Writeln(E.ClassName, ': ', E.Message);
   end;

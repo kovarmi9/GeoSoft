@@ -1,4 +1,4 @@
-﻿unit GeoAlgorithmTransformSimilarity;
+unit GeoAlgorithmTransformCongruent;
 
 interface
 
@@ -6,8 +6,8 @@ uses
   Math, SysUtils, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase;
 
 type
-  TSimilarityTransformation = class(TTransformationAlgorithm)
-  private
+  TCongruentTransformation = class(TTransformationAlgorithm)
+private
     FLambda1, FLambda2: Double;
     FOmega, FQ: Double;
     FX0, FY0: Double;
@@ -25,7 +25,7 @@ type
 
 implementation
 
-procedure TSimilarityTransformation.ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray);
+procedure TCongruentTransformation.ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray);
 var
   i, n: Integer;
   SumYL, SumXL, SumYG, SumXG: Double;
@@ -72,26 +72,29 @@ begin
 
   //Parameters of transformation
   FOmega := ArcTan2(FLambda2, FLambda1);
-  FQ := Sqrt(Sqr(FLambda1) + Sqr(FLambda2));
-  FX0 := CentroidXG - FLambda1 * CentroidXL + FLambda2 * CentroidYL;
-  FY0 := CentroidYG - FLambda1 * CentroidYL - FLambda2 * CentroidXL;
+  FQ := 1;
+  FX0 := CentroidXG - Cos(FOmega) * CentroidXL + Sin(FOmega) * CentroidYL;
+  FY0 := CentroidYG - Sin(FOmega) * CentroidXL - Cos(FOmega) * CentroidYL;
 end;
 
-function TSimilarityTransformation.Calculate(const InputPoints: TPointsArray): TPointsArray;
+function TCongruentTransformation.Calculate(const InputPoints: TPointsArray): TPointsArray;
 var
   i: Integer;
   x, y: Double;
+  CosOmega, SinOmega: Double;
 begin
   SetLength(Result, Length(InputPoints));
+
   for i := 0 to High(InputPoints) do
   begin
     x := InputPoints[i].X;
     y := InputPoints[i].Y;
 
     Result[i] := InputPoints[i];
-    Result[i].X := FX0 + FLambda1 * x - FLambda2 * y;
-    Result[i].Y := FY0 + FLambda2 * x + FLambda1 * y;
+    Result[i].X := FX0 + Cos(FOmega) * x - Sin(FOmega) * y;
+    Result[i].Y := FY0 + Sin(FOmega) * x + Cos(FOmega) * y;
   end;
 end;
 
 end.
+

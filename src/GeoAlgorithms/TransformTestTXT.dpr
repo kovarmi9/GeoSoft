@@ -10,7 +10,9 @@ uses
   GeoAlgorithmBase,
   GeoAlgorithmTransformBase,
   GeoAlgorithmTransformSimilarity,
-  System.Generics.Collections;
+  System.Generics.Collections,
+  GeoAlgorithmTransformCongruent,
+  GeoAlgorithmTransformAffine;
 
 function ConvertDictToArray(Dict: TPointDictionary): TPointsArray;
 var
@@ -37,6 +39,8 @@ var
   LocalDict, GlobalDict, DetailDict: TPointDictionary;
   LocalPoints, GlobalPoints, DetailPoints, ResultPoints: TPointsArray;
   Transform: TSimilarityTransformation;
+  //Transform: TCongruentTransformation;
+  //Transform: TAffineTransformation;
   i: Integer;
 
 begin
@@ -58,6 +62,8 @@ begin
       DetailPoints := ConvertDictToArray(DetailDict);
 
       Transform := TSimilarityTransformation.Create;
+      //Transform := TCongruentTransformation.Create;
+      //Transform := TAffineTransformation.Create;
       try
         Transform.ComputeParametersFromPoints(LocalPoints, GlobalPoints);
         ResultPoints := Transform.Calculate(DetailPoints);
@@ -70,8 +76,10 @@ begin
              ResultPoints[i].Y,
              ResultPoints[i].Description]));
 
-        Writeln(Format(#13#10'Transf. parametry: q = %.8f, X0 = %.4f, Y0 = %.4f',
-          [Transform.Q, Transform.X0, Transform.Y0]));
+        Writeln(Format(#13#10'Transf. parametry: q = %.8f, omega = %.4f, X0 = %.4f, Y0 = %.4f',
+          [Transform.Q, Transform.Omega*200/pi, Transform.X0, Transform.Y0]));
+        //Writeln(Format(#13#10'Transf. parametry: q_X = %.8f, q_Y = %.8f, omega_X = %.4f, omega_Y = %.4f, X0 = %.4f, Y0 = %.4f',
+  //[Transform.QX, Transform.QY, Transform.OmegaX * 200 / Pi, Transform.OmegaY * 200 / Pi, Transform.X0, Transform.Y0]));
       finally
         Transform.Free;
       end;

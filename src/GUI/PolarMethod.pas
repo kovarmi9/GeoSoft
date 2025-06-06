@@ -4,11 +4,21 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, PointsUtilsSingleton, Point;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, PointsUtilsSingleton, Point,
+  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls;
 
 type
   TForm3 = class(TForm)
+    ToolBar2: TToolBar;
+    ComboBox4: TComboBox;
+    ToolButton3: TToolButton;
+    ComboBox5: TComboBox;
+    ToolButton2: TToolButton;
+    ComboBox6: TComboBox;
+    Panel1: TPanel;
+    StatusBar1: TStatusBar;
     StringGrid1: TStringGrid;
+    ToolBar1: TToolBar;
     procedure FormCreate(Sender: TObject);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private

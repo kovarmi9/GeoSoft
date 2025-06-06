@@ -1,30 +1,29 @@
-object Form3: TForm3
+object Form5: TForm5
   Left = 0
   Top = 0
-  Caption = 'Pol'#225'rn'#237' metoda'
-  ClientHeight = 338
-  ClientWidth = 409
+  Caption = 'V'#253'po'#269'et transformace'
+  ClientHeight = 340
+  ClientWidth = 406
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OnCreate = FormCreate
   TextHeight = 15
   object ToolBar2: TToolBar
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 403
+    Width = 400
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
     List = True
     AllowTextButtons = True
     TabOrder = 0
-    ExplicitLeft = 8
-    ExplicitTop = 51
+    ExplicitLeft = -127
+    ExplicitTop = 3
     ExplicitWidth = 751
     object ComboBox4: TComboBox
       AlignWithMargins = True
@@ -84,8 +83,8 @@ object Form3: TForm3
   end
   object Panel1: TPanel
     Left = 0
-    Top = 221
-    Width = 409
+    Top = 223
+    Width = 406
     Height = 117
     Align = alBottom
     TabOrder = 1
@@ -94,18 +93,19 @@ object Form3: TForm3
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
-      Width = 407
+      Width = 404
       Height = 19
       Panels = <
         item
           Width = 50
         end>
+      ExplicitWidth = 407
     end
   end
   object StringGrid1: TStringGrid
     Left = 0
     Top = 64
-    Width = 409
+    Width = 406
     Height = 158
     Hint = 'K'#243'd kvality'
     Align = alTop
@@ -125,12 +125,12 @@ object Form3: TForm3
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 409
+    Width = 406
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 3
     ExplicitLeft = 8
     ExplicitTop = -3
-    ExplicitWidth = 632
+    ExplicitWidth = 624
   end
 end

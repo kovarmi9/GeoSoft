@@ -139,6 +139,9 @@
         <DCCReference Include="OrthogonalMethod.pas">
             <Form>Form4</Form>
         </DCCReference>
+        <DCCReference Include="Transformation.pas">
+            <Form>Form5</Form>
+        </DCCReference>
         <DCCReference Include="StringGridValidationUtils.pas">
             <Form>$R *.res</Form>
         </DCCReference>

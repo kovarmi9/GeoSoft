@@ -3214,6 +3214,10 @@ object Form1: TForm1
         Caption = 'Ortogon'#225'ln'#237' metoda'
         OnClick = Ortogonlnmetoda1Click
       end
+      object ransformace1: TMenuItem
+        Caption = 'Transformace'
+        OnClick = TransformationClick
+      end
     end
   end
 end

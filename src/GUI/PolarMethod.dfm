@@ -23,9 +23,7 @@ object Form3: TForm3
     List = True
     AllowTextButtons = True
     TabOrder = 0
-    ExplicitLeft = 8
-    ExplicitTop = 51
-    ExplicitWidth = 751
+    ExplicitWidth = 401
     object ComboBox4: TComboBox
       AlignWithMargins = True
       Left = 0
@@ -89,7 +87,7 @@ object Form3: TForm3
     Height = 117
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 216
+    ExplicitTop = 213
     ExplicitWidth = 407
     object StatusBar1: TStatusBar
       Left = 1
@@ -100,6 +98,7 @@ object Form3: TForm3
         item
           Width = 50
         end>
+      ExplicitWidth = 405
     end
   end
   object StringGrid1: TStringGrid
@@ -129,8 +128,6 @@ object Form3: TForm3
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 3
-    ExplicitLeft = 8
-    ExplicitTop = -3
-    ExplicitWidth = 632
+    ExplicitWidth = 407
   end
 end

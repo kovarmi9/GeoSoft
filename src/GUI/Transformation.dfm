@@ -2,29 +2,28 @@ object Form5: TForm5
   Left = 0
   Top = 0
   Caption = 'V'#253'po'#269'et transformace'
-  ClientHeight = 340
-  ClientWidth = 406
+  ClientHeight = 466
+  ClientWidth = 848
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OnCreate = FormCreate
   TextHeight = 15
   object ToolBar2: TToolBar
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 400
+    Width = 842
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
     List = True
     AllowTextButtons = True
     TabOrder = 0
-    ExplicitLeft = -127
-    ExplicitTop = 3
-    ExplicitWidth = 751
+    ExplicitWidth = 398
     object ComboBox4: TComboBox
       AlignWithMargins = True
       Left = 0
@@ -83,41 +82,40 @@ object Form5: TForm5
   end
   object Panel1: TPanel
     Left = 0
-    Top = 223
-    Width = 406
+    Top = 349
+    Width = 848
     Height = 117
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 216
-    ExplicitWidth = 407
+    ExplicitTop = 215
+    ExplicitWidth = 404
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
-      Width = 404
+      Width = 846
       Height = 19
       Panels = <
         item
           Width = 50
         end>
-      ExplicitWidth = 407
+      ExplicitWidth = 402
     end
   end
   object StringGrid1: TStringGrid
     Left = 0
     Top = 64
-    Width = 406
+    Width = 848
     Height = 158
     Hint = 'K'#243'd kvality'
     Align = alTop
-    ColCount = 6
+    ColCount = 11
     FixedColor = clRed
-    RowCount = 4
+    RowCount = 3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 2
-    ExplicitWidth = 407
+    ExplicitWidth = 404
     RowHeights = (
-      24
       24
       24
       24)
@@ -125,12 +123,10 @@ object Form5: TForm5
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 406
+    Width = 848
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 3
-    ExplicitLeft = 8
-    ExplicitTop = -3
-    ExplicitWidth = 624
+    ExplicitWidth = 404
   end
 end

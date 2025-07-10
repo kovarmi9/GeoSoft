@@ -24,22 +24,46 @@ begin
   end;
 end;
 
+//procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
+//var
+//  DecSeparator: Char;
+//begin
+//  if Grid.Col in [1, 2, 3] then
+//
+//  DecSeparator := FormatSettings.DecimalSeparator;
+//
+//  if Key = '.' then
+//    Key := FormatSettings.DecimalSeparator  // Pøepíše teèku na systémový oddìlovaè (èárku, pokud je nastavená v systému)
+//  else if Key = ',' then
+//    Key := FormatSettings.DecimalSeparator; // Pøepíše èárku na systémový oddìlovaè (teèku, pokud je nastavená v systému)
+//
+//  // Povolit èíslice, mínus, plus, desetinný oddìlovaè, závorky, backspace a enter pro sloupce X, Y, Z
+//  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\+\-\*\/\(\)' + DecSeparator + '#8#13]') then
+//  begin
+//    Key := #0; // Zrušení neplatných znakù
+//  end;
+//end;
+
 procedure ValidateCoordinates(Grid: TStringGrid; var Key: Char);
 var
   DecSeparator: Char;
 begin
-  DecSeparator := FormatSettings.DecimalSeparator;
-
-  if Key = '.' then
-    Key := FormatSettings.DecimalSeparator  // Pøepíše teèku na systémový oddìlovaè (èárku, pokud je nastavená v systému)
-  else if Key = ',' then
-    Key := FormatSettings.DecimalSeparator; // Pøepíše èárku na systémový oddìlovaè (teèku, pokud je nastavená v systému)
-
-  // Povolit èíslice, mínus, plus, desetinný oddìlovaè, závorky, backspace a enter pro sloupce X, Y, Z
-  if (Grid.Col in [1, 2, 3]) and not TRegEx.IsMatch(Key, '[0-9\+\-\*\/\(\)' + DecSeparator + '#8#13]') then
+  // Aplikuj validaci pouze ve sloupcích 1, 2, 3
+  if Grid.Col in [1, 2, 3] then
   begin
-    Key := #0; // Zrušení neplatných znakù
-  end;
+    DecSeparator := FormatSettings.DecimalSeparator;
+
+    // Pøemapuj oba symboly na systémový separátor
+    if Key = '.' then
+      Key := DecSeparator
+    else if Key = ',' then
+      Key := DecSeparator;
+
+    // Povolené znaky: èíslice, +, -, operátory, závorky, desetinný separátor, backspace (#8) a enter (#13)
+    if not TRegEx.IsMatch(Key, '[0-9\+\-\*\/\(\)' + DecSeparator + '#8#13]') then
+      Key := #0;
+  end
+  // pokud jsme mimo sloupce 1..3, necháme Key beze zmìny
 end;
 
 procedure ValidateQualityCode(Grid: TStringGrid; var Key: Char);

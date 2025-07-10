@@ -27,9 +27,11 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure UpdateCurrentDirectoryPath;
+    procedure StringGrid1Editing(Sender: TObject; ACol, ARow: Integer; var Allow: Boolean);
   private
     FChecked: TArray<Boolean>;
   public
+    procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
   end;
 
 var
@@ -65,6 +67,9 @@ begin
 
   // připrav pole stavů checkboxů
   SetLength(FChecked, StringGrid1.RowCount);
+
+  // zablokování editace
+  StringGrid1.OnSelectCell := StringGrid1SelectCell;
 
   // přiřaď události
   StringGrid1.OnDrawCell  := StringGrid1DrawCell;
@@ -165,6 +170,22 @@ begin
   else if Key = VK_DELETE then
     StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
 end;
+
+procedure TForm5.StringGrid1Editing(Sender: TObject; ACol, ARow: Integer; var Allow: Boolean);
+begin
+  // Sloupec 1 je náš checkbox-sloupec, editovat ho nechceme:
+  Allow := (ACol <> 1);
+end;
+
+procedure TForm5.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+begin
+  // pokud je to náš checkbox-sloupec (1), zablokuj vstup do editace
+  if ACol = 1 then
+    CanSelect := False
+  else
+    CanSelect := True;
+end;
+
 
 end.
 

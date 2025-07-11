@@ -219,13 +219,14 @@ type
     ToolBar2: TToolBar;
     ComboBox4: TComboBox;
     ToolButton3: TToolButton;
-    ComboBox5: TComboBox;
     ToolButton2: TToolButton;
     ComboBox6: TComboBox;
     Panel1: TPanel;
     StatusBar1: TStatusBar;
     StringGrid1: TStringGrid;
     ToolBar1: TToolBar;
+    StaticText1: TStaticText;
+    ComboBox1: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure StringGrid1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -342,19 +343,35 @@ begin
   end;
 end;
 
+//procedure TForm5.StringGrid1SelectCell(Sender: TObject;
+//  ACol, ARow: Integer; var CanSelect: Boolean);
+//begin
+//  if ACol > 1 then
+//    // povol editor
+//    StringGrid1.Options := StringGrid1.Options + [goEditing]
+//  else
+//    // zůstaň bez editoru
+//    StringGrid1.Options := StringGrid1.Options - [goEditing];
+//
+//  // necháme vždy výběr buňky
+//  CanSelect := True;
+//end;
+
 procedure TForm5.StringGrid1SelectCell(Sender: TObject;
   ACol, ARow: Integer; var CanSelect: Boolean);
 begin
-  if ACol > 1 then
-    // povol editor
+  // vždy povolíme výběr buňky, aby šla označit a kopírovat
+  CanSelect := True;
+
+  // pokud jsme ve "editačních" sloupcích (2..7 a 11), povolíme goEditing,
+  // jinak ho necháme vypnuté
+  if ACol in [2..7, 11] then
     StringGrid1.Options := StringGrid1.Options + [goEditing]
   else
-    // zůstaň bez editoru
     StringGrid1.Options := StringGrid1.Options - [goEditing];
-
-  // necháme vždy výběr buňky
-  CanSelect := True;
 end;
+
+
 
 procedure TForm5.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var

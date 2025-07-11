@@ -5,7 +5,9 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus, System.Math, ComObj,
-  StringGridValidationUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point;// in '..\Utils\ValidationUtils.pas';
+  StringGridValidationUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point,
+  Vcl.ComCtrls, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.ActnMenus,
+  Vcl.ExtCtrls;// in '..\Utils\ValidationUtils.pas';
 
 type
   TForm2 = class(TForm)
@@ -16,11 +18,15 @@ type
     SaveAs1: TMenuItem;
     SaveAs2: TMenuItem;
     OpenDialog1: TOpenDialog;
+    StatusBar1: TStatusBar;
+    ControlBar1: TControlBar;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure File2Click(Sender: TObject);
     procedure SaveAs1Click(Sender: TObject); // Procedura pro zpracování stisknutí klávesy
+    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+    procedure UpdateCurrentDirectoryPath;
   private
     { Private declarations }
   public
@@ -69,6 +75,10 @@ begin
   // Přiřazení obslužných procedur pro události
   StringGrid1.OnKeyPress := StringGrid1KeyPress;
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
+  StringGrid1.OnDrawCell := StringGrid1DrawCell;
+
+  // Aktualizace cesty
+  UpdateCurrentDirectoryPath;
 end;
 
 procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
@@ -156,6 +166,34 @@ begin
   begin
     StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Mazání obsahu buňky
   end;
+end;
+
+procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+  Rect: TRect; State: TGridDrawState);
+begin
+  with StringGrid1.Canvas do
+  begin
+    // Barvy pozadí pro hlavičky vs. data
+    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
+      Brush.Color := clMenuBar
+    else
+      Brush.Color := clWhite;
+    FillRect(Rect);
+
+    // Rámeček (volitelné, odkomentuj pokud chceš)
+    // Pen.Color := clNavy;
+    // Rectangle(Rect.Left, Rect.Top, Rect.Right, Rect.Bottom);
+
+    // Vypsání textu
+    TextRect(Rect, Rect.Left + 4, Rect.Top + 2,
+      StringGrid1.Cells[ACol, ARow]);
+  end;
+end;
+
+procedure TForm2.UpdateCurrentDirectoryPath;
+begin
+  if StatusBar1.Panels.Count > 0 then
+    StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
 end.

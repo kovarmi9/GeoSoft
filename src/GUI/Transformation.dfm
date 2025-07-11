@@ -23,10 +23,44 @@ object Form5: TForm5
     List = True
     AllowTextButtons = True
     TabOrder = 0
-    ExplicitWidth = 398
+    object StaticText1: TStaticText
+      Left = 0
+      Top = 0
+      Width = 100
+      Height = 23
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alClient
+      Alignment = taCenter
+      Caption = 'Typ transformace:'
+      TabOrder = 2
+    end
+    object ComboBox1: TComboBox
+      Left = 100
+      Top = 0
+      Width = 145
+      Height = 23
+      ItemIndex = 0
+      TabOrder = 3
+      Text = 'Shodnostn'#237
+      Items.Strings = (
+        'Shodnostn'#237
+        'Podobnostn'#237
+        'Afinn'#237)
+    end
+    object ToolButton3: TToolButton
+      Left = 245
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton3'
+      ImageIndex = 1
+      Style = tbsSeparator
+    end
     object ComboBox4: TComboBox
       AlignWithMargins = True
-      Left = 0
+      Left = 253
       Top = 0
       Width = 99
       Height = 23
@@ -36,24 +70,8 @@ object Form5: TForm5
       Items.Strings = (
         '00000000000')
     end
-    object ToolButton3: TToolButton
-      Left = 99
-      Top = 0
-      Width = 8
-      Caption = 'ToolButton3'
-      ImageIndex = 1
-      Style = tbsSeparator
-    end
-    object ComboBox5: TComboBox
-      Left = 107
-      Top = 0
-      Width = 94
-      Height = 23
-      Hint = 'Popis bodu'
-      TabOrder = 1
-    end
     object ToolButton2: TToolButton
-      Left = 201
+      Left = 352
       Top = 0
       Width = 8
       Caption = 'ToolButton2'
@@ -62,13 +80,13 @@ object Form5: TForm5
     end
     object ComboBox6: TComboBox
       AlignWithMargins = True
-      Left = 209
+      Left = 360
       Top = 0
       Width = 40
       Height = 23
       Hint = 'K'#243'd kvality'
       Align = alRight
-      TabOrder = 2
+      TabOrder = 1
       Text = '3'
       Items.Strings = (
         '3'
@@ -87,8 +105,8 @@ object Form5: TForm5
     Height = 117
     Align = alBottom
     TabOrder = 1
-    ExplicitTop = 215
-    ExplicitWidth = 404
+    ExplicitTop = 341
+    ExplicitWidth = 846
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
@@ -98,7 +116,7 @@ object Form5: TForm5
         item
           Width = 50
         end>
-      ExplicitWidth = 402
+      ExplicitWidth = 844
     end
   end
   object StringGrid1: TStringGrid
@@ -114,7 +132,7 @@ object Form5: TForm5
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 2
-    ExplicitWidth = 404
+    ExplicitWidth = 846
     RowHeights = (
       24
       24
@@ -125,8 +143,9 @@ object Form5: TForm5
     Top = 0
     Width = 848
     Height = 29
+    ButtonHeight = 19
     Caption = 'ToolBar1'
     TabOrder = 3
-    ExplicitWidth = 404
+    ExplicitTop = -3
   end
 end

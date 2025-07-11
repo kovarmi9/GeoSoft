@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus, System.Math, ComObj,
   StringGridValidationUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.ActnMenus,
-  Vcl.ExtCtrls;// in '..\Utils\ValidationUtils.pas';
+  Vcl.ExtCtrls, System.IOUtils;
 
 type
   TForm2 = class(TForm)
@@ -316,52 +316,20 @@ begin
   StringGrid1.Repaint;
 end;
 
-//// -- Export do TXT --------------------------------------------------
-// procedure TForm2.SaveAsTXTClick(Sender: TObject);
-// begin
-//   SaveDialog1.Filter := 'Textové (*.txt)|*.txt|Všechny soubory|*.*';
-//   if not SaveDialog1.Execute then Exit;
-//   try
-//     TPointDictionary.GetInstance.ExportToTXT(SaveDialog1.FileName);
-//     ShowMessage('Export do TXT úspěšný.');
-//   except
-//     on E: Exception do
-//       ShowMessage('Chyba při exportu do TXT: ' + E.Message);
-//   end;
-// end;
-//
-// -- Export do CSV --------------------------------------------------
- procedure TForm2.SaveAsCSVClick(Sender: TObject);
- begin
-   SaveDialog1.Filter := 'CSV (*.csv)|*.csv|Všechny soubory|*.*';
-   if not SaveDialog1.Execute then Exit;
-   try
-     TPointDictionary.GetInstance.ExportToCSV(SaveDialog1.FileName);
-     ShowMessage('Export do CSV úspěšný.');
-   except
-     on E: Exception do
-       ShowMessage('Chyba při exportu do CSV: ' + E.Message);
-   end;
- end;
-
-// -- Export do Binary -----------------------------------------------
- procedure TForm2.SaveAsBinaryClick(Sender: TObject);
- begin
-   SaveDialog1.Filter := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
-   if not SaveDialog1.Execute then Exit;
-   try
-     TPointDictionary.GetInstance.ExportToBinary(SaveDialog1.FileName);
-     ShowMessage('Export do Binary úspěšný.');
-   except
-     on E: Exception do
-       ShowMessage('Chyba při exportu do Binary: ' + E.Message);
-   end;
- end;
-
 procedure TForm2.SaveAsTXTClick(Sender: TObject);
+var
+  Dir: string;
 begin
-  SaveDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
+  SaveDialog1.Filter      := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
+  SaveDialog1.DefaultExt  := 'txt';
   if not SaveDialog1.Execute then Exit;
+
+  // 1) Ujistíme se, že adresář existuje (pokud ne, vytvoříme ho)
+  Dir := ExtractFilePath(SaveDialog1.FileName);
+  if (Dir <> '') and not TDirectory.Exists(Dir) then
+    ForceDirectories(Dir);
+
+  // 2) Export – v ExportToTXT používáme Rewrite, takže soubor se vytvoří
   try
     TPointDictionary.GetInstance.ExportToTXT(SaveDialog1.FileName);
     ShowMessage('Export do TXT úspěšný.');
@@ -371,5 +339,46 @@ begin
   end;
 end;
 
+procedure TForm2.SaveAsCSVClick(Sender: TObject);
+var
+  Dir: string;
+begin
+  SaveDialog1.Filter      := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
+  SaveDialog1.DefaultExt  := 'csv';
+  if not SaveDialog1.Execute then Exit;
+
+  Dir := ExtractFilePath(SaveDialog1.FileName);
+  if (Dir <> '') and not TDirectory.Exists(Dir) then
+    ForceDirectories(Dir);
+
+  try
+    TPointDictionary.GetInstance.ExportToCSV(SaveDialog1.FileName);
+    ShowMessage('Export do CSV úspěšný.');
+  except
+    on E: Exception do
+      ShowMessage('Chyba při exportu do CSV: ' + E.Message);
+  end;
+end;
+
+procedure TForm2.SaveAsBinaryClick(Sender: TObject);
+var
+  Dir: string;
+begin
+  SaveDialog1.Filter      := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
+  SaveDialog1.DefaultExt  := 'bin';
+  if not SaveDialog1.Execute then Exit;
+
+  Dir := ExtractFilePath(SaveDialog1.FileName);
+  if (Dir <> '') and not TDirectory.Exists(Dir) then
+    ForceDirectories(Dir);
+
+  try
+    TPointDictionary.GetInstance.ExportToBinary(SaveDialog1.FileName);
+    ShowMessage('Export do Binary úspěšný.');
+  except
+    on E: Exception do
+      ShowMessage('Chyba při exportu do Binary: ' + E.Message);
+  end;
+end;
 
 end.

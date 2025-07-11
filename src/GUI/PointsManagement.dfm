@@ -69,6 +69,31 @@ object Form2: TForm2
         Caption = 'Otev'#345#237't'
       end
     end
+    object Import1: TMenuItem
+      Caption = 'Import'
+      object FromTXT1: TMenuItem
+        Caption = 'From TXT'
+        OnClick = FromTXT1Click
+      end
+      object FromTXT2: TMenuItem
+        Caption = 'From CSV'
+      end
+      object FromBinary1: TMenuItem
+        Caption = 'From Binary'
+      end
+    end
+    object Import2: TMenuItem
+      Caption = 'Export'
+      object oTXT1: TMenuItem
+        Caption = 'To TXT'
+      end
+      object oTXT2: TMenuItem
+        Caption = 'To CSV'
+      end
+      object oBinary1: TMenuItem
+        Caption = 'To Binary'
+      end
+    end
   end
   object OpenDialog1: TOpenDialog
     Left = 576

@@ -20,6 +20,14 @@ type
     OpenDialog1: TOpenDialog;
     StatusBar1: TStatusBar;
     ControlBar1: TControlBar;
+    Import1: TMenuItem;
+    Import2: TMenuItem;
+    FromTXT1: TMenuItem;
+    FromTXT2: TMenuItem;
+    FromBinary1: TMenuItem;
+    oTXT1: TMenuItem;
+    oTXT2: TMenuItem;
+    oBinary1: TMenuItem;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -27,6 +35,7 @@ type
     procedure SaveAs1Click(Sender: TObject); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure UpdateCurrentDirectoryPath;
+    procedure FromTXT1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -195,5 +204,47 @@ begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
+
+procedure TForm2.FromTXT1Click(Sender: TObject);
+var
+  pt: TPoint;
+  i: Integer;
+begin
+  OpenDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
+  if not OpenDialog1.Execute then
+    Exit;
+
+  // Naimportuj body do singletonu
+  try
+    TPointDictionary.GetInstance.ImportFromTXT(OpenDialog1.FileName);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('Chyba při importu: ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  // Vyprázdni grid (ponech hlavičku)
+  StringGrid1.RowCount := 1;
+
+  // Projdi všechny načtené body a vlož je do gridu
+  i := 1;
+  for pt in TPointDictionary.GetInstance.Values do
+  begin
+    StringGrid1.RowCount := i + 1;
+    StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+    StringGrid1.Cells[1, i] := FloatToStr(pt.X);
+    StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+    StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
+    StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
+    StringGrid1.Cells[5, i] := pt.Description;
+    Inc(i);
+  end;
+
+  StringGrid1.Repaint;
+end;
+
+
 
 end.

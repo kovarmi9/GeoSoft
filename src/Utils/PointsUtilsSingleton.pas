@@ -11,6 +11,8 @@ type
     class var FInstance: TPointDictionary;  // Statická instance
     FPointDict: TDictionary<Integer, TPoint>;  // Slovník pro body
     procedure CheckFileError(const FileName: string);
+
+    function GetValues: TEnumerable<TPoint>;
   public
     // Konstruktor a destruktor
     constructor Create;
@@ -36,6 +38,9 @@ type
     procedure ImportFromCSV(const FileName: string);
     procedure ExportToBinary(const FileName: string);
     procedure ImportFromBinary(const FileName: string);
+
+    /// <summary>Iterátor pøes všechny body ve slovníku</summary>
+     property Values: TEnumerable<TPoint> read GetValues;
   end;
 
 implementation
@@ -254,6 +259,11 @@ begin
     raise Exception.CreateFmt('File %s does not exist.', [FileName]);
 end;
 
+// Public iterator support
+function TPointDictionary.GetValues: TEnumerable<TPoint>;
+begin
+  Result := FPointDict.Values;
+end;
 
 end.
 

@@ -36,8 +36,8 @@ type
     procedure FromCSVClick(Sender: TObject);
     procedure FromBinaryClick(Sender: TObject);
     procedure SaveAsTXTClick(Sender: TObject);
-//    procedure SaveAsCSVClick(Sender: TObject);
-//    procedure SaveAsBinaryClick(Sender: TObject);
+    procedure SaveAsCSVClick(Sender: TObject);
+    procedure SaveAsBinaryClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -91,10 +91,6 @@ begin
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
 
-  SaveAs1.OnClick := SaveAsTXTClick;
-//  SaveAsTXT.OnClick     := SaveAsTXTClick;
-//  SaveAsCSV.OnClick     := SaveAsCSVClick;
-//  SaveAsBinary.OnClick  := SaveAsBinaryClick;
 end;
 
 procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
@@ -334,33 +330,33 @@ end;
 //   end;
 // end;
 //
-//// -- Export do CSV --------------------------------------------------
-// procedure TForm2.SaveAsCSVClick(Sender: TObject);
-// begin
-//   SaveDialog1.Filter := 'CSV (*.csv)|*.csv|Všechny soubory|*.*';
-//   if not SaveDialog1.Execute then Exit;
-//   try
-//     TPointDictionary.GetInstance.ExportToCSV(SaveDialog1.FileName);
-//     ShowMessage('Export do CSV úspěšný.');
-//   except
-//     on E: Exception do
-//       ShowMessage('Chyba při exportu do CSV: ' + E.Message);
-//   end;
-// end;
-//
-//// -- Export do Binary -----------------------------------------------
-// procedure TForm2.SaveAsBinaryClick(Sender: TObject);
-// begin
-//   SaveDialog1.Filter := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
-//   if not SaveDialog1.Execute then Exit;
-//   try
-//     TPointDictionary.GetInstance.ExportToBinary(SaveDialog1.FileName);
-//     ShowMessage('Export do Binary úspěšný.');
-//   except
-//     on E: Exception do
-//       ShowMessage('Chyba při exportu do Binary: ' + E.Message);
-//   end;
-// end;
+// -- Export do CSV --------------------------------------------------
+ procedure TForm2.SaveAsCSVClick(Sender: TObject);
+ begin
+   SaveDialog1.Filter := 'CSV (*.csv)|*.csv|Všechny soubory|*.*';
+   if not SaveDialog1.Execute then Exit;
+   try
+     TPointDictionary.GetInstance.ExportToCSV(SaveDialog1.FileName);
+     ShowMessage('Export do CSV úspěšný.');
+   except
+     on E: Exception do
+       ShowMessage('Chyba při exportu do CSV: ' + E.Message);
+   end;
+ end;
+
+// -- Export do Binary -----------------------------------------------
+ procedure TForm2.SaveAsBinaryClick(Sender: TObject);
+ begin
+   SaveDialog1.Filter := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
+   if not SaveDialog1.Execute then Exit;
+   try
+     TPointDictionary.GetInstance.ExportToBinary(SaveDialog1.FileName);
+     ShowMessage('Export do Binary úspěšný.');
+   except
+     on E: Exception do
+       ShowMessage('Chyba při exportu do Binary: ' + E.Message);
+   end;
+ end;
 
 procedure TForm2.SaveAsTXTClick(Sender: TObject);
 begin

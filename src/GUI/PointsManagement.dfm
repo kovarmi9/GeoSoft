@@ -91,9 +91,11 @@ object Form2: TForm2
       end
       object oTXT2: TMenuItem
         Caption = 'To CSV'
+        OnClick = SaveAsCSVClick
       end
       object oBinary1: TMenuItem
         Caption = 'To Binary'
+        OnClick = SaveAsBinaryClick
       end
     end
   end

@@ -38,6 +38,7 @@ type
     procedure SaveAsTXTClick(Sender: TObject);
     procedure SaveAsCSVClick(Sender: TObject);
     procedure SaveAsBinaryClick(Sender: TObject);
+    procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
   private
     { Private declarations }
   public
@@ -87,6 +88,7 @@ begin
   StringGrid1.OnKeyPress := StringGrid1KeyPress;
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
   StringGrid1.OnDrawCell := StringGrid1DrawCell;
+  StringGrid1.OnSelectCell := StringGrid1SelectCell;
 
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
@@ -178,22 +180,19 @@ end;
 procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 begin
-  with StringGrid1.Canvas do
+  with TStringGrid(Sender).Canvas do
   begin
-    // Barvy pozadí pro hlavičky vs. data
-    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
+    // hlavička = vždy šedá
+    if ARow < TStringGrid(Sender).FixedRows then
       Brush.Color := clMenuBar
     else
-      Brush.Color := clWhite;
+      Brush.Color := clWindow;
+
     FillRect(Rect);
 
-    // Rámeček (volitelné, odkomentuj pokud chceš)
-    // Pen.Color := clNavy;
-    // Rectangle(Rect.Left, Rect.Top, Rect.Right, Rect.Bottom);
-
-    // Vypsání textu
+    // text
     TextRect(Rect, Rect.Left + 4, Rect.Top + 2,
-      StringGrid1.Cells[ACol, ARow]);
+      TStringGrid(Sender).Cells[ACol, ARow]);
   end;
 end;
 
@@ -202,6 +201,48 @@ begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
+
+//procedure TForm2.FromTXTClick(Sender: TObject);
+//var
+//  pt: TPoint;
+//  i: Integer;
+//begin
+//  OpenDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
+//  if not OpenDialog1.Execute then
+//    Exit;
+//
+//  // Naimportuj body do singletonu
+//  try
+//    TPointDictionary.GetInstance.ImportFromTXT(OpenDialog1.FileName);
+//  except
+//    on E: Exception do
+//    begin
+//      ShowMessage('Chyba při importu: ' + E.Message);
+//      Exit;
+//    end;
+//  end;
+//
+//  // znovu zajisti, že máš 1 pevný řádek pro hlavičku, pak vyprázdni grid
+//  StringGrid1.FixedRows := 1;
+//  StringGrid1.RowCount   := 1;
+//  StringGrid1.OnDrawCell := StringGrid1DrawCell;
+//
+//  // Projdi všechny načtené body a vlož je do gridu
+//  i := 1;
+//  for pt in TPointDictionary.GetInstance.Values do
+//  begin
+//    StringGrid1.RowCount := i + 1;
+//    StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+//    StringGrid1.Cells[1, i] := FloatToStr(pt.X);
+//    StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+//    StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
+//    StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
+//    StringGrid1.Cells[5, i] := pt.Description;
+//    Inc(i);
+//  end;
+//
+//  StringGrid1.Repaint;
+//end;
 
 procedure TForm2.FromTXTClick(Sender: TObject);
 var
@@ -212,7 +253,6 @@ begin
   if not OpenDialog1.Execute then
     Exit;
 
-  // Naimportuj body do singletonu
   try
     TPointDictionary.GetInstance.ImportFromTXT(OpenDialog1.FileName);
   except
@@ -223,10 +263,6 @@ begin
     end;
   end;
 
-  // Vyprázdni grid (ponech hlavičku)
-  StringGrid1.RowCount := 1;
-
-  // Projdi všechny načtené body a vlož je do gridu
   i := 1;
   for pt in TPointDictionary.GetInstance.Values do
   begin
@@ -242,6 +278,7 @@ begin
 
   StringGrid1.Repaint;
 end;
+
 
 // Import z CSV
 procedure TForm2.FromCSVClick(Sender: TObject);
@@ -263,8 +300,6 @@ begin
     end;
   end;
 
-  // Vyprázdni grid (ponech hlavičku)
-  StringGrid1.RowCount := 1;
   i := 1;
   for pt in TPointDictionary.GetInstance.Values do
   begin
@@ -300,7 +335,6 @@ begin
     end;
   end;
 
-  StringGrid1.RowCount := 1;
   i := 1;
   for pt in TPointDictionary.GetInstance.Values do
   begin
@@ -380,5 +414,12 @@ begin
       ShowMessage('Chyba při exportu do Binary: ' + E.Message);
   end;
 end;
+
+procedure TForm2.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+begin
+  // Zablokuj výběr (a tedy i úpravu) hlavičky
+  CanSelect := ARow <> 0;
+end;
+
 
 end.

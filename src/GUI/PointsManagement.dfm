@@ -73,13 +73,15 @@ object Form2: TForm2
       Caption = 'Import'
       object FromTXT1: TMenuItem
         Caption = 'From TXT'
-        OnClick = FromTXT1Click
+        OnClick = FromTXTClick
       end
       object FromTXT2: TMenuItem
         Caption = 'From CSV'
+        OnClick = FromCSVClick
       end
       object FromBinary1: TMenuItem
         Caption = 'From Binary'
+        OnClick = FromBinaryClick
       end
     end
     object Import2: TMenuItem

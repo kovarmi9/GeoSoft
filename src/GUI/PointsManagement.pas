@@ -25,9 +25,6 @@ type
     FromTXT1: TMenuItem;
     FromTXT2: TMenuItem;
     FromBinary1: TMenuItem;
-    oTXT1: TMenuItem;
-    oTXT2: TMenuItem;
-    oBinary1: TMenuItem;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -35,7 +32,12 @@ type
     procedure SaveAs1Click(Sender: TObject); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure UpdateCurrentDirectoryPath;
-    procedure FromTXT1Click(Sender: TObject);
+    procedure FromTXTClick(Sender: TObject);
+    procedure FromCSVClick(Sender: TObject);
+    procedure FromBinaryClick(Sender: TObject);
+//    procedure SaveAsTXTClick(Sender: TObject);
+//    procedure SaveAsCSVClick(Sender: TObject);
+//    procedure SaveAsBinaryClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -88,6 +90,10 @@ begin
 
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
+
+//  SaveAsTXT.OnClick     := SaveAsTXTClick;
+//  SaveAsCSV.OnClick     := SaveAsCSVClick;
+//  SaveAsBinary.OnClick  := SaveAsBinaryClick;
 end;
 
 procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
@@ -205,7 +211,7 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-procedure TForm2.FromTXT1Click(Sender: TObject);
+procedure TForm2.FromTXTClick(Sender: TObject);
 var
   pt: TPoint;
   i: Integer;
@@ -245,6 +251,119 @@ begin
   StringGrid1.Repaint;
 end;
 
+// Import z CSV
+procedure TForm2.FromCSVClick(Sender: TObject);
+var
+  pt: TPoint;
+  i: Integer;
+begin
+  OpenDialog1.Filter := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
+  if not OpenDialog1.Execute then
+    Exit;
 
+  try
+    TPointDictionary.GetInstance.ImportFromCSV(OpenDialog1.FileName);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('Chyba při importu CSV: ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  // Vyprázdni grid (ponech hlavičku)
+  StringGrid1.RowCount := 1;
+  i := 1;
+  for pt in TPointDictionary.GetInstance.Values do
+  begin
+    StringGrid1.RowCount := i + 1;
+    StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+    StringGrid1.Cells[1, i] := FloatToStr(pt.X);
+    StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+    StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
+    StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
+    StringGrid1.Cells[5, i] := pt.Description;
+    Inc(i);
+  end;
+  StringGrid1.Repaint;
+end;
+
+// Import z Binary
+procedure TForm2.FromBinaryClick(Sender: TObject);
+var
+  pt: TPoint;
+  i: Integer;
+begin
+  OpenDialog1.Filter := 'Binary soubory (*.bin)|*.bin|Všechny soubory|*.*';
+  if not OpenDialog1.Execute then
+    Exit;
+
+  try
+    TPointDictionary.GetInstance.ImportFromBinary(OpenDialog1.FileName);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('Chyba při importu Binary: ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  StringGrid1.RowCount := 1;
+  i := 1;
+  for pt in TPointDictionary.GetInstance.Values do
+  begin
+    StringGrid1.RowCount := i + 1;
+    StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+    StringGrid1.Cells[1, i] := FloatToStr(pt.X);
+    StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+    StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
+    StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
+    StringGrid1.Cells[5, i] := pt.Description;
+    Inc(i);
+  end;
+  StringGrid1.Repaint;
+end;
+
+//// -- Export do TXT --------------------------------------------------
+// procedure TForm2.SaveAsTXTClick(Sender: TObject);
+// begin
+//   SaveDialog1.Filter := 'Textové (*.txt)|*.txt|Všechny soubory|*.*';
+//   if not SaveDialog1.Execute then Exit;
+//   try
+//     TPointDictionary.GetInstance.ExportToTXT(SaveDialog1.FileName);
+//     ShowMessage('Export do TXT úspěšný.');
+//   except
+//     on E: Exception do
+//       ShowMessage('Chyba při exportu do TXT: ' + E.Message);
+//   end;
+// end;
+//
+//// -- Export do CSV --------------------------------------------------
+// procedure TForm2.SaveAsCSVClick(Sender: TObject);
+// begin
+//   SaveDialog1.Filter := 'CSV (*.csv)|*.csv|Všechny soubory|*.*';
+//   if not SaveDialog1.Execute then Exit;
+//   try
+//     TPointDictionary.GetInstance.ExportToCSV(SaveDialog1.FileName);
+//     ShowMessage('Export do CSV úspěšný.');
+//   except
+//     on E: Exception do
+//       ShowMessage('Chyba při exportu do CSV: ' + E.Message);
+//   end;
+// end;
+//
+//// -- Export do Binary -----------------------------------------------
+// procedure TForm2.SaveAsBinaryClick(Sender: TObject);
+// begin
+//   SaveDialog1.Filter := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
+//   if not SaveDialog1.Execute then Exit;
+//   try
+//     TPointDictionary.GetInstance.ExportToBinary(SaveDialog1.FileName);
+//     ShowMessage('Export do Binary úspěšný.');
+//   except
+//     on E: Exception do
+//       ShowMessage('Chyba při exportu do Binary: ' + E.Message);
+//   end;
+// end;
 
 end.

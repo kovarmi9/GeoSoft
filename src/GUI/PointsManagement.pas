@@ -25,17 +25,17 @@ type
     FromTXT1: TMenuItem;
     FromTXT2: TMenuItem;
     FromBinary1: TMenuItem;
+    SaveDialog1: TSaveDialog;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure File2Click(Sender: TObject);
-    procedure SaveAs1Click(Sender: TObject); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure UpdateCurrentDirectoryPath;
     procedure FromTXTClick(Sender: TObject);
     procedure FromCSVClick(Sender: TObject);
     procedure FromBinaryClick(Sender: TObject);
-//    procedure SaveAsTXTClick(Sender: TObject);
+    procedure SaveAsTXTClick(Sender: TObject);
 //    procedure SaveAsCSVClick(Sender: TObject);
 //    procedure SaveAsBinaryClick(Sender: TObject);
   private
@@ -91,6 +91,7 @@ begin
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
 
+  SaveAs1.OnClick := SaveAsTXTClick;
 //  SaveAsTXT.OnClick     := SaveAsTXTClick;
 //  SaveAsCSV.OnClick     := SaveAsCSVClick;
 //  SaveAsBinary.OnClick  := SaveAsBinaryClick;
@@ -102,11 +103,6 @@ begin
   ValidatePointNumber(StringGrid1, Key);
   ValidateCoordinates(StringGrid1, Key);
   ValidateQualityCode(StringGrid1, Key);
-end;
-
-procedure TForm2.SaveAs1Click(Sender: TObject);
-begin
-  // uložit
 end;
 
 procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -365,5 +361,19 @@ end;
 //       ShowMessage('Chyba při exportu do Binary: ' + E.Message);
 //   end;
 // end;
+
+procedure TForm2.SaveAsTXTClick(Sender: TObject);
+begin
+  SaveDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
+  if not SaveDialog1.Execute then Exit;
+  try
+    TPointDictionary.GetInstance.ExportToTXT(SaveDialog1.FileName);
+    ShowMessage('Export do TXT úspěšný.');
+  except
+    on E: Exception do
+      ShowMessage('Chyba při exportu do TXT: ' + E.Message);
+  end;
+end;
+
 
 end.

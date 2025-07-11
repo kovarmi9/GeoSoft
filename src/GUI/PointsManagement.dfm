@@ -63,7 +63,6 @@ object Form2: TForm2
       end
       object SaveAs1: TMenuItem
         Caption = 'Ulo'#382'it jako'
-        OnClick = SaveAs1Click
       end
       object SaveAs2: TMenuItem
         Caption = 'Otev'#345#237't'
@@ -88,6 +87,7 @@ object Form2: TForm2
       Caption = 'Export'
       object oTXT1: TMenuItem
         Caption = 'To TXT'
+        OnClick = SaveAsTXTClick
       end
       object oTXT2: TMenuItem
         Caption = 'To CSV'
@@ -100,5 +100,9 @@ object Form2: TForm2
   object OpenDialog1: TOpenDialog
     Left = 576
     Top = 96
+  end
+  object SaveDialog1: TSaveDialog
+    Left = 376
+    Top = 152
   end
 end

@@ -147,6 +147,10 @@
         </DCCReference>
         <DCCReference Include="..\Utils\GeoAlgorithmBase.pas"/>
         <DCCReference Include="..\Utils\GeoAlgorithmOrthogonal.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformBase.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

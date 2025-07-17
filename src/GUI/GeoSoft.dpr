@@ -9,7 +9,11 @@ uses
   Transformation in 'Transformation.pas' {Form5},
   StringGridValidationUtils in 'StringGridValidationUtils.pas' {$R *.res},
   GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
-  GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas';
+  GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas',
+  GeoAlgorithmTransformBase in '..\GeoAlgorithms\GeoAlgorithmTransformBase.pas',
+  GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
+  GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
+  GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas';
 
 {$R *.res}
 

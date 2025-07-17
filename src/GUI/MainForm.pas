@@ -7,7 +7,12 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Point, Vcl.StdCtrls,
   Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  PointsManagement;
+  PointsManagement,   GeoAlgorithmBase,
+  GeoAlgorithmTransformBase,
+  GeoAlgorithmTransformSimilarity,
+  System.Generics.Collections,
+  GeoAlgorithmTransformCongruent,
+  GeoAlgorithmTransformAffine;
 
 type
   TForm1 = class(TForm)

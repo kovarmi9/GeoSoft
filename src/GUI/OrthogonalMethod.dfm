@@ -20,13 +20,12 @@ object Form4: TForm4
     Height = 158
     Hint = 'K'#243'd kvality'
     Align = alTop
-    ColCount = 6
+    ColCount = 9
     FixedColor = clRed
     RowCount = 4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 0
-    ExplicitWidth = 407
     RowHeights = (
       24
       24

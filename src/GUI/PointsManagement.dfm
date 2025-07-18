@@ -12,6 +12,7 @@ object Form2: TForm2
   Font.Style = []
   Menu = MainMenu1
   OnCreate = FormCreate
+  OnShow = FormShow
   TextHeight = 15
   object StringGrid1: TStringGrid
     Left = 0
@@ -24,9 +25,8 @@ object Form2: TForm2
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 0
-    ExplicitTop = 48
-    ExplicitWidth = 624
-    ExplicitHeight = 374
+    ExplicitWidth = 418
+    ExplicitHeight = 316
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -37,9 +37,8 @@ object Form2: TForm2
       item
         Width = 50
       end>
-    ExplicitLeft = 1
-    ExplicitTop = 97
-    ExplicitWidth = 405
+    ExplicitTop = 366
+    ExplicitWidth = 418
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -48,9 +47,7 @@ object Form2: TForm2
     Height = 50
     Align = alTop
     TabOrder = 2
-    ExplicitLeft = 144
-    ExplicitTop = -16
-    ExplicitWidth = 100
+    ExplicitWidth = 418
   end
   object MainMenu1: TMainMenu
     Left = 576

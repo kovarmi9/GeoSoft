@@ -3,7 +3,7 @@ object Form5: TForm5
   Top = 0
   Caption = 'V'#253'po'#269'et transformace'
   ClientHeight = 466
-  ClientWidth = 848
+  ClientWidth = 794
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,13 +16,14 @@ object Form5: TForm5
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 842
+    Width = 788
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
     List = True
     AllowTextButtons = True
     TabOrder = 0
+    ExplicitWidth = 840
     object StaticText1: TStaticText
       Left = 0
       Top = 0
@@ -101,7 +102,7 @@ object Form5: TForm5
   object Panel1: TPanel
     Left = 0
     Top = 349
-    Width = 848
+    Width = 794
     Height = 117
     Align = alBottom
     TabOrder = 1
@@ -110,7 +111,7 @@ object Form5: TForm5
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
-      Width = 846
+      Width = 792
       Height = 19
       Panels = <
         item
@@ -122,11 +123,11 @@ object Form5: TForm5
   object StringGrid1: TStringGrid
     Left = 0
     Top = 64
-    Width = 848
+    Width = 794
     Height = 158
     Hint = 'K'#243'd kvality'
     Align = alTop
-    ColCount = 11
+    ColCount = 12
     FixedColor = clRed
     RowCount = 3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
@@ -141,11 +142,11 @@ object Form5: TForm5
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 848
+    Width = 794
     Height = 29
     ButtonHeight = 19
     Caption = 'ToolBar1'
     TabOrder = 3
-    ExplicitTop = -3
+    ExplicitWidth = 846
   end
 end

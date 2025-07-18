@@ -3,7 +3,7 @@ object Form3: TForm3
   Top = 0
   Caption = 'Pol'#225'rn'#237' metoda'
   ClientHeight = 338
-  ClientWidth = 409
+  ClientWidth = 602
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,7 +16,7 @@ object Form3: TForm3
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 403
+    Width = 596
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
@@ -83,7 +83,7 @@ object Form3: TForm3
   object Panel1: TPanel
     Left = 0
     Top = 221
-    Width = 409
+    Width = 602
     Height = 117
     Align = alBottom
     TabOrder = 1
@@ -92,7 +92,7 @@ object Form3: TForm3
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
-      Width = 407
+      Width = 600
       Height = 19
       Panels = <
         item
@@ -104,7 +104,7 @@ object Form3: TForm3
   object StringGrid1: TStringGrid
     Left = 0
     Top = 64
-    Width = 409
+    Width = 602
     Height = 158
     Hint = 'K'#243'd kvality'
     Align = alTop
@@ -114,6 +114,7 @@ object Form3: TForm3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 2
+    ExplicitWidth = 409
     RowHeights = (
       24
       24
@@ -123,7 +124,7 @@ object Form3: TForm3
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 409
+    Width = 602
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 3

@@ -3,7 +3,7 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, Vcl.Graphics, System.Generics.Collections,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus, System.Math, ComObj,
   StringGridValidationUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.ActnMenus,
@@ -27,6 +27,7 @@ type
     FromBinary1: TMenuItem;
     SaveDialog1: TSaveDialog;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
+    procedure FormShow(Sender: TObject);
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure File2Click(Sender: TObject);
@@ -60,6 +61,9 @@ begin
 end;
 
 procedure TForm2.FormCreate(Sender: TObject); // Změněno z TForm2 na TForm3
+var
+  P: TPoint;
+  i: Integer;
 begin
   // Nastavení sloupců a řádků pro StringGrid1 (tabulka pro zadávání souřadnic)
   StringGrid1.ColCount := 6; // Počet sloupců: Číslo bodu, X, Y, Z, Popis
@@ -82,6 +86,22 @@ begin
   StringGrid1.Cells[4, 1] := '';  // Kvalita (prázdná)
   StringGrid1.Cells[5, 1] := '';  // Popis (prázdný)
 
+  // --- NOVO: naplníme grid existujícími body ze slovníku ---
+  i := 1;  // začínáme na prvním datovém řádku
+  for P in TPointDictionary.GetInstance.Values do
+  begin
+    // zajistíme dostatek řádků
+    StringGrid1.RowCount := i + 1;
+    // vyplníme sloupce 0..5
+    StringGrid1.Cells[0, i] := IntToStr(P.PointNumber);
+    StringGrid1.Cells[1, i] := FloatToStr(P.X);
+    StringGrid1.Cells[2, i] := FloatToStr(P.Y);
+    StringGrid1.Cells[3, i] := FloatToStr(P.Z);
+    StringGrid1.Cells[4, i] := IntToStr(P.Quality);
+    StringGrid1.Cells[5, i] := P.Description;
+    Inc(i);
+  end;
+
   StringGrid1.Repaint;
 
   // Přiřazení obslužných procedur pro události
@@ -93,6 +113,46 @@ begin
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
 
+end;
+
+procedure TForm2.FormShow(Sender: TObject);
+var
+  pt: TPoint;
+  Keys: TList<Integer>;
+  Key: Integer;
+  i: Integer;
+begin
+  // 1) vyčistíme grid pod hlavičkou
+  //StringGrid1.RowCount := 1;
+
+  // 2) načteme si všechny klíče (čísla bodů)
+  Keys := TList<Integer>.Create;
+  try
+    for pt in TPointDictionary.GetInstance.Values do
+      Keys.Add(pt.PointNumber);
+
+    // 3) seřadíme seznam klíčů
+    Keys.Sort;
+
+    // 4) podle seřazených klíčů doplníme grid
+    i := 1;
+    for Key in Keys do
+    begin
+      pt := TPointDictionary.GetInstance.GetPoint(Key);
+      StringGrid1.RowCount := i + 1;
+      StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+      StringGrid1.Cells[1, i] := FloatToStr(pt.X);
+      StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+      StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
+      StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
+      StringGrid1.Cells[5, i] := pt.Description;
+      Inc(i);
+    end;
+  finally
+    Keys.Free;
+  end;
+
+  StringGrid1.Repaint;
 end;
 
 procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);

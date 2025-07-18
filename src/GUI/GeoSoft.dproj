@@ -151,6 +151,10 @@
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas"/>
+        <DCCReference Include="AddPoint.pas">
+            <Form>Form6</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

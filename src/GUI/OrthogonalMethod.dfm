@@ -26,6 +26,7 @@ object Form4: TForm4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 0
+    ExplicitWidth = 407
     RowHeights = (
       24
       24

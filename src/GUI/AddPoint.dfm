@@ -1,9 +1,9 @@
-object Form2: TForm2
+object Form6: TForm6
   Left = 0
   Top = 0
-  Caption = 'Seznam sou'#345'adnic'
-  ClientHeight = 393
-  ClientWidth = 420
+  Caption = 'Form6'
+  ClientHeight = 441
+  ClientWidth = 624
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,14 +11,12 @@ object Form2: TForm2
   Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = MainMenu1
-  OnCreate = FormCreate
-  OnShow = FormShow
   TextHeight = 15
   object StringGrid1: TStringGrid
     Left = 0
     Top = 50
-    Width = 420
-    Height = 324
+    Width = 624
+    Height = 372
     Align = alClient
     ColCount = 6
     FixedCols = 0
@@ -26,26 +24,47 @@ object Form2: TForm2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 0
     ExplicitLeft = 8
+    ExplicitWidth = 420
+    ExplicitHeight = 324
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 374
-    Width = 420
+    Top = 422
+    Width = 624
     Height = 19
     Panels = <
       item
         Width = 50
       end>
     ExplicitLeft = 8
+    ExplicitTop = 374
+    ExplicitWidth = 420
   end
   object ControlBar1: TControlBar
     Left = 0
     Top = 0
-    Width = 420
+    Width = 624
     Height = 50
     Align = alTop
     TabOrder = 2
     ExplicitLeft = 8
+    ExplicitWidth = 420
+  end
+  object Button1: TButton
+    Left = 120
+    Top = 304
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 3
+  end
+  object Button2: TButton
+    Left = 312
+    Top = 312
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 4
   end
   object MainMenu1: TMainMenu
     Left = 584
@@ -54,7 +73,6 @@ object Form2: TForm2
       Caption = 'Soubor'
       object File2: TMenuItem
         Caption = 'Ulo'#382'it'
-        OnClick = File2Click
       end
       object SaveAs1: TMenuItem
         Caption = 'Ulo'#382'it jako'
@@ -67,30 +85,24 @@ object Form2: TForm2
       Caption = 'Import'
       object FromTXT1: TMenuItem
         Caption = 'From TXT'
-        OnClick = FromTXTClick
       end
       object FromTXT2: TMenuItem
         Caption = 'From CSV'
-        OnClick = FromCSVClick
       end
       object FromBinary1: TMenuItem
         Caption = 'From Binary'
-        OnClick = FromBinaryClick
       end
     end
     object Import2: TMenuItem
       Caption = 'Export'
       object oTXT1: TMenuItem
         Caption = 'To TXT'
-        OnClick = SaveAsTXTClick
       end
       object oTXT2: TMenuItem
         Caption = 'To CSV'
-        OnClick = SaveAsCSVClick
       end
       object oBinary1: TMenuItem
         Caption = 'To Binary'
-        OnClick = SaveAsBinaryClick
       end
     end
   end

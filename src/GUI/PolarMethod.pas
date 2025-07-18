@@ -75,59 +75,59 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-////procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-////var
-////  PointNumber: Integer;
-////  P: Point.TPoint;  // explicitně z tvé jednotky Point
-////begin
-////  if Key = VK_RETURN then
-////  begin
-////    Key := 0;  // potlačí default chování
-////
-////    // Načti číslo bodu z prvního sloupce
-////    PointNumber := StrToIntDef(StringGrid1.Cells[1, StringGrid1.Row], -1);
-////    if PointNumber = -1 then
-////    begin
-////      ShowMessage('Neplatné číslo bodu.');
-////      Exit;
-////    end;
-////
-////    // Pokud bod existuje ve slovníku, doplňme údaje
-////    if TPointDictionary.GetInstance.PointExists(PointNumber) then
-////    begin
-////      P := TPointDictionary.GetInstance.GetPoint(PointNumber);
-////      StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
-////      StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(P.Y);
-////      StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Z);
-////      StringGrid1.Cells[7, StringGrid1.Row] := IntToStr(P.Quality);
-////      StringGrid1.Cells[8, StringGrid1.Row] := P.Description;
-////    end
-////    else
-////      ShowMessage(Format('Bod %d nebyl nalezen.', [PointNumber]));
-////
-////    // Navigace: další buňka nebo nový řádek
-////    if StringGrid1.Col < StringGrid1.ColCount - 1 then
-////      StringGrid1.Col := StringGrid1.Col + 1
-////    else
-////    begin
-////      // Pokud je to poslední řádek, přidáme nový
-////      if StringGrid1.Row = StringGrid1.RowCount - 1 then
-////        StringGrid1.RowCount := StringGrid1.RowCount + 1;
-////      // přechod na další řádek, první datový sloupec
-////      StringGrid1.Row := StringGrid1.Row + 1;
-////      StringGrid1.Col := 1;
-////      // očíslování nultého sloupce
-////      if StringGrid1.Row > 2 then
-////        StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row - 2);
-////    end;
-////  end
-////  else if Key = VK_DELETE then
-////  begin
-////    // Vymaž obsah aktuální buňky
-////    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
-////  end;
-////end;
+//procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//var
+//  PointNumber: Integer;
+//  P: Point.TPoint;  // explicitně z tvé jednotky Point
+//begin
+//  if Key = VK_RETURN then
+//  begin
+//    Key := 0;  // potlačí default chování
 //
+//    // Načti číslo bodu z prvního sloupce
+//    PointNumber := StrToIntDef(StringGrid1.Cells[1, StringGrid1.Row], -1);
+//    if PointNumber = -1 then
+//    begin
+//      ShowMessage('Neplatné číslo bodu.');
+//      Exit;
+//    end;
+//
+//    // Pokud bod existuje ve slovníku, doplňme údaje
+//    if TPointDictionary.GetInstance.PointExists(PointNumber) then
+//    begin
+//      P := TPointDictionary.GetInstance.GetPoint(PointNumber);
+//      StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
+//      StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(P.Y);
+//      StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Z);
+//      StringGrid1.Cells[7, StringGrid1.Row] := IntToStr(P.Quality);
+//      StringGrid1.Cells[8, StringGrid1.Row] := P.Description;
+//    end
+//    else
+//      ShowMessage(Format('Bod %d nebyl nalezen.', [PointNumber]));
+//
+//    // Navigace: další buňka nebo nový řádek
+//    if StringGrid1.Col < StringGrid1.ColCount - 1 then
+//      StringGrid1.Col := StringGrid1.Col + 1
+//    else
+//    begin
+//      // Pokud je to poslední řádek, přidáme nový
+//      if StringGrid1.Row = StringGrid1.RowCount - 1 then
+//        StringGrid1.RowCount := StringGrid1.RowCount + 1;
+//      // přechod na další řádek, první datový sloupec
+//      StringGrid1.Row := StringGrid1.Row + 1;
+//      StringGrid1.Col := 1;
+//      // očíslování nultého sloupce
+//      if StringGrid1.Row > 2 then
+//        StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row - 2);
+//    end;
+//  end
+//  else if Key = VK_DELETE then
+//  begin
+//    // Vymaž obsah aktuální buňky
+//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
+//  end;
+//end;
+
 //procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 //var
 //  PointNumber: Integer;
@@ -257,60 +257,122 @@ end;
 //    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
 //end;
 
+//procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//var
+//  PointNumber: Integer;
+//  P: Point.TPoint;  // explicitně z tvé jednotky Point
+//begin
+//  if Key = VK_RETURN then
+//  begin
+//    Key := 0;  // potlačí default chování
+//
+//    // Načti číslo bodu z prvního sloupce
+//    PointNumber := StrToIntDef(StringGrid1.Cells[1, StringGrid1.Row], -1);
+//    if PointNumber = -1 then
+//    begin
+//      ShowMessage('Neplatné číslo bodu.');
+//      Exit;
+//    end;
+//
+//    // Pokud bod existuje ve slovníku, doplňme údaje
+//    if TPointDictionary.GetInstance.PointExists(PointNumber) then
+//    begin
+//      P := TPointDictionary.GetInstance.GetPoint(PointNumber);
+//      StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
+//      StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(P.Y);
+//      StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Z);
+//      StringGrid1.Cells[7, StringGrid1.Row] := IntToStr(P.Quality);
+//      StringGrid1.Cells[8, StringGrid1.Row] := P.Description;
+//    end
+//    else
+//      ShowMessage(Format('Bod %d nebyl nalezen.', [PointNumber]));
+//
+//    // Navigace: další buňka nebo nový řádek
+//    if StringGrid1.Col < StringGrid1.ColCount - 1 then
+//      StringGrid1.Col := StringGrid1.Col + 1
+//    else
+//    begin
+//      // Pokud je to poslední řádek, přidáme nový
+//      if StringGrid1.Row = StringGrid1.RowCount - 1 then
+//        StringGrid1.RowCount := StringGrid1.RowCount + 1;
+//      // přechod na další řádek, první datový sloupec
+//      StringGrid1.Row := StringGrid1.Row + 1;
+//      StringGrid1.Col := 1;
+//      // očíslování nultého sloupce
+//      if StringGrid1.Row > 2 then
+//        StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row - 2);
+//    end;
+//  end
+//  else if Key = VK_DELETE then
+//  begin
+//    // Vymaž obsah aktuální buňky
+//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
+//  end;
+//end;
+
 procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
   P: Point.TPoint;
-  Prompts: array[0..4] of string;
-  Values: array[0..4] of string;
+  UserChoice: Integer;
+  S: string;
+  X, Y, Z: Double;
+  Q: Integer;
+  Dict: TPointDictionary;
 begin
   if Key <> VK_RETURN then Exit;
-  Key := 0;
+  Key := 0;  // potlačí defaultní Enter
 
-  // Načtení čísla bodu...
+  // 1) Načteme číslo bodu z gridu
   PointNumber := StrToIntDef(StringGrid1.Cells[1, StringGrid1.Row], -1);
   if PointNumber = -1 then
-    Exit;  // konec
+  begin
+    ShowMessage('Neplatné číslo bodu.');
+    Exit;
+  end;
 
-  // Získání existujícího nebo nového TPoint
-  if TPointDictionary.GetInstance.PointExists(PointNumber) then
-    P := TPointDictionary.GetInstance.GetPoint(PointNumber)
+  Dict := TPointDictionary.GetInstance;
+
+  // 2) Pokud bod existuje, načteme ho přímo
+  if Dict.PointExists(PointNumber) then
+  begin
+    P := Dict.GetPoint(PointNumber);
+  end
   else
-    P.PointNumber := PointNumber;
+  begin
+    // 3) Zeptáme se, jestli ho uživatel chce přidat
+    UserChoice := MessageDlg(
+      Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [PointNumber]),
+      mtConfirmation, [mbYes, mbNo], 0);
+    if UserChoice <> mrYes then
+      Exit;
 
-  // Příprava polí promptů a defaultních hodnot
-  Prompts[0] := 'X souřadnice';    Values[0] := FloatToStr(P.X);
-  Prompts[1] := 'Y souřadnice';    Values[1] := FloatToStr(P.Y);
-  Prompts[2] := 'Z souřadnice';    Values[2] := FloatToStr(P.Z);
-  Prompts[3] := 'Kód kvality';     Values[3] := IntToStr(P.Quality);
-  Prompts[4] := 'Popis';           Values[4] := P.Description;
+    // 4) Ptejte se na jednotlivé hodnoty do lokálních proměnných
+    if not InputQuery('Nový bod', 'Zadejte X souřadnici:', S) then Exit;
+    X := StrToFloatDef(S, 0);
+    if not InputQuery('Nový bod', 'Zadejte Y souřadnici:', S) then Exit;
+    Y := StrToFloatDef(S, 0);
+    if not InputQuery('Nový bod', 'Zadejte Z souřadnici:', S) then Exit;
+    Z := StrToFloatDef(S, 0);
+    if not InputQuery('Nový bod', 'Zadejte kód kvality (0–8):', S) then Exit;
+    Q := StrToIntDef(S, 0);
+    if not InputQuery('Nový bod', 'Zadejte popis bodu:', S) then Exit;
 
-  // Jedno volání InputQuery na všech pět polí
-  if not InputQuery(
-       Format('Bod %d – doplňte hodnoty', [PointNumber]),
-       Prompts,
-       Values
-     ) then
-    Exit;  // uživatel zrušil
+    // 5) Vytvoříme P jediným voláním konstruktoru (tam proběhne validace)
+    P := Point.TPoint.Create(PointNumber, X, Y, Z, Q, S);
 
-  // Načtení zpět do P
-  P.X := StrToFloatDef(Values[0], 0);
-  P.Y := StrToFloatDef(Values[1], 0);
-  P.Z := StrToFloatDef(Values[2], 0);
-  P.Quality := StrToIntDef(Values[3], 0);
-  P.Description := Values[4];
+    // 6) Přidáme ho do slovníku
+    Dict.AddPoint(P);
+  end;
 
-  // Uložení do singletonu
-  TPointDictionary.GetInstance.AddPoint(P);
-
-  // Vyplnění buněk gridu
+  // 7) Vyplníme buňky z (už validovaných) vlastností P
   StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
   StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(P.Y);
   StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Z);
   StringGrid1.Cells[7, StringGrid1.Row] := IntToStr(P.Quality);
   StringGrid1.Cells[8, StringGrid1.Row] := P.Description;
 
-  // Navigace na další buňku nebo řádek...
+  // 8) Navigace na další buňku nebo řádek
   if StringGrid1.Col < StringGrid1.ColCount - 1 then
     StringGrid1.Col := StringGrid1.Col + 1
   else

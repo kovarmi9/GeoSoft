@@ -481,5 +481,4 @@ begin
   CanSelect := ARow <> 0;
 end;
 
-
 end.

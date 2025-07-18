@@ -2,8 +2,8 @@ object Form6: TForm6
   Left = 0
   Top = 0
   Caption = 'Form6'
-  ClientHeight = 441
-  ClientWidth = 624
+  ClientHeight = 169
+  ClientWidth = 404
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,12 +11,13 @@ object Form6: TForm6
   Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = MainMenu1
+  OnCreate = FormCreate
   TextHeight = 15
   object StringGrid1: TStringGrid
     Left = 0
     Top = 50
-    Width = 624
-    Height = 372
+    Width = 404
+    Height = 100
     Align = alClient
     ColCount = 6
     FixedCols = 0
@@ -29,21 +30,21 @@ object Form6: TForm6
   end
   object StatusBar1: TStatusBar
     Left = 0
-    Top = 422
-    Width = 624
+    Top = 150
+    Width = 404
     Height = 19
     Panels = <
       item
         Width = 50
       end>
-    ExplicitLeft = 8
-    ExplicitTop = 374
-    ExplicitWidth = 420
+    ExplicitLeft = -8
+    ExplicitTop = 151
+    ExplicitWidth = 677
   end
   object ControlBar1: TControlBar
     Left = 0
     Top = 0
-    Width = 624
+    Width = 404
     Height = 50
     Align = alTop
     TabOrder = 2
@@ -51,24 +52,24 @@ object Form6: TForm6
     ExplicitWidth = 420
   end
   object Button1: TButton
-    Left = 120
-    Top = 304
+    Left = 8
+    Top = 120
     Width = 75
     Height = 25
     Caption = 'Button1'
     TabOrder = 3
   end
   object Button2: TButton
-    Left = 312
-    Top = 312
+    Left = 89
+    Top = 120
     Width = 75
     Height = 25
     Caption = 'Button2'
     TabOrder = 4
   end
   object MainMenu1: TMainMenu
-    Left = 584
-    Top = 24
+    Left = 232
+    Top = 120
     object File1: TMenuItem
       Caption = 'Soubor'
       object File2: TMenuItem
@@ -107,11 +108,11 @@ object Form6: TForm6
     end
   end
   object OpenDialog1: TOpenDialog
-    Left = 584
-    Top = 96
+    Left = 200
+    Top = 120
   end
   object SaveDialog1: TSaveDialog
-    Left = 384
-    Top = 152
+    Left = 168
+    Top = 120
   end
 end

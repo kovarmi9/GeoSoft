@@ -3,7 +3,7 @@ object Form4: TForm4
   Top = 0
   Caption = 'Ortogon'#225'ln'#237' metoda'
   ClientHeight = 341
-  ClientWidth = 409
+  ClientWidth = 600
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,7 +16,7 @@ object Form4: TForm4
   object StringGrid1: TStringGrid
     Left = 0
     Top = 64
-    Width = 409
+    Width = 600
     Height = 158
     Hint = 'K'#243'd kvality'
     Align = alTop
@@ -36,7 +36,7 @@ object Form4: TForm4
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 409
+    Width = 600
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 1
@@ -46,7 +46,7 @@ object Form4: TForm4
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 403
+    Width = 594
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
@@ -113,7 +113,7 @@ object Form4: TForm4
   object Panel1: TPanel
     Left = 0
     Top = 224
-    Width = 409
+    Width = 600
     Height = 117
     Align = alBottom
     TabOrder = 3
@@ -122,7 +122,7 @@ object Form4: TForm4
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
-      Width = 407
+      Width = 598
       Height = 19
       Panels = <
         item

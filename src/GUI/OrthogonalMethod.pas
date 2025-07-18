@@ -250,6 +250,7 @@ var
   PointNumber: Integer;
   P: TPoint;
   UserChoice: Integer;
+  dlg: TForm6;
 begin
   if Key = VK_RETURN then
   begin
@@ -261,29 +262,46 @@ begin
       Exit;
     end;
 
-    // Pokud bod existuje, naèti; jinak nabídni pøidání
+//    // Pokud bod existuje, naèti; jinak nabídni pøidání
+//    if TPointDictionary.GetInstance.PointExists(PointNumber) then
+//      P := TPointDictionary.GetInstance.GetPoint(PointNumber)
+//    else
+//    begin
+//      UserChoice := MessageDlg(
+//        Format('Bod %d nebyl nalezen. Pøejete si jej pøidat?', [PointNumber]),
+//        mtConfirmation, [mbYes, mbNo], 0);
+//      if UserChoice = mrYes then
+//      begin
+//        Form6.ShowModal;
+//        // Vytvoøí nový record TPoint s výchozími hodnotami
+//        P.PointNumber := PointNumber;
+//        P.X := 0;
+//        P.Y := 0;
+//        P.Z := 0;
+//        P.Quality := 0;
+//        P.Description := '';
+//        // Pøidá ho do slovníku
+//        TPointDictionary.GetInstance.AddPoint(P);
+//      end
+//      else
+//        Exit;
+//    end;
+
+   // Pokud bod existuje, naèti; jinak otevøi dialog pro vložení nového
     if TPointDictionary.GetInstance.PointExists(PointNumber) then
       P := TPointDictionary.GetInstance.GetPoint(PointNumber)
     else
     begin
-      UserChoice := MessageDlg(
-        Format('Bod %d nebyl nalezen. Pøejete si jej pøidat?', [PointNumber]),
-        mtConfirmation, [mbYes, mbNo], 0);
-      if UserChoice = mrYes then
-      begin
-        Form6.Show;
-        // Vytvoøí nový record TPoint s výchozími hodnotami
-        P.PointNumber := PointNumber;
-        P.X := 0;
-        P.Y := 0;
-        P.Z := 0;
-        P.Quality := 0;
-        P.Description := '';
-        // Pøidá ho do slovníku
+      dlg := TForm6.Create(Self);
+      try
+        // Execute automaticky vyèistí øádek, doplní èíslo bodu a èeká na OK/Cancel
+        if not dlg.Execute(PointNumber, P) then
+          Exit; // uživatel zrušil
+        // nový bod P je validován konstrukcí TPoint.Create uvnitø Execute
         TPointDictionary.GetInstance.AddPoint(P);
-      end
-      else
-        Exit;
+      finally
+        dlg.Free;
+      end;
     end;
 
     // Vyplò buòky

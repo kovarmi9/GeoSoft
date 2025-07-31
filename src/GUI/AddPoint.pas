@@ -1,4 +1,4 @@
-//unit AddPoint;
+Ôªø//unit AddPoint;
 //
 //interface
 //
@@ -31,8 +31,8 @@
 //    SaveDialog1: TSaveDialog;
 //    Button1: TButton;
 //    Button2: TButton;
-//    procedure FormCreate(Sender: TObject); // Procedura volan· p¯i inicializaci formul·¯e
-//    procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracov·nÌ stisknutÌ kl·vesy
+//    procedure FormCreate(Sender: TObject); // Procedura volan√° p≈ôi inicializaci formul√°≈ôe
+//    procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracov√°n√≠ stisknut√≠ kl√°vesy
 //    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 //    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 //    procedure UpdateCurrentDirectoryPath;
@@ -50,39 +50,39 @@
 //
 //{$R *.dfm}
 //
-//procedure TForm6.FormCreate(Sender: TObject); // ZmÏnÏno z TForm2 na TForm3
+//procedure TForm6.FormCreate(Sender: TObject); // Zmƒõnƒõno z TForm2 na TForm3
 //var
 //  P: TPoint;
 //  i: Integer;
 //begin
-//// NastavenÌ sloupc˘ a ¯·dk˘ pro StringGrid1 (tabulka pro zad·v·nÌ sou¯adnic)
-//  StringGrid1.ColCount := 6; // PoËet sloupc˘: »Ìslo bodu, X, Y, Z, Popis
-//  StringGrid1.RowCount := 2; // Minim·lnÏ 2 ¯·dky (hlaviËka + 1 pr·zdn˝ ¯·dek pro vstup)
-//  StringGrid1.FixedRows := 1; // PrvnÌ ¯·dek bude pevn˝ (nemÏnn˝)
+//// Nastaven√≠ sloupc≈Ø a ≈ô√°dk≈Ø pro StringGrid1 (tabulka pro zad√°v√°n√≠ sou≈ôadnic)
+//  StringGrid1.ColCount := 6; // Poƒçet sloupc≈Ø: ƒå√≠slo bodu, X, Y, Z, Popis
+//  StringGrid1.RowCount := 2; // Minim√°lnƒõ 2 ≈ô√°dky (hlaviƒçka + 1 pr√°zdn√Ω ≈ô√°dek pro vstup)
+//  StringGrid1.FixedRows := 1; // Prvn√≠ ≈ô√°dek bude pevn√Ω (nemƒõnn√Ω)
 //
-//  // NastavenÌ popisk˘ sloupc˘ (hlaviËky) pro StringGrid1
-//  StringGrid1.Cells[0, 0] := '»Ìslo bodu'; // N·zev sloupce 0
-//  StringGrid1.Cells[1, 0] := 'X';          // N·zev sloupce 1
-//  StringGrid1.Cells[2, 0] := 'Y';          // N·zev sloupce 2
-//  StringGrid1.Cells[3, 0] := 'Z';          // N·zev sloupce 3
-//  StringGrid1.Cells[4, 0] := 'Kvalita';    // N·zev sloupce 4
-//  StringGrid1.Cells[5, 0] := 'Popis';      // N·zev sloupce 4
+//  // Nastaven√≠ popisk≈Ø sloupc≈Ø (hlaviƒçky) pro StringGrid1
+//  StringGrid1.Cells[0, 0] := 'ƒå√≠slo bodu'; // N√°zev sloupce 0
+//  StringGrid1.Cells[1, 0] := 'X';          // N√°zev sloupce 1
+//  StringGrid1.Cells[2, 0] := 'Y';          // N√°zev sloupce 2
+//  StringGrid1.Cells[3, 0] := 'Z';          // N√°zev sloupce 3
+//  StringGrid1.Cells[4, 0] := 'Kvalita';    // N√°zev sloupce 4
+//  StringGrid1.Cells[5, 0] := 'Popis';      // N√°zev sloupce 4
 //
-//  // NastavenÌ v˝chozÌch hodnot v prvnÌm ¯·dku pro zad·v·nÌ bod˘
-//  StringGrid1.Cells[0, 1] := ''; // »Ìslo bodu (pr·zdn·)
-//  StringGrid1.Cells[1, 1] := '';  // X sou¯adnice (pr·zdn·)
-//  StringGrid1.Cells[2, 1] := '';  // Y sou¯adnice (pr·zdn·)
-//  StringGrid1.Cells[3, 1] := '';  // Z sou¯adnice (pr·zdn·)
-//  StringGrid1.Cells[4, 1] := '';  // Kvalita (pr·zdn·)
-//  StringGrid1.Cells[5, 1] := '';  // Popis (pr·zdn˝)
+//  // Nastaven√≠ v√Ωchoz√≠ch hodnot v prvn√≠m ≈ô√°dku pro zad√°v√°n√≠ bod≈Ø
+//  StringGrid1.Cells[0, 1] := ''; // ƒå√≠slo bodu (pr√°zdn√°)
+//  StringGrid1.Cells[1, 1] := '';  // X sou≈ôadnice (pr√°zdn√°)
+//  StringGrid1.Cells[2, 1] := '';  // Y sou≈ôadnice (pr√°zdn√°)
+//  StringGrid1.Cells[3, 1] := '';  // Z sou≈ôadnice (pr√°zdn√°)
+//  StringGrid1.Cells[4, 1] := '';  // Kvalita (pr√°zdn√°)
+//  StringGrid1.Cells[5, 1] := '';  // Popis (pr√°zdn√Ω)
 //
-//  // --- NOVO: naplnÌme grid existujÌcÌmi body ze slovnÌku ---
-//  i := 1;  // zaËÌn·me na prvnÌm datovÈm ¯·dku
+//  // --- NOVO: napln√≠me grid existuj√≠c√≠mi body ze slovn√≠ku ---
+//  i := 1;  // zaƒç√≠n√°me na prvn√≠m datov√©m ≈ô√°dku
 //  for P in TPointDictionary.GetInstance.Values do
 //  begin
-//    // zajistÌme dostatek ¯·dk˘
+//    // zajist√≠me dostatek ≈ô√°dk≈Ø
 //    StringGrid1.RowCount := i + 1;
-//    // vyplnÌme sloupce 0..5
+//    // vypln√≠me sloupce 0..5
 //    StringGrid1.Cells[0, i] := IntToStr(P.PointNumber);
 //    StringGrid1.Cells[1, i] := FloatToStr(P.X);
 //    StringGrid1.Cells[2, i] := FloatToStr(P.Y);
@@ -94,7 +94,7 @@
 //
 //  StringGrid1.Repaint;
 //
-//  // P¯i¯azenÌ obsluûn˝ch procedur pro ud·losti
+//  // P≈ôi≈ôazen√≠ obslu≈æn√Ωch procedur pro ud√°losti
 //  StringGrid1.OnKeyPress := StringGrid1KeyPress;
 //  StringGrid1.OnKeyDown := StringGrid1KeyDown;
 //  StringGrid1.OnDrawCell := StringGrid1DrawCell;
@@ -120,33 +120,33 @@
 //begin
 //  if (Key = VK_RETURN) or (Key = VK_TAB) then
 //  begin
-//    Key := 0; // ZamezÌ dalöÌmu zpracov·nÌ Enteru
+//    Key := 0; // Zamez√≠ dal≈°√≠mu zpracov√°n√≠ Enteru
 //
-//    // VyhodnocenÌ v˝razu a p¯evedenÌ na ËÌslo
+//    // Vyhodnocen√≠ v√Ωrazu a p≈ôeveden√≠ na ƒç√≠slo
 //    if StringGrid1.Col in [1, 2, 3] then
 //    begin
 //      try
 //        StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := FloatToStr(EvaluateExpression(StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row]));
 //      except
 //        on E: Exception do
-//          ShowMessage('Chyba ve v˝razu: ' + E.Message);
+//          ShowMessage('Chyba ve v√Ωrazu: ' + E.Message);
 //      end;
 //    end;
 //
-//    // P¯echod na dalöÌ buÚku
+//    // P≈ôechod na dal≈°√≠ bu≈àku
 //    if StringGrid1.Col < StringGrid1.ColCount - 1 then
 //    begin
 //      StringGrid1.Col := StringGrid1.Col + 1;
 //    end
 //    else
 //    begin
-//      // Pokud poslednÌ sloupec, p¯echod na prvnÌ sloupec dalöÌho ¯·dku
+//      // Pokud posledn√≠ sloupec, p≈ôechod na prvn√≠ sloupec dal≈°√≠ho ≈ô√°dku
 //      if StringGrid1.Row = StringGrid1.RowCount - 1 then
 //
 //      StringGrid1.Row := StringGrid1.Row;
 //      StringGrid1.Col := 0;
 //
-//      // NaËtenÌ hodnot
+//      // Naƒçten√≠ hodnot
 //      PointNumber := StrToIntDef(StringGrid1.Cells[0, StringGrid1.Row - 1], -1);
 //      X := StrToFloatDef(StringGrid1.Cells[1, StringGrid1.Row - 1], NaN);
 //      Y := StrToFloatDef(StringGrid1.Cells[2, StringGrid1.Row - 1], NaN);
@@ -154,29 +154,29 @@
 //      Quality := StrToIntDef(StringGrid1.Cells[4, StringGrid1.Row - 1], -1);
 //      Description := StringGrid1.Cells[5, StringGrid1.Row - 1];
 //
-//      // UloûenÌ do slovnÌku pomocÌ singletonu
+//      // Ulo≈æen√≠ do slovn√≠ku pomoc√≠ singletonu
 //      if (PointNumber <> -1) and (not IsNan(X)) and (not IsNan(Y)) and (not IsNan(Z)) then
 //      begin
-//        // PouûitÌ singletonu pro zÌsk·nÌ instance TPointDictionary
+//        // Pou≈æit√≠ singletonu pro z√≠sk√°n√≠ instance TPointDictionary
 //        TPointDictionary.GetInstance.AddPoint(TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
 //
-//        // Kontrola, zda byl bod vloûen a uloûenÌ do novÈho bodu
+//        // Kontrola, zda byl bod vlo≈æen a ulo≈æen√≠ do nov√©ho bodu
 //        if TPointDictionary.GetInstance.PointExists(PointNumber) then
 //        begin
 //          NewPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
-//          ShowMessage(Format('Bod %d byl vloûen do ss: X=%.2f, Y=%.2f, Z=%.2f, Kvalita=%d, Popis=%s',
+//          ShowMessage(Format('Bod %d byl vlo≈æen do ss: X=%.2f, Y=%.2f, Z=%.2f, Kvalita=%d, Popis=%s',
 //            [NewPoint.PointNumber, NewPoint.X, NewPoint.Y, NewPoint.Z, NewPoint.Quality, NewPoint.Description]));
 //        end
 //        else
-//          ShowMessage(Format('Bod %d nebyl vloûen.', [PointNumber]));
+//          ShowMessage(Format('Bod %d nebyl vlo≈æen.', [PointNumber]));
 //      end
 //      else
-//        ShowMessage('Neplatn· data, bod nebyl uloûen.');
+//        ShowMessage('Neplatn√° data, bod nebyl ulo≈æen.');
 //    end;
 //  end
 //  else if Key = VK_DELETE then
 //  begin
-//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Maz·nÌ obsahu buÚky
+//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Maz√°n√≠ obsahu bu≈àky
 //  end;
 //end;
 //
@@ -193,7 +193,7 @@
 //begin
 //  with TStringGrid(Sender).Canvas do
 //  begin
-//    // hlaviËka = vûdy öed·
+//    // hlaviƒçka = v≈ædy ≈°ed√°
 //    if ARow < TStringGrid(Sender).FixedRows then
 //      Brush.Color := clMenuBar
 //    else
@@ -209,7 +209,7 @@
 //
 //procedure TForm6.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 //begin
-//  // Zablokuj v˝bÏr (a tedy i ˙pravu) hlaviËky
+//  // Zablokuj v√Ωbƒõr (a tedy i √∫pravu) hlaviƒçky
 //  CanSelect := ARow <> 0;
 //end;
 //
@@ -225,7 +225,7 @@
 //  Vcl.StdCtrls,
 //  System.SysUtils,
 //  Point, Vcl.Dialogs, Vcl.Menus, Vcl.ExtCtrls, Vcl.ComCtrls, System.Classes,
-//  Vcl.Controls;  // vaöe jednotka, kde je TPoint.Create(validace)
+//  Vcl.Controls;  // va≈°e jednotka, kde je TPoint.Create(validace)
 //
 //type
 //  TForm6 = class(TForm)
@@ -237,9 +237,9 @@
 //    { Private declarations }
 //  public
 //    /// <summary>
-//    /// ZobrazÌ dialog pro jedno zad·nÌ bodu.
-//    /// Vr·tÌ True, pokud uûivatel klikne OK,
-//    /// a out NewP vr·tÌ validovan˝ bod.
+//    /// Zobraz√≠ dialog pro jedno zad√°n√≠ bodu.
+//    /// Vr√°t√≠ True, pokud u≈æivatel klikne OK,
+//    /// a out NewP vr√°t√≠ validovan√Ω bod.
 //    /// </summary>
 //    function Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
 //  end;
@@ -253,30 +253,30 @@
 //
 //procedure TForm6.FormCreate(Sender: TObject);
 //begin
-//  // grid nastavÌme na 6 sloupc˘ (0=ËÌslo, 1=X,2=Y,3=Z,4=Quality,5=Popis)
+//  // grid nastav√≠me na 6 sloupc≈Ø (0=ƒç√≠slo, 1=X,2=Y,3=Z,4=Quality,5=Popis)
 //  StringGrid1.ColCount := 6;
 //  StringGrid1.RowCount := 2;
 //  StringGrid1.FixedRows := 1;
 //
-//  // hlaviËka
-//  StringGrid1.Cells[0,0] := '»Ìslo bodu';
+//  // hlaviƒçka
+//  StringGrid1.Cells[0,0] := 'ƒå√≠slo bodu';
 //  StringGrid1.Cells[1,0] := 'X';
 //  StringGrid1.Cells[2,0] := 'Y';
 //  StringGrid1.Cells[3,0] := 'Z';
 //  StringGrid1.Cells[4,0] := 'Kvalita';
 //  StringGrid1.Cells[5,0] := 'Popis';
 //
-//  // tlaËÌtka
+//  // tlaƒç√≠tka
 //  btnOK.ModalResult := mrOk;
 //  btnCancel.ModalResult := mrCancel;
 //end;
 //
 //function TForm6.Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
 //begin
-//  // p¯edeölete ËÌslo bodu do prvnÌ buÚky
+//  // p≈ôede≈°lete ƒç√≠slo bodu do prvn√≠ bu≈àky
 //  StringGrid1.Cells[0,1] := IntToStr(PointNumber);
 //
-//  // ukaûte formu
+//  // uka≈æte formu
 //  Result := (ShowModal = mrOk);
 //  if not Result then
 //    Exit;
@@ -300,7 +300,9 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, Vcl.Forms, Vcl.Grids, Vcl.StdCtrls, Vcl.Controls,
-  Point, System.Classes;  // sem dej jednotku, kde je deklarov·no TPoint.Create(...)
+  Point, System.Classes,
+  StringGridValidationUtils, ValidationUtils,
+  PointsManagement;
 
 type
   TForm6 = class(TForm)
@@ -309,14 +311,15 @@ type
     btnCancel: TButton;
     procedure FormCreate(Sender: TObject);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracov√°n√≠ stisknut√≠ kl√°vesy
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
   public
     /// <summary>
-    ///  ZobrazÌ dialog pro zad·nÌ jednoho bodu.
-    ///  Vr·tÌ True, pokud uûivatel potvrdÌ OK.
-    ///  Out NewP je validovan˝ bod (pomocÌ konstruktoru TPoint.Create).
+    ///  Zobraz√≠ dialog pro zad√°n√≠ jednoho bodu.
+    ///  Vr√°t√≠ True, pokud u≈æivatel potvrd√≠ OK.
+    ///  Out NewP je validovan√Ω bod (pomoc√≠ konstruktoru TPoint.Create).
     /// </summary>
     function Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
   end;
@@ -332,39 +335,58 @@ procedure TForm6.FormCreate(Sender: TObject);
 var
   c: Integer;
 begin
-  // NastavÌme grid: 6 sloupc˘, 2 ¯·dky, 1 pevn˝
+  // Nastav√≠me grid: 6 sloupc≈Ø, 2 ≈ô√°dky, 1 pevn√Ω
   StringGrid1.ColCount := 6;
   StringGrid1.RowCount := 2;
   StringGrid1.FixedRows := 1;
 
-  // HlaviËka
-  StringGrid1.Cells[0,0] := '»Ìslo bodu';
+  // Hlaviƒçka
+  StringGrid1.Cells[0,0] := 'ƒå√≠slo bodu';
   StringGrid1.Cells[1,0] := 'X';
   StringGrid1.Cells[2,0] := 'Y';
   StringGrid1.Cells[3,0] := 'Z';
   StringGrid1.Cells[4,0] := 'Kvalita';
   StringGrid1.Cells[5,0] := 'Popis';
 
-  // TlaËÌtka jako mod·lnÌ
+  // Tlaƒç√≠tka jako mod√°ln√≠
   btnOK.ModalResult := mrOk;
   btnCancel.ModalResult := mrCancel;
 
-  //P¯epÌnanÌ pomocÌ enteru
+  //P≈ôep√≠nan√≠ pomoc√≠ enteru
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
 
 end;
 
+//function TForm6.Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
+//begin
+//  // P≈ôede≈°leme ƒç√≠slo bodu do gridu
+//  StringGrid1.Cells[0,1] := IntToStr(PointNumber);
+//
+//  // Zobraz√≠me mod√°lnƒõ
+//  Result := (ShowModal = mrOk);
+//  if not Result then
+//    Exit;
+//
+//  // Vytvo≈ô√≠me validovan√Ω bod (validace prob√≠h√° v konstruktoru TPoint.Create)
+//  NewP := TPoint.Create(
+//    PointNumber,
+//    StrToFloatDef(StringGrid1.Cells[1,1], 0.0),
+//    StrToFloatDef(StringGrid1.Cells[2,1], 0.0),
+//    StrToFloatDef(StringGrid1.Cells[3,1], 0.0),
+//    StrToIntDef(  StringGrid1.Cells[4,1], 0),
+//    StringGrid1.Cells[5,1]
+//  );
+//
+//end;
+
 function TForm6.Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
 begin
-  // P¯edeöleme ËÌslo bodu do gridu
   StringGrid1.Cells[0,1] := IntToStr(PointNumber);
 
-  // ZobrazÌme mod·lnÏ
   Result := (ShowModal = mrOk);
   if not Result then
     Exit;
 
-  // Vytvo¯Ìme validovan˝ bod (validace probÌh· v konstruktoru TPoint.Create)
   NewP := TPoint.Create(
     PointNumber,
     StrToFloatDef(StringGrid1.Cells[1,1], 0.0),
@@ -373,40 +395,123 @@ begin
     StrToIntDef(  StringGrid1.Cells[4,1], 0),
     StringGrid1.Cells[5,1]
   );
+
+  // P≈ôidej do slovn√≠ku
+  //TPointDictionary.GetInstance.AddPoint(NewP);
+
+  // Pokud je PointsManagement (Form2) otev≈ôen√Ω, refreshni grid
+  if Assigned(Form2) and Form2.Visible then
+    Form2.RefreshGrid;  // nebo vlastn√≠ RefreshGrid metoda
 end;
+
+//procedure TForm6.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//begin
+//  if Key = VK_RETURN then
+//  begin
+//    Key := 0;                        // zamez√≠me defaultn√≠mu ‚Äûbeep‚Äú ƒçi jin√©mu zpracov√°n√≠
+//    with StringGrid1 do
+//    begin
+//      // pokud nejsem v posledn√≠m sloupci -> posu≈à se doprava
+//      if Col < ColCount - 1 then
+//        Col := Col + 1
+//      else
+//      begin
+//        // jinak p≈ôejdi na dal≈°√≠ ≈ô√°dek, prvn√≠ sloupec
+//        if Row < RowCount - 1 then
+//          Row := Row + 1;
+//        Col := 0;
+//      end;
+//      // spust√≠me re≈æim editace v bu≈àce
+//      EditorMode := True;
+//    end;
+//  end;
+//end;
+
+//procedure TForm6.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//begin
+//  if (Key = VK_RETURN) or (Key = VK_TAB) then
+//  begin
+//    Key := 0;  // zamez√≠me defaultn√≠mu chov√°n√≠ (beep, skok)
+//
+//    with StringGrid1 do
+//    begin
+//      // Pokud jsme v X, Y nebo Z -> p≈ôeveƒè v√Ωraz na ƒç√≠slo
+//      if Col in [1, 2, 3] then
+//      begin
+//        try
+//          Cells[Col, Row] := FloatToStr(EvaluateExpression(Cells[Col, Row]));
+//        except
+//          on E: Exception do
+//            //ShowMessage('Chyba ve v√Ωrazu: ' + E.Message);
+//        end;
+//      end;
+//
+//      // Pohyb na dal≈°√≠ bu≈àku
+//      if Col < ColCount - 1 then
+//        Col := Col + 1
+//      else
+//      begin
+//        if Row < RowCount - 1 then
+//          Row := Row + 1;
+//        Col := 0;
+//      end;
+//
+//      EditorMode := True;
+//    end;
+//  end
+//  else if Key = VK_DELETE then
+//  begin
+//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Maz√°n√≠ bu≈àky
+//  end;
+//end;
 
 procedure TForm6.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  if Key = VK_RETURN then
+  if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
-    Key := 0;                        // zamezÌme defaultnÌmu Ñbeepì Ëi jinÈmu zpracov·nÌ
+    Key := 0;  // Zamez√≠ defaultn√≠mu chov√°n√≠ (beep, automatick√Ω pohyb)
+
     with StringGrid1 do
     begin
-      // pokud nejsem v poslednÌm sloupci -> posuÚ se doprava
+      // Pokud jsme ve sloupci X, Y nebo Z -> p≈ôeveƒè matematick√Ω v√Ωraz na ƒç√≠slo
+      if Col in [1, 2, 3] then
+      begin
+        try
+          Cells[Col, Row] := FloatToStr(EvaluateExpression(Cells[Col, Row]));
+        except
+          on E: Exception do
+            //ShowMessage('Chyba ve v√Ωrazu: ' + E.Message);
+        end;
+      end;
+
+      // Pohyb na dal≈°√≠ bu≈àku v r√°mci ≈ô√°dku 1 (cykluje jen v datov√©m ≈ô√°dku)
       if Col < ColCount - 1 then
         Col := Col + 1
       else
-      begin
-        // jinak p¯ejdi na dalöÌ ¯·dek, prvnÌ sloupec
-        if Row < RowCount - 1 then
-          Row := Row + 1;
-        Col := 0;
-      end;
-      // spustÌme reûim editace v buÚce
+        Col := 0;  // po posledn√≠m sloupci se vr√°t√≠ na zaƒç√°tek ≈ô√°dku
+
+      // V≈ædy z≈Østaneme na ≈ô√°dku 1 (datov√Ω ≈ô√°dek)
+      // Row := 1;
+
       EditorMode := True;
     end;
+  end
+  else if Key = VK_DELETE then
+  begin
+    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Smaz√°n√≠ obsahu aktu√°ln√≠ bu≈àky
   end;
 end;
+
 
 //procedure TForm6.FormShow(Sender: TObject);
 //var
 //  c: Integer;
 //begin
-//  // Vymaûeme cel˝ datov˝ ¯·dek (index 1) p¯ed kaûd˝m zobrazenÌm
+//  // Vyma≈æeme cel√Ω datov√Ω ≈ô√°dek (index 1) p≈ôed ka≈æd√Ωm zobrazen√≠m
 //  for c := 0 to StringGrid1.ColCount - 1 do
 //    StringGrid1.Cells[c,1] := '';
 //
-//  // NastavÌme kurzor do prvnÌ datovÈ buÚky
+//  // Nastav√≠me kurzor do prvn√≠ datov√© bu≈àky
 //  StringGrid1.Row := 1;
 //  StringGrid1.Col := 1;
 //  StringGrid1.EditorMode := True;
@@ -416,16 +521,23 @@ procedure TForm6.FormShow(Sender: TObject);
 var
   c: Integer;
 begin
-  // Vymaûeme jen sloupce 1..n, sloupec 0 (PointNumber) nech·me
+//   Vyma≈æeme jen sloupce 1..n, sloupec 0 (PointNumber) nech√°me
   for c := 1 to StringGrid1.ColCount - 1 do
     StringGrid1.Cells[c,1] := '';
 
-  // NastavÌme kurzor do prvnÌ datovÈ buÚky pro X
+  // Nastav√≠me kurzor do prvn√≠ datov√© bu≈àky pro X
   StringGrid1.Row := 1;
   StringGrid1.Col := 1;
   StringGrid1.EditorMode := True;
 end;
 
+procedure TForm6.StringGrid1KeyPress(Sender: TObject; var Key: Char);
+begin
+  HandleBackspace(StringGrid1, Key);
+  ValidatePointNumber(StringGrid1, Key);
+  ValidateCoordinates(StringGrid1, Key);
+  ValidateQualityCode(StringGrid1, Key);
+end;
 
 end.
 

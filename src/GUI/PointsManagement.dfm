@@ -11,6 +11,7 @@ object Form2: TForm2
   Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = MainMenu1
+  OnActivate = FormShow
   OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 15
@@ -25,7 +26,8 @@ object Form2: TForm2
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 0
-    ExplicitLeft = 8
+    ExplicitWidth = 418
+    ExplicitHeight = 316
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -36,7 +38,8 @@ object Form2: TForm2
       item
         Width = 50
       end>
-    ExplicitLeft = 8
+    ExplicitTop = 366
+    ExplicitWidth = 418
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -45,7 +48,7 @@ object Form2: TForm2
     Height = 50
     Align = alTop
     TabOrder = 2
-    ExplicitLeft = 8
+    ExplicitWidth = 418
   end
   object MainMenu1: TMainMenu
     Left = 584

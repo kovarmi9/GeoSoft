@@ -40,6 +40,7 @@ type
     procedure SaveAsCSVClick(Sender: TObject);
     procedure SaveAsBinaryClick(Sender: TObject);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    procedure RefreshGrid();
   private
     { Private declarations }
   public
@@ -115,26 +116,60 @@ begin
 
 end;
 
-procedure TForm2.FormShow(Sender: TObject);
+//procedure TForm2.FormShow(Sender: TObject);
+//var
+//  pt: TPoint;
+//  Keys: TList<Integer>;
+//  Key: Integer;
+//  i: Integer;
+//begin
+//  // 1) vyčistíme grid pod hlavičkou
+//  //StringGrid1.RowCount := 1;
+//
+//  // 2) načteme si všechny klíče (čísla bodů)
+//  Keys := TList<Integer>.Create;
+//  try
+//    for pt in TPointDictionary.GetInstance.Values do
+//      Keys.Add(pt.PointNumber);
+//
+//    // 3) seřadíme seznam klíčů
+//    Keys.Sort;
+//
+//    // 4) podle seřazených klíčů doplníme grid
+//    i := 1;
+//    for Key in Keys do
+//    begin
+//      pt := TPointDictionary.GetInstance.GetPoint(Key);
+//      StringGrid1.RowCount := i + 1;
+//      StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+//      StringGrid1.Cells[1, i] := FloatToStr(pt.X);
+//      StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+//      StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
+//      StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
+//      StringGrid1.Cells[5, i] := pt.Description;
+//      Inc(i);
+//    end;
+//  finally
+//    Keys.Free;
+//  end;
+//
+//  StringGrid1.Repaint;
+//end;
+
+procedure TForm2.RefreshGrid;
 var
   pt: TPoint;
   Keys: TList<Integer>;
   Key: Integer;
   i: Integer;
 begin
-  // 1) vyčistíme grid pod hlavičkou
-  //StringGrid1.RowCount := 1;
-
-  // 2) načteme si všechny klíče (čísla bodů)
+  StringGrid1.RowCount := 1;  // jen hlavička
   Keys := TList<Integer>.Create;
   try
     for pt in TPointDictionary.GetInstance.Values do
       Keys.Add(pt.PointNumber);
-
-    // 3) seřadíme seznam klíčů
     Keys.Sort;
 
-    // 4) podle seřazených klíčů doplníme grid
     i := 1;
     for Key in Keys do
     begin
@@ -154,6 +189,13 @@ begin
 
   StringGrid1.Repaint;
 end;
+
+
+procedure TForm2.FormShow(Sender: TObject);
+begin
+  RefreshGrid;
+end;
+
 
 procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin

@@ -10,6 +10,7 @@ object Form6: TForm6
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OnActivate = FormShow
   OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 15
@@ -22,6 +23,7 @@ object Form6: TForm6
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
     TabOrder = 0
+    OnKeyPress = StringGrid1KeyPress
   end
   object btnOK: TButton
     Left = 216

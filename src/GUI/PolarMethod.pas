@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.Math,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
-  PointsUtilsSingleton, Point,
+  PointsUtilsSingleton, Point, AddPoint,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Types;
 
 type
@@ -310,15 +310,88 @@ end;
 //  end;
 //end;
 
+//procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//var
+//  PointNumber: Integer;
+//  P: Point.TPoint;
+//  UserChoice: Integer;
+//  S: string;
+//  X, Y, Z: Double;
+//  Q: Integer;
+//  Dict: TPointDictionary;
+//begin
+//  if Key <> VK_RETURN then Exit;
+//  Key := 0;  // potlačí defaultní Enter
+//
+//  // 1) Načteme číslo bodu z gridu
+//  PointNumber := StrToIntDef(StringGrid1.Cells[1, StringGrid1.Row], -1);
+//  if PointNumber = -1 then
+//  begin
+//    ShowMessage('Neplatné číslo bodu.');
+//    Exit;
+//  end;
+//
+//  Dict := TPointDictionary.GetInstance;
+//
+//  // 2) Pokud bod existuje, načteme ho přímo
+//  if Dict.PointExists(PointNumber) then
+//  begin
+//    P := Dict.GetPoint(PointNumber);
+//    dlg: TForm6;
+//  end
+//  else
+//  begin
+//    // 3) Zeptáme se, jestli ho uživatel chce přidat
+//    UserChoice := MessageDlg(
+//      Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [PointNumber]),
+//      mtConfirmation, [mbYes, mbNo], 0);
+//    if UserChoice <> mrYes then
+//      Exit;
+//
+//    // 4) Ptejte se na jednotlivé hodnoty do lokálních proměnných
+//    if not InputQuery('Nový bod', 'Zadejte X souřadnici:', S) then Exit;
+//    X := StrToFloatDef(S, 0);
+//    if not InputQuery('Nový bod', 'Zadejte Y souřadnici:', S) then Exit;
+//    Y := StrToFloatDef(S, 0);
+//    if not InputQuery('Nový bod', 'Zadejte Z souřadnici:', S) then Exit;
+//    Z := StrToFloatDef(S, 0);
+//    if not InputQuery('Nový bod', 'Zadejte kód kvality (0–8):', S) then Exit;
+//    Q := StrToIntDef(S, 0);
+//    if not InputQuery('Nový bod', 'Zadejte popis bodu:', S) then Exit;
+//
+//    // 5) Vytvoříme P jediným voláním konstruktoru (tam proběhne validace)
+//    P := Point.TPoint.Create(PointNumber, X, Y, Z, Q, S);
+//
+//    // 6) Přidáme ho do slovníku
+//    Dict.AddPoint(P);
+//  end;
+//
+//  // 7) Vyplníme buňky z (už validovaných) vlastností P
+//  StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
+//  StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(P.Y);
+//  StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Z);
+//  StringGrid1.Cells[7, StringGrid1.Row] := IntToStr(P.Quality);
+//  StringGrid1.Cells[8, StringGrid1.Row] := P.Description;
+//
+//  // 8) Navigace na další buňku nebo řádek
+//  if StringGrid1.Col < StringGrid1.ColCount - 1 then
+//    StringGrid1.Col := StringGrid1.Col + 1
+//  else
+//  begin
+//    if StringGrid1.Row = StringGrid1.RowCount - 1 then
+//      StringGrid1.RowCount := StringGrid1.RowCount + 1;
+//    StringGrid1.Row := StringGrid1.Row + 1;
+//    StringGrid1.Col := 1;
+//    if StringGrid1.Row > 2 then
+//      StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row - 2);
+//  end;
+//end;
+
 procedure TForm3.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
-  P: Point.TPoint;
-  UserChoice: Integer;
-  S: string;
-  X, Y, Z: Double;
-  Q: Integer;
-  Dict: TPointDictionary;
+  P: Point.TPoint; //
+  dlg: TForm6;
 begin
   if Key <> VK_RETURN then Exit;
   Key := 0;  // potlačí defaultní Enter
@@ -331,48 +404,32 @@ begin
     Exit;
   end;
 
-  Dict := TPointDictionary.GetInstance;
-
-  // 2) Pokud bod existuje, načteme ho přímo
-  if Dict.PointExists(PointNumber) then
-  begin
-    P := Dict.GetPoint(PointNumber);
-  end
+  // 2) Pokud bod existuje → načti ho přímo
+  if TPointDictionary.GetInstance.PointExists(PointNumber) then
+    P := TPointDictionary.GetInstance.GetPoint(PointNumber)
   else
   begin
-    // 3) Zeptáme se, jestli ho uživatel chce přidat
-    UserChoice := MessageDlg(
-      Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [PointNumber]),
-      mtConfirmation, [mbYes, mbNo], 0);
-    if UserChoice <> mrYes then
-      Exit;
+    // 3) Pokud neexistuje → otevři náš formulář pro přidání bodu
+    dlg := TForm6.Create(Self);
+    try
+      if not dlg.Execute(PointNumber, P) then
+        Exit; // uživatel zrušil
 
-    // 4) Ptejte se na jednotlivé hodnoty do lokálních proměnných
-    if not InputQuery('Nový bod', 'Zadejte X souřadnici:', S) then Exit;
-    X := StrToFloatDef(S, 0);
-    if not InputQuery('Nový bod', 'Zadejte Y souřadnici:', S) then Exit;
-    Y := StrToFloatDef(S, 0);
-    if not InputQuery('Nový bod', 'Zadejte Z souřadnici:', S) then Exit;
-    Z := StrToFloatDef(S, 0);
-    if not InputQuery('Nový bod', 'Zadejte kód kvality (0–8):', S) then Exit;
-    Q := StrToIntDef(S, 0);
-    if not InputQuery('Nový bod', 'Zadejte popis bodu:', S) then Exit;
-
-    // 5) Vytvoříme P jediným voláním konstruktoru (tam proběhne validace)
-    P := Point.TPoint.Create(PointNumber, X, Y, Z, Q, S);
-
-    // 6) Přidáme ho do slovníku
-    Dict.AddPoint(P);
+      // Přidáme nový bod do slovníku
+      TPointDictionary.GetInstance.AddPoint(P);
+    finally
+      dlg.Free;
+    end;
   end;
 
-  // 7) Vyplníme buňky z (už validovaných) vlastností P
+  // 4) Vyplníme buňky z bodu
   StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
   StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(P.Y);
   StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Z);
   StringGrid1.Cells[7, StringGrid1.Row] := IntToStr(P.Quality);
   StringGrid1.Cells[8, StringGrid1.Row] := P.Description;
 
-  // 8) Navigace na další buňku nebo řádek
+  // 5) Posun na další buňku / řádek
   if StringGrid1.Col < StringGrid1.ColCount - 1 then
     StringGrid1.Col := StringGrid1.Col + 1
   else
@@ -381,10 +438,12 @@ begin
       StringGrid1.RowCount := StringGrid1.RowCount + 1;
     StringGrid1.Row := StringGrid1.Row + 1;
     StringGrid1.Col := 1;
+
     if StringGrid1.Row > 2 then
       StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row - 2);
   end;
 end;
+
 
 procedure TForm3.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);

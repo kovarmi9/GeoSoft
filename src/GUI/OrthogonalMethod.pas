@@ -26,6 +26,7 @@ type
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure UpdateCurrentDirectoryPath;
     procedure MoveToNextCell;
+    procedure AutoSizeColumns(const CustomWidths: array of Integer);
   private
     { Private declarations }
   public
@@ -76,19 +77,18 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-procedure TForm4.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-  Rect: TRect; State: TGridDrawState);
-begin
-  with StringGrid1.Canvas do
-  begin
-  if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-    Brush.Color := clBtnFace
-  else
-    Brush.Color := clWhite;
-    FillRect(Rect);
-    TextRect(Rect, Rect.Left + 4, Rect.Top + 2, StringGrid1.Cells[ACol, ARow]);
-  end;
-end;
+//procedure TForm4.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;  Rect: TRect; State: TGridDrawState);
+//begin
+//  with StringGrid1.Canvas do
+//  begin
+//  if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
+//    Brush.Color := clBtnFace
+//  else
+//    Brush.Color := clWhite;
+//    FillRect(Rect);
+//    TextRect(Rect, Rect.Left + 4, Rect.Top + 2, StringGrid1.Cells[ACol, ARow]);
+//  end;
+//end;
 
 procedure TForm4.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
@@ -149,6 +149,63 @@ begin
     StringGrid1.Col := 1;
     if StringGrid1.Row > 2 then
       StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row - 2);
+  end;
+end;
+
+procedure TForm4.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+  Rect: TRect; State: TGridDrawState);
+var
+  Text: string;
+  TextW: Integer;
+  X, Y: Integer;
+begin
+  with StringGrid1.Canvas do
+  begin
+    // Pevné buòky = hlavièky øádkù i sloupcù
+    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
+    begin
+      Brush.Color := clBtnFace; // šedé pozadí pro hlavièky
+      Font.Style := [fsBold];
+      FillRect(Rect);
+
+      // Ruèní centrování textu (vìtší pøesnost než DT_CENTER)
+      Text := StringGrid1.Cells[ACol, ARow];
+      TextW := TextWidth(Text);
+      X := Rect.Left + (Rect.Width - TextW) div 2;
+      Y := Rect.Top + (Rect.Height - TextHeight(Text)) div 2;
+      TextRect(Rect, X, Y, Text);
+    end
+    else
+    begin
+      Brush.Color := clWindow; // bílé pozadí pro data
+      Font.Style := [];
+      FillRect(Rect);
+
+      // Odsazení textu od levého okraje
+      Text := StringGrid1.Cells[ACol, ARow];
+      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
+    end;
+  end;
+
+  // Po vykreslení pøizpùsobí šíøky sloupcù
+  AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
+end;
+
+procedure TForm4.AutoSizeColumns(const CustomWidths: array of Integer);
+var
+  i, w: Integer;
+begin
+  // Pro všechny datové sloupce 1..ColCount-1
+  for i := 1 to StringGrid1.ColCount - 1 do
+  begin
+    // Pokud mám v CustomWidths prvek pro tento sloupec a je >0, vezmu ho
+    if (i-1 < Length(CustomWidths)) and (CustomWidths[i-1] > 0) then
+      w := CustomWidths[i-1]
+    else
+      // jinak auto podle šíøky nadpisu + 16px odsazení
+      w := StringGrid1.Canvas.TextWidth(StringGrid1.Cells[i,0]) + 16;
+
+    StringGrid1.ColWidths[i] := w;
   end;
 end;
 

@@ -233,6 +233,7 @@ type
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure UpdateCurrentDirectoryPath;
+    procedure AutoSizeColumns(const CustomWidths: array of Integer);
   private
     FChecked: TArray<Boolean>;
   public
@@ -297,22 +298,71 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
+//procedure TForm5.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+//  Rect: TRect; State: TGridDrawState);
+//var
+//  CR: TRect;
+//  Flags: Integer;
+//begin
+//  with StringGrid1.Canvas do
+//  begin
+//    // pozadí
+//    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
+//      Brush.Color := clMenuBar
+//    else
+//      Brush.Color := clWhite;
+//    FillRect(Rect);
+//
+//    // checkbox ve sloupci 1
+//    if ACol = 1 then
+//    begin
+//      CR := Rect;
+//      InflateRect(CR, -4, -4);
+//      Flags := DFCS_BUTTONCHECK;
+//      if FChecked[ARow] then
+//        Flags := Flags or DFCS_CHECKED;
+//      DrawFrameControl(StringGrid1.Canvas.Handle, CR, DFC_BUTTON, Flags);
+//      Exit;
+//    end;
+//
+//    // normální text
+//    TextRect(Rect, Rect.Left + 4, Rect.Top + 2,
+//      StringGrid1.Cells[ACol, ARow]);
+//  end;
+//end;
+
 procedure TForm5.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
+  Text: string;
+  TextW, X, Y: Integer;
   CR: TRect;
   Flags: Integer;
 begin
   with StringGrid1.Canvas do
   begin
-    // pozadí
+    // --- Hlavičky (fixed cells) ---
     if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-      Brush.Color := clMenuBar
-    else
-      Brush.Color := clWhite;
+    begin
+      Brush.Color := clBtnFace;
+      Font.Style := [fsBold];
+      FillRect(Rect);
+
+      // Vycentrovaný text
+      Text := StringGrid1.Cells[ACol, ARow];
+      TextW := TextWidth(Text);
+      X := Rect.Left + (Rect.Width - TextW) div 2;
+      Y := Rect.Top + (Rect.Height - TextHeight(Text)) div 2;
+      TextRect(Rect, X, Y, Text);
+      Exit;
+    end;
+
+    // --- Data ---
+    Brush.Color := clWindow;
+    Font.Style := [];
     FillRect(Rect);
 
-    // checkbox ve sloupci 1
+    // --- Checkbox ve sloupci 1 ---
     if ACol = 1 then
     begin
       CR := Rect;
@@ -320,13 +370,31 @@ begin
       Flags := DFCS_BUTTONCHECK;
       if FChecked[ARow] then
         Flags := Flags or DFCS_CHECKED;
-      DrawFrameControl(StringGrid1.Canvas.Handle, CR, DFC_BUTTON, Flags);
+      DrawFrameControl(Handle, CR, DFC_BUTTON, Flags);
       Exit;
     end;
 
-    // normální text
-    TextRect(Rect, Rect.Left + 4, Rect.Top + 2,
-      StringGrid1.Cells[ACol, ARow]);
+    // --- Normální text s odsazením ---
+    Text := StringGrid1.Cells[ACol, ARow];
+    TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
+  end;
+
+  // --- Automatické šířky (ruční + auto) ---
+  AutoSizeColumns([30, 90, 80, 80, 90, 80, 80, 80, 80, 80, 80, 80]);
+end;
+
+procedure TForm5.AutoSizeColumns(const CustomWidths: array of Integer);
+var
+  i, w: Integer;
+begin
+  for i := 1 to StringGrid1.ColCount - 1 do
+  begin
+    if (i-1 < Length(CustomWidths)) and (CustomWidths[i-1] > 0) then
+      w := CustomWidths[i-1]
+    else
+      w := StringGrid1.Canvas.TextWidth(StringGrid1.Cells[i,0]) + 16;
+
+    StringGrid1.ColWidths[i] := w;
   end;
 end;
 

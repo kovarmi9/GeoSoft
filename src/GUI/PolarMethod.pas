@@ -445,6 +445,44 @@ begin
 end;
 
 
+//procedure TForm3.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+//  Rect: TRect; State: TGridDrawState);
+//var
+//  Text: string;
+//  TextW: Integer;
+//  X, Y: Integer;
+//begin
+//  with StringGrid1.Canvas do
+//  begin
+//    // pozadí
+//    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
+//      Brush.Color := clMenuBar
+//    else
+//      Brush.Color := clWhite;
+//    FillRect(Rect);
+//
+//    Text := StringGrid1.Cells[ACol, ARow];
+//
+//    if ARow = 0 then
+//    begin
+//      // pro hlavičku: vycentruj vodorovně
+//      TextW := TextWidth(Text);
+//      X := Rect.Left + (Rect.Right - Rect.Left - TextW) div 2;
+//      // vertikálně nechám trochu odsazení odshora
+//      Y := Rect.Top + (Rect.Bottom - Rect.Top - TextHeight(Text)) div 2;
+//      TextRect(Rect, X, Y, Text);
+//    end
+//    else
+//    begin
+//      // klasické psaní (nebo tu můžeš přidat další podmínky)
+//      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
+//    end;
+//  end;
+//
+//  AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
+//
+//end;
+
 procedure TForm3.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
@@ -454,33 +492,34 @@ var
 begin
   with StringGrid1.Canvas do
   begin
-    // pozadí
+    // Pevné buňky = hlavičky řádků i sloupců
     if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-      Brush.Color := clMenuBar
-    else
-      Brush.Color := clWhite;
-    FillRect(Rect);
-
-    Text := StringGrid1.Cells[ACol, ARow];
-
-    if ARow = 0 then
     begin
-      // pro hlavičku: vycentruj vodorovně
+      Brush.Color := clBtnFace; // šedé pozadí pro hlavičky
+      Font.Style := [fsBold];
+      FillRect(Rect);
+
+      // Ruční centrování textu (větší přesnost než DT_CENTER)
+      Text := StringGrid1.Cells[ACol, ARow];
       TextW := TextWidth(Text);
-      X := Rect.Left + (Rect.Right - Rect.Left - TextW) div 2;
-      // vertikálně nechám trochu odsazení odshora
-      Y := Rect.Top + (Rect.Bottom - Rect.Top - TextHeight(Text)) div 2;
+      X := Rect.Left + (Rect.Width - TextW) div 2;
+      Y := Rect.Top + (Rect.Height - TextHeight(Text)) div 2;
       TextRect(Rect, X, Y, Text);
     end
     else
     begin
-      // klasické psaní (nebo tu můžeš přidat další podmínky)
+      Brush.Color := clWindow; // bílé pozadí pro data
+      Font.Style := [];
+      FillRect(Rect);
+
+      // Odsazení textu od levého okraje
+      Text := StringGrid1.Cells[ACol, ARow];
       TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
     end;
   end;
 
+  // Po vykreslení přizpůsobí šířky sloupců
   AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
-
 end;
 
 procedure TForm3.AutoSizeColumns(const CustomWidths: array of Integer);

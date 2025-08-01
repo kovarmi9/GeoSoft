@@ -93,7 +93,7 @@ begin
 
   // Pokud je PointsManagement (Form2) otevřený, refreshni grid
   if Assigned(Form2) and Form2.Visible then
-    Form2.RefreshGrid;  // nebo vlastní RefreshGrid metoda
+    //Form2.RefreshGrid;  // nebo vlastní RefreshGrid metoda
 end;
 
 procedure TForm6.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

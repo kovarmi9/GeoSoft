@@ -327,6 +327,44 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
+//procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+//  Rect: TRect; State: TGridDrawState);
+//var
+//  Text: string;
+//  TextW, TextH: Integer;
+//  X, Y: Integer;
+//begin
+//  with StringGrid1.Canvas do
+//  begin
+//    // Hlavička (řádek 0)
+//    if ARow < StringGrid1.FixedRows then
+//    begin
+//      Brush.Color := clBtnFace;   // šedé pozadí
+//      Font.Assign(Self.Font);     // převezme font formuláře
+//      Font.Style := [fsBold];     // tučné písmo
+//      FillRect(Rect);
+//
+//      // centrování textu
+//      Text := StringGrid1.Cells[ACol, ARow];
+//      TextW := TextWidth(Text);
+//      TextH := TextHeight(Text);
+//      X := Rect.Left + (Rect.Width - TextW) div 2;
+//      Y := Rect.Top + (Rect.Height - TextH) div 2;
+//      TextRect(Rect, X, Y, Text);
+//    end
+//    else
+//    begin
+//      // normální buňky
+//      Brush.Color := clWindow;
+//      Font.Assign(Self.Font);
+//      Font.Style := [];
+//      FillRect(Rect);
+//      Text := StringGrid1.Cells[ACol, ARow];
+//      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
+//    end;
+//  end;
+//end;
+
 procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
@@ -339,12 +377,14 @@ begin
     // Hlavička (řádek 0)
     if ARow < StringGrid1.FixedRows then
     begin
-      Brush.Color := clBtnFace;   // šedé pozadí
-      Font.Assign(Self.Font);     // převezme font formuláře
-      Font.Style := [fsBold];     // tučné písmo
+      Brush.Color := clBtnFace;    // šedé pozadí
+      Font.Name := 'Segoe UI';     // můžeš si změnit
+      Font.Size := 9;
+      Font.Style := [fsBold];      // tučné písmo
+      Font.Color := clBlack;       // černý text
       FillRect(Rect);
 
-      // centrování textu
+      // Centrovat text
       Text := StringGrid1.Cells[ACol, ARow];
       TextW := TextWidth(Text);
       TextH := TextHeight(Text);
@@ -354,17 +394,17 @@ begin
     end
     else
     begin
-      // normální buňky
+      // Běžné buňky
       Brush.Color := clWindow;
       Font.Assign(Self.Font);
       Font.Style := [];
       FillRect(Rect);
+
       Text := StringGrid1.Cells[ACol, ARow];
       TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
     end;
   end;
 end;
-
 
 //procedure TForm2.FromTXTClick(Sender: TObject);
 //var

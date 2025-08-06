@@ -4,9 +4,8 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, Vcl.Forms, Vcl.Grids, Vcl.StdCtrls, Vcl.Controls, Vcl.Graphics,
-  Point, System.Classes,
-  StringGridValidationUtils, ValidationUtils,
-  PointsManagement;
+  Point, System.Classes, StringGridValidationUtils, ValidationUtils,
+  PointsManagement, PointsUtilsSingleton;
 
 type
   TForm6 = class(TForm)
@@ -15,11 +14,11 @@ type
     btnCancel: TButton;
     lblWarning: TLabel;
     procedure FormCreate(Sender: TObject);
-    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); // Reakce na stisknutí klávesy v gridu
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
-    procedure FormShow(Sender: TObject);
-    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-    procedure StringGrid1Enter(Sender: TObject);
+    procedure FormShow(Sender: TObject); // Úptrava formuláře při každém zobrazení
+    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); // Vlastní vykreslení jedné buňky gridu
+    procedure StringGrid1Enter(Sender: TObject); // Reakce při vstupu do gridu
   private
     { Private declarations }
   public
@@ -43,10 +42,10 @@ var
   c: Integer;
 begin
 
-  //vykreslení hlavičky
+  // Vykreslení hlavičky
   StringGrid1.OnDrawCell := StringGrid1DrawCell;
 
-  // Nastavíme grid: 6 sloupců, 2 řádky, 1 pevný
+  // Nastavení gridu: 6 sloupců, 2 řádky, 1 pevný
   StringGrid1.ColCount := 6;
   StringGrid1.RowCount := 2;
   StringGrid1.FixedRows := 1;
@@ -63,7 +62,7 @@ begin
   btnOK.ModalResult := mrOk;
   btnCancel.ModalResult := mrCancel;
 
-  //Přepínaní pomocí enteru
+  // Přepínaní pomocí enteru
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
 
   // Poskočení do první buňky po tabu
@@ -74,14 +73,13 @@ end;
 function TForm6.Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
 begin
   StringGrid1.Cells[0,1] := IntToStr(PointNumber);
-
-  // Zobrazím warning, pokud bod neexistuje
   lblWarning.Caption := Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [PointNumber]);
 
   Result := (ShowModal = mrOk);
   if not Result then
     Exit;
 
+  // Vytvoření bodu
   NewP := TPoint.Create(
     PointNumber,
     StrToFloatDef(StringGrid1.Cells[1,1], 0.0),
@@ -91,10 +89,18 @@ begin
     StringGrid1.Cells[5,1]
   );
 
-  // Pokud je PointsManagement (Form2) otevřený, refreshni grid
+  // Uložení bodu rovnou do slovníku
+  TPointDictionary.GetInstance.AddPoint(NewP);
+
+  // Aktualizuje PointsManagement (pokud je spuštěn)
   if Assigned(Form2) and Form2.Visible then
-    //Form2.RefreshGrid;  // nebo vlastní RefreshGrid metoda
+  begin
+    Form2.RefreshGrid;
+    Form2.StringGrid1.Invalidate;
+    Form2.Update;
+  end;
 end;
+
 
 procedure TForm6.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
@@ -167,11 +173,11 @@ procedure TForm6.FormShow(Sender: TObject);
 var
   c: Integer;
 begin
-//   Vymažeme jen sloupce 1..n, sloupec 0 (PointNumber) necháme
+//   Vymažeme jen sloupce 1..n, sloupec 0 (PointNumber) nechá
   for c := 1 to StringGrid1.ColCount - 1 do
     StringGrid1.Cells[c,1] := '';
 
-  // Nastavíme kurzor do první datové buňky pro X
+  // Nastaví kurzor do první datové buňky pro X
   StringGrid1.Row := 1;
   StringGrid1.Col := 1;
   StringGrid1.EditorMode := True;

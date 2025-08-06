@@ -416,7 +416,7 @@ begin
         Exit; // uživatel zrušil
 
       // Přidáme nový bod do slovníku
-      TPointDictionary.GetInstance.AddPoint(P);
+      //TPointDictionary.GetInstance.AddPoint(P);
     finally
       dlg.Free;
     end;

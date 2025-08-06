@@ -117,7 +117,7 @@ begin
         if not dlg.Execute(PointNumber, P) then
           Exit; // uživatel zrušil
         // nový bod P je validován konstrukcí TPoint.Create uvnitø Execute
-        TPointDictionary.GetInstance.AddPoint(P);
+        //TPointDictionary.GetInstance.AddPoint(P);
       finally
         dlg.Free;
       end;

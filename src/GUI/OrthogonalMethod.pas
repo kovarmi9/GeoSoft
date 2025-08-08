@@ -3,11 +3,8 @@ unit OrthogonalMethod;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
-  PointsUtilsSingleton, AddPoint,
-  Point, GeoAlgorithmBase, Vcl.StdCtrls, Vcl.ActnMan,
-  Vcl.ActnCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.ExtCtrls;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.ActnCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.ExtCtrls,
+  PointsUtilsSingleton, AddPoint, Point, GeoAlgorithmBase, Vcl.StdCtrls, Vcl.ActnMan;
 
 type
   TForm4 = class(TForm)
@@ -22,13 +19,13 @@ type
     Panel1: TPanel;
     StatusBar1: TStatusBar;
     procedure FormCreate(Sender: TObject);
-    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); // Reakce na stisknutí klávesy v gridu
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+  private
+    { Private declarations }
     procedure UpdateCurrentDirectoryPath;
     procedure MoveToNextCell;
     procedure AutoSizeColumns(const CustomWidths: array of Integer);
-  private
-    { Private declarations }
   public
     { Public declarations }
   end;
@@ -63,6 +60,9 @@ begin
   StringGrid1.Cells[0, 2] := 'K';
   StringGrid1.Cells[0, 3] := '1';
 
+  // Nastavení velikostí bunìk
+  AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
+
   // Události
   StringGrid1.OnKeyDown := StringGrid1KeyDown;
   StringGrid1.OnDrawCell := StringGrid1DrawCell;
@@ -77,19 +77,6 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-//procedure TForm4.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;  Rect: TRect; State: TGridDrawState);
-//begin
-//  with StringGrid1.Canvas do
-//  begin
-//  if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-//    Brush.Color := clBtnFace
-//  else
-//    Brush.Color := clWhite;
-//    FillRect(Rect);
-//    TextRect(Rect, Rect.Left + 4, Rect.Top + 2, StringGrid1.Cells[ACol, ARow]);
-//  end;
-//end;
-
 procedure TForm4.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
@@ -98,7 +85,7 @@ var
 begin
   if Key = VK_RETURN then
   begin
-    Key := 0;
+    Key := 0; // potlaèení defaultního chování
     PointNumber := StrToIntDef(StringGrid1.Cells[1, StringGrid1.Row], -1);
     if PointNumber = -1 then
     begin
@@ -115,9 +102,7 @@ begin
       try
         // Execute automaticky vyèistí øádek, doplní èíslo bodu a èeká na OK/Cancel
         if not dlg.Execute(PointNumber, P) then
-          Exit; // uživatel zrušil
-        // nový bod P je validován konstrukcí TPoint.Create uvnitø Execute
-        //TPointDictionary.GetInstance.AddPoint(P);
+          Exit; // uživatel zrušil pøidání bodu
       finally
         dlg.Free;
       end;
@@ -134,7 +119,7 @@ begin
     MoveToNextCell;
   end
   else if Key = VK_DELETE then
-    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
+    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Smazání obsahu aktuální buòky
 end;
 
 procedure TForm4.MoveToNextCell;
@@ -188,7 +173,7 @@ begin
   end;
 
   // Po vykreslení pøizpùsobí šíøky sloupcù
-  AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
+  //AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
 end;
 
 procedure TForm4.AutoSizeColumns(const CustomWidths: array of Integer);

@@ -26,6 +26,7 @@ object Form2: TForm2
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 0
+    OnDrawCell = StringGrid1DrawCell
     ExplicitWidth = 418
     ExplicitHeight = 316
   end

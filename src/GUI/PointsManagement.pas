@@ -91,8 +91,8 @@ begin
   // Nastavení velikostí buněk
   AutoSizeColumns([80, 80, 80, 80, 80, 80]);
 
-  // --- NOVO: naplníme grid existujícími body ze slovníku ---
-  i := 1;  // začínáme na prvním datovém řádku
+  // Naplní grid existujícími body ze slovníku ---
+  i := 1;  // začíná na prvním datovém řádku
   for P in TPointDictionary.GetInstance.Values do
   begin
     // zajistíme dostatek řádků
@@ -121,6 +121,49 @@ begin
 
 end;
 
+//procedure TForm2.RefreshGrid;
+//var
+//  pt: TPoint;
+//  Keys: TList<Integer>;
+//  Key: Integer;
+//  i: Integer;
+//begin
+////  StringGrid1.RowCount := 1;  // jen hlavička
+////  Keys := TList<Integer>.Create;
+////  try
+////    for pt in TPointDictionary.GetInstance.Values do
+////      Keys.Add(pt.PointNumber);
+////    Keys.Sort;
+////
+////    i := 1;
+////    for Key in Keys do
+////    begin
+////      pt := TPointDictionary.GetInstance.GetPoint(Key);
+////      StringGrid1.RowCount := i + 1;
+////      StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+////      StringGrid1.Cells[1, i] := FloatToStr(pt.X);
+////      StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+////      StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
+////      StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
+////      StringGrid1.Cells[5, i] := pt.Description;
+////      Inc(i);
+////    end;
+////  finally
+////    Keys.Free;
+////  end;
+////
+////  // Přidán prázdný řádek na konec pro nový bod
+////  StringGrid1.RowCount := StringGrid1.RowCount + 1;
+////  StringGrid1.Cells[0, StringGrid1.RowCount - 1] := ''; // nový řádek prázdný
+////  StringGrid1.Cells[1, StringGrid1.RowCount - 1] := '';
+////  StringGrid1.Cells[2, StringGrid1.RowCount - 1] := '';
+////  StringGrid1.Cells[3, StringGrid1.RowCount - 1] := '';
+////  StringGrid1.Cells[4, StringGrid1.RowCount - 1] := '';
+////  StringGrid1.Cells[5, StringGrid1.RowCount - 1] := '';
+////
+////  StringGrid1.Repaint;
+//end;
+
 procedure TForm2.RefreshGrid;
 var
   pt: TPoint;
@@ -128,18 +171,29 @@ var
   Key: Integer;
   i: Integer;
 begin
-  StringGrid1.RowCount := 1;  // jen hlavička
+  // Základ: nastavit počet řádků pouze pro data (bez hlavičky a budoucího prázdného řádku)
   Keys := TList<Integer>.Create;
   try
     for pt in TPointDictionary.GetInstance.Values do
       Keys.Add(pt.PointNumber);
     Keys.Sort;
 
+    // +1 kvůli hlavičce
+    StringGrid1.RowCount := Keys.Count + 2;
+
+    // Hlavička – obnovit texty
+    StringGrid1.Cells[0, 0] := 'číslo bodu';
+    StringGrid1.Cells[1, 0] := 'X';
+    StringGrid1.Cells[2, 0] := 'Y';
+    StringGrid1.Cells[3, 0] := 'Z';
+    StringGrid1.Cells[4, 0] := 'Kvalita';
+    StringGrid1.Cells[5, 0] := 'Popis';
+
+    // Naplnit datové řádky od 1
     i := 1;
     for Key in Keys do
     begin
       pt := TPointDictionary.GetInstance.GetPoint(Key);
-      StringGrid1.RowCount := i + 1;
       StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
       StringGrid1.Cells[1, i] := FloatToStr(pt.X);
       StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
@@ -148,21 +202,21 @@ begin
       StringGrid1.Cells[5, i] := pt.Description;
       Inc(i);
     end;
+
+    // Poslední prázdný řádek
+    StringGrid1.Cells[0, i] := '';
+    StringGrid1.Cells[1, i] := '';
+    StringGrid1.Cells[2, i] := '';
+    StringGrid1.Cells[3, i] := '';
+    StringGrid1.Cells[4, i] := '';
+    StringGrid1.Cells[5, i] := '';
   finally
     Keys.Free;
   end;
 
-  // Přidán prázdný řádek na konec pro nový bod
-  StringGrid1.RowCount := StringGrid1.RowCount + 1;
-  StringGrid1.Cells[0, StringGrid1.RowCount - 1] := ''; // nový řádek prázdný
-  StringGrid1.Cells[1, StringGrid1.RowCount - 1] := '';
-  StringGrid1.Cells[2, StringGrid1.RowCount - 1] := '';
-  StringGrid1.Cells[3, StringGrid1.RowCount - 1] := '';
-  StringGrid1.Cells[4, StringGrid1.RowCount - 1] := '';
-  StringGrid1.Cells[5, StringGrid1.RowCount - 1] := '';
-
   StringGrid1.Repaint;
 end;
+
 
 procedure TForm2.FormShow(Sender: TObject);
 begin

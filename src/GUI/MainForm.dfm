@@ -3218,6 +3218,10 @@ object Form1: TForm1
         Caption = 'Transformace'
         OnClick = TransformationClick
       end
+      object Pokus1: TMenuItem
+        Caption = 'Pokus'
+        OnClick = PokusClick
+      end
     end
   end
 end

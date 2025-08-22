@@ -26,6 +26,8 @@ type
     procedure UpdateCurrentDirectoryPath;
     procedure MoveToNextCell;
     procedure AutoSizeColumns(const CustomWidths: array of Integer);
+    //Newly added testing function for correct length of pointnumber
+    function ZeroPadPointNumber(const S: string; Width: Integer = 15): string;
   public
     { Public declarations }
   end;
@@ -122,6 +124,70 @@ begin
     StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Smazání obsahu aktuální buòky
 end;
 
+//procedure TForm4.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//var
+//  PointNumber: Integer;
+//  RawValue, Padded: string;
+//  P: TPoint;
+//  dlg: TForm6;
+//  ConfirmKey: Boolean;
+//begin
+//  ConfirmKey := (Key = VK_RETURN) or (Key = VK_TAB);
+//
+//  if ConfirmKey then
+//  begin
+//    Key := 0; // potlaèit default
+//    // vezmeme surovou hodnotu z 1. sloupce aktuálního øádku
+//    RawValue := StringGrid1.Cells[1, StringGrid1.Row];
+//    Padded := ZeroPadPointNumber(RawValue, 15);
+//
+//    if Padded = '' then
+//    begin
+//      ShowMessage('Neplatné èíslo bodu. Povolené jsou jen èíslice.');
+//      Exit;
+//    end;
+//
+//    // pøepiš buòku na 15místné
+//    StringGrid1.Cells[1, StringGrid1.Row] := Padded;
+//
+//    // pøevedeme na Integer pro slovník (vedoucí nuly nevadí)
+//    PointNumber := StrToIntDef(RawValue, -1);
+//    if (PointNumber < 0) then
+//    begin
+//      ShowMessage('Neplatné èíslo bodu.');
+//      Exit;
+//    end;
+//
+//    // Pokud bod existuje, naèti; jinak otevøi dialog pro vložení nového
+//    if TPointDictionary.GetInstance.PointExists(PointNumber) then
+//      P := TPointDictionary.GetInstance.GetPoint(PointNumber)
+//    else
+//    begin
+//      dlg := TForm6.Create(Self);
+//      try
+//        // Execute vyplní a potvrdí nový bod; èíslo bodu pøedáváme jako Integer
+//        if not dlg.Execute(PointNumber, P) then
+//          Exit; // uživatel zrušil
+//      finally
+//        dlg.Free;
+//      end;
+//    end;
+//
+//    // Vyplò buòky s daty bodu
+//    StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
+//    StringGrid1.Cells[5, StringGrid1.Row] := FloatToStr(P.Y);
+//    StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Z);
+//    StringGrid1.Cells[7, StringGrid1.Row] := IntToStr(P.Quality);
+//    StringGrid1.Cells[8, StringGrid1.Row] := P.Description;
+//
+//    // Navigace (po Enteru i Tabu stejné chování)
+//    MoveToNextCell;
+//  end
+//  else if Key = VK_DELETE then
+//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
+//end;
+
+
 procedure TForm4.MoveToNextCell;
 begin
   if StringGrid1.Col < StringGrid1.ColCount - 1 then
@@ -192,6 +258,23 @@ begin
 
     StringGrid1.ColWidths[i] := w;
   end;
+end;
+
+function TForm4.ZeroPadPointNumber(const S: string; Width: Integer): string;
+var
+  T: string;
+  i: Integer;
+begin
+  T := Trim(S);
+  // povolíme jen èíslice
+  for i := 1 to Length(T) do
+    if not CharInSet(T[i], ['0'..'9']) then
+      Exit(''); // neplatný vstup -> vrátíme prázdné (ošetøeno volajícím)
+
+  while Length(T) < Width do
+    T := '0' + T;
+
+  Result := T;
 end;
 
 end.

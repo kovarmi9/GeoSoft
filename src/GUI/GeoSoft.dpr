@@ -15,7 +15,8 @@ uses
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
   AddPoint in 'AddPoint.pas' {Form6},
-  Pokus in 'Pokus.pas' {Form7};
+  Pokus in 'Pokus.pas' {Form7},
+  CalcFormBase in 'CalcFormBase.pas' {Form8};
 
 {$R *.res}
 
@@ -29,5 +30,6 @@ begin
   Application.CreateForm(TForm5, Form5);
   Application.CreateForm(TForm6, Form6);
   Application.CreateForm(TForm7, Form7);
+  Application.CreateForm(TForm8, Form8);
   Application.Run;
 end.

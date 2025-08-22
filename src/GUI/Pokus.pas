@@ -5,13 +5,15 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  Point, AddPoint;
+  Point, AddPoint, CalcFormBase;
 
 type
   TForm7 = class(TForm)
     Button1: TButton;
     Edit1: TEdit;
+    Button2: TButton;
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -20,6 +22,7 @@ type
 
 var
   Form7: TForm7;
+  Form8: TForm8;
   NewPoint: Point.TPoint;
 
 implementation
@@ -37,7 +40,6 @@ begin
     ShowMessage('Zadej platné èíslo bodu!');
     Exit;
   end;
-
   F := TForm6.Create(Self);
   try
     if F.Execute(PointNumber, NewPoint) then
@@ -49,6 +51,19 @@ begin
     begin
       ShowMessage('Zadání bodu bylo zrušeno.');
     end;
+  finally
+    F.Free;
+  end;
+end;
+
+procedure TForm7.Button2Click(Sender: TObject);
+var
+  F: TForm8;
+begin
+  F := TForm8.Create(Self);
+  try
+    F.Position := poScreenCenter; // volitelné
+    F.ShowModal;                  // nebo F.Show;
   finally
     F.Free;
   end;

@@ -1,7 +1,6 @@
 object Form4: TForm4
   Left = 0
   Top = 0
-  Caption = 'Ortogon'#225'ln'#237' metoda'
   ClientHeight = 341
   ClientWidth = 600
   Color = clBtnFace
@@ -26,7 +25,7 @@ object Form4: TForm4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 0
-    ExplicitWidth = 407
+    ExplicitWidth = 598
     RowHeights = (
       24
       24
@@ -40,7 +39,7 @@ object Form4: TForm4
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 1
-    ExplicitWidth = 407
+    ExplicitWidth = 598
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -53,7 +52,7 @@ object Form4: TForm4
     List = True
     AllowTextButtons = True
     TabOrder = 2
-    ExplicitWidth = 401
+    ExplicitWidth = 592
     object ComboBox1: TComboBox
       AlignWithMargins = True
       Left = 0
@@ -118,7 +117,7 @@ object Form4: TForm4
     Align = alBottom
     TabOrder = 3
     ExplicitTop = 216
-    ExplicitWidth = 407
+    ExplicitWidth = 598
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
@@ -128,7 +127,7 @@ object Form4: TForm4
         item
           Width = 50
         end>
-      ExplicitWidth = 405
+      ExplicitWidth = 596
     end
   end
 end

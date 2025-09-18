@@ -89,7 +89,7 @@ object Form4: TForm4
       ImageIndex = 2
       Style = tbsSeparator
     end
-    object ComboBox3: TComboBox
+    object ComboBox6: TComboBox
       AlignWithMargins = True
       Left = 209
       Top = 0
@@ -97,16 +97,20 @@ object Form4: TForm4
       Height = 23
       Hint = 'K'#243'd kvality'
       Align = alRight
+      Style = csDropDownList
+      ItemIndex = 3
       TabOrder = 2
       Text = '3'
       Items.Strings = (
+        '0'
+        '1'
+        '2'
         '3'
         '4'
         '5'
         '6'
         '7'
-        '8'
-        '0')
+        '8')
     end
   end
   object Panel1: TPanel

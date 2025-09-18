@@ -23,7 +23,7 @@ object Form3: TForm3
     List = True
     AllowTextButtons = True
     TabOrder = 0
-    ExplicitWidth = 401
+    ExplicitWidth = 594
     object ComboBox4: TComboBox
       AlignWithMargins = True
       Left = 0
@@ -68,16 +68,20 @@ object Form3: TForm3
       Height = 23
       Hint = 'K'#243'd kvality'
       Align = alRight
+      Style = csDropDownList
+      ItemIndex = 3
       TabOrder = 2
       Text = '3'
       Items.Strings = (
+        '0'
+        '1'
+        '2'
         '3'
         '4'
         '5'
         '6'
         '7'
-        '8'
-        '0')
+        '8')
     end
   end
   object Panel1: TPanel
@@ -88,7 +92,7 @@ object Form3: TForm3
     Align = alBottom
     TabOrder = 1
     ExplicitTop = 213
-    ExplicitWidth = 407
+    ExplicitWidth = 600
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
@@ -98,7 +102,7 @@ object Form3: TForm3
         item
           Width = 50
         end>
-      ExplicitWidth = 405
+      ExplicitWidth = 598
     end
   end
   object StringGrid1: TStringGrid
@@ -114,7 +118,7 @@ object Form3: TForm3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 2
-    ExplicitWidth = 409
+    ExplicitWidth = 600
     RowHeights = (
       24
       24
@@ -128,6 +132,6 @@ object Form3: TForm3
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 3
-    ExplicitWidth = 407
+    ExplicitWidth = 600
   end
 end

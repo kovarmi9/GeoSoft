@@ -15,11 +15,11 @@ type
     ToolButton3: TToolButton;
     ComboBox5: TComboBox;
     ToolButton2: TToolButton;
-    ComboBox6: TComboBox;
     Panel1: TPanel;
     StatusBar1: TStatusBar;
     StringGrid1: TStringGrid;
     ToolBar1: TToolBar;
+    ComboBox6: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);

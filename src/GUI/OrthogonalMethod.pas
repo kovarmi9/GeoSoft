@@ -13,11 +13,11 @@ type
     ToolBar2: TToolBar;
     ComboBox1: TComboBox;
     ComboBox2: TComboBox;
-    ComboBox3: TComboBox;
     ToolButton3: TToolButton;
     ToolButton2: TToolButton;
     Panel1: TPanel;
     StatusBar1: TStatusBar;
+    ComboBox6: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState); // Reakce na stisknutí klávesy v gridu
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);

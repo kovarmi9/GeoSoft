@@ -62,8 +62,7 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
-    ExplicitLeft = 8
-    ExplicitTop = 50
+    ExplicitWidth = 412
     object ComboBox4: TComboBox
       AlignWithMargins = True
       Left = 0
@@ -71,10 +70,15 @@ object Form2: TForm2
       Width = 99
       Height = 23
       Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
+      ItemIndex = 0
+      MaxLength = 6
       TabOrder = 0
-      Text = '00000000000'
+      Text = '000000'
+      OnChange = ComboBox4Change
       Items.Strings = (
-        '00000000000')
+        '000000'
+        '000001'
+        '000002')
     end
     object ToolButton3: TToolButton
       Left = 99

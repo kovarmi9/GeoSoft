@@ -48,6 +48,7 @@ type
     procedure SaveAsBinaryClick(Sender: TObject);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure RefreshGrid();
+    procedure ComboBox4Change(Sender: TObject);
   private
     function CurrentQuality: Integer;
     function IsValidQualityStr(const S: string): Boolean;

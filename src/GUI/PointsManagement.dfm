@@ -127,6 +127,16 @@ object Form2: TForm2
         '7'
         '8')
     end
+    object MaskEdit1: TMaskEdit
+      Left = 249
+      Top = 0
+      Width = 118
+      Height = 23
+      EditMask = '000000;1; '
+      MaxLength = 6
+      TabOrder = 3
+      Text = '      '
+    end
   end
   object MainMenu1: TMainMenu
     Left = 584

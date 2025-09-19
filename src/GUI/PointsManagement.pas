@@ -59,6 +59,18 @@ type
     procedure ComboBox4Exit(Sender: TObject);
     procedure ComboBox4KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     function PadSix(const S: string): string;
+
+    procedure SetupNumericCombo(CB: TComboBox; PadLen: Integer; const DefaultText: string);
+    function  PadZeros(const S: string; PadLen: Integer): string;
+    procedure NumericCombo_KeyPress(Sender: TObject; var Key: Char);
+    procedure NumericCombo_Change(Sender: TObject);
+    procedure NumericCombo_Exit(Sender: TObject);
+    procedure NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+
+    // Doplnění čísla bodu
+    function OnlyDigits(const S: string): string;
+    function PadLeftZeros(const S: string; Len: Integer): string;
+    function BuildPointId(const RawOwn: string; const Ku6, Zpmz5: string): string;
   public
     { Public declarations }
   end;
@@ -134,13 +146,14 @@ begin
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
 
-  // Správa polu pro číslo KÚ
-  ComboBox4.Text      := '000000';
-  ComboBox4.MaxLength := 6;
-  ComboBox4.OnKeyPress:= ComboBox4KeyPress;
-  ComboBox4.OnChange  := ComboBox4Change;
-  ComboBox4.OnExit    := ComboBox4Exit;
-  ComboBox4.OnKeyDown := ComboBox4KeyDown;
+  // Správa polu pro číslo KÚ/ZPMZ
+
+  // Číslo KÚ: 6 míst
+  SetupNumericCombo(ComboBox4, 6, '000000');
+
+  // Popis/číslo bodu: 5 míst
+  SetupNumericCombo(ComboBox5, 5, '00000');
+
 
 end;
 
@@ -269,6 +282,15 @@ var
 begin
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
+    // Doplněno pro Doplnění nul do čísla bodu
+    // pokud jsme v 1. sloupci, převeď zadanou hodnotu na 15místné ID
+    if StringGrid1.Col = 0 then
+    begin
+      StringGrid1.Cells[0, StringGrid1.Row] :=
+        BuildPointId(StringGrid1.Cells[0, StringGrid1.Row], ComboBox4.Text, ComboBox5.Text);
+    end;
+    // Konec doplnění pro pronění čísla bodu
+
     Key := 0; // Zamezí dalšímu zpracování Enteru
 
     // Vyhodnocení výrazu a převedení na číslo
@@ -709,6 +731,138 @@ begin
     SelectNext(ActiveControl, True, True);
   end;
 end;
+
+//Unoverzální combobox doplněni KÚ a ZPMZ
+
+procedure TForm2.SetupNumericCombo(CB: TComboBox; PadLen: Integer; const DefaultText: string);
+begin
+  CB.Style      := csDropDown;   // musí být editovatelné
+  CB.MaxLength  := PadLen;       // omezí délku
+  CB.Tag        := PadLen;       // uložíme si požadovaný počet číslic
+  CB.Text       := DefaultText;
+
+  CB.OnKeyPress := NumericCombo_KeyPress;  // jen čísla a Backspace
+  CB.OnChange   := NumericCombo_Change;    // očista při Ctrl+V apod.
+  CB.OnExit     := NumericCombo_Exit;      // dorovnání nulami
+  CB.OnKeyDown  := NumericCombo_KeyDown;   // Enter = dorovnat + next
+end;
+
+function TForm2.PadZeros(const S: string; PadLen: Integer): string;
+var
+  N, MaxVal: Int64;
+begin
+  N := StrToInt64Def(S, 0);
+  if N < 0 then N := 0;
+  // Max dle počtu číslic (např. 5 -> 99999)
+  if PadLen > 0 then
+    MaxVal := StrToInt64(StringOfChar('9', PadLen))
+  else
+    MaxVal := High(Int64);
+  if N > MaxVal then N := MaxVal;
+
+  Result := Format('%.*d', [PadLen, N]);  // doplnění nulami zleva
+end;
+
+procedure TForm2.NumericCombo_KeyPress(Sender: TObject; var Key: Char);
+begin
+  // povolit jen číslice a Backspace (psané z klávesnice)
+  if not (Key in ['0'..'9', #8]) then
+    Key := #0;
+end;
+
+procedure TForm2.NumericCombo_Change(Sender: TObject);
+var
+  CB: TComboBox;
+  S: string;
+  i: Integer;
+  Changed: Boolean;
+begin
+  CB := Sender as TComboBox;
+  S := CB.Text;
+  Changed := False;
+
+  // vyházet nečíselné znaky (Ctrl+V apod.)
+  for i := Length(S) downto 1 do
+    if not CharInSet(S[i], ['0'..'9']) then
+    begin
+      Delete(S, i, 1);
+      Changed := True;
+    end;
+
+  // omezit na MaxLength (počet číslic)
+  if Length(S) > CB.MaxLength then
+  begin
+    S := Copy(S, 1, CB.MaxLength);
+    Changed := True;
+  end;
+
+  if Changed then
+  begin
+    CB.Text := S;
+    CB.SelStart := Length(S);
+  end;
+end;
+
+procedure TForm2.NumericCombo_Exit(Sender: TObject);
+var
+  CB: TComboBox;
+begin
+  CB := Sender as TComboBox;
+  CB.Text := PadZeros(CB.Text, CB.Tag);
+end;
+
+procedure TForm2.NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  CB: TComboBox;
+begin
+  if Key = VK_RETURN then
+  begin
+    CB := Sender as TComboBox;
+    CB.Text := PadZeros(CB.Text, CB.Tag);
+    Key := 0;
+    SelectNext(ActiveControl, True, True); // volitelné: skok na další
+  end;
+end;
+
+// Helpery doplnění čísla bodu
+
+function TForm2.OnlyDigits(const S: string): string;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i := 1 to Length(S) do
+    if CharInSet(S[i], ['0'..'9']) then
+      Result := Result + S[i];
+end;
+
+function TForm2.PadLeftZeros(const S: string; Len: Integer): string;
+var
+  T: string;
+begin
+  T := OnlyDigits(S);
+  if Length(T) > Len then
+    Result := Copy(T, Length(T)-Len+1, Len)      // když by někdo vložil moc dlouhé číslo
+  else
+    Result := StringOfChar('0', Len - Length(T)) + T;
+end;
+
+function TForm2.BuildPointId(const RawOwn: string; const Ku6, Zpmz5: string): string;
+var
+  Own: string;
+  KU  : string;
+  ZPMZ: string;
+begin
+  Own  := OnlyDigits(RawOwn);
+  KU   := PadLeftZeros(Ku6,   6);
+  ZPMZ := PadLeftZeros(Zpmz5, 5);
+
+  if Length(Own) <= 4 then
+    Result := KU + ZPMZ + PadLeftZeros(Own, 4)   // 6 + 5 + 4 = 15
+  else
+    Result := PadLeftZeros(Own, 15);             // čistě 15-místné s nulami zleva
+end;
+
 
 end.
 

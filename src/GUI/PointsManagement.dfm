@@ -94,7 +94,14 @@ object Form2: TForm2
       Width = 94
       Height = 23
       Hint = 'Popis bodu'
+      ItemIndex = 0
+      MaxLength = 5
       TabOrder = 1
+      Text = '00000'
+      Items.Strings = (
+        '00000'
+        '00001'
+        '00002')
     end
     object ToolButton2: TToolButton
       Left = 201

@@ -24,7 +24,7 @@ type
     property Station: TPoint read FStation write FStation;
     property Orientations: TOrientations read FOrientations write FOrientations;
 
-    function Calculate(const Body: TPointsArray): TPointsArray; override;
+    function Calculate(const Body: GeoAlgorithmBase.TPointsArray): GeoAlgorithmBase.TPointsArray; override;
   end;
 
 implementation
@@ -41,7 +41,7 @@ begin
   FOrientations := AOrientations;
 end;
 
-function TPolarMethodAlgorithm.Calculate(const Body: TPointsArray): TPointsArray;
+function TPolarMethodAlgorithm.Calculate(const Body: GeoAlgorithmBase.TPointsArray): GeoAlgorithmBase.TPointsArray;
 var
   i, j: Integer;
   d, psi, sigma_AP, sigma_AB, delta, psi_B_rad, sum_delta: Double;

@@ -151,7 +151,7 @@ begin
   // Číslo KÚ: 6 míst
   SetupNumericCombo(ComboBox4, 6, '000000');
 
-  // Popis/číslo bodu: 5 míst
+  // Číslo ZPMZ bodu: 5 míst
   SetupNumericCombo(ComboBox5, 5, '00000');
 
 

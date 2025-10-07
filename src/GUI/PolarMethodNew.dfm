@@ -11,6 +11,15 @@ object Form9: TForm9
   Font.Name = 'Segoe UI'
   Font.Style = []
   TextHeight = 15
+  object ToolBar1: TToolBar
+    Left = 0
+    Top = 0
+    Width = 624
+    Height = 29
+    ButtonHeight = 29
+    Caption = 'ToolBar1'
+    TabOrder = 0
+  end
   object ToolBar2: TToolBar
     AlignWithMargins = True
     Left = 3
@@ -21,36 +30,20 @@ object Form9: TForm9
     Caption = 'ToolBar2'
     List = True
     AllowTextButtons = True
-    TabOrder = 0
-    ExplicitLeft = 8
-    ExplicitTop = 70
-    object ToolButton2: TToolButton
+    TabOrder = 1
+    ExplicitLeft = -2
+    ExplicitWidth = 626
+    object CheckBox1: TCheckBox
       Left = 0
       Top = 0
-      Width = 8
-      Caption = 'ToolButton2'
-      ImageIndex = 3
-      Style = tbsSeparator
-    end
-    object CheckBox1: TCheckBox
-      Left = 8
-      Top = 0
-      Width = 132
+      Width = 121
       Height = 23
-      Caption = 'Voln'#233' stanovisko'#13#10'Pevn'#233' stanovisko'
+      Caption = 'CheckBox1'
       TabOrder = 3
     end
-    object ToolButton1: TToolButton
-      Left = 140
-      Top = 0
-      Width = 8
-      Caption = 'ToolButton1'
-      ImageIndex = 2
-      Style = tbsSeparator
-    end
-    object ComboBox1: TComboBox
+    object ComboBox4: TComboBox
       AlignWithMargins = True
-      Left = 148
+      Left = 121
       Top = 0
       Width = 99
       Height = 23
@@ -61,32 +54,32 @@ object Form9: TForm9
         '00000000000')
     end
     object ToolButton3: TToolButton
-      Left = 247
+      Left = 220
       Top = 0
       Width = 8
       Caption = 'ToolButton3'
       ImageIndex = 1
       Style = tbsSeparator
     end
-    object ComboBox2: TComboBox
-      Left = 255
+    object ComboBox5: TComboBox
+      Left = 228
       Top = 0
       Width = 94
       Height = 23
       Hint = 'Popis bodu'
       TabOrder = 1
     end
-    object ToolButton4: TToolButton
-      Left = 349
+    object ToolButton2: TToolButton
+      Left = 322
       Top = 0
       Width = 8
-      Caption = 'ToolButton4'
-      ImageIndex = 3
+      Caption = 'ToolButton2'
+      ImageIndex = 2
       Style = tbsSeparator
     end
     object ComboBox6: TComboBox
       AlignWithMargins = True
-      Left = 357
+      Left = 330
       Top = 0
       Width = 40
       Height = 23
@@ -108,15 +101,15 @@ object Form9: TForm9
         '8')
     end
   end
-  object ToolBar1: TToolBar
+  object ToolBar3: TToolBar
     Left = 0
-    Top = 0
+    Top = 64
     Width = 624
     Height = 29
+    ButtonHeight = 29
     Caption = 'ToolBar1'
-    TabOrder = 1
+    TabOrder = 2
     ExplicitLeft = 8
-    ExplicitTop = 8
-    ExplicitWidth = 600
+    ExplicitTop = 90
   end
 end

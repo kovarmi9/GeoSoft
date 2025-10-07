@@ -16,7 +16,8 @@ uses
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
   AddPoint in 'AddPoint.pas' {Form6},
   Pokus in 'Pokus.pas' {Form7},
-  CalcFormBase in 'CalcFormBase.pas' {Form8};
+  CalcFormBase in 'CalcFormBase.pas' {Form8},
+  PolarMethodNew in 'PolarMethodNew.pas' {Form9};
 
 {$R *.res}
 
@@ -31,5 +32,6 @@ begin
   Application.CreateForm(TForm6, Form6);
   Application.CreateForm(TForm7, Form7);
   Application.CreateForm(TForm8, Form8);
+  Application.CreateForm(TForm9, Form9);
   Application.Run;
 end.

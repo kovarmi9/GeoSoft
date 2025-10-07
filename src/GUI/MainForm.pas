@@ -27,11 +27,13 @@ type
     Ortogonlnmetoda1: TMenuItem;
     ransformace1: TMenuItem;
     Pokus1: TMenuItem;
+    Polrnmetodanov1: TMenuItem;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);
     procedure TransformationClick(Sender: TObject);
     procedure PokusClick(Sender: TObject);
+    procedure Polrnmetodanov1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -45,7 +47,7 @@ implementation
 
 {$R *.dfm}
 
-uses polarMethod, OrthogonalMethod, Transformation, Pokus;
+uses polarMethod, OrthogonalMethod, Transformation, Pokus, PolarMethodNew;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
@@ -55,6 +57,11 @@ end;
 procedure TForm1.Polrnmetoda1Click(Sender: TObject);
 begin
 Form3.Show;
+end;
+
+procedure TForm1.Polrnmetodanov1Click(Sender: TObject);
+begin
+Form9.Show;
 end;
 
 procedure TForm1.Ortogonlnmetoda1Click(Sender: TObject);

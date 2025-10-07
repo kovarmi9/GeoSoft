@@ -3222,6 +3222,10 @@ object Form1: TForm1
         Caption = 'Pokus'
         OnClick = PokusClick
       end
+      object Polrnmetodanov1: TMenuItem
+        Caption = 'Pol'#225'rn'#237' metoda nov'#225
+        OnClick = Polrnmetodanov1Click
+      end
     end
   end
 end

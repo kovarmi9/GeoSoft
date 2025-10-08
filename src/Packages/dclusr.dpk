@@ -1,4 +1,4 @@
-package GeoSoftComponentsR;
+package dclusr;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -25,20 +25,15 @@ package GeoSoftComponentsR;
 {$IMAGEBASE $400000}
 {$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
-{$DESCRIPTION 'StringGrid for list of points'}
 {$IMPLICITBUILD ON}
 
 requires
   rtl,
-  vcl,
   designide,
+  vcl,
   vclactnband,
   vclx,
-  xmlrtl;
-
-contains
-  MyStringGrid in '..\Components\MyStringGrid.pas',
-  MyStringGridReg in '..\Components\MyStringGridReg.pas',
-  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas';
+  xmlrtl,
+  GeoSoftComponentsR;
 
 end.

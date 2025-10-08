@@ -1,11 +1,12 @@
-unit MyStringGridReg;
+Ôªøunit MyStringGridReg;
 
 interface
 
 uses
   System.Classes,
-  DesignIntf, DesignEditors,  // z balÌËku designide
-  MyStringGrid;
+  DesignIntf, DesignEditors,    // z bal√≠ƒçku designide
+  MyStringGrid,
+  MyPointsStringGrid;           // ‚Üê p≈ôidat
 
 procedure Register;
 
@@ -13,7 +14,10 @@ implementation
 
 procedure Register;
 begin
-  RegisterComponents('GeoSoft', [TMyStringGrid]); // nov· z·loûka v paletÏ
+  RegisterComponents('GeoSoft', [
+    TMyStringGrid,
+    TMyPointsStringGrid        // ‚Üê p≈ôidat
+  ]);
 end;
 
 end.

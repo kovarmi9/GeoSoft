@@ -18,9 +18,8 @@ uses
   Pokus in 'Pokus.pas' {Form7},
   CalcFormBase in 'CalcFormBase.pas' {Form8},
   PolarMethodNew in 'PolarMethodNew.pas' {Form9},
-  BootcampPanel in 'BootcampPanel.pas',
-  MyPointsStringGrid in 'MyPointsStringGrid.pas',
-  MyStringGrid in '..\Components\MyStringGrid.pas';
+  MyStringGrid in '..\Components\MyStringGrid.pas',
+  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas';
 
 {$R *.res}
 

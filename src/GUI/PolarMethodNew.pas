@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin,
   Vcl.Grids, Vcl.ExtCtrls,
-  BootcampPanel, MyPointsStringGrid;  // <— pøidáno
+  MyPointsStringGrid, MyStringGrid;  // <— pøidáno
 
 type
   TForm9 = class(TForm)
@@ -20,16 +20,9 @@ type
     ToolBar3: TToolBar;
     CheckBox1: TCheckBox;
     ToolBar4: TToolBar;
-    Button1: TButton;
-    Button2: TButton;
-    MyPointsStringGrid1: TMyPointsStringGrid;
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    //MyPointsStringGrid1: TMyPointsStringGrid;
+    MyStringGrid1: TMyStringGrid;
   private
-    FBootPanel: TBootcampPanel;        // <— pøidáno: naše komponenta
-    P: TBootcampPanel;
-    FGrid: TMyPointsStringGrid;        // <— pøidáno: naše komponenta
-    Q: TMyPointsStringGrid;
     procedure InitMyGridHeader;     // <— pøidáno
     procedure UpdateCheckCaption;
     procedure CheckBox1Click(Sender: TObject);
@@ -68,20 +61,6 @@ begin
     CheckBox1.Caption := CAP_VOLNE;
 end;
 
-procedure TForm9.Button1Click(Sender: TObject);
-begin
-  P := TBootcampPanel.create( Self );
-  P.Parent := Self;
-  P.SetBounds(50, 50, 300, 100);
-end;
-
-procedure TForm9.Button2Click(Sender: TObject);
-begin
-  Q := TMyPointsStringGrid.create( Self );
-  Q.Parent := Self;
-  Q.SetBounds(50, 50, 300, 100);
-end;
-
 procedure TForm9.CheckBox1Click(Sender: TObject);
 begin
   UpdateCheckCaption;
@@ -89,7 +68,7 @@ end;
 
 procedure TForm9.InitMyGridHeader;
 begin
-  with MyPointsStringGrid1 do
+  with MyStringGrid1 do
   begin
     // základ
     FixedRows := 1;             // horní øádek = hlavièka
@@ -110,6 +89,5 @@ begin
     Invalidate; // pøekreslit (tuèné/centrované vykreslí tvoje DrawCell)
   end;
 end;
-
 
 end.

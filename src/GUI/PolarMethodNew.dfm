@@ -110,14 +110,12 @@ object Form9: TForm9
     Caption = 'ToolBar1'
     TabOrder = 2
     ExplicitWidth = 622
-    object MyPointsStringGrid1: TMyPointsStringGrid
+    object MyStringGrid1: TMyStringGrid
       Left = 0
       Top = 0
-      Width = 624
+      Width = 621
       Height = 73
-      ColCount = 7
-      FixedCols = 0
-      RowCount = 2
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goFixedRowDefAlign]
       TabOrder = 0
     end
   end
@@ -130,23 +128,5 @@ object Form9: TForm9
     Caption = 'ToolBar1'
     TabOrder = 3
     ExplicitWidth = 622
-  end
-  object Button1: TButton
-    Left = 504
-    Top = 208
-    Width = 75
-    Height = 25
-    Caption = 'Button1'
-    TabOrder = 4
-    OnClick = Button1Click
-  end
-  object Button2: TButton
-    Left = 504
-    Top = 264
-    Width = 75
-    Height = 25
-    Caption = 'Button2'
-    TabOrder = 5
-    OnClick = Button2Click
   end
 end

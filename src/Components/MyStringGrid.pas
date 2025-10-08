@@ -1,9 +1,11 @@
-unit MyStringGrid;
+Ôªøunit MyStringGrid;
 
 interface
 
 uses
-  System.Classes, System.Types,   // TShiftState, TRect
+  System.Classes,
+  System.Types,     // TRect
+  Vcl.Controls,     // TShiftState
   Vcl.Grids;
 
 type
@@ -18,25 +20,28 @@ type
 implementation
 
 uses
-  Winapi.Windows, Vcl.Graphics;
+  Winapi.Windows,  // VK_RETURN
+  Vcl.Graphics;
+
+{ TMyStringGrid }
 
 constructor TMyStringGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  // obecnÈ ìp¯ÌjemnÈî defaulty ñ m˘ûeö si kdykoliv p¯epsat ve formu
-  FixedRows := 1;
-  Options := Options + [goEditing, goFixedHorzLine, goFixedVertLine, goHorzLine, goVertLine];
+  // sem m≈Ø≈æe≈° d√°t defaultn√≠ nastaven√≠ gridu, pokud chce≈°
 end;
 
 procedure TMyStringGrid.KeyDown(var Key: Word; Shift: TShiftState);
 begin
+  // Enter ‚Üí jen doprava v r√°mci ≈ô√°dku
   if Key = VK_RETURN then
   begin
-    Key := 0;                 // potlaËÌ default Enteru
+    Key := 0; // potlaƒçit defaultn√≠ akci
     if Col < ColCount - 1 then
-      Col := Col + 1;         // jako Tab ñ jen doprava v r·mci ¯·dku
+      Col := Col + 1;
     Exit;
   end;
+
   inherited KeyDown(Key, Shift);
 end;
 
@@ -44,18 +49,24 @@ procedure TMyStringGrid.DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridD
 var
   S: string;
   X, Y: Integer;
+  SavedDC: Integer;
 begin
-  // HlaviËka (ARow < FixedRows) a p¯ÌpadnÏ ìfixedî sloupec (ACol < FixedCols)
+  // Vlastn√≠ hlaviƒçka (fixed bu≈àky)
   if (ARow < FixedRows) or (ACol < FixedCols) then
   begin
-    Canvas.Brush.Color := clBtnFace;
-    Canvas.Font.Style := [fsBold];
-    Canvas.FillRect(Rect);
+    SavedDC := SaveDC(Canvas.Handle);
+    try
+      Canvas.Brush.Color := clBtnFace;
+      Canvas.Font.Style := [fsBold];
+      Canvas.FillRect(Rect);
 
-    S := Cells[ACol, ARow];
-    X := Rect.Left + (Rect.Width  - Canvas.TextWidth(S))  div 2;
-    Y := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
-    Canvas.TextRect(Rect, X, Y, S);
+      S := Cells[ACol, ARow];
+      X := Rect.Left + (Rect.Width  - Canvas.TextWidth(S))  div 2;
+      Y := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
+      Canvas.TextRect(Rect, X, Y, S);
+    finally
+      RestoreDC(Canvas.Handle, SavedDC);
+    end;
   end
   else
     inherited DrawCell(ACol, ARow, Rect, State);

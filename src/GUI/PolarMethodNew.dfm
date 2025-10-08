@@ -110,11 +110,12 @@ object Form9: TForm9
     Caption = 'ToolBar1'
     TabOrder = 2
     ExplicitWidth = 622
-    object StringGrid1: TStringGrid
+    object MyPointsStringGrid1: TMyPointsStringGrid
       Left = 0
       Top = 0
-      Width = 621
+      Width = 624
       Height = 73
+      ColCount = 7
       FixedCols = 0
       RowCount = 2
       TabOrder = 0

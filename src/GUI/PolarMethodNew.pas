@@ -19,10 +19,10 @@ type
     ComboBox6: TComboBox;
     ToolBar3: TToolBar;
     CheckBox1: TCheckBox;
-    StringGrid1: TStringGrid;
     ToolBar4: TToolBar;
     Button1: TButton;
     Button2: TButton;
+    MyPointsStringGrid1: TMyPointsStringGrid;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private
@@ -30,6 +30,7 @@ type
     P: TBootcampPanel;
     FGrid: TMyPointsStringGrid;        // <— pøidáno: naše komponenta
     Q: TMyPointsStringGrid;
+    procedure InitMyGridHeader;     // <— pøidáno
     procedure UpdateCheckCaption;
     procedure CheckBox1Click(Sender: TObject);
   public
@@ -54,6 +55,8 @@ begin
   CheckBox1.OnClick := CheckBox1Click;
 
   UpdateCheckCaption;
+
+  InitMyGridHeader;   // <— nastaví popisky a velikost gridu
 
 end;
 
@@ -83,5 +86,30 @@ procedure TForm9.CheckBox1Click(Sender: TObject);
 begin
   UpdateCheckCaption;
 end;
+
+procedure TForm9.InitMyGridHeader;
+begin
+  with MyPointsStringGrid1 do
+  begin
+    // základ
+    FixedRows := 1;             // horní øádek = hlavièka
+    FixedCols := 0;             // rovnou èísla bodù
+    ColCount  := 7;             // 0..7
+    RowCount  := 2;             // 0..2
+    Options   := Options + [goEditing];
+
+    // texty hlavièky (øádek 0, sloupce 0..6)
+    Cells[0,0] := 'èíslo bodu';
+    Cells[1,0] := 'Výška stroje';
+    Cells[2,0] := 'X';
+    Cells[3,0] := 'Y';
+    Cells[4,0] := 'Z';
+    Cells[5,0] := 'Kvalita';
+    Cells[6,0] := 'Popis';
+
+    Invalidate; // pøekreslit (tuèné/centrované vykreslí tvoje DrawCell)
+  end;
+end;
+
 
 end.

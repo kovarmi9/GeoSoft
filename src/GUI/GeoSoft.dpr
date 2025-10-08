@@ -19,7 +19,8 @@ uses
   CalcFormBase in 'CalcFormBase.pas' {Form8},
   PolarMethodNew in 'PolarMethodNew.pas' {Form9},
   PointsGrid in '..\Components\PointsGrid.pas' {Frame1: TFrame},
-  BootcampPanel in 'BootcampPanel.pas';
+  BootcampPanel in 'BootcampPanel.pas',
+  MyPointsStringGrid in 'MyPointsStringGrid.pas';
 
 {$R *.res}
 

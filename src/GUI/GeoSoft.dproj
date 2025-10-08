@@ -169,6 +169,7 @@
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="BootcampPanel.pas"/>
+        <DCCReference Include="MyPointsStringGrid.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

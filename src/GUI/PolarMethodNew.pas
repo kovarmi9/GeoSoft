@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin,
   Vcl.Grids, Vcl.ExtCtrls,
-  BootcampPanel;  // <— pøidáno
+  BootcampPanel, MyPointsStringGrid;  // <— pøidáno
 
 type
   TForm9 = class(TForm)
@@ -22,10 +22,14 @@ type
     StringGrid1: TStringGrid;
     ToolBar4: TToolBar;
     Button1: TButton;
+    Button2: TButton;
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
   private
     FBootPanel: TBootcampPanel;        // <— pøidáno: naše komponenta
     P: TBootcampPanel;
+    FGrid: TMyPointsStringGrid;        // <— pøidáno: naše komponenta
+    Q: TMyPointsStringGrid;
     procedure UpdateCheckCaption;
     procedure CheckBox1Click(Sender: TObject);
   public
@@ -66,6 +70,13 @@ begin
   P := TBootcampPanel.create( Self );
   P.Parent := Self;
   P.SetBounds(50, 50, 300, 100);
+end;
+
+procedure TForm9.Button2Click(Sender: TObject);
+begin
+  Q := TMyPointsStringGrid.create( Self );
+  Q.Parent := Self;
+  Q.SetBounds(50, 50, 300, 100);
 end;
 
 procedure TForm9.CheckBox1Click(Sender: TObject);

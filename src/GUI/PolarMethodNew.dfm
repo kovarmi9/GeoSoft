@@ -139,4 +139,13 @@ object Form9: TForm9
     TabOrder = 4
     OnClick = Button1Click
   end
+  object Button2: TButton
+    Left = 504
+    Top = 264
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 5
+    OnClick = Button2Click
+  end
 end

@@ -13,7 +13,7 @@ uses
   GeoAlgorithmTransformSimilarity,
   System.Generics.Collections,
   GeoAlgorithmTransformCongruent,
-  GeoAlgorithmTransformAffine;
+  GeoAlgorithmTransformAffine, MyStringGrid;
 
 type
   TForm1 = class(TForm)

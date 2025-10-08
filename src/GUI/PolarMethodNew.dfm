@@ -19,6 +19,7 @@ object Form9: TForm9
     ButtonHeight = 29
     Caption = 'ToolBar1'
     TabOrder = 0
+    ExplicitWidth = 622
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -31,8 +32,7 @@ object Form9: TForm9
     List = True
     AllowTextButtons = True
     TabOrder = 1
-    ExplicitLeft = -2
-    ExplicitWidth = 626
+    ExplicitWidth = 616
     object CheckBox1: TCheckBox
       Left = 0
       Top = 0
@@ -103,13 +103,40 @@ object Form9: TForm9
   end
   object ToolBar3: TToolBar
     Left = 0
+    Top = 93
+    Width = 624
+    Height = 76
+    ButtonHeight = 73
+    Caption = 'ToolBar1'
+    TabOrder = 2
+    ExplicitWidth = 622
+    object StringGrid1: TStringGrid
+      Left = 0
+      Top = 0
+      Width = 621
+      Height = 73
+      FixedCols = 0
+      RowCount = 2
+      TabOrder = 0
+    end
+  end
+  object ToolBar4: TToolBar
+    Left = 0
     Top = 64
     Width = 624
     Height = 29
     ButtonHeight = 29
     Caption = 'ToolBar1'
-    TabOrder = 2
-    ExplicitLeft = 8
-    ExplicitTop = 90
+    TabOrder = 3
+    ExplicitWidth = 622
+  end
+  object Button1: TButton
+    Left = 504
+    Top = 208
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 4
+    OnClick = Button1Click
   end
 end

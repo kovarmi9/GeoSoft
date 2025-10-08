@@ -4,7 +4,9 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin,
+  Vcl.Grids, Vcl.ExtCtrls,
+  BootcampPanel;  // <— pøidáno
 
 type
   TForm9 = class(TForm)
@@ -17,7 +19,13 @@ type
     ComboBox6: TComboBox;
     ToolBar3: TToolBar;
     CheckBox1: TCheckBox;
+    StringGrid1: TStringGrid;
+    ToolBar4: TToolBar;
+    Button1: TButton;
+    procedure Button1Click(Sender: TObject);
   private
+    FBootPanel: TBootcampPanel;        // <— pøidáno: naše komponenta
+    P: TBootcampPanel;
     procedure UpdateCheckCaption;
     procedure CheckBox1Click(Sender: TObject);
   public
@@ -51,6 +59,13 @@ begin
     CheckBox1.Caption := CAP_PEVNE
   else
     CheckBox1.Caption := CAP_VOLNE;
+end;
+
+procedure TForm9.Button1Click(Sender: TObject);
+begin
+  P := TBootcampPanel.create( Self );
+  P.Parent := Self;
+  P.SetBounds(50, 50, 300, 100);
 end;
 
 procedure TForm9.CheckBox1Click(Sender: TObject);

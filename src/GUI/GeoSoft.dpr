@@ -17,7 +17,9 @@ uses
   AddPoint in 'AddPoint.pas' {Form6},
   Pokus in 'Pokus.pas' {Form7},
   CalcFormBase in 'CalcFormBase.pas' {Form8},
-  PolarMethodNew in 'PolarMethodNew.pas' {Form9};
+  PolarMethodNew in 'PolarMethodNew.pas' {Form9},
+  PointsGrid in '..\Components\PointsGrid.pas' {Frame1: TFrame},
+  BootcampPanel in 'BootcampPanel.pas';
 
 {$R *.res}
 

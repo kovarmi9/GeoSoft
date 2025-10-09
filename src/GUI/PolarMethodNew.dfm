@@ -101,32 +101,74 @@ object Form9: TForm9
         '8')
     end
   end
-  object ToolBar3: TToolBar
-    Left = 0
-    Top = 93
-    Width = 624
-    Height = 76
-    ButtonHeight = 73
-    Caption = 'ToolBar1'
-    TabOrder = 2
-    ExplicitWidth = 622
-    object MyStringGrid1: TMyStringGrid
-      Left = 0
-      Top = 0
-      Width = 621
-      Height = 73
-      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goFixedRowDefAlign]
-      TabOrder = 0
-    end
-  end
-  object ToolBar4: TToolBar
+  object Panel1: TPanel
     Left = 0
     Top = 64
     Width = 624
-    Height = 29
-    ButtonHeight = 29
-    Caption = 'ToolBar1'
-    TabOrder = 3
+    Height = 377
+    Align = alClient
+    BevelOuter = bvNone
+    TabOrder = 2
     ExplicitWidth = 622
+    ExplicitHeight = 369
+    object Splitter1: TSplitter
+      Left = 0
+      Top = 73
+      Width = 624
+      Height = 5
+      Cursor = crVSplit
+      Align = alTop
+    end
+    object Splitter2: TSplitter
+      Left = 0
+      Top = 198
+      Width = 624
+      Height = 5
+      Cursor = crVSplit
+      Align = alTop
+    end
+    object MyStringGrid1: TMyStringGrid
+      Left = 0
+      Top = 0
+      Width = 624
+      Height = 73
+      Align = alTop
+      ColCount = 7
+      FixedCols = 0
+      RowCount = 2
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goFixedRowDefAlign]
+      TabOrder = 0
+      ExplicitLeft = 24
+      ExplicitTop = 50
+    end
+    object MyPointsStringGrid1: TMyPointsStringGrid
+      Left = 0
+      Top = 78
+      Width = 624
+      Height = 120
+      Cursor = crVSplit
+      Align = alTop
+      TabOrder = 1
+      ExplicitLeft = 47
+      ExplicitTop = 113
+      ExplicitWidth = 320
+    end
+    object MyPointsStringGrid2: TMyPointsStringGrid
+      Left = 0
+      Top = 203
+      Width = 624
+      Height = 120
+      Align = alTop
+      TabOrder = 2
+      ExplicitLeft = 173
+      ExplicitTop = 248
+      ExplicitWidth = 320
+      RowHeights = (
+        24
+        25
+        24
+        24
+        24)
+    end
   end
 end

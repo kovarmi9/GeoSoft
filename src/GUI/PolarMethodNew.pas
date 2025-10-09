@@ -17,11 +17,14 @@ type
     ComboBox5: TComboBox;
     ToolButton2: TToolButton;
     ComboBox6: TComboBox;
-    ToolBar3: TToolBar;
     CheckBox1: TCheckBox;
-    ToolBar4: TToolBar;
     //MyPointsStringGrid1: TMyPointsStringGrid;
     MyStringGrid1: TMyStringGrid;
+    Panel1: TPanel;
+    MyPointsStringGrid1: TMyPointsStringGrid;
+    MyPointsStringGrid2: TMyPointsStringGrid;
+    Splitter1: TSplitter;
+    Splitter2: TSplitter;
   private
     procedure InitMyGridHeader;     // <— pøidáno
     procedure UpdateCheckCaption;

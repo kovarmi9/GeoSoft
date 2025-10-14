@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes,
-  MyStringGrid;  // ← základ, ze kterého dědíme
+  MyStringGrid;
 
 type
   TMyPointsStringGrid = class(TMyStringGrid)

@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{190E6F91-A69E-49AA-84EE-3FC8C99D5741}</ProjectGuid>
+        <ProjectGuid>{4FAA06B6-CCCD-45C8-BE64-E1CA269EDAD3}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
         <Projects Include="GeoSoft.dproj">

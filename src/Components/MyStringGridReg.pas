@@ -4,9 +4,9 @@ interface
 
 uses
   System.Classes,
-  DesignIntf, DesignEditors,    // z balíčku designide
+  DesignIntf, DesignEditors,
   MyStringGrid,
-  MyPointsStringGrid;           // ← přidat
+  MyPointsStringGrid;
 
 procedure Register;
 
@@ -16,7 +16,7 @@ procedure Register;
 begin
   RegisterComponents('GeoSoft', [
     TMyStringGrid,
-    TMyPointsStringGrid        // ← přidat
+    TMyPointsStringGrid
   ]);
 end;
 

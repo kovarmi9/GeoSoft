@@ -28,15 +28,14 @@ uses
 constructor TMyStringGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  // sem můžeš dát defaultní nastavení gridu, pokud chceš
 end;
 
 procedure TMyStringGrid.KeyDown(var Key: Word; Shift: TShiftState);
 begin
-  // Enter → jen doprava v rámci řádku
+
   if Key = VK_RETURN then
   begin
-    Key := 0; // potlačit defaultní akci
+    Key := 0;
     if Col < ColCount - 1 then
       Col := Col + 1;
     Exit;

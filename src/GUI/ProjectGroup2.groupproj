@@ -9,6 +9,9 @@
         <Projects Include="..\Packages\GeoSoftComponentsR.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\Packages\dclusr.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -35,14 +38,23 @@
     <Target Name="GeoSoftComponentsR:Make">
         <MSBuild Projects="..\Packages\GeoSoftComponentsR.dproj" Targets="Make"/>
     </Target>
+    <Target Name="dclusr">
+        <MSBuild Projects="..\Packages\dclusr.dproj"/>
+    </Target>
+    <Target Name="dclusr:Clean">
+        <MSBuild Projects="..\Packages\dclusr.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="dclusr:Make">
+        <MSBuild Projects="..\Packages\dclusr.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="GeoSoft;GeoSoftComponentsR"/>
+        <CallTarget Targets="GeoSoft;GeoSoftComponentsR;dclusr"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="GeoSoft:Clean;GeoSoftComponentsR:Clean"/>
+        <CallTarget Targets="GeoSoft:Clean;GeoSoftComponentsR:Clean;dclusr:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="GeoSoft:Make;GeoSoftComponentsR:Make"/>
+        <CallTarget Targets="GeoSoft:Make;GeoSoftComponentsR:Make;dclusr:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

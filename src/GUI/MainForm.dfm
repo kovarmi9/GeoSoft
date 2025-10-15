@@ -3191,6 +3191,20 @@ object Form1: TForm1
     TabOrder = 0
     ExplicitWidth = 964
   end
+  object MyStringGrid1: TMyStringGrid
+    Left = 80
+    Top = 88
+    Width = 320
+    Height = 120
+    TabOrder = 1
+  end
+  object MyPointsStringGrid1: TMyPointsStringGrid
+    Left = 80
+    Top = 288
+    Width = 320
+    Height = 120
+    TabOrder = 2
+  end
   object MainMenu1: TMainMenu
     Left = 584
     Top = 192

@@ -28,6 +28,8 @@ type
     ransformace1: TMenuItem;
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
+    MyStringGrid1: TMyStringGrid;
+    MyPointsStringGrid1: TMyPointsStringGrid;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);

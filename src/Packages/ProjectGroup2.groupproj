@@ -1,9 +1,9 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
-        <ProjectGuid>{E45DAA68-D8B0-41E9-9640-A8B215D2B013}</ProjectGuid>
+        <ProjectGuid>{40A72FA1-3C13-495F-88EB-6775FDB78BE0}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="GeoSoftComponentsR.dproj">
+        <Projects Include="dclusr.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="..\GUI\GeoSoft.dproj">
@@ -17,14 +17,14 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="GeoSoftComponentsR">
-        <MSBuild Projects="GeoSoftComponentsR.dproj"/>
+    <Target Name="dclusr">
+        <MSBuild Projects="dclusr.dproj"/>
     </Target>
-    <Target Name="GeoSoftComponentsR:Clean">
-        <MSBuild Projects="GeoSoftComponentsR.dproj" Targets="Clean"/>
+    <Target Name="dclusr:Clean">
+        <MSBuild Projects="dclusr.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="GeoSoftComponentsR:Make">
-        <MSBuild Projects="GeoSoftComponentsR.dproj" Targets="Make"/>
+    <Target Name="dclusr:Make">
+        <MSBuild Projects="dclusr.dproj" Targets="Make"/>
     </Target>
     <Target Name="GeoSoft">
         <MSBuild Projects="..\GUI\GeoSoft.dproj"/>
@@ -36,13 +36,13 @@
         <MSBuild Projects="..\GUI\GeoSoft.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="GeoSoftComponentsR;GeoSoft"/>
+        <CallTarget Targets="dclusr;GeoSoft"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="GeoSoftComponentsR:Clean;GeoSoft:Clean"/>
+        <CallTarget Targets="dclusr:Clean;GeoSoft:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="GeoSoftComponentsR:Make;GeoSoft:Make"/>
+        <CallTarget Targets="dclusr:Make;GeoSoft:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

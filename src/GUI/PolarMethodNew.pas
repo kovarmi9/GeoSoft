@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin,
   Vcl.Grids, Vcl.ExtCtrls,
-  MyPointsStringGrid, MyStringGrid;  // <— pøidáno
+  MyPointsStringGrid, MyStringGrid;
 
 type
   TForm9 = class(TForm)
@@ -25,10 +25,12 @@ type
     MyPointsStringGrid2: TMyPointsStringGrid;
     Splitter1: TSplitter;
     Splitter2: TSplitter;
+    StatusBar1: TStatusBar;
   private
-    procedure InitMyGridHeader;     // <— pøidáno
+    procedure InitMyGridHeader;
     procedure UpdateCheckCaption;
     procedure CheckBox1Click(Sender: TObject);
+    procedure UpdateCurrentDirectoryPath;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -52,8 +54,9 @@ begin
 
   UpdateCheckCaption;
 
-  InitMyGridHeader;   // <— nastaví popisky a velikost gridu
+  InitMyGridHeader;
 
+  UpdateCurrentDirectoryPath;
 end;
 
 procedure TForm9.UpdateCheckCaption;
@@ -91,6 +94,12 @@ begin
 
     Invalidate; // pøekreslit (tuèné/centrované vykreslí tvoje DrawCell)
   end;
+end;
+
+procedure TForm9.UpdateCurrentDirectoryPath;
+begin
+  if StatusBar1.Panels.Count > 0 then
+    StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
 end.

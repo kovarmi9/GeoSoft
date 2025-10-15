@@ -113,15 +113,16 @@ object Form9: TForm9
     ExplicitHeight = 369
     object Splitter1: TSplitter
       Left = 0
-      Top = 73
+      Top = 52
       Width = 624
       Height = 5
       Cursor = crVSplit
       Align = alTop
+      ExplicitTop = 73
     end
     object Splitter2: TSplitter
       Left = 0
-      Top = 198
+      Top = 185
       Width = 624
       Height = 5
       Cursor = crVSplit
@@ -131,44 +132,107 @@ object Form9: TForm9
       Left = 0
       Top = 0
       Width = 624
-      Height = 73
+      Height = 52
       Align = alTop
       ColCount = 7
       FixedCols = 0
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goFixedRowDefAlign]
       TabOrder = 0
-      ExplicitLeft = 24
-      ExplicitTop = 50
+      ColumnHeaders.Strings = (
+        #268#237'slo bodu'
+        'V'#253#353'ka stroje'
+        'X'
+        'Y'
+        'Z'
+        'Kvalita'
+        'Popis')
+      ExplicitWidth = 622
+      ColWidths = (
+        89
+        89
+        89
+        89
+        88
+        88
+        88)
     end
     object MyPointsStringGrid1: TMyPointsStringGrid
       Left = 0
-      Top = 78
+      Top = 57
       Width = 624
-      Height = 120
+      Height = 128
       Cursor = crVSplit
       Align = alTop
+      ColCount = 8
+      RowCount = 2
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
-      ExplicitLeft = 47
-      ExplicitTop = 113
-      ExplicitWidth = 320
+      EnterEndBehavior = ebAddRow
+      ColumnHeaders.Strings = (
+        #268#237'slo bodu'
+        'Vodorovn'#225' vzd'#225'lenost'
+        'Vodorovn'#253' '#250'hel'
+        'Y'
+        'X'
+        'Z'
+        'Kvalita'
+        'Popis')
+      ColWidths = (
+        64
+        80
+        80
+        80
+        79
+        79
+        79
+        79)
     end
     object MyPointsStringGrid2: TMyPointsStringGrid
       Left = 0
-      Top = 203
+      Top = 190
       Width = 624
-      Height = 120
+      Height = 161
       Align = alTop
+      ColCount = 8
+      RowCount = 2
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 2
-      ExplicitLeft = 173
-      ExplicitTop = 248
-      ExplicitWidth = 320
+      EnterEndBehavior = ebAddRow
+      ColumnHeaders.Strings = (
+        #268#237'slo bodu'
+        'Vodorovn'#225' vzd'#225'lenost'
+        'Vodorovn'#253' '#250'hel'
+        'Y'
+        'X'
+        'Z'
+        'Kvalita'
+        'Popis')
+      ExplicitTop = 216
+      ColWidths = (
+        64
+        80
+        80
+        80
+        79
+        79
+        79
+        79)
       RowHeights = (
         24
-        25
-        24
-        24
-        24)
+        25)
+    end
+    object StatusBar1: TStatusBar
+      Left = 0
+      Top = 358
+      Width = 624
+      Height = 19
+      Panels = <
+        item
+          Width = 50
+        end>
+      ExplicitTop = 350
+      ExplicitWidth = 622
     end
   end
 end

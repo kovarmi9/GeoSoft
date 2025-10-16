@@ -1,4 +1,4 @@
-unit PolarMethodNew;
+Ôªøunit PolarMethodNew;
 
 interface
 
@@ -6,7 +6,10 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin,
   Vcl.Grids, Vcl.ExtCtrls,
-  MyPointsStringGrid, MyStringGrid;
+  MyPointsStringGrid, MyStringGrid,
+  PointsUtilsSingleton,  // TPointDictionary
+  Point,                 // Point.TPoint
+  AddPoint;              // TForm6
 
 type
   TForm9 = class(TForm)
@@ -27,10 +30,15 @@ type
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
   private
-    procedure InitMyGridHeader;
     procedure UpdateCheckCaption;
     procedure CheckBox1Click(Sender: TObject);
     procedure UpdateCurrentDirectoryPath;
+
+    procedure MyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure OrientGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    function  LookupOrPromptPoint(PointNumber: Integer; out P: Point.TPoint): Boolean;
+    procedure FillRowFromPoint(const Row: Integer; const P: Point.TPoint);
+    procedure FillRowFromPointToOrientGrid(const Row: Integer; const P: Point.TPoint);
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -43,8 +51,8 @@ implementation
 {$R *.dfm}
 
 const
-  CAP_VOLNE = 'VolnÈ stanovisko';
-  CAP_PEVNE = 'PevnÈ stanovisko';
+  CAP_VOLNE = 'Voln√© stanovisko';
+  CAP_PEVNE = 'Pevn√© stanovisko';
 
 constructor TForm9.Create(AOwner: TComponent);
 begin
@@ -54,7 +62,7 @@ begin
 
   UpdateCheckCaption;
 
-  InitMyGridHeader;
+  MyPointsStringGrid1.OnKeyDown := OrientGridKeyDown;
 
   UpdateCurrentDirectoryPath;
 end;
@@ -72,34 +80,99 @@ begin
   UpdateCheckCaption;
 end;
 
-procedure TForm9.InitMyGridHeader;
-begin
-  with MyStringGrid1 do
-  begin
-    // z·klad
-    FixedRows := 1;             // hornÌ ¯·dek = hlaviËka
-    FixedCols := 0;             // rovnou ËÌsla bod˘
-    ColCount  := 7;             // 0..7
-    RowCount  := 2;             // 0..2
-    Options   := Options + [goEditing];
-
-    // texty hlaviËky (¯·dek 0, sloupce 0..6)
-    Cells[0,0] := 'ËÌslo bodu';
-    Cells[1,0] := 'V˝öka stroje';
-    Cells[2,0] := 'X';
-    Cells[3,0] := 'Y';
-    Cells[4,0] := 'Z';
-    Cells[5,0] := 'Kvalita';
-    Cells[6,0] := 'Popis';
-
-    Invalidate; // p¯ekreslit (tuËnÈ/centrovanÈ vykreslÌ tvoje DrawCell)
-  end;
-end;
-
 procedure TForm9.UpdateCurrentDirectoryPath;
 begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
+end;
+
+// Vypln√≠ X,Y,Z,Kvalita,Popis do dan√©ho ≈ô√°dku gridu
+procedure TForm9.FillRowFromPoint(const Row: Integer; const P: Point.TPoint);
+begin
+  // Sloupce: 0=ƒç√≠slo bodu, 1=V√Ω≈°ka stroje (ignorujeme), 2..6 = data
+  MyStringGrid1.Cells[2, Row] := FloatToStr(P.X);
+  MyStringGrid1.Cells[3, Row] := FloatToStr(P.Y);
+  MyStringGrid1.Cells[4, Row] := FloatToStr(P.Z);
+  MyStringGrid1.Cells[5, Row] := IntToStr(P.Quality);
+  MyStringGrid1.Cells[6, Row] := P.Description;
+end;
+
+// Najdi bod ve slovn√≠ku; kdy≈æ nen√≠, nab√≠dni dialog pro doplnƒõn√≠
+function TForm9.LookupOrPromptPoint(PointNumber: Integer; out P: Point.TPoint): Boolean;
+var
+  dlg: TForm6;
+begin
+  Result := False;
+  if PointNumber <= 0 then Exit;
+
+  if TPointDictionary.GetInstance.PointExists(PointNumber) then
+  begin
+    P := TPointDictionary.GetInstance.GetPoint(PointNumber);
+    Exit(True);
+  end;
+
+  // neexistuje -> nab√≠dni dialog
+  dlg := TForm6.Create(Self);
+  try
+    if not dlg.Execute(PointNumber, P) then
+      Exit(False);
+
+    // rovnou bod ulo≈æ:
+    TPointDictionary.GetInstance.AddPoint(P);
+
+    Result := True;
+  finally
+    dlg.Free;
+  end;
+end;
+
+// OnKeyDown pro MyStringGrid1: Enter v prvn√≠m sloupci ‚Üí naƒç√≠st/doplnit bod
+procedure TForm9.MyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  num, r: Integer;
+  pt: Point.TPoint;
+begin
+  if Key <> VK_RETURN then Exit;
+
+  // pracujeme jen v prvn√≠m sloupci a jen v datov√Ωch ≈ô√°dc√≠ch (≈ô. >= 1 ‚Äì hlaviƒçka je ≈ô.0)
+  if (MyStringGrid1.Col <> 0) or (MyStringGrid1.Row < 1) then
+    Exit;
+
+  r := MyStringGrid1.Row;
+  num := StrToIntDef(MyStringGrid1.Cells[0, r], 0);
+  if num <= 0 then Exit;
+
+  if LookupOrPromptPoint(num, pt) then
+    FillRowFromPoint(r, pt);
+
+end;
+
+procedure TForm9.FillRowFromPointToOrientGrid(const Row: Integer; const P: Point.TPoint);
+begin
+  // X,Y,Z zapisujeme do sloupc≈Ø 3..5
+  MyPointsStringGrid1.Cells[3, Row] := FloatToStr(P.X);
+  MyPointsStringGrid1.Cells[4, Row] := FloatToStr(P.Y);
+  MyPointsStringGrid1.Cells[5, Row] := FloatToStr(P.Z);
+end;
+
+procedure TForm9.OrientGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  num, r: Integer;
+  pt: Point.TPoint;
+begin
+  if Key <> VK_RETURN then Exit;
+
+  // Reaguj jen v 1. sloupci (index 1 = "ƒç√≠slo bodu B") a v datov√Ωch ≈ô√°dc√≠ch
+  if (MyPointsStringGrid1.Col <> 1) or (MyPointsStringGrid1.Row < 1) then
+    Exit;
+
+  r := MyPointsStringGrid1.Row;
+  num := StrToIntDef(MyPointsStringGrid1.Cells[1, r], 0); // << ƒçti ze sloupce 1
+  if num <= 0 then Exit;
+
+  if LookupOrPromptPoint(num, pt) then
+    FillRowFromPointToOrientGrid(r, pt); // dopln√≠ X,Y,Z
+
 end;
 
 end.

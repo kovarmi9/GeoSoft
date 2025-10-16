@@ -149,13 +149,13 @@ object Form9: TForm9
         'Popis')
       ExplicitWidth = 622
       ColWidths = (
-        89
-        89
-        89
-        89
         88
         88
-        88)
+        88
+        88
+        87
+        87
+        87)
     end
     object MyPointsStringGrid1: TMyPointsStringGrid
       Left = 0
@@ -164,12 +164,13 @@ object Form9: TForm9
       Height = 128
       Cursor = crVSplit
       Align = alTop
-      ColCount = 8
+      ColCount = 9
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
+        ''
         #268#237'slo bodu'
         'Vodorovn'#225' vzd'#225'lenost'
         'Vodorovn'#253' '#250'hel'
@@ -180,13 +181,14 @@ object Form9: TForm9
         'Popis')
       ColWidths = (
         64
-        80
-        80
-        80
-        79
-        79
-        79
-        79)
+        69
+        69
+        69
+        69
+        68
+        68
+        68
+        68)
     end
     object MyPointsStringGrid2: TMyPointsStringGrid
       Left = 0
@@ -194,12 +196,13 @@ object Form9: TForm9
       Width = 624
       Height = 161
       Align = alTop
-      ColCount = 8
+      ColCount = 9
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 2
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
+        ''
         #268#237'slo bodu'
         'Vodorovn'#225' vzd'#225'lenost'
         'Vodorovn'#253' '#250'hel'
@@ -208,16 +211,16 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitTop = 216
       ColWidths = (
         64
-        80
-        80
-        80
-        79
-        79
-        79
-        79)
+        69
+        69
+        69
+        69
+        68
+        68
+        68
+        68)
       RowHeights = (
         24
         25)

@@ -1,108 +1,82 @@
-unit GeoDataFrame;
+ï»¿unit GeoDataFrame;
 
 interface
 
 uses
-  GeoRow;
+  GeoRow, Math;
 
 type
-  // GDF jako dynamické pole
-  TGeoDataFrame = array of TGeoRow;
+  // GeoDataFrame jako record pro uklÃ¡dÃ¡nÃ­ vÃ­ce informacÃ­
+  TGeoDataFrame = record
+    Rows: array of TGeoRow;
+    Count: Integer;      // kolik Å™Ã¡dkÅ¯ je reÃ¡lnÄ› pouÅ¾ito
+    Capacity: Integer;   // kolik Å™Ã¡dkÅ¯ je alokovÃ¡no
+    Fields: TGeoFields;  // kterÃ© sloupce jsou pouÅ¾ity
+  end;
 
+procedure ClearGeoDataFrame(var GDF: TGeoDataFrame);
 
-// Pøidá 1 prázdný øádek
+procedure InitGeoDataFrame(var GDF: TGeoDataFrame; UsedFields: TGeoFields); overload;
+procedure InitGeoDataFrame(var GDF: TGeoDataFrame); overload;
+
 procedure AddRow(var GDF: TGeoDataFrame); overload;
-
-// Pøidá Count prázdných øádkù
-procedure AddRow(var GDF: TGeoDataFrame; Count: Integer); overload;
-
-// Pøidá 1 øádek s vyplnìnými hodnotami
-procedure AddRow(var GDF: TGeoDataFrame; const Row: TGeoRow); overload;
-
-// Pøidá 1 øádek hodnot
-procedure AddRow(var GDF: TGeoDataFrame;
-                          Uloha: ShortInt;
-                          CB: string;
-                          X, Y, Z: Double;
-                          Xm, Ym, Zm: Double;
-                          TypS: ShortInt;
-                          SH: Double;
-                          SS: Double;
-                          VS: Double;
-                          VC: Double;
-                          HZ: Double;
-                          Zuhel: Double;
-                          PolarD: Double;
-                          PolarK: Double;
-                          Poznamka: string); overload;
+procedure AddRow(var GDF: TGeoDataFrame; N: Integer); overload;
+procedure AddRow(var GDF: TGeoDataFrame; const R: TGeoRow); overload;
 
 implementation
+
+procedure InitGeoDataFrame(var GDF: TGeoDataFrame); overload;
+begin
+  ClearGeoDataFrame(GDF);
+  GDF.Fields := [Low(TGeoField)..High(TGeoField)];
+end;
+
+procedure InitGeoDataFrame(var GDF: TGeoDataFrame; UsedFields: TGeoFields);
+begin
+  ClearGeoDataFrame(GDF);
+  GDF.Fields := UsedFields;
+end;
+
+procedure ClearGeoDataFrame(var GDF: TGeoDataFrame);
+begin
+  SetLength(GDF.Rows, 0);
+  GDF.Count := 0;
+  GDF.Capacity := 0;
+  GDF.Fields := [];
+end;
+
+procedure Reserve(var GDF: TGeoDataFrame; Need: Integer);
+var cap: Integer;
+begin
+  if Need <= GDF.Capacity then Exit;
+  // NastavenÃ­ kapacity... zabezpeÄnÃ© kdyby capacity byla 0
+  cap := Max(1, GDF.Capacity);
+  while cap < Need do cap := cap * 2;
+  SetLength(GDF.Rows, cap);
+  GDF.Capacity := cap;
+end;
 
 procedure AddRow(var GDF: TGeoDataFrame); overload;
 begin
   AddRow(GDF, 1);
 end;
 
-procedure AddRow(var GDF: TGeoDataFrame; Count: Integer); overload;
-var
-  oldLen, newLen, i: Integer;
+procedure AddRow(var GDF: TGeoDataFrame; N: Integer); overload;
+var i, need: Integer;
 begin
-  if Count <= 0 then
-  begin
-    Exit;
-  end;
-  oldLen := Length(GDF);
-  newLen := oldLen + Count;
-  SetLength(GDF, newLen);
-  for i := oldLen to newLen - 1 do
-    GeoRowClear(GDF[i]);
+  if N <= 0 then Exit;
+  need := GDF.Count + N;
+  Reserve(GDF, need);
+  for i := GDF.Count to need - 1 do
+    ClearGeoRow(GDF.Rows[i]);
+  GDF.Count := need;
 end;
 
-procedure AddRow(var GDF: TGeoDataFrame; const Row: TGeoRow); overload;
-var
-  i: Integer;
+procedure AddRow(var GDF: TGeoDataFrame; const R: TGeoRow); overload;
 begin
-  i := Length(GDF);
-  SetLength(GDF, i + 1);
-  GDF[i] := Row;
-end;
-
-procedure AddRow(var GDF: TGeoDataFrame;
-                          Uloha: ShortInt;
-                          CB: string;
-                          X, Y, Z: Double;
-                          Xm, Ym, Zm: Double;
-                          TypS: ShortInt;
-                          SH: Double;
-                          SS: Double;
-                          VS: Double;
-                          VC: Double;
-                          HZ: Double;
-                          Zuhel: Double;
-                          PolarD: Double;
-                          PolarK: Double;
-                          Poznamka: string); overload;
-var
-  Row: TGeoRow;
-  i: Integer;
-begin
-  Row.Uloha := Uloha;
-  Row.CB := CB;
-  Row.X := X ; Row.Y := Y; Row.Z := Z;
-  Row.Xm := Xm ; Row.Ym := Ym; Row.Zm := Zm;
-  Row.TypS := TypS;
-  Row.SH := SH;
-  Row.SS := SS;
-  Row.VS := VS;
-  Row.VC := VC;
-  Row.HZ := HZ;
-  Row.Zuhel := Zuhel;
-  Row.PolarD := PolarD;
-  Row.PolarK := PolarK;
-  Row.Poznamka := Poznamka;
-  i := Length(GDF);
-  SetLength(GDF, i + 1);
-  GDF[i] := Row;
+  AddRow(GDF, 1);
+  GDF.Rows[GDF.Count - 1] := R;
 end;
 
 end.
+

@@ -13,7 +13,8 @@ uses
   GeoAlgorithmTransformSimilarity,
   System.Generics.Collections,
   GeoAlgorithmTransformCongruent,
-  GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid;
+  GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid, Data.DB,
+  Vcl.DBGrids, Web.HTTPApp, Web.DBWeb, Web.DBXpressWeb;
 
 type
   TForm1 = class(TForm)

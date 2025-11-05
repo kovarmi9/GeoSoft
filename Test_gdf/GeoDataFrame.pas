@@ -3,15 +3,15 @@
 interface
 
 uses
-  GeoRow, Math;
+  System.SysUtils, Classes, GeoRow, Math;
 
 type
   // GeoDataFrame jako record pro ukládání více informací
   TGeoDataFrame = record
-    Rows: array of TGeoRow;
-    Count: Integer;      // kolik řádků je reálně použito
-    Capacity: Integer;   // kolik řádků je alokováno
-    Fields: TGeoFields;  // které sloupce jsou použity
+    Count: Integer;         // kolik řádků je reálně použito
+    Capacity: Integer;      // kolik řádků je alokováno
+    Fields: TGeoFields;     // které sloupce jsou použity
+    Rows: array of TGeoRow; // pole řádků
   end;
 
 procedure ClearGeoDataFrame(var GDF: TGeoDataFrame);
@@ -22,6 +22,8 @@ procedure InitGeoDataFrame(var GDF: TGeoDataFrame); overload;
 procedure AddRow(var GDF: TGeoDataFrame); overload;
 procedure AddRow(var GDF: TGeoDataFrame; N: Integer); overload;
 procedure AddRow(var GDF: TGeoDataFrame; const R: TGeoRow); overload;
+
+function PrintGeoDataFrame(const GDF: TGeoDataFrame): TStringList;
 
 implementation
 
@@ -76,6 +78,29 @@ procedure AddRow(var GDF: TGeoDataFrame; const R: TGeoRow); overload;
 begin
   AddRow(GDF, 1);
   GDF.Rows[GDF.Count - 1] := R;
+end;
+
+function PrintGeoDataFrame(const GDF: TGeoDataFrame): TStringList;
+var
+  i: Integer;
+  RowText: TStringList;
+begin
+  Result := TStringList.Create;
+  Result.Add('=== TGeoDataFrame ===');
+  Result.Add(Format('Count    : %d', [GDF.Count]));
+  Result.Add(Format('Capacity : %d', [GDF.Capacity]));
+  Result.Add('Fields   : ' + PrintGeoFields(GDF.Fields));
+
+  for i := 0 to GDF.Count - 1 do
+  begin
+    Result.Add('');
+    RowText := PrintGeoRow(GDF.Rows[i], GDF.Fields, i);
+    try
+      Result.AddStrings(RowText);
+    finally
+      RowText.Free;
+    end;
+  end;
 end;
 
 end.

@@ -19,7 +19,8 @@ var
 begin
   try
     // test r1
-//    PrintGeoRow(r1);
+//    Writeln('Výpis nevyplněného řádku');
+//    Writeln(PrintGeoRow(r1).Text);
     r1.Uloha := 1;
     r1.CB := '751261478500012';
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
@@ -34,22 +35,22 @@ begin
     r1.PolarD := 0.45;
     r1.PolarK := 0.20;
     r1.Poznamka := 'Testovací řádek';
-//    PrintGeoRow(r1);
-//    ClearGeoRow(r1);
-//    PrintGeoRow(r1);
-
-    Writeln(GetGeoRowAsText(r1).Text);
+//    Writeln(PrintGeoRow(r1).Text);
+//    Writeln('Výpis vyplněného řádku');
+    ClearGeoRow(r1);
+//    Writeln('Výpis vymazaného řádku');
+//    Writeln(PrintGeoRow(r1).Text);
 
     // --- GeoDataFrame ---
 
-    // Vynulování gdf1
-    InitGeoDataFrame(gdf1, [Uloha, CB, X, Y]);
+    // Vynulování gdf1 - se všemi sloupci
+    InitGeoDataFrame(gdf1);
 
-    Writeln('Stav po defaultu');
-    Writeln(IntToStr(Length(GDF1.Rows)));
-    Writeln(gdf1.Count);
-    Writeln(gdf1.Capacity);
-    Writeln(GeoFieldsToString(gdf1.Fields));
+//    Writeln('Stav po defaultu');
+//    Writeln('Počet polí: ',IntToStr(Length(GDF1.Rows)));
+//    Writeln('Počet řádků: ',gdf1.Count);
+//    Writeln('Počet alokovaných řádků: ',gdf1.Capacity);
+//    Writeln('Zvolené sloupce: ', sLineBreak ,PrintGeoFields(gdf1.Fields).Text);
 
     // Přidány dva řádky
     AddRow(gdf1, 2);
@@ -84,15 +85,18 @@ begin
     gdf1.Rows[1].PolarK := 0.15;
     gdf1.Rows[1].Poznamka := 'Testovací řádek 2';
 
-    // přidání hotového z r1 (teď prázdný po Clear, ale jen pro ukázku API)
+    // Přidání hotového z r1 (teď prázdný po Clear, ale jen pro ukázku API)
     AddRow(gdf1, r1);
 
-    Writeln('Co je v gdf1?');
-    writeln(gdf1.Rows[5].Uloha);
+//    Writeln(sLineBreak,'Co je v gdf1 v řádku [3] na pozici Úloha?');
+//    writeln(gdf1.Rows[3].Uloha);
+//
+//    // Výpis jen platných řádků:
+//    for i := 0 to gdf1.Count - 1 do
+//      Writeln(PrintGeoRow(gdf1.Rows[i],gdf1.Fields).Text);
 
-    // výpis jen platných řádků:
-    for i := 0 to gdf1.Count - 1 do
-      PrintGeoRow(gdf1.Rows[i]);
+    // Výpis pomocí funkce
+    Writeln(PrintGeoDataFrame(gdf1).Text)
 
   except
     on E: Exception do

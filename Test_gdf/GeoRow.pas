@@ -4,10 +4,10 @@ interface
 
 
 uses
-  System.SysUtils;
+  System.SysUtils, Classes;
 
 type
-// Pole v masce
+// Vybraná pole
 TGeoField = (
   Uloha,
   CB,
@@ -42,15 +42,26 @@ TGeoFields = set of TGeoField;
     PolarD:        Double;      // polární domìrek
     PolarK:        Double;      // polární kolmice
     Poznamka:      string;      // poznámka
-
-//    procedure Clear;
   end;
 
 procedure ClearGeoRow(var R: TGeoRow);
 
 procedure PrintGeoRow(const R: TGeoRow); overload; // výpis všech polí
 
+function GetGeoRowAsText(const R: TGeoRow): TStringList; overload;
+
 procedure PrintGeoRow(const R: TGeoRow; const Fields: TGeoFields); overload;  // výpis vybraných polí
+
+function GetGeoRowAsText(const R: TGeoRow; const Fields: TGeoFields): TStringList; overload;
+
+// --- v interface èásti GeoRow.pas ---
+const
+  GeoFieldNames: array[TGeoField] of string = (
+    'Uloha','CB','X','Y','Z','Xm','Ym','Zm','TypS','SH','SS',
+    'VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka'
+  );
+
+function GeoFieldsToString(const Used: TGeoFields): string;
 
 implementation
 
@@ -72,24 +83,21 @@ begin
    R.Poznamka := '';
 end;
 
-
-//procedure TGeoRow.Clear;
-//begin
-//   Uloha := 0;
-//   CB := '';
-//   X := 0 ; Y := 0; Z := 0;
-//   Xm := 0 ; Ym := 0; Zm := 0;
-//   TypS := 0;
-//   SH := 0;
-//   SS := 0;
-//   VS := 0;
-//   VC := 0;
-//   HZ := 0;
-//   Zuhel := 0;
-//   PolarD := 0;
-//   PolarK := 0;
-//   Poznamka := '';
-//end;
+function GetGeoRowAsText(const R: TGeoRow): TStringList;
+begin
+  Result := TStringList.Create;
+  Result.Add('--- TGeoRow ---');
+  Result.Add(Format('Uloha   : %d', [R.Uloha]));
+  Result.Add(Format('CB      : %s', [R.CB]));
+  Result.Add(Format('X,Y,Z   : %.3f; %.3f; %.3f', [R.X, R.Y, R.Z]));
+  Result.Add(Format('Xm,Ym,Zm: %.3f; %.3f; %.3f', [R.Xm, R.Ym, R.Zm]));
+  Result.Add(Format('TypS    : %d', [R.TypS]));
+  Result.Add(Format('SH, SS  : %.3f; %.3f', [R.SH, R.SS]));
+  Result.Add(Format('VS, VC  : %.3f; %.3f', [R.VS, R.VC]));
+  Result.Add(Format('HZ, Z   : %.6f; %.6f', [R.HZ, R.Zuhel]));
+  Result.Add(Format('PolarD/K: %.3f; %.3f', [R.PolarD, R.PolarK]));
+  Result.Add(Format('Poznámka: %s', [R.Poznamka]));
+end;
 
 procedure PrintGeoRow(const R: TGeoRow);
 begin
@@ -106,7 +114,6 @@ begin
   Writeln(Format('Poznámka: %s', [R.Poznamka]));
   Writeln;
 end;
-
 
 procedure PrintGeoRow(const R: TGeoRow; const Fields: TGeoFields);
 begin
@@ -132,5 +139,54 @@ begin
   Writeln;
 end;
 
+function GetGeoRowAsText(const R: TGeoRow; const Fields: TGeoFields): TStringList;
+begin
+  Result := TStringList.Create;
+  Result.Add('--- TGeoRow ---');
+  if Uloha in Fields then Result.Add(Format('Uloha   : %d', [R.Uloha]));
+  if CB in Fields then Result.Add(Format('CB      : %s', [R.CB]));
+  if X in Fields then Result.Add(Format('X       : %.3f', [R.X]));
+  if Y in Fields then Result.Add(Format('Y       : %.3f', [R.Y]));
+  if Z in Fields then Result.Add(Format('Z       : %.3f', [R.Z]));
+  if Xm in Fields then Result.Add(Format('Xm      : %.3f', [R.Xm]));
+  if Ym in Fields then Result.Add(Format('Ym      : %.3f', [R.Ym]));
+  if Zm in Fields then Result.Add(Format('Zm      : %.3f', [R.Zm]));
+  if TypS in Fields then Result.Add(Format('TypS    : %d', [R.TypS]));
+  if SH in Fields then Result.Add(Format('SH      : %.3f', [R.SH]));
+  if SS in Fields then Result.Add(Format('SS      : %.3f', [R.SS]));
+  if VS in Fields then Result.Add(Format('VS      : %.3f', [R.VS]));
+  if VC in Fields then Result.Add(Format('VC      : %.3f', [R.VC]));
+  if HZ in Fields then Result.Add(Format('HZ      : %.6f', [R.HZ]));
+  if Zuhel in Fields then Result.Add(Format('Zuhel   : %.6f', [R.Zuhel]));
+  if PolarD in Fields then Result.Add(Format('PolarD  : %.3f', [R.PolarD]));
+  if PolarK in Fields then Result.Add(Format('PolarK  : %.3f', [R.PolarK]));
+  if Poznamka in Fields then Result.Add(Format('Poznámka: %s', [R.Poznamka]));
+end;
+
+function GeoFieldsToString(const Used: TGeoFields): string;
+var
+  f: TGeoField;
+  s: string;
+begin
+  s := '';
+  for f := Low(TGeoField) to High(TGeoField) do
+    if f in Used then
+    begin
+      if s <> '' then
+        s := s + ', ';
+      s := s + GeoFieldNames[f];
+    end;
+  Result := '{' + s + '}';
+end;
+
+function GetGeoFieldsAsText(const Used: TGeoFields): TStringList;
+var
+  f: TGeoField;
+begin
+  Result := TStringList.Create;
+  for f := Low(TGeoField) to High(TGeoField) do
+    if f in Used then
+      Result.Add(GeoFieldNames[f]);
+end;
 
 end.

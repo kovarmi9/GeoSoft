@@ -14,31 +14,12 @@ var
   gdf1: TGeoDataFrame;
   i: Integer;
 
-// --- Deklarace ---
-procedure PrintGeoRow(const R: TGeoRow); forward;
-
-// --- Definice ---
-procedure PrintGeoRow(const R: TGeoRow);
-begin
-  Writeln('--- TGeoRow ---');
-  Writeln(Format('Uloha   : %d', [R.Uloha]));
-  Writeln(Format('CB      : %s', [R.CB]));
-  Writeln(Format('X,Y,Z   : %.3f; %.3f; %.3f', [R.X, R.Y, R.Z]));
-  Writeln(Format('Xm,Ym,Zm: %.3f; %.3f; %.3f', [R.Xm, R.Ym, R.Zm]));
-  Writeln(Format('TypS    : %d', [R.TypS]));
-  Writeln(Format('SH, SS  : %.3f; %.3f', [R.SH, R.SS]));
-  Writeln(Format('VS, VC  : %.3f; %.3f', [R.VS, R.VC]));
-  Writeln(Format('HZ, Z   : %.6f; %.6f', [R.HZ, R.Zuhel]));
-  Writeln(Format('PolarD/K: %.3f; %.3f', [R.PolarD, R.PolarK]));
-  Writeln(Format('Poznámka: %s', [R.Poznamka]));
-  Writeln;
-end;
 
 // --- Main ---
 begin
   try
     // test r1
-    PrintGeoRow(r1);
+//    PrintGeoRow(r1);
     r1.Uloha := 1;
     r1.CB := '751261478500012';
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
@@ -53,9 +34,11 @@ begin
     r1.PolarD := 0.45;
     r1.PolarK := 0.20;
     r1.Poznamka := 'Testovací řádek';
-    PrintGeoRow(r1);
-    ClearGeoRow(r1);
-    PrintGeoRow(r1);
+//    PrintGeoRow(r1);
+//    ClearGeoRow(r1);
+//    PrintGeoRow(r1);
+
+    Writeln(GetGeoRowAsText(r1).Text);
 
     // --- GeoDataFrame ---
 
@@ -63,9 +46,10 @@ begin
     InitGeoDataFrame(gdf1, [Uloha, CB, X, Y]);
 
     Writeln('Stav po defaultu');
+    Writeln(IntToStr(Length(GDF1.Rows)));
     Writeln(gdf1.Count);
     Writeln(gdf1.Capacity);
-    Writeln(IntToStr(Length(GDF1.Rows)));
+    Writeln(GeoFieldsToString(gdf1.Fields));
 
     // Přidány dva řádky
     AddRow(gdf1, 2);

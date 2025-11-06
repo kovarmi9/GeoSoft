@@ -4,7 +4,7 @@ interface
 
 
 uses
-  System.SysUtils, Classes;
+  System.SysUtils, System.Classes;
 
 type
 // Vybraná pole
@@ -24,15 +24,15 @@ TGeoField = (
   PolarK,
   Poznamka
 );
-TGeoFields = set of TGeoField;
+TGeoFields = set of TGeoField;  // set vybraných
 
 // Record
   TGeoRow = record
-    Uloha:         ShortInt;
-    CB:            string;
+    Uloha:         Integer;     // typ úlohy
+    CB:            string;      // èíslo bodu
     X, Y, Z:       Double;      // souøadnice
     Xm, Ym, Zm:    Double;      // místní souøadnice
-    TypS:          ShortInt;    // typ délky S
+    TypS:          Integer;     // typ délky S
     SH:            Double;      // vodorovná vzdálenost
     SS:            Double;      // šikmá vzdálenost
     VS:            Double;      // výška stroje
@@ -44,109 +44,97 @@ TGeoFields = set of TGeoField;
     Poznamka:      string;      // poznámka
   end;
 
-procedure ClearGeoRow(var R: TGeoRow);
+procedure ClearGeoRow(var ARow: TGeoRow); // Vynulování celého øádku
 
-function PrintGeoRow(const R: TGeoRow; RowIndex: Integer = -1): TStringList; overload; // výpis všech polí
-function PrintGeoRow(const R: TGeoRow; const Fields: TGeoFields; RowIndex: Integer = -1): TStringList; overload; // výpis vybraných polí
+function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList; overload; // výpis všech polí
+function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList; overload; // výpis vybraných polí
 
-function PrintGeoFields(const Used: TGeoFields): string;
+function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string; // výpis seznamu použitých polí
 
-// --- v interface èásti GeoRow.pas ---
+// Názvy polí v geofields pro zápis
 const
   GeoFieldNames: array[TGeoField] of string = (
-    'Uloha','CB','X','Y','Z','Xm','Ym','Zm','TypS','SH','SS',
-    'VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka'
+    'Uloha','CB','X','Y','Z','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka'
   );
 
 implementation
 
-procedure ClearGeoRow(var R: TGeoRow);
+procedure ClearGeoRow(var ARow: TGeoRow);
 begin
-   R.Uloha := 0;
-   R.CB := '';
-   R.X := 0 ; R.Y := 0; R.Z := 0;
-   R.Xm := 0 ; R.Ym := 0; R.Zm := 0;
-   R.TypS := 0;
-   R.SH := 0;
-   R.SS := 0;
-   R.VS := 0;
-   R.VC := 0;
-   R.HZ := 0;
-   R.Zuhel := 0;
-   R.PolarD := 0;
-   R.PolarK := 0;
-   R.Poznamka := '';
+   ARow.Uloha := 0;
+   ARow.CB := '';
+   ARow.X := 0 ; ARow.Y := 0; ARow.Z := 0;
+   ARow.Xm := 0 ; ARow.Ym := 0; ARow.Zm := 0;
+   ARow.TypS := 0;
+   ARow.SH := 0;
+   ARow.SS := 0;
+   ARow.VS := 0;
+   ARow.VC := 0;
+   ARow.HZ := 0;
+   ARow.Zuhel := 0;
+   ARow.PolarD := 0;
+   ARow.PolarK := 0;
+   ARow.Poznamka := '';
 end;
 
-function PrintGeoRow(const R: TGeoRow; RowIndex: Integer = -1): TStringList;
+function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList;
 begin
   Result := TStringList.Create;
-  if RowIndex >= 0 then
-      Result.Add(Format('--- TGeoRow %d ---', [RowIndex]))
-    else
-      Result.Add('--- TGeoRow ---');
-  Result := TStringList.Create;
-  Result.Add('--- TGeoRow ---');
-  Result.Add(Format('Uloha   : %d', [R.Uloha]));
-  Result.Add(Format('CB      : %s', [R.CB]));
-  Result.Add(Format('X,Y,Z   : %.3f; %.3f; %.3f', [R.X, R.Y, R.Z]));
-  Result.Add(Format('Xm,Ym,Zm: %.3f; %.3f; %.3f', [R.Xm, R.Ym, R.Zm]));
-  Result.Add(Format('TypS    : %d', [R.TypS]));
-  Result.Add(Format('SH, SS  : %.3f; %.3f', [R.SH, R.SS]));
-  Result.Add(Format('VS, VC  : %.3f; %.3f', [R.VS, R.VC]));
-  Result.Add(Format('HZ, Z   : %.6f; %.6f', [R.HZ, R.Zuhel]));
-  Result.Add(Format('PolarD/K: %.3f; %.3f', [R.PolarD, R.PolarK]));
-  Result.Add(Format('Poznámka: %s', [R.Poznamka]));
+  Result.AddStrings(PrintGeoRow(ARow, [Low(TGeoField)..High(TGeoField)], ARowIndex));
 end;
 
-function PrintGeoRow(const R: TGeoRow; const Fields: TGeoFields; RowIndex: Integer = -1): TStringList;
-begin
-  Result := TStringList.Create;
-  if RowIndex >= 0 then
-      Result.Add(Format('--- TGeoRow %d ---', [RowIndex]))
-    else
-      Result.Add('--- TGeoRow ---');
-  if Uloha in Fields then Result.Add(Format('Uloha   : %d', [R.Uloha]));
-  if CB in Fields then Result.Add(Format('CB      : %s', [R.CB]));
-  if X in Fields then Result.Add(Format('X       : %.3f', [R.X]));
-  if Y in Fields then Result.Add(Format('Y       : %.3f', [R.Y]));
-  if Z in Fields then Result.Add(Format('Z       : %.3f', [R.Z]));
-  if Xm in Fields then Result.Add(Format('Xm      : %.3f', [R.Xm]));
-  if Ym in Fields then Result.Add(Format('Ym      : %.3f', [R.Ym]));
-  if Zm in Fields then Result.Add(Format('Zm      : %.3f', [R.Zm]));
-  if TypS in Fields then Result.Add(Format('TypS    : %d', [R.TypS]));
-  if SH in Fields then Result.Add(Format('SH      : %.3f', [R.SH]));
-  if SS in Fields then Result.Add(Format('SS      : %.3f', [R.SS]));
-  if VS in Fields then Result.Add(Format('VS      : %.3f', [R.VS]));
-  if VC in Fields then Result.Add(Format('VC      : %.3f', [R.VC]));
-  if HZ in Fields then Result.Add(Format('HZ      : %.6f', [R.HZ]));
-  if Zuhel in Fields then Result.Add(Format('Zuhel   : %.6f', [R.Zuhel]));
-  if PolarD in Fields then Result.Add(Format('PolarD  : %.3f', [R.PolarD]));
-  if PolarK in Fields then Result.Add(Format('PolarK  : %.3f', [R.PolarK]));
-  if Poznamka in Fields then Result.Add(Format('Poznámka: %s', [R.Poznamka]));
-end;
-
-//function PrintGeoFields(const Used: TGeoFields): TStringList;
-//var
-//  f: TGeoField;
-//begin
-//  Result := TStringList.Create;
-//  for f := Low(TGeoField) to High(TGeoField) do
-//    if f in Used then
-//      Result.Add(GeoFieldNames[f]);
-//end;
-
-function PrintGeoFields(const Used: TGeoFields): string;
+function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList;
 var
   f: TGeoField;
+  s: string;
 begin
-  //Result := '';
+  Result := TStringList.Create;
+  if ARowIndex >= 0 then
+    Result.Add(Format('--- TGeoRow %d ---', [ARowIndex]))
+  else
+    Result.Add('--- TGeoRow ---');
+
+  for f := Low(TGeoField) to High(TGeoField) do
+    if f in AFields then
+    begin
+      case f of
+        Uloha:    s := Format('%s: %d', [GeoFieldNames[f], ARow.Uloha]);
+        CB:       s := Format('%s: %s', [GeoFieldNames[f], ARow.CB]);
+        X:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.X]);
+        Y:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Y]);
+        Z:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Z]);
+        Xm:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Xm]);
+        Ym:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Ym]);
+        Zm:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Zm]);
+        TypS:     s := Format('%s: %d', [GeoFieldNames[f], ARow.TypS]);
+        SH:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.SH]);
+        SS:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.SS]);
+        VS:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.VS]);
+        VC:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.VC]);
+        HZ:       s := Format('%s: %.6f', [GeoFieldNames[f], ARow.HZ]);
+        Zuhel:    s := Format('%s: %.6f', [GeoFieldNames[f], ARow.Zuhel]);
+        PolarD:   s := Format('%s: %.3f', [GeoFieldNames[f], ARow.PolarD]);
+        PolarK:   s := Format('%s: %.3f', [GeoFieldNames[f], ARow.PolarK]);
+        Poznamka: s := Format('%s: %s', [GeoFieldNames[f], ARow.Poznamka]);
+      end;
+      Result.Add(s);
+    end;
+end;
+
+function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string;
+var
+  f: TGeoField;
+  first: Boolean;
+begin
+  Result := '';
+  first := True;
   for f := Low(TGeoField) to High(TGeoField) do
     if f in Used then
     begin
-      if Result <> '' then
-        Result := Result + ', ';
+      if not first then
+        Result := Result + Asep;
       Result := Result + GeoFieldNames[f];
+      first := False;
     end;
 end;
 

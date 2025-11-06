@@ -6,6 +6,7 @@
 
 uses
   System.SysUtils,
+  System.Classes,
   GeoRow in 'GeoRow.pas',
   GeoDataFrame in 'GeoDataFrame.pas';
 
@@ -13,6 +14,8 @@ var
   r1: TGeoRow;
   gdf1: TGeoDataFrame;
   i: Integer;
+  csv1: TStringList;
+  s: string;
 
 
 // --- Main ---
@@ -35,16 +38,16 @@ begin
     r1.PolarD := 0.45;
     r1.PolarK := 0.20;
     r1.Poznamka := 'Testovací řádek';
-//    Writeln(PrintGeoRow(r1).Text);
-//    Writeln('Výpis vyplněného řádku');
+    Writeln(PrintGeoRow(r1).Text);
+    Writeln('Výpis vyplněného řádku');
     ClearGeoRow(r1);
-//    Writeln('Výpis vymazaného řádku');
-//    Writeln(PrintGeoRow(r1).Text);
+    Writeln('Výpis vymazaného řádku');
+    Writeln(PrintGeoRow(r1).Text);
 
     // --- GeoDataFrame ---
 
     // Vynulování gdf1 - se všemi sloupci
-    InitGeoDataFrame(gdf1);
+    InitGeoDataFrame(gdf1, [Uloha, CB, X, Y, Z, Poznamka]);
 
 //    Writeln('Stav po defaultu');
 //    Writeln('Počet polí: ',IntToStr(Length(GDF1.Rows)));
@@ -83,7 +86,7 @@ begin
     gdf1.Rows[1].Zuhel := 100.7854;
     gdf1.Rows[1].PolarD := 0.0;
     gdf1.Rows[1].PolarK := 0.15;
-    gdf1.Rows[1].Poznamka := 'Testovací řádek 2';
+    gdf1.Rows[1].Poznamka := 'Testovací "řádek" ; / * - , "" "";"" 2';
 
     // Přidání hotového z r1 (teď prázdný po Clear, ale jen pro ukázku API)
     AddRow(gdf1, r1);
@@ -95,8 +98,31 @@ begin
 //    for i := 0 to gdf1.Count - 1 do
 //      Writeln(PrintGeoRow(gdf1.Rows[i],gdf1.Fields).Text);
 
-    // Výpis pomocí funkce
-    Writeln(PrintGeoDataFrame(gdf1).Text)
+//    // Výpis pomocí funkce
+//    Writeln(PrintGeoDataFrame(gdf1).Text);
+//
+    csv1 := GeoDataFrameToCSV(gdf1, ',', ',');
+
+    Writeln(csv1.Text);
+
+    s := csv1[1];
+    s[1] := '9';
+    csv1[1] := s;
+
+    Writeln('--- Po úpravě ---');
+    Writeln(csv1.Text);
+
+    gdf1 := CSVToGeoDataFrame(csv1);
+
+    Writeln(PrintGeoDataFrame(gdf1).Text);
+
+    //Uložení do souboru
+    with GeoDataFrameToCSV(gdf1, ';') do
+    try
+      SaveToFile('soubor.csv', TEncoding.UTF8);
+    finally
+      Free;
+    end;
 
   except
     on E: Exception do

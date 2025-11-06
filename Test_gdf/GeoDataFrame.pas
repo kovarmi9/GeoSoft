@@ -27,9 +27,7 @@ function PrintGeoDataFrame(const ADataFrame: TGeoDataFrame): TStringList; //form
 
 function GeoDataFrameToCSV(const ADataFrame: TGeoDataFrame; const ACellSep: Char = ';'; const ADecSep: Char = '.'): TStringList; //formátovaně vypíše GeoDataFrame do StringLsitu s použitým separátorem
 
-//function CSVToGeoDataFrame(const CSV: TStringList; const ACellSep: string = ';'; const ADecSep: string = '.'): TGeoDataFrame; //načte formátovaný StringList do GeoDataFrame
-
-function CSVToGeoDataFrame(const CSV: TStringList; const ASep: string = ';'): TGeoDataFrame; //načte formátovaný StringList do GeoDataFrame
+function CSVToGeoDataFrame(const CSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'): TGeoDataFrame; //načte formátovaný StringList do GeoDataFrame
 
 implementation
 
@@ -120,8 +118,6 @@ begin
   Result := TStringList.Create;
 
   // Kontrola že ACellSep <> ADecSep
-
-  // Kontrola že ACellSep <> ADecSep
   if ACellSep = ADecSep then
     raise EArgumentException.CreateFmt(
       'Cell separator "%s" must differ from decimal separator "%s".',
@@ -176,415 +172,210 @@ begin
   end;
 end;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Příprava typu pole strungů
 type
   TStrArray = array of string;
 
-// Odstraní krajní uvozovky a "" -> " uvnitř.
-function CsvUnquote(const S: string): string;
+function SplitCsvLine(const ALine: string; ASep: Char): TStrArray;
 var
-  L: Integer;
-  inner: string;
+  i, n: Integer;     // i = index ve vstupním řetězci; n = počet uložených buněk
+  inQuotes: Boolean; // True, pokud je uvnitř uvozovek "..."
+  ch: Char;          // aktuálně čtený znak
+  buf: string;       // akumulační buffer pro právě stavěnou buňku
 begin
-  Result := S;
-  L := Length(S);
-  if (L >= 2) and (S[1] = '"') and (S[L] = '"') then
-  begin
-    inner := Copy(S, 2, L - 2);
-    inner := StringReplace(inner, '""', '"', [rfReplaceAll]);
-    Result := inner;
-  end;
-end;
-
-// Robustní split CSV řádku – respektuje uvozovky a zdvojené uvozovky.
-// Sep je znak (první znak z parametru Sep).
-function SplitCsvLine(const Line: string; Sep: Char): TStrArray;
-var
-  i, n: Integer;
-  inQuotes: Boolean;
-  ch: Char;
-  buf: string;
-begin
+  // Inicializace výstupu a stavů
   SetLength(Result, 0);
   buf := '';
   inQuotes := False;
   n := 0;
   i := 1;
-  while i <= Length(Line) do
-  begin
-    ch := Line[i];
 
+  // Projde celý řádek znak po znaku
+  while i <= Length(ALine) do
+  begin
+    ch := ALine[i];
+
+    // Zpracování dvojitých uvozovek
     if ch = '"' then
     begin
-      if inQuotes and (i < Length(Line)) and (Line[i+1] = '"') then
+      // Pokud je uvnitř uvozovek a další znak je také uvozovka,
+      // jde o CSV escape "" -> přidá jednu " do dat a přeskočí oba znaky.
+      if inQuotes and (i < Length(ALine)) and (ALine[i+1] = '"') then
       begin
         buf := buf + '"';
-        Inc(i, 2);
+        i := i + 2;
         Continue;
       end
       else
       begin
+        // Jinak pouze přepne stav: vstup/výstup z uvozovek
         inQuotes := not inQuotes;
-        Inc(i);
+        i := i + 1;
         Continue;
       end;
     end;
 
-    if (not inQuotes) and (ch = Sep) then
+    // Pokud je mimo uvozovky a narazí na separátor,
+    // uzavře aktuální buňku a začneme novou.
+    if (not inQuotes) and (ch = ASep) then
     begin
       SetLength(Result, n + 1);
-      Result[n] := buf;
-      Inc(n);
+      Result[n] := buf;  // může být i prázdné pole, pokud byly dva separátory za sebou
+      n := n + 1;
       buf := '';
-      Inc(i);
+      i := i + 1;
       Continue;
     end;
 
+    // Běžný znak: přidá do aktuální buňky
     buf := buf + ch;
-    Inc(i);
+    i := i + 1;
   end;
-  SetLength(Result, n + 1);
-  Result[n] := buf;
+
+// Konec řádku: uloží poslední buňku
+SetLength(Result, n + 1);
+Result[n] := buf;
 end;
 
-// Mapuje název hlavičky na TGeoField (case-insensitive).
-function GeoFieldFromName(const Name: string; out Fld: TGeoField): Boolean;
+// Mapuje název hlavičky na TGeoField
+// - Name: text z hlavičky CSV
+// - Fld : nalezená položka TGeoField
+// Vrací True, pokud se našla shoda
+function GeoFieldFromName(const AName: string; out AField: TGeoField): Boolean;
 var
   f: TGeoField;
 begin
   Result := False;
   for f := Low(TGeoField) to High(TGeoField) do
-    if SameText(Name, GeoFieldNames[f]) then
+    if SameText(AName, GeoFieldNames[f]) then
     begin
-      Fld := f;
+      AField := f;
       Exit(True);
     end;
 end;
 
-function FirstSepChar(const S: string; Default: Char): Char;
-begin
-  if S = '' then
-    Result := Default
-  else
-    Result := S[1];
-end;
-
-function TryToInt(const S: string; var OutVal: Integer): Boolean;
+// Převod buňky na int
+function TryToInt(const ACell: string; var AOutVal: Integer): Boolean;
 var
   tmp: Integer;
 begin
-  Result := TryStrToInt(Trim(S), tmp);
+  // Zkusí převést otrimovaný řetězec na Integer -> výsledek do tmp
+  Result := TryStrToInt(Trim(ACell), tmp);
+
+  // Když převod vyšel (Result = True), uloží číslo do výstupního parametru
   if Result then
-    OutVal := tmp;
+    AOutVal := tmp;
 end;
 
-function TryToFloat(const S: string; var OutVal: Double; const FormatSettings: TFormatSettings): Boolean;
+// Převod buňky na float
+function TryToFloat(const ACell: string; var AOutVal: Double; const FormatSettings: TFormatSettings): Boolean;
 var
   tmp: Double;
 begin
-  Result := TryStrToFloat(Trim(S), tmp, FormatSettings);
+  // Zkusí převést otrimovaný řetězec na Double -> výsledek do tmp
+  // Použije FormatSettings (ADecSep), takže správně chápe tečku/čárku.
+  Result := TryStrToFloat(Trim(ACell), tmp, FormatSettings);
+
+  // Když převod vyšel (Result = True), uloží číslo do výstupního parametru
   if Result then
-    OutVal := tmp;
+    AOutVal := tmp;
 end;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//function CSVToGeoDataFrame(const CSV: TStringList; const ACellSep: string = ';'; const ADecSep: string = '.'): TGeoDataFrame;
-//var
-//  FormatSettings: TFormatSettings;
-//  Header: TStrArray;
-//  ColCount: Integer;
-//  ColMap: array of TGeoField;
-//  ColKnown: array of Boolean;
-//  i, j: Integer;
-//  Line: string;
-//  Fields: TStrArray;
-//  Value: string;
-//  Row: TGeoRow;
-//  Field: TGeoField;
-//  UsedFields: TGeoFields;
-//  SeparatorChar: Char;
-//begin
-//  ClearGeoDataFrame(Result);
-//
-//  if (CSV = nil) or (CSV.Count = 0) then
-//    Exit;
-//
-//  FormatSettings := TFormatSettings.Create;
-//  FormatSettings.DecimalSeparator := '.';
-//
-//  SeparatorChar := FirstSepChar(ACellSep, ';');
-//
-//  // Hlavička
-//  Header := SplitCsvLine(CSV[0], SeparatorChar);
-//  ColCount := Length(Header);
-//  if ColCount = 0 then Exit;
-//
-//  SetLength(ColMap, ColCount);
-//  SetLength(ColKnown, ColCount);
-//  UsedFields := [];
-//
-//  for j := 0 to ColCount - 1 do
-//  begin
-//    Value := CsvUnquote(Trim(Header[j]));
-//    if GeoFieldFromName(Value, Field) then
-//    begin
-//      ColMap[j] := Field;
-//      ColKnown[j] := True;
-//      Include(UsedFields, Field);
-//    end
-//    else
-//      ColKnown[j] := False;
-//  end;
-//
-//  InitGeoDataFrame(Result, UsedFields);
-//
-//  // Data
-//  for i := 1 to CSV.Count - 1 do
-//  begin
-//    Line := CSV[i];
-//    if Line = '' then Continue;
-//
-//    Fields := SplitCsvLine(Line, SeparatorChar);
-//    ClearGeoRow(Row);
-//
-//    for j := 0 to High(Fields) do
-//      if (j < ColCount) and ColKnown[j] then
-//      begin
-//        Field := ColMap[j];
-//        Value := CsvUnquote(Fields[j]);
-//        case Field of
-//          Uloha:    if not TryToInt(Value, Row.Uloha) then Row.Uloha := 0;
-//          CB:       Row.CB := Value;
-//          X:        if not TryToFloat(Value, Row.X, FormatSettings) then Row.X := 0;
-//          Y:        if not TryToFloat(Value, Row.Y, FormatSettings) then Row.Y := 0;
-//          Z:        if not TryToFloat(Value, Row.Z, FormatSettings) then Row.Z := 0;
-//          Xm:       if not TryToFloat(Value, Row.Xm, FormatSettings) then Row.Xm := 0;
-//          Ym:       if not TryToFloat(Value, Row.Ym, FormatSettings) then Row.Ym := 0;
-//          Zm:       if not TryToFloat(Value, Row.Zm, FormatSettings) then Row.Zm := 0;
-//          TypS:     if not TryToInt(Value, Row.TypS) then Row.TypS := 0;
-//          SH:       if not TryToFloat(Value, Row.SH, FormatSettings) then Row.SH := 0;
-//          SS:       if not TryToFloat(Value, Row.SS, FormatSettings) then Row.SS := 0;
-//          VS:       if not TryToFloat(Value, Row.VS, FormatSettings) then Row.VS := 0;
-//          VC:       if not TryToFloat(Value, Row.VC, FormatSettings) then Row.VC := 0;
-//          HZ:       if not TryToFloat(Value, Row.HZ, FormatSettings) then Row.HZ := 0;
-//          Zuhel:    if not TryToFloat(Value, Row.Zuhel, FormatSettings) then Row.Zuhel := 0;
-//          PolarD:   if not TryToFloat(Value, Row.PolarD, FormatSettings) then Row.PolarD := 0;
-//          PolarK:   if not TryToFloat(Value, Row.PolarK, FormatSettings) then Row.PolarK := 0;
-//          Poznamka: Row.Poznamka := Value;
-//        end;
-//      end;
-//
-//    AddRow(Result, Row);
-//  end;
-//end;
-
-//function CSVToGeoDataFrame(const CSV: TStringList; const ACellSep: string = ';'; const ADecSep: char = '.'): TGeoDataFrame;
-//var
-//  FormatSettings: TFormatSettings;
-//  Header: TStrArray;
-//  ColCount: Integer;
-//  ColMap: array of TGeoField;
-//  ColKnown: array of Boolean;
-//  i, j: Integer;
-//  Line: string;
-//  Fields: TStrArray;
-//  Value: string;
-//  Row: TGeoRow;
-//  Field: TGeoField;
-//  UsedFields: TGeoFields;
-//begin
-//  ClearGeoDataFrame(Result);
-//
-//  if (CSV = nil) or (CSV.Count = 0) then
-//    Exit;
-//
-//  // Nastavení formátu čísel
-//  GetLocaleFormatSettings(0, FormatSettings); // Delphi 6 kompatibilní
-//  FormatSettings.DecimalSeparator := ADecSep;
-//
-//  // Hlavička
-//  Header := SplitCsvLine(CSV[0], ACellSep);
-//  ColCount := Length(Header);
-//  if ColCount = 0 then Exit;
-//
-//  SetLength(ColMap, ColCount);
-//  SetLength(ColKnown, ColCount);
-//  UsedFields := [];
-//
-//  for j := 0 to ColCount - 1 do
-//  begin
-//    Value := CsvUnquote(Trim(Header[j]));
-//    if GeoFieldFromName(Value, Field) then
-//    begin
-//      ColMap[j] := Field;
-//      ColKnown[j] := True;
-//      Include(UsedFields, Field);
-//    end
-//    else
-//      ColKnown[j] := False;
-//  end;
-//
-//  InitGeoDataFrame(Result, UsedFields);
-//
-//  // Data
-//  for i := 1 to CSV.Count - 1 do
-//  begin
-//    Line := CSV[i];
-//    if Line = '' then Continue;
-//
-//    Fields := SplitCsvLine(Line, ACellSep);
-//    ClearGeoRow(Row);
-//
-//    for j := 0 to High(Fields) do
-//      if (j < ColCount) and ColKnown[j] then
-//      begin
-//        Field := ColMap[j];
-//        Value := CsvUnquote(Fields[j]);
-//
-//        case Field of
-//          Uloha:    if not TryToInt(Value, Row.Uloha) then Row.Uloha := 0;
-//          CB:       Row.CB := Value;
-//          X:        if not TryToFloat(Value, Row.X, FormatSettings) then Row.X := 0;
-//          Y:        if not TryToFloat(Value, Row.Y, FormatSettings) then Row.Y := 0;
-//          Z:        if not TryToFloat(Value, Row.Z, FormatSettings) then Row.Z := 0;
-//          Xm:       if not TryToFloat(Value, Row.Xm, FormatSettings) then Row.Xm := 0;
-//          Ym:       if not TryToFloat(Value, Row.Ym, FormatSettings) then Row.Ym := 0;
-//          Zm:       if not TryToFloat(Value, Row.Zm, FormatSettings) then Row.Zm := 0;
-//          TypS:     if not TryToInt(Value, Row.TypS) then Row.TypS := 0;
-//          SH:       if not TryToFloat(Value, Row.SH, FormatSettings) then Row.SH := 0;
-//          SS:       if not TryToFloat(Value, Row.SS, FormatSettings) then Row.SS := 0;
-//          VS:       if not TryToFloat(Value, Row.VS, FormatSettings) then Row.VS := 0;
-//          VC:       if not TryToFloat(Value, Row.VC, FormatSettings) then Row.VC := 0;
-//          HZ:       if not TryToFloat(Value, Row.HZ, FormatSettings) then Row.HZ := 0;
-//          Zuhel:    if not TryToFloat(Value, Row.Zuhel, FormatSettings) then Row.Zuhel := 0;
-//          PolarD:   if not TryToFloat(Value, Row.PolarD, FormatSettings) then Row.PolarD := 0;
-//          PolarK:   if not TryToFloat(Value, Row.PolarK, FormatSettings) then Row.PolarK := 0;
-//          Poznamka: Row.Poznamka := Value;
-//        end;
-//      end;
-//
-//    AddRow(Result, Row);
-//  end;
-//end;
-
-// --- CSV -> TGeoDataFrame ---
-function CSVToGeoDataFrame(const CSV: TStringList; const ASep: string = ';'): TGeoDataFrame;
+function CSVToGeoDataFrame(const CSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'): TGeoDataFrame;
 var
-  FS: TFormatSettings;
-  header: TStrArray;
-  cols: Integer;
-  colMap : array of TGeoField;  // mapuje index sloupce na TGeoField
-  colKnown: array of Boolean;   // zda je sloupec známý (použijeme)
+  FormatSettings: TFormatSettings;
+  Header: TStrArray;
+  ColCount: Integer;
+  ColMap: array of TGeoField;
+  ColKnown: array of Boolean;
   i, j: Integer;
-  line: string;
-  fields: TStrArray;
-  val: string;
-  r: TGeoRow;
-  fld: TGeoField;
-  used: TGeoFields;
-  SepCh: Char;
-
-  function FirstSepChar(const S: string; Default: Char): Char;
-  begin
-    if S = '' then Result := Default else Result := S[1];
-  end;
-
-  function TryToInt(const S: string; var OutVal: Integer): Boolean;
-  var tmp: Integer;
-  begin
-    Result := TryStrToInt(Trim(S), tmp);
-    if Result then OutVal := tmp;
-  end;
-
-  function TryToFloat(const S: string; var OutVal: Double): Boolean;
-  var tmp: Double;
-  begin
-    Result := TryStrToFloat(Trim(S), tmp, FS);
-    if Result then OutVal := tmp;
-  end;
-
+  Line: string;
+  Fields: TStrArray;
+  Value: string;
+  Row: TGeoRow;
+  Field: TGeoField;
+  UsedFields: TGeoFields;
 begin
-  // defaultně prázdný výsledek
   ClearGeoDataFrame(Result);
 
   if (CSV = nil) or (CSV.Count = 0) then
     Exit;
 
-  // Tečka jako desetinný oddělovač
-  FS := TFormatSettings.Create;
-  FS.DecimalSeparator := '.';
 
-  SepCh := FirstSepChar(ASep, ';');
+  // Kontrola že ACellSep <> ADecSep
+  if ACellSep = ADecSep then
+    raise EArgumentException.CreateFmt(
+      'Cell separator "%s" must differ from decimal separator "%s".',
+      [string(ACellSep), string(ADecSep)]
+    );
 
-  // 1) Hlavička
-  header := SplitCsvLine(CSV[0], SepCh);
-  cols := Length(header);
-  if cols = 0 then Exit;
+  // Nastavení formátu čísel
+  FormatSettings := TFormatSettings.Create;
+  FormatSettings.DecimalSeparator  := ADecSep; // nastavení desetinného oddělovače
+  FormatSettings.ThousandSeparator := #0;      // vypnutí tisícinného oddělovače
 
-  SetLength(colMap, cols);
-  SetLength(colKnown, cols);
-  used := [];
+  // Hlavička
+  Header := SplitCsvLine(CSV[0], ACellSep);
+  ColCount := Length(Header);
+  if ColCount = 0 then Exit;
 
-  for j := 0 to cols - 1 do
+  SetLength(ColMap, ColCount);
+  SetLength(ColKnown, ColCount);
+  UsedFields := [];
+
+  for j := 0 to ColCount - 1 do
   begin
-    val := CsvUnquote(Trim(header[j]));
-    if GeoFieldFromName(val, fld) then
+    Value := Trim(Header[j]);
+    if GeoFieldFromName(Value, Field) then
     begin
-      colMap[j] := fld;
-      colKnown[j] := True;
-      Include(used, fld);
+      ColMap[j] := Field;
+      ColKnown[j] := True;
+      Include(UsedFields, Field);
     end
     else
-      colKnown[j] := False; // neznámý sloupec ignorujeme
+      ColKnown[j] := False;
   end;
 
-  // Přednastav výsledný ADataFrame s nalezenými poli
-  InitGeoDataFrame(Result, used);
+  InitGeoDataFrame(Result, UsedFields);
 
-  // 2) Data
-  for i := 1 to CSV.Count - 1 do // i=1: přeskočíme hlavičku
+  // Data
+  for i := 1 to CSV.Count - 1 do
   begin
-    line := CSV[i];
-    if line = '' then
-      Continue;
+    Line := CSV[i];
+    if Line = '' then Continue;
 
-    fields := SplitCsvLine(line, SepCh);
+    Fields := SplitCsvLine(Line, ACellSep);
+    ClearGeoRow(Row);
 
-    // nový prázdný řádek
-    ClearGeoRow(r);
-
-    // naplň známé sloupce
-    for j := 0 to High(fields) do
-      if (j < cols) and colKnown[j] then
+    for j := 0 to High(Fields) do
+      if (j < ColCount) and ColKnown[j] then
       begin
-        fld := colMap[j];
-        val := CsvUnquote(fields[j]);
+        Field := ColMap[j];
+        Value := Fields[j];
 
-        case fld of
-          Uloha:    begin if not TryToInt(val, r.Uloha) then r.Uloha := 0; end;
-          CB:       r.CB := val;
-          X:        begin if not TryToFloat(val, r.X) then r.X := 0; end;
-          Y:        begin if not TryToFloat(val, r.Y) then r.Y := 0; end;
-          Z:        begin if not TryToFloat(val, r.Z) then r.Z := 0; end;
-          Xm:       begin if not TryToFloat(val, r.Xm) then r.Xm := 0; end;
-          Ym:       begin if not TryToFloat(val, r.Ym) then r.Ym := 0; end;
-          Zm:       begin if not TryToFloat(val, r.Zm) then r.Zm := 0; end;
-          TypS:     begin if not TryToInt(val, r.TypS) then r.TypS := 0; end;
-          SH:       begin if not TryToFloat(val, r.SH) then r.SH := 0; end;
-          SS:       begin if not TryToFloat(val, r.SS) then r.SS := 0; end;
-          VS:       begin if not TryToFloat(val, r.VS) then r.VS := 0; end;
-          VC:       begin if not TryToFloat(val, r.VC) then r.VC := 0; end;
-          HZ:       begin if not TryToFloat(val, r.HZ) then r.HZ := 0; end;
-          Zuhel:    begin if not TryToFloat(val, r.Zuhel) then r.Zuhel := 0; end;
-          PolarD:   begin if not TryToFloat(val, r.PolarD) then r.PolarD := 0; end;
-          PolarK:   begin if not TryToFloat(val, r.PolarK) then r.PolarK := 0; end;
-          Poznamka: r.Poznamka := val;
+        case Field of
+          Uloha:    if not TryToInt(Value, Row.Uloha) then Row.Uloha := 0;
+          CB:       Row.CB := Value;
+          X:        if not TryToFloat(Value, Row.X, FormatSettings) then Row.X := 0;
+          Y:        if not TryToFloat(Value, Row.Y, FormatSettings) then Row.Y := 0;
+          Z:        if not TryToFloat(Value, Row.Z, FormatSettings) then Row.Z := 0;
+          Xm:       if not TryToFloat(Value, Row.Xm, FormatSettings) then Row.Xm := 0;
+          Ym:       if not TryToFloat(Value, Row.Ym, FormatSettings) then Row.Ym := 0;
+          Zm:       if not TryToFloat(Value, Row.Zm, FormatSettings) then Row.Zm := 0;
+          TypS:     if not TryToInt(Value, Row.TypS) then Row.TypS := 0;
+          SH:       if not TryToFloat(Value, Row.SH, FormatSettings) then Row.SH := 0;
+          SS:       if not TryToFloat(Value, Row.SS, FormatSettings) then Row.SS := 0;
+          VS:       if not TryToFloat(Value, Row.VS, FormatSettings) then Row.VS := 0;
+          VC:       if not TryToFloat(Value, Row.VC, FormatSettings) then Row.VC := 0;
+          HZ:       if not TryToFloat(Value, Row.HZ, FormatSettings) then Row.HZ := 0;
+          Zuhel:    if not TryToFloat(Value, Row.Zuhel, FormatSettings) then Row.Zuhel := 0;
+          PolarD:   if not TryToFloat(Value, Row.PolarD, FormatSettings) then Row.PolarD := 0;
+          PolarK:   if not TryToFloat(Value, Row.PolarK, FormatSettings) then Row.PolarK := 0;
+          Poznamka: Row.Poznamka := Value;
         end;
       end;
 
-    // přidej do výsledku
-    AddRow(Result, r);
+    AddRow(Result, Row);
   end;
 end;
 

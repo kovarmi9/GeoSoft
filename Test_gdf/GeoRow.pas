@@ -1,4 +1,4 @@
-unit GeoRow;
+ï»¿unit GeoRow;
 
 interface
 
@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Classes;
 
 type
-// Vybraná pole
+// VybranÃ¡ pole
 TGeoField = (
   Uloha,
   CB,
@@ -24,46 +24,46 @@ TGeoField = (
   Poznamka
 );
 
-TGeoFields = set of TGeoField;  // set vybranıch
+TGeoFields = set of TGeoField;  // set vybranÃ½ch
 
 // Record
   TGeoRow = record
-    Uloha:         Integer;     // typ úlohy
-    CB:            string[16];  // èíslo bodu
-    X, Y, Z:       Double;      // souøadnice
-    Xm, Ym, Zm:    Double;      // místní souøadnice
-    TypS:          Integer;     // typ délky S
-    SH:            Double;      // vodorovná vzdálenost
-    SS:            Double;      // šikmá vzdálenost
-    VS:            Double;      // vıška stroje
-    VC:            Double;      // vıška cíle
-    HZ:            Double;      // HZ úhel [°]
-    Zuhel:         Double;      // z (svislı) [°] – pojmenováno Zuhel kvùli kolizi se souøadnicí Z
-    PolarD:        Double;      // polární domìrek
-    PolarK:        Double;      // polární kolmice
-    Poznamka:      string[128]; // poznámka
+    Uloha:         Integer;     // typ Ãºlohy
+    CB:            string[16];  // ÄÃ­slo bodu
+    X, Y, Z:       Double;      // souÅ™adnice
+    Xm, Ym, Zm:    Double;      // mÃ­stnÃ­ souÅ™adnice
+    TypS:          Integer;     // typ dÃ©lky S
+    SH:            Double;      // vodorovnÃ¡ vzdÃ¡lenost
+    SS:            Double;      // Å¡ikmÃ¡ vzdÃ¡lenost
+    VS:            Double;      // vÃ½Å¡ka stroje
+    VC:            Double;      // vÃ½Å¡ka cÃ­le
+    HZ:            Double;      // HZ Ãºhel [Â°]
+    Zuhel:         Double;      // z (svislÃ½) [Â°] â€“ pojmenovÃ¡no Zuhel kvÅ¯li kolizi se souÅ™adnicÃ­ Z
+    PolarD:        Double;      // polÃ¡rnÃ­ domÄ›rek
+    PolarK:        Double;      // polÃ¡rnÃ­ kolmice
+    Poznamka:      string[128]; // poznÃ¡mka
   end;
 
-// Pomocnı datovı typ
-TGeoRowArray = array of TGeoRow; // pole øádkù
+// PomocnÃ½ datovÃ½ typ
+TGeoRowArray = array of TGeoRow; // pole Å™Ã¡dkÅ¯
 
-procedure ClearGeoRow(var ARow: TGeoRow); // Vynulování celého øádku
+procedure ClearGeoRow(var ARow: TGeoRow); // VynulovÃ¡nÃ­ celÃ©ho Å™Ã¡dku
 
-function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList; overload; // vıpis všech polí
-function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList; overload; // vıpis vybranıch polí
+function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList; overload; // vÃ½pis vÅ¡ech polÃ­
+function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList; overload; // vÃ½pis vybranÃ½ch polÃ­
 
-function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string; // vıpis seznamu pouitıch polí
+function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string; // vÃ½pis seznamu pouÅ¾itÃ½ch polÃ­
 
-// Uloení øádku jako file of array
+// UloÅ¾enÃ­ Å™Ã¡dku jako file of record
 procedure SaveRow(const FileName: string; const Row: TGeoRow; Append: Boolean = False); overload;
 procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: Boolean = False); overload;
 
-// Naètení øádku jako file of record
+// NaÄtenÃ­ Å™Ã¡dku jako file of record
 function LoadRow(const FileName: string; Index: Integer = -1): TGeoRow; overload;
 procedure LoadRow(const FileName: string; out Rows: TGeoRowArray); overload;
 
 
-// Názvy polí v geofields pro zápis
+// NÃ¡zvy polÃ­ v geofields pro zÃ¡pis
 const
   GeoFieldNames: array[TGeoField] of string = (
     'Uloha','CB','X','Y','Z','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka'
@@ -150,13 +150,13 @@ begin
     end;
 end;
 
-// Uloí JEDEN øádek - jen tenkı wrapper nad "array" verzí
+// UloÅ¾Ã­ jen jedn Å™Ã¡dek - jen upravenÃ¡ array verze
 procedure SaveRow(const FileName: string; const Row: TGeoRow; Append: Boolean = False);
 begin
-  SaveRow(FileName, [Row], Append);  // volá array-overload s jedním prvkem
+  SaveRow(FileName, [Row], Append);  // volÃ¡ array-overload s jednÃ­m prvkem
 end;
 
-// Uloí VÍCE øádkù najednou (efektivní I/O)
+// UloÅ¾Ã­ vÃ­ce Å™Ã¡dkÅ¯ najednou
 procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: Boolean = False);
 var
   F: File of TGeoRow;
@@ -164,21 +164,21 @@ var
 begin
   AssignFile(F, FileName);
 
-  // Pokud soubor existuje a chceme pøidávat, otevøeme pro ètení/zápis
+  // Pokud soubor existuje a chce pÅ™idÃ¡vat, otevÅ™e pro ÄtenÃ­/zÃ¡pis
   if Append and FileExists(FileName) then
     Reset(F)
   else
-    Rewrite(F); // jinak vytvoøíme novı soubor (pøepíšeme)
+    Rewrite(F); // jinak pÅ™epÃ­Å¡e
 
-  // Pokud pøidáváme, pøesuneme se na konec
+  // Pokud pÅ™idÃ¡vÃ¡, pÅ™esune na konec
   if Append then
     Seek(F, FileSize(F))
   else
-    Seek(F, 0); // pøepis od zaèátku
+    Seek(F, 0); // pÅ™epis od zaÄÃ¡tku
 
   Count := Length(Rows);
   if Count > 0 then
-    // BlockWrite na typed file: Count = poèet záznamù typu TGeoRow
+    // BlockWrite do F: Rows[0] = zaÄÃ¡tek pamÄ›ti, Count = poÄet zÃ¡znamÅ¯ typu TGeoRow
     BlockWrite(F, Rows[0], Count);
 
   CloseFile(F);
@@ -186,51 +186,74 @@ end;
 
 function LoadRow(const FileName: string; Index: Integer = -1): TGeoRow;
 var
-  F: File of TGeoRow;
+  F: File of TGeoRow;  // typed file, kde jednotka = jeden TGeoRow
 begin
+  // Kontrola, jestli soubor existuje
   if not FileExists(FileName) then
     raise Exception.CreateFmt('Soubor "%s" neexistuje.', [FileName]);
 
+  // PropojenÃ­ promÄ›nnÃ© F se souborem na disku
   AssignFile(F, FileName);
+
+  // OtevÅ™enÃ­ souboru pro ÄtenÃ­
   Reset(F);
 
+  // KdyÅ¾ je soubor prÃ¡zdnÃ½, nemÃ¡ smysl ÄÃ­st -> chyba
   if FileSize(F) = 0 then
-    raise Exception.Create('Soubor je prázdnı.');
+    raise Exception.Create('Soubor je prÃ¡zdnÃ½.');
 
+  // RozhodnutÃ­, odkud ÄÃ­st: Index = -1 -> chceme prvnÃ­ zÃ¡znam (index 0), jinak kontrola, Å¾e index je v rozsahu 0..FileSize(F)-1
   if Index = -1 then
-    Seek(F, 0) // naète první øádek
+    Seek(F, 0)  // naÄte prvnÃ­ Å™Ã¡dek
   else if (Index < 0) or (Index >= FileSize(F)) then
     raise Exception.CreateFmt('Index %d je mimo rozsah (0..%d)', [Index, FileSize(F)-1])
   else
-    Seek(F, Index);
+    Seek(F, Index);  // posun na zvolenÃ½ zÃ¡znam
 
+  // SamotnÃ© naÄtenÃ­ jednoho zÃ¡znamu do Result
   Read(F, Result);
+
+  // ZavÅ™enÃ­ souboru
   CloseFile(F);
 end;
 
 procedure LoadRow(const FileName: string; out Rows: TGeoRowArray);
 var
-  F: File of TGeoRow;
-  RecCount, ReadCount: Integer;
+  F: File of TGeoRow;   // typed file, kde jedna jednotka = jeden zÃ¡znam typu TGeoRow
+  RecCount,            // kolik zÃ¡znamÅ¯ (Å™Ã¡dkÅ¯) je v souboru
+  ReadCount: Integer;  // kolik zÃ¡znamÅ¯ se ve skuteÄnosti naÄetlo
 begin
+  // Kontrola, jestli soubor existuje
   if not FileExists(FileName) then
     raise Exception.CreateFmt('Soubor "%s" neexistuje.', [FileName]);
 
+  // PropojenÃ­ promÄ›nnÃ© F se souborem na disku
   AssignFile(F, FileName);
+
+  // OtevÅ™enÃ­ souboru pro ÄtenÃ­
   Reset(F);
   try
+    // ZjiÅ¡tÄ›nÃ­, kolik zÃ¡znamÅ¯ typu TGeoRow v souboru je
     RecCount := FileSize(F);
+
+    // KdyÅ¾ je soubor prÃ¡zdnÃ½, vrÃ¡tÃ­ prÃ¡zdnÃ© pole a skonÄÃ­
     if RecCount <= 0 then
     begin
       SetLength(Rows, 0);
       Exit;
     end;
 
+    // PÅ™ipravÃ­ dynamickÃ© pole Rows na pÅ™esnÃ½ poÄet zÃ¡znamÅ¯
     SetLength(Rows, RecCount);
+
+    // HromadnÃ© naÄtenÃ­ vÅ¡ech zÃ¡znamÅ¯: Rows[0] - prvnÃ­ prvek pole; RecCount - kolik zÃ¡znamÅ¯ typu TGeoRow chce naÄÃ­st, ReadCount - skuteÄnÃ½ poÄet pÅ™eÄtenÃ½ch zÃ¡znamÅ¯
     BlockRead(F, Rows[0], RecCount, ReadCount);
+
+    // KdyÅ¾ se nepodaÅ™ilo naÄÃ­st vÅ¡e, hlÃ¡sÃ­me chybu
     if ReadCount <> RecCount then
-      raise Exception.CreateFmt('Naèteno jen %d z %d záznamù.', [ReadCount, RecCount]);
+      raise Exception.CreateFmt('NaÄteno jen %d z %d zÃ¡znamÅ¯.', [ReadCount, RecCount]);
   finally
+    // ZavÅ™enÃ­ souboru i pÅ™i vÃ½jimce
     CloseFile(F);
   end;
 end;

@@ -2,7 +2,6 @@ unit GeoRow;
 
 interface
 
-
 uses
   System.SysUtils, System.Classes;
 
@@ -24,12 +23,13 @@ TGeoField = (
   PolarK,
   Poznamka
 );
+
 TGeoFields = set of TGeoField;  // set vybraných
 
 // Record
   TGeoRow = record
     Uloha:         Integer;     // typ úlohy
-    CB:            string;      // èíslo bodu
+    CB:            string[16];  // èíslo bodu
     X, Y, Z:       Double;      // souøadnice
     Xm, Ym, Zm:    Double;      // místní souøadnice
     TypS:          Integer;     // typ délky S
@@ -41,8 +41,11 @@ TGeoFields = set of TGeoField;  // set vybraných
     Zuhel:         Double;      // z (svislý) [°] – pojmenováno Zuhel kvùli kolizi se souøadnicí Z
     PolarD:        Double;      // polární domìrek
     PolarK:        Double;      // polární kolmice
-    Poznamka:      string;      // poznámka
+    Poznamka:      string[128]; // poznámka
   end;
+
+// Pomocný datový typ
+TGeoRowArray = array of TGeoRow; // pole øádkù
 
 procedure ClearGeoRow(var ARow: TGeoRow); // Vynulování celého øádku
 
@@ -50,6 +53,15 @@ function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList;
 function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList; overload; // výpis vybraných polí
 
 function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string; // výpis seznamu použitých polí
+
+// Uložení øádku jako file of array
+procedure SaveRow(const FileName: string; const Row: TGeoRow; Append: Boolean = False); overload;
+procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: Boolean = False); overload;
+
+// Naètení øádku jako file of record
+function LoadRow(const FileName: string; Index: Integer = -1): TGeoRow; overload;
+procedure LoadRow(const FileName: string; out Rows: TGeoRowArray); overload;
+
 
 // Názvy polí v geofields pro zápis
 const
@@ -136,6 +148,91 @@ begin
       Result := Result + GeoFieldNames[f];
       first := False;
     end;
+end;
+
+// Uloží JEDEN øádek - jen tenký wrapper nad "array" verzí
+procedure SaveRow(const FileName: string; const Row: TGeoRow; Append: Boolean = False);
+begin
+  SaveRow(FileName, [Row], Append);  // volá array-overload s jedním prvkem
+end;
+
+// Uloží VÍCE øádkù najednou (efektivní I/O)
+procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: Boolean = False);
+var
+  F: File of TGeoRow;
+  Count: Integer;
+begin
+  AssignFile(F, FileName);
+
+  // Pokud soubor existuje a chceme pøidávat, otevøeme pro ètení/zápis
+  if Append and FileExists(FileName) then
+    Reset(F)
+  else
+    Rewrite(F); // jinak vytvoøíme nový soubor (pøepíšeme)
+
+  // Pokud pøidáváme, pøesuneme se na konec
+  if Append then
+    Seek(F, FileSize(F))
+  else
+    Seek(F, 0); // pøepis od zaèátku
+
+  Count := Length(Rows);
+  if Count > 0 then
+    // BlockWrite na typed file: Count = poèet záznamù typu TGeoRow
+    BlockWrite(F, Rows[0], Count);
+
+  CloseFile(F);
+end;
+
+function LoadRow(const FileName: string; Index: Integer = -1): TGeoRow;
+var
+  F: File of TGeoRow;
+begin
+  if not FileExists(FileName) then
+    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [FileName]);
+
+  AssignFile(F, FileName);
+  Reset(F);
+
+  if FileSize(F) = 0 then
+    raise Exception.Create('Soubor je prázdný.');
+
+  if Index = -1 then
+    Seek(F, 0) // naète první øádek
+  else if (Index < 0) or (Index >= FileSize(F)) then
+    raise Exception.CreateFmt('Index %d je mimo rozsah (0..%d)', [Index, FileSize(F)-1])
+  else
+    Seek(F, Index);
+
+  Read(F, Result);
+  CloseFile(F);
+end;
+
+procedure LoadRow(const FileName: string; out Rows: TGeoRowArray);
+var
+  F: File of TGeoRow;
+  RecCount, ReadCount: Integer;
+begin
+  if not FileExists(FileName) then
+    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [FileName]);
+
+  AssignFile(F, FileName);
+  Reset(F);
+  try
+    RecCount := FileSize(F);
+    if RecCount <= 0 then
+    begin
+      SetLength(Rows, 0);
+      Exit;
+    end;
+
+    SetLength(Rows, RecCount);
+    BlockRead(F, Rows[0], RecCount, ReadCount);
+    if ReadCount <> RecCount then
+      raise Exception.CreateFmt('Naèteno jen %d z %d záznamù.', [ReadCount, RecCount]);
+  finally
+    CloseFile(F);
+  end;
 end;
 
 end.

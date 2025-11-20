@@ -2,8 +2,8 @@ object Form9: TForm9
   Left = 0
   Top = 0
   Caption = 'Form9'
-  ClientHeight = 441
-  ClientWidth = 624
+  ClientHeight = 450
+  ClientWidth = 629
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -14,25 +14,25 @@ object Form9: TForm9
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 624
+    Width = 629
     Height = 29
     ButtonHeight = 29
     Caption = 'ToolBar1'
     TabOrder = 0
-    ExplicitWidth = 622
+    ExplicitWidth = 627
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 618
+    Width = 623
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
     List = True
     AllowTextButtons = True
     TabOrder = 1
-    ExplicitWidth = 616
+    ExplicitWidth = 621
     object CheckBox1: TCheckBox
       Left = 0
       Top = 0
@@ -104,34 +104,36 @@ object Form9: TForm9
   object Panel1: TPanel
     Left = 0
     Top = 64
-    Width = 624
-    Height = 377
+    Width = 629
+    Height = 386
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 622
-    ExplicitHeight = 369
+    ExplicitWidth = 627
+    ExplicitHeight = 378
     object Splitter1: TSplitter
       Left = 0
       Top = 52
-      Width = 624
+      Width = 629
       Height = 5
       Cursor = crVSplit
       Align = alTop
       ExplicitTop = 73
+      ExplicitWidth = 624
     end
     object Splitter2: TSplitter
       Left = 0
       Top = 185
-      Width = 624
+      Width = 629
       Height = 5
       Cursor = crVSplit
       Align = alTop
+      ExplicitWidth = 624
     end
     object MyStringGrid1: TMyStringGrid
       Left = 0
       Top = 0
-      Width = 624
+      Width = 629
       Height = 52
       Align = alTop
       ColCount = 7
@@ -147,20 +149,20 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 622
+      ExplicitWidth = 627
       ColWidths = (
+        89
+        89
         88
         88
         88
         88
-        87
-        87
-        87)
+        88)
     end
     object MyPointsStringGrid1: TMyPointsStringGrid
       Left = 0
       Top = 57
-      Width = 624
+      Width = 629
       Height = 128
       Cursor = crVSplit
       Align = alTop
@@ -179,21 +181,22 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
+      ExplicitWidth = 627
       ColWidths = (
         64
+        70
         69
         69
         69
         69
-        68
-        68
-        68
-        68)
+        69
+        69
+        69)
     end
     object MyPointsStringGrid2: TMyPointsStringGrid
       Left = 0
       Top = 190
-      Width = 624
+      Width = 629
       Height = 161
       Align = alTop
       ColCount = 9
@@ -211,31 +214,41 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
+      ExplicitWidth = 627
       ColWidths = (
         64
+        70
         69
         69
         69
         69
-        68
-        68
-        68
-        68)
+        69
+        69
+        69)
       RowHeights = (
         24
         25)
     end
     object StatusBar1: TStatusBar
       Left = 0
-      Top = 358
-      Width = 624
+      Top = 367
+      Width = 629
       Height = 19
       Panels = <
         item
           Width = 50
         end>
-      ExplicitTop = 350
-      ExplicitWidth = 622
+      ExplicitTop = 359
+      ExplicitWidth = 627
+    end
+    object Calculate: TButton
+      Left = 549
+      Top = 357
+      Width = 75
+      Height = 25
+      Caption = 'V'#253'po'#269'et'
+      TabOrder = 4
+      OnClick = CalculateClick
     end
   end
 end

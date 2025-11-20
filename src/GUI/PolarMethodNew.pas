@@ -9,7 +9,9 @@ uses
   MyPointsStringGrid, MyStringGrid,
   PointsUtilsSingleton,  // TPointDictionary
   Point,                 // Point.TPoint
-  AddPoint;              // TForm6
+  AddPoint,              // TForm6
+  GeoRow,
+  GeoDataFrame;
 
 type
   TForm9 = class(TForm)
@@ -29,7 +31,11 @@ type
     Splitter1: TSplitter;
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
+    Calculate: TButton;
+    procedure CalculateClick(Sender: TObject);
   private
+    // DTO pro polární metodu
+    FPolarDTO: TGeoDataFrame;
     procedure UpdateCheckCaption;
     procedure CheckBox1Click(Sender: TObject);
     procedure UpdateCurrentDirectoryPath;
@@ -39,8 +45,13 @@ type
     function  LookupOrPromptPoint(PointNumber: Integer; out P: Point.TPoint): Boolean;
     procedure FillRowFromPoint(const Row: Integer; const P: Point.TPoint);
     procedure FillRowFromPointToOrientGrid(const Row: Integer; const P: Point.TPoint);
+
+    //  Grid -> FPolarDTO -> binární soubor
+    procedure SavePolarInputToFile(const AFileName: string);
+
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   end;
 
 var
@@ -58,6 +69,8 @@ constructor TForm9.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  FPolarDTO := TGeoDataFrame.Create([X, Y, Z, Poznamka]);
+
   CheckBox1.OnClick := CheckBox1Click;
 
   UpdateCheckCaption;
@@ -65,6 +78,12 @@ begin
   MyPointsStringGrid1.OnKeyDown := OrientGridKeyDown;
 
   UpdateCurrentDirectoryPath;
+end;
+
+destructor TForm9.Destroy;
+begin
+  FPolarDTO.Free;
+  inherited Destroy;
 end;
 
 procedure TForm9.UpdateCheckCaption;
@@ -84,6 +103,18 @@ procedure TForm9.UpdateCurrentDirectoryPath;
 begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
+end;
+
+procedure TForm9.CalculateClick(Sender: TObject);
+var
+  FileName: string;
+begin
+  FileName := IncludeTrailingPathDelimiter(GetCurrentDir) + 'PolarInput.bin';
+
+  SavePolarInputToFile(FileName);
+
+  ShowMessage(Format('Uloženo %d řádků do souboru %s',
+    [FPolarDTO.Count, FileName]));
 end;
 
 // Vyplní X,Y,Z,Kvalita,Popis do daného řádku gridu
@@ -174,5 +205,45 @@ begin
     FillRowFromPointToOrientGrid(r, pt); // doplní X,Y,Z
 
 end;
+
+procedure TForm9.SavePolarInputToFile(const AFileName: string);
+var
+  r: Integer;
+  Row: TGeoRow;
+  FS: TFormatSettings;
+  NumStr: string;
+begin
+  FS := TFormatSettings.Create;
+  FS.DecimalSeparator  := ','; // jestli v gridu píšeš 123,45
+  FS.ThousandSeparator := #0;
+
+  // vyčistit data v DTO, schema (Fields) necháme
+  FPolarDTO.ClearData;
+
+  // projdeme datové řádky (0 = hlavička)
+  for r := 1 to MyStringGrid1.RowCount - 1 do
+  begin
+    NumStr := Trim(MyStringGrid1.Cells[0, r]); // číslo bodu
+    if NumStr = '' then
+      Continue;
+
+    ClearGeoRow(Row);
+
+    // X,Y,Z – podle FillRowFromPoint
+    Row.X := StrToFloatDef(Trim(MyPointsStringGrid1.Cells[2, r]), 0, FS);
+    Row.Y := StrToFloatDef(Trim(MyStringGrid1.Cells[3, r]), 0, FS);
+    Row.Z := StrToFloatDef(Trim(MyStringGrid1.Cells[4, r]), 0, FS);
+
+    // Poznámka – sloupec 6
+    Row.Poznamka := Shortstring(Copy(Trim(MyStringGrid1.Cells[6, r]), 1, 128));
+
+    FPolarDTO.AddRow(Row);
+  end;
+
+  // binární uložení
+  FPolarDTO.SaveToFile(AFileName);
+  FPolarDTO.ToCSV('PolarInput.csv');
+end;
+
 
 end.

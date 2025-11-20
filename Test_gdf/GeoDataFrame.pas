@@ -26,6 +26,7 @@ type
     constructor Create; overload;
     constructor Create(const AFields: TGeoFields); overload;
     constructor Create(const CSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
+    constructor Create(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
     destructor Destroy; override;
 
@@ -96,6 +97,38 @@ constructor TGeoDataFrame.Create(const CSV: TStringList; const ACellSep, ADecSep
 begin
   Create;
   FromCSV(CSV, ACellSep, ADecSep);
+end;
+
+constructor TGeoDataFrame.Create(const AFileName: string;
+  const ACellSep, ADecSep: Char);
+var
+  Ext: string;
+begin
+  Create;
+
+  if not FileExists(AFileName) then
+    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [AFileName]);
+
+  Ext := LowerCase(ExtractFileExt(AFileName));
+
+  if Ext = '.csv' then
+  begin
+    // Textový CSV soubor – použijeme separátory
+    FromCSV(AFileName, ACellSep, ADecSep);
+  end
+  else
+  begin
+    // Pokud někdo mění separátory u neb-CSV, je to podezřelé → chyba
+    if (ACellSep <> ';') or (ADecSep <> '.') then
+      raise EArgumentException.CreateFmt(
+        'Separátory ACellSep/ADecSep mají smysl jen pro CSV. ' +
+        'Soubor "%s" nemá příponu .csv (Ext = "%s").',
+        [AFileName, Ext]
+      );
+
+    // Binární "file of TGeoRow" – separátory se ignorují
+    LoadFromFile(AFileName);
+  end;
 end;
 
 destructor TGeoDataFrame.Destroy;

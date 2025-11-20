@@ -46,10 +46,6 @@ type
 
     function Print(): TStringList; //formátovaně pro dobrou vizuální čitelnost vypíše geodataframe do StringLsitu
 
-//    function ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): TStringList; //formátovaně vypíše GeoDataFrame do StringLsitu s použitým separátorem
-//    procedure FromCSV(const CSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload; //načte formátovaný StringList do GeoDataFrame
-
-
     function ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): TStringList; overload; //formátovaně vypíše GeoDataFrame do StringLsitu s použitým separátorem
     procedure ToCSV(const FileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
@@ -118,7 +114,7 @@ begin
   end
   else
   begin
-    // Pokud někdo mění separátory u neb-CSV, je to podezřelé → chyba
+    // Pokud někdo mění separátory a není CSV, je to podezřelé -> chyba
     if (ACellSep <> ';') or (ADecSep <> '.') then
       raise EArgumentException.CreateFmt(
         'Separátory ACellSep/ADecSep mají smysl jen pro CSV. ' +
@@ -445,10 +441,10 @@ var
   Header: TGeoRow;
   i: Integer;
 begin
-  // 1) Připraví pole velikosti Count + 1 (hlavička + data)
+  //1) Připraví pole velikosti Count + 1 (hlavička + data)
   SetLength(Buffer, FCount + 1);
 
-  // 2) Hlavičkový řádek do Buffer[0]
+  // Hlavičkový řádek do Buffer[0]
   ClearGeoRow(Header);
   Header.Uloha := -1;                                // značka hlavičky
   Header.CB    := '__HEADER__';                      // rozpoznávací text
@@ -456,83 +452,13 @@ begin
 
   Buffer[0] := Header;
 
-  // 3) Zkopírujeme data z FRows do Buffer[1..FCount]
+  // Zkopíruje data z FRows do Buffer[1..FCount]
   for i := 0 to FCount - 1 do
     Buffer[i + 1] := FRows[i];
 
-  // 4) Uložíme celý blok jedním SaveRow (array-overload)
+  // Uložím celý blok jedním SaveRow
   SaveRow(FileName, Buffer, False);
 end;
-
-//procedure TGeoDataFrame.LoadFromFile(const FileName: string);
-//var
-//  F: File of TGeoRow;
-//  Header: TGeoRow;
-//  RecCount, DataCount, i: Integer;
-//  UsedFields: TGeoFields;
-//  mask: LongWord;
-//  Row: TGeoRow;
-//begin
-//  if not FileExists(FileName) then
-//    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [FileName]);
-//
-//  AssignFile(F, FileName);
-//  Reset(F);
-//  try
-//    RecCount := FileSize(F);  // celkový počet záznamů (včetně případné hlavičky)
-//    if RecCount = 0 then
-//    begin
-//      Clear;
-//      Exit;
-//    end;
-//
-//    // Načteme první záznam a zkusíme z něj udělat hlavičku
-//    Read(F, Header);
-//
-//    // Výchozí nastavení: všechna pole
-//    UsedFields := [Low(TGeoField)..High(TGeoField)];
-//
-//    if (Header.Uloha = -1) and SameText(Header.CB, '__HEADER__') then
-//    begin
-//      // je to validní hlavička
-//      mask := LongWord(Header.TypS);
-//      UsedFields := MaskToGeoFields(mask);
-//      DataCount := RecCount - 1;  // 1 záznam je hlavička, zbytek data
-//
-//      ClearData;
-//      FFields := UsedFields;
-//      SetCount(DataCount);
-//
-//      // načteme datové řádky 1..N
-//      for i := 0 to DataCount - 1 do
-//      begin
-//        Read(F, Row);
-//        FRows[i] := Row;
-//      end;
-//    end
-//    else
-//    begin
-//      // není to hlavička -> bereme celý soubor jako data, první záznam = první řádek
-//      DataCount := RecCount;
-//
-//      ClearData;
-//      FFields := UsedFields;
-//      SetCount(DataCount);
-//
-//      // První záznam už máme v Header → uložíme ho jako řádek 0
-//      FRows[0] := Header;
-//
-//      // Zbytek načteme klasicky
-//      for i := 1 to DataCount - 1 do
-//      begin
-//        Read(F, Row);
-//        FRows[i] := Row;
-//      end;
-//    end;
-//  finally
-//    CloseFile(F);
-//  end;
-//end;
 
 procedure TGeoDataFrame.LoadFromFile(const FileName: string);
 var
@@ -542,26 +468,25 @@ var
   mask: LongWord;
   DataCount, i: Integer;
 begin
-  // 1) Načteme VŠECHNY záznamy z binárního souboru
-  //    přes helper z GeoRow (uvnitř už je BlockRead atd.)
+  // Načtem všechny záznamy z binárního souboru přes funkci z GeoRow
   LoadRow(FileName, AllRows);
 
-  // 2) Prázdný soubor → vyčisti a skonči
+  // Prázdný soubor -> vyčisti a skonči
   if Length(AllRows) = 0 then
   begin
     Clear;
     Exit;
   end;
 
-  // 3) Výchozí schéma: všechna pole aktivní
+  // Výchozí: všechna pole aktivní
   UsedFields := [Low(TGeoField)..High(TGeoField)];
 
-  // 4) První záznam = kandidát na hlavičku
+  // První záznam = kandidát na hlavičku
   Header := AllRows[0];
 
   if (Header.Uloha = -1) and SameText(String(Header.CB), '__HEADER__') then
   begin
-    // 🧠 Varianta A: skutečně tam je naše hlavička
+    // skutečně tam je hlavička
     mask := LongWord(Header.TypS);
     UsedFields := MaskToGeoFields(mask);
 
@@ -577,7 +502,7 @@ begin
   end
   else
   begin
-    // 🧠 Varianta B: žádná hlavička → celý soubor jsou data
+    // Žádná hlavička -> celý soubor jsou data
     DataCount := Length(AllRows);
 
     ClearData;
@@ -590,7 +515,7 @@ begin
 end;
 
 
-///////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 // Pomocné funkce
 
@@ -655,10 +580,7 @@ SetLength(Result, n + 1);
 Result[n] := buf;
 end;
 
-// Mapuje název hlavičky na TGeoField
-// - Name: text z hlavičky CSV
-// - Fld : nalezená položka TGeoField
-// Vrací True, pokud se našla shoda
+// Mapuje název hlavičky na TGeoField: Name: text z hlavičky CSV, Fld : nalezená položka TGeoField, Vrací True, pokud se našla shoda
 function GeoFieldFromName(const AName: string; out AField: TGeoField): Boolean;
 var
   f: TGeoField;
@@ -699,9 +621,6 @@ begin
     AOutVal := tmp;
 end;
 
-
-///////////////////////////pomocné file of record fce
-///
 // Převod množiny TGeoFields na bitovou masku (každé pole = 1 bit podle Ord(TGeoField))
 function GeoFieldsToMask(const F: TGeoFields): LongWord;
 var

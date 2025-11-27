@@ -8,6 +8,7 @@ uses
   GeoAlgorithmPolar in '..\GeoAlgorithmPolar.pas',
   Point,
   GeoAlgorithmOrthogonal in 'GeoAlgorithmOrthogonal.pas';
+  //GeoAlgorithmPolar2 in 'GeoAlgorithmPolar2.pas';
 
 var
   M: TPointsArray; // měřená data: X = směr, Y = délka

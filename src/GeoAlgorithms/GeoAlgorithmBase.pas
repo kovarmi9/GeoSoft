@@ -5,7 +5,7 @@ unit GeoAlgorithmBase;
 interface
 
 uses
-  System.SysUtils, Point;
+  System.SysUtils, Point, GeoDataFrame;
 
 
 type
@@ -21,6 +21,7 @@ type
     constructor CreateWithScale(AScale: Double);
 
     function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
+    //function Calculate: TGeoDataFrame; virtual; abstract; override;
   end;
 
 implementation

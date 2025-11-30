@@ -62,7 +62,6 @@ procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: 
 function LoadRow(const FileName: string; Index: Integer = -1): TGeoRow; overload;
 procedure LoadRow(const FileName: string; out Rows: TGeoRowArray); overload;
 
-
 // Názvy polí v geofields pro zápis
 const
   GeoFieldNames: array[TGeoField] of string = (

@@ -189,7 +189,7 @@ end;
 procedure TMyStringGrid.Resize;
 begin
   inherited;
-  AutoSizeDataColumns;
+  // AutoSizeDataColumns; // Měnění šířky okna
 end;
 
 

@@ -181,9 +181,9 @@ end;
 procedure TForm9.FillRowFromPointToOrientGrid(const Row: Integer; const P: Point.TPoint);
 begin
   // X,Y,Z zapisujeme do sloupců 3..5
-  MyPointsStringGrid1.Cells[3, Row] := FloatToStr(P.X);
-  MyPointsStringGrid1.Cells[4, Row] := FloatToStr(P.Y);
-  MyPointsStringGrid1.Cells[5, Row] := FloatToStr(P.Z);
+  MyPointsStringGrid1.Cells[4, Row] := FloatToStr(P.X);
+  MyPointsStringGrid1.Cells[5, Row] := FloatToStr(P.Y);
+  MyPointsStringGrid1.Cells[6, Row] := FloatToStr(P.Z);
 end;
 
 procedure TForm9.OrientGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

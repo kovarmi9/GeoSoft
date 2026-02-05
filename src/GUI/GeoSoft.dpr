@@ -7,7 +7,7 @@ uses
   PolarMethod in 'PolarMethod.pas' {Form3},
   OrthogonalMethod in 'OrthogonalMethod.pas' {Form4},
   Transformation in 'Transformation.pas' {Form5},
-  StringGridValidationUtils in 'StringGridValidationUtils.pas' {$R *.res},
+  StringGridValidationUtils in 'StringGridValidationUtils.pas',
   GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
   GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas',
   GeoAlgorithmTransformBase in '..\GeoAlgorithms\GeoAlgorithmTransformBase.pas',

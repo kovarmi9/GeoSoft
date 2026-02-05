@@ -142,9 +142,7 @@
         <DCCReference Include="Transformation.pas">
             <Form>Form5</Form>
         </DCCReference>
-        <DCCReference Include="StringGridValidationUtils.pas">
-            <Form>$R *.res</Form>
-        </DCCReference>
+        <DCCReference Include="StringGridValidationUtils.pas"/>
         <DCCReference Include="..\Utils\GeoAlgorithmBase.pas"/>
         <DCCReference Include="..\Utils\GeoAlgorithmOrthogonal.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformBase.pas"/>

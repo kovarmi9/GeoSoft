@@ -130,7 +130,7 @@ object Form9: TForm9
       Align = alTop
       ExplicitWidth = 624
     end
-    object MyStringGrid1: TMyStringGrid
+    object MyStringGridStation: TMyStringGrid
       Left = 0
       Top = 0
       Width = 629
@@ -151,15 +151,15 @@ object Form9: TForm9
         'Popis')
       ExplicitWidth = 627
       ColWidths = (
-        89
-        89
-        88
-        88
-        88
-        88
-        88)
+        86
+        86
+        86
+        86
+        85
+        85
+        85)
     end
-    object MyPointsStringGrid1: TMyPointsStringGrid
+    object MyPointsStringGrid1Orientation: TMyPointsStringGrid
       Left = 0
       Top = 57
       Width = 629
@@ -184,16 +184,16 @@ object Form9: TForm9
       ExplicitWidth = 627
       ColWidths = (
         64
-        70
-        69
-        69
-        69
-        69
-        69
-        69
-        69)
+        67
+        67
+        67
+        67
+        67
+        67
+        66
+        66)
     end
-    object MyPointsStringGrid2: TMyPointsStringGrid
+    object MyPointsStringGrid2Detail: TMyPointsStringGrid
       Left = 0
       Top = 190
       Width = 629
@@ -217,14 +217,14 @@ object Form9: TForm9
       ExplicitWidth = 627
       ColWidths = (
         64
-        70
-        69
-        69
-        69
-        69
-        69
-        69
-        69)
+        67
+        67
+        67
+        67
+        67
+        67
+        66
+        66)
       RowHeights = (
         24
         25)

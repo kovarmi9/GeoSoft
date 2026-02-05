@@ -33,6 +33,7 @@ type
     StatusBar1: TStatusBar;
     Calculate: TButton;
     Save: TButton;
+    Memo1: TMemo;
     procedure CalculateClick(Sender: TObject);
   private
   //pokusy
@@ -68,18 +69,15 @@ type
     procedure SavePolarInputs(const ABasePath: string);
 
     // pokusy validace
-
-    procedure StationPointNoKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
-    procedure DetailSSKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure ValidatePointNumber(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure ValidateCoordinate(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure ValidateQuality(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure ValidateDescription(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 
 
-    // --- VALIDACE ---
-    procedure SetupValidations; // zatím prázdná – jen „organizér“
-    procedure SetupStationValidations; // MyStringGridStation
+    // funkce pro validace gridů
+    procedure SetupValidations;
+    procedure SetupStationValidations;
     procedure SetupOrientValidations;
     procedure SetupDetailValidations;
 
@@ -414,22 +412,8 @@ begin
   FS.ThousandSeparator := #0;
 end;
 
-procedure TForm9.StationPointNoKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
-begin
-  if not CharInSet(Key, ['0'..'9', #8]) then
-    Key := #0;
-end;
-
-procedure TForm9.DetailSSKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
-begin
-  // povolíme: čísla, desetinné oddělovače, operátory, závorky, mezera, backspace
-  if not CharInSet(Key, ['0'..'9', '+', '-', '*', '/', '(', ')', ',', '.', ' ', #8]) then
-    Key := #0;
-end;
-
 procedure TForm9.ValidatePointNumber(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 begin
-  // jen číslice + backspace
   if not CharInSet(Key, ['0'..'9', #8]) then
     Key := #0;
 end;
@@ -495,36 +479,36 @@ const
   COL_QUALITY   = 5;
   COL_DESC      = 6;
 begin
-  // 0) číslo bodu: jen číslice
-  MyStringGridStation.SetColumnValidator(COL_POINTNO, StationPointNoKey);
+  // číslo bodu: jen číslice
+  MyStringGridStation.SetColumnValidator(COL_POINTNO, ValidatePointNumber);
 
-  // 1..4) HI, X, Y, Z: čísla (souřadnice / výška)
+  // HI, X, Y, Z: čísla (souřadnice / výška)
   MyStringGridStation.SetColumnValidator(COL_HI, ValidateCoordinate);
   MyStringGridStation.SetColumnValidator(COL_X,  ValidateCoordinate);
   MyStringGridStation.SetColumnValidator(COL_Y,  ValidateCoordinate);
   MyStringGridStation.SetColumnValidator(COL_Z,  ValidateCoordinate);
 
-  // 5) kvalita: 0..8
+  // kvalita: 0..8
   MyStringGridStation.SetColumnValidator(COL_QUALITY, ValidateQuality);
 
-  // 6) popis: text
+  // popis: text
   MyStringGridStation.SetColumnValidator(COL_DESC, ValidateDescription);
 end;
 
 procedure TForm9.SetupOrientValidations;
 const
-  COL_POINTNO = 1; // číslo bodu B
-  COL_C1      = 2; // začátek "coordinate" bloků
-  COL_C6      = 6; // konec "coordinate" bloků
+  COL_POINTNO = 1; // číslo bodu
+  COL_C1      = 2; // začátek coordinate
+  COL_C6      = 6; // konec coordinate
   COL_QUALITY = 7; // kvalita 0..8
   COL_NOTE    = 8; // poznámka
 var
   c: Integer;
 begin
-  // 1) číslo bodu
+  // číslo bodu
   MyPointsStringGrid1Orientation.SetColumnValidator(COL_POINTNO, ValidatePointNumber);
 
-  // 2..6) souřadnice / čísla (X,Y,Z, HZ/SS podle layoutu — ty chceš prostě "coordinate")
+  // souřadnice / měření
   for c := COL_C1 to COL_C6 do
     MyPointsStringGrid1Orientation.SetColumnValidator(c, ValidateCoordinate);
 
@@ -557,55 +541,6 @@ end;
 
 
 // pokus výrazy
-//procedure TForm9.EvalIfExpr(AGrid: TStringGrid; ACol, ARow: Integer);
-//var
-//  S: string;
-//  V: Double;
-//begin
-//  // ochrana: hlavičky, out-of-range
-//  if (ARow < AGrid.FixedRows) then Exit;
-//  if (ACol < 0) or (ACol >= AGrid.ColCount) then Exit;
-//
-//  // určenírči, které sloupce jsou "výrazové"
-//  if (AGrid = MyStringGridStation) then
-//  begin
-//    if not (ACol in [1,2,3,4]) then Exit;
-//  end
-//  else if (AGrid = MyPointsStringGrid1Orientation) then
-//  begin
-//    if not (ACol in [2,3,4,5,6]) then Exit; // uprav přesně podle reality
-//  end
-//  else if (AGrid = MyPointsStringGrid2Detail) then
-//  begin
-//    if not (ACol in [2,3,4,5,6]) then Exit; // uprav
-//  end
-//  else
-//    Exit;
-//
-//  S := Trim(AGrid.Cells[ACol, ARow]);
-//  if S = '' then Exit;
-//
-//  // když je to už čisté číslo, nic neřeší
-//  if TryStrToFloat(S, V, FS) then
-//    Exit;
-//
-//  // jinak je to výraz -> vyhodnotit
-//  try
-//    V := EvaluateExpression(S);
-//    // zpátky hezky formátovaně dle FS
-//    AGrid.Cells[ACol, ARow] := FloatToStr(V, FS);
-//  except
-//    // EvaluateExpression ukazuje ShowMessage
-//  end;
-//end;
-
-//procedure TForm9.GridSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
-//begin
-//  // vyhodnocuj až když uživatel něco zadal (Value) – ale bereme i Cells, to je ok
-//  if Sender is TStringGrid then
-//    EvalIfExpr(TStringGrid(Sender), ACol, ARow);
-//end;
-
 procedure TForm9.GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 var
   G: TStringGrid;
@@ -613,11 +548,11 @@ begin
   if not (Sender is TStringGrid) then Exit;
   G := TStringGrid(Sender);
 
-  // při přechodu do jiné buňky nejdřív zkus vyhodnotit tu minulou
+  // při přechodu do jiné buňky nejdřív zkusí vyhodnotit tu minulou
   if (FLastGrid <> nil) then
     TryEvalCell(FLastGrid, FLastCol, FLastRow);
 
-  // pak si ulož novou jako "poslední"
+  // pak si uloží novou buňku jako poslední
   FLastGrid := G;
   FLastCol := ACol;
   FLastRow := ARow;

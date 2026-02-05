@@ -32,7 +32,6 @@ type
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
     Calculate: TButton;
-    Memo1: TMemo;
     Save: TButton;
     procedure CalculateClick(Sender: TObject);
   private
@@ -85,8 +84,11 @@ type
     procedure SetupDetailValidations;
 
     // pokus výrazy
-    procedure EvalIfExpr(AGrid: TStringGrid; ACol, ARow: Integer);
-    procedure GridSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
+//    procedure EvalIfExpr(AGrid: TStringGrid; ACol, ARow: Integer);
+//    procedure GridSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
+
+    function IsExprColumn(AGrid: TStringGrid; ACol: Integer): Boolean;
+    procedure TryEvalCell(AGrid: TStringGrid; ACol, ARow: Integer);
 
     procedure GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 
@@ -436,7 +438,7 @@ end;
 procedure TForm9.ValidateCoordinate(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 begin
   // dovol čísla, desetinný oddělovač , nebo ., znaménko a backspace
-  if not CharInSet(Key, ['0'..'9', ',', '.', '-', '+', #8]) then
+  if not CharInSet(Key, ['0'..'9', ',', '.', '-', '+', '*' , '/', '(' , ')',#8]) then
     Key := #0;
 end;
 
@@ -541,10 +543,10 @@ const
 var
   c: Integer;
 begin
-  // 1) číslo bodu
+  // číslo bodu
   MyPointsStringGrid2Detail.SetColumnValidator(COL_POINTNO, ValidatePointNumber);
 
-  // 2..3) číselné hodnoty (SS, HZ) – stejné chování jako u orientace
+  // číselné hodnoty (SS, HZ)
   for c := COL_C1 to COL_C6 do
     MyPointsStringGrid2Detail.SetColumnValidator(c, ValidateCoordinate);
 
@@ -555,54 +557,54 @@ end;
 
 
 // pokus výrazy
-procedure TForm9.EvalIfExpr(AGrid: TStringGrid; ACol, ARow: Integer);
-var
-  S: string;
-  V: Double;
-begin
-  // ochrana: hlavičky, out-of-range
-  if (ARow < AGrid.FixedRows) then Exit;
-  if (ACol < 0) or (ACol >= AGrid.ColCount) then Exit;
+//procedure TForm9.EvalIfExpr(AGrid: TStringGrid; ACol, ARow: Integer);
+//var
+//  S: string;
+//  V: Double;
+//begin
+//  // ochrana: hlavičky, out-of-range
+//  if (ARow < AGrid.FixedRows) then Exit;
+//  if (ACol < 0) or (ACol >= AGrid.ColCount) then Exit;
+//
+//  // určenírči, které sloupce jsou "výrazové"
+//  if (AGrid = MyStringGridStation) then
+//  begin
+//    if not (ACol in [1,2,3,4]) then Exit;
+//  end
+//  else if (AGrid = MyPointsStringGrid1Orientation) then
+//  begin
+//    if not (ACol in [2,3,4,5,6]) then Exit; // uprav přesně podle reality
+//  end
+//  else if (AGrid = MyPointsStringGrid2Detail) then
+//  begin
+//    if not (ACol in [2,3,4,5,6]) then Exit; // uprav
+//  end
+//  else
+//    Exit;
+//
+//  S := Trim(AGrid.Cells[ACol, ARow]);
+//  if S = '' then Exit;
+//
+//  // když je to už čisté číslo, nic neřeší
+//  if TryStrToFloat(S, V, FS) then
+//    Exit;
+//
+//  // jinak je to výraz -> vyhodnotit
+//  try
+//    V := EvaluateExpression(S);
+//    // zpátky hezky formátovaně dle FS
+//    AGrid.Cells[ACol, ARow] := FloatToStr(V, FS);
+//  except
+//    // EvaluateExpression ukazuje ShowMessage
+//  end;
+//end;
 
-  // určenírči, které sloupce jsou "výrazové"
-  if (AGrid = MyStringGridStation) then
-  begin
-    if not (ACol in [1,2,3,4]) then Exit;
-  end
-  else if (AGrid = MyPointsStringGrid1Orientation) then
-  begin
-    if not (ACol in [2,3,4,5,6]) then Exit; // uprav přesně podle reality
-  end
-  else if (AGrid = MyPointsStringGrid2Detail) then
-  begin
-    if not (ACol in [2,3,4,5,6]) then Exit; // uprav
-  end
-  else
-    Exit;
-
-  S := Trim(AGrid.Cells[ACol, ARow]);
-  if S = '' then Exit;
-
-  // když je to už čisté číslo, nic neřeší
-  if TryStrToFloat(S, V, FS) then
-    Exit;
-
-  // jinak je to výraz -> vyhodnotit
-  try
-    V := EvaluateExpression(S);
-    // zpátky hezky formátovaně dle FS
-    AGrid.Cells[ACol, ARow] := FloatToStr(V, FS);
-  except
-    // EvaluateExpression ukazuje ShowMessage
-  end;
-end;
-
-procedure TForm9.GridSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
-begin
-  // vyhodnocuj až když uživatel něco zadal (Value) – ale bereme i Cells, to je ok
-  if Sender is TStringGrid then
-    EvalIfExpr(TStringGrid(Sender), ACol, ARow);
-end;
+//procedure TForm9.GridSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
+//begin
+//  // vyhodnocuj až když uživatel něco zadal (Value) – ale bereme i Cells, to je ok
+//  if Sender is TStringGrid then
+//    EvalIfExpr(TStringGrid(Sender), ACol, ARow);
+//end;
 
 procedure TForm9.GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 var
@@ -611,18 +613,54 @@ begin
   if not (Sender is TStringGrid) then Exit;
   G := TStringGrid(Sender);
 
-  // Když opouštím předchozí buňku, zkus ji vyhodnotit
-  if (FLastGrid = G) and (FLastRow >= 0) and (FLastCol >= 0) then
-  begin
-    // pokud skutečně měním buňku (ne jen první inicializace)
-    if (FLastCol <> ACol) or (FLastRow <> ARow) then
-      EvalIfExpr(G, FLastCol, FLastRow);
-  end;
+  // při přechodu do jiné buňky nejdřív zkus vyhodnotit tu minulou
+  if (FLastGrid <> nil) then
+    TryEvalCell(FLastGrid, FLastCol, FLastRow);
 
-  // Aktualizuj "poslední"
+  // pak si ulož novou jako "poslední"
   FLastGrid := G;
   FLastCol := ACol;
   FLastRow := ARow;
+end;
+
+function TForm9.IsExprColumn(AGrid: TStringGrid; ACol: Integer): Boolean;
+begin
+  if AGrid = MyStringGridStation then
+    Exit(ACol in [1,2,3,4]);
+
+  if AGrid = MyPointsStringGrid1Orientation then
+    Exit(ACol in [2,3,4,5,6]);
+
+  if AGrid = MyPointsStringGrid2Detail then
+    Exit(ACol in [2,3,4,5,6]);
+
+  Result := False;
+end;
+
+procedure TForm9.TryEvalCell(AGrid: TStringGrid; ACol, ARow: Integer);
+var
+  S: string;
+  V: Double;
+begin
+  if (AGrid = nil) then Exit;
+  if (ARow < AGrid.FixedRows) then Exit;
+  if (ACol < 0) or (ACol >= AGrid.ColCount) then Exit;
+
+  if not IsExprColumn(AGrid, ACol) then Exit;
+
+  S := Trim(AGrid.Cells[ACol, ARow]);
+  if S = '' then Exit;
+
+  // už je to číslo -> nic nedělej
+  if TryStrToFloat(S, V, FS) then Exit;
+
+  try
+    V := EvaluateExpression(S);
+    AGrid.Cells[ACol, ARow] := FloatToStr(V, FS);
+  except
+    on E: Exception do
+      ShowMessage('Neplatný výraz: "' + S + '" (' + E.Message + ')');
+  end;
 end;
 
 end.

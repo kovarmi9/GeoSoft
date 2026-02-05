@@ -123,7 +123,7 @@ object Form9: TForm9
     end
     object Splitter2: TSplitter
       Left = 0
-      Top = 274
+      Top = 185
       Width = 634
       Height = 35
       Cursor = crVSplit
@@ -195,7 +195,7 @@ object Form9: TForm9
     end
     object MyPointsStringGrid2Detail: TMyPointsStringGrid
       Left = 0
-      Top = 309
+      Top = 220
       Width = 634
       Height = 161
       Align = alTop
@@ -214,6 +214,7 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
+      ExplicitTop = 309
       ExplicitWidth = 632
       ColWidths = (
         64
@@ -250,24 +251,13 @@ object Form9: TForm9
       TabOrder = 4
       OnClick = CalculateClick
     end
-    object Memo1: TMemo
-      Left = 0
-      Top = 185
-      Width = 634
-      Height = 89
-      Align = alTop
-      Lines.Strings = (
-        'Memo1')
-      TabOrder = 5
-      ExplicitWidth = 632
-    end
     object Save: TButton
       Left = 559
       Top = 468
       Width = 75
       Height = 25
       Caption = 'Ulo'#382'it'
-      TabOrder = 6
+      TabOrder = 5
       OnClick = CalculateClick
     end
   end

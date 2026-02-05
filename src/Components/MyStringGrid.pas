@@ -197,7 +197,25 @@ end;
 procedure TMyStringGrid.KeyPress(var Key: Char);
 var
   v: TMyGridKeyValidator;
+  VK: Word;
 begin
+  // Enter/Tab řešíme jako navigaci (KeyDown), ne jako psaní znaku
+  if Key = #13 then // Enter
+  begin
+    Key := #0;
+    VK := VK_RETURN;
+    KeyDown(VK, []);
+    Exit;
+  end;
+
+  if Key = #9 then // Tab
+  begin
+    Key := #0;
+    VK := VK_TAB;
+    KeyDown(VK, []);
+    Exit;
+  end;
+
   // validujeme jen v datové části (ne hlavičky)
   if (Key <> #0) and (Row >= FixedRows) and (Col >= FixedCols) then
   begin

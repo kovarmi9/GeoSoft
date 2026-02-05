@@ -10,6 +10,7 @@ uses
   PointsUtilsSingleton,  // TPointDictionary
   Point,                 // Point.TPoint
   AddPoint,              // TForm6
+  StringGridValidationUtils,
   GeoRow,
   GeoDataFrame;
 
@@ -39,6 +40,11 @@ type
     FStationDF: TGeoDataFrame; // 1 řádek
     FOrientDF:  TGeoDataFrame; // N řádků
     FDetailDF:  TGeoDataFrame; // M řádků
+
+    // držení poslední buňky pro validace
+    FLastGrid: TStringGrid;
+    FLastCol: Integer;
+    FLastRow: Integer;
 
     FS: TFormatSettings;//Objekt formátování
     procedure InitFS;// Nastavení formátování
@@ -78,6 +84,12 @@ type
     procedure SetupOrientValidations;
     procedure SetupDetailValidations;
 
+    // pokus výrazy
+    procedure EvalIfExpr(AGrid: TStringGrid; ACol, ARow: Integer);
+    procedure GridSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
+
+    procedure GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -104,6 +116,15 @@ begin
 
   // Validace vstupů
   SetupValidations;
+
+  // vhodnocení výrazů
+  MyStringGridStation.OnSelectCell := GridSelectCell;
+  MyPointsStringGrid1Orientation.OnSelectCell := GridSelectCell;
+  MyPointsStringGrid2Detail.OnSelectCell := GridSelectCell;
+  // inicializace
+  FLastGrid := nil;
+  FLastCol := -1;
+  FLastRow := -1;
 
   CheckBox1.OnClick := CheckBox1Click;
 
@@ -530,6 +551,78 @@ begin
   // kvalita + poznámka
   MyPointsStringGrid2Detail.SetColumnValidator(COL_QUALITY, ValidateQuality);
   MyPointsStringGrid2Detail.SetColumnValidator(COL_NOTE, ValidateDescription);
+end;
+
+
+// pokus výrazy
+procedure TForm9.EvalIfExpr(AGrid: TStringGrid; ACol, ARow: Integer);
+var
+  S: string;
+  V: Double;
+begin
+  // ochrana: hlavičky, out-of-range
+  if (ARow < AGrid.FixedRows) then Exit;
+  if (ACol < 0) or (ACol >= AGrid.ColCount) then Exit;
+
+  // určenírči, které sloupce jsou "výrazové"
+  if (AGrid = MyStringGridStation) then
+  begin
+    if not (ACol in [1,2,3,4]) then Exit;
+  end
+  else if (AGrid = MyPointsStringGrid1Orientation) then
+  begin
+    if not (ACol in [2,3,4,5,6]) then Exit; // uprav přesně podle reality
+  end
+  else if (AGrid = MyPointsStringGrid2Detail) then
+  begin
+    if not (ACol in [2,3,4,5,6]) then Exit; // uprav
+  end
+  else
+    Exit;
+
+  S := Trim(AGrid.Cells[ACol, ARow]);
+  if S = '' then Exit;
+
+  // když je to už čisté číslo, nic neřeší
+  if TryStrToFloat(S, V, FS) then
+    Exit;
+
+  // jinak je to výraz -> vyhodnotit
+  try
+    V := EvaluateExpression(S);
+    // zpátky hezky formátovaně dle FS
+    AGrid.Cells[ACol, ARow] := FloatToStr(V, FS);
+  except
+    // EvaluateExpression ukazuje ShowMessage
+  end;
+end;
+
+procedure TForm9.GridSetEditText(Sender: TObject; ACol, ARow: Integer; const Value: string);
+begin
+  // vyhodnocuj až když uživatel něco zadal (Value) – ale bereme i Cells, to je ok
+  if Sender is TStringGrid then
+    EvalIfExpr(TStringGrid(Sender), ACol, ARow);
+end;
+
+procedure TForm9.GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+var
+  G: TStringGrid;
+begin
+  if not (Sender is TStringGrid) then Exit;
+  G := TStringGrid(Sender);
+
+  // Když opouštím předchozí buňku, zkus ji vyhodnotit
+  if (FLastGrid = G) and (FLastRow >= 0) and (FLastCol >= 0) then
+  begin
+    // pokud skutečně měním buňku (ne jen první inicializace)
+    if (FLastCol <> ACol) or (FLastRow <> ARow) then
+      EvalIfExpr(G, FLastCol, FLastRow);
+  end;
+
+  // Aktualizuj "poslední"
+  FLastGrid := G;
+  FLastCol := ACol;
+  FLastRow := ARow;
 end;
 
 end.

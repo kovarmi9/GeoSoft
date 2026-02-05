@@ -19,7 +19,7 @@ object Form9: TForm9
     ButtonHeight = 29
     Caption = 'ToolBar1'
     TabOrder = 0
-    ExplicitWidth = 627
+    ExplicitWidth = 632
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -32,7 +32,7 @@ object Form9: TForm9
     List = True
     AllowTextButtons = True
     TabOrder = 1
-    ExplicitWidth = 621
+    ExplicitWidth = 626
     object CheckBox1: TCheckBox
       Left = 0
       Top = 0
@@ -109,8 +109,8 @@ object Form9: TForm9
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 627
-    ExplicitHeight = 378
+    ExplicitWidth = 632
+    ExplicitHeight = 527
     object Splitter1: TSplitter
       Left = 0
       Top = 52
@@ -149,15 +149,15 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 627
+      ExplicitWidth = 632
       ColWidths = (
+        87
+        87
         86
         86
         86
         86
-        85
-        85
-        85)
+        86)
     end
     object MyPointsStringGrid1Orientation: TMyPointsStringGrid
       Left = 0
@@ -181,19 +181,17 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitLeft = -3
-      ExplicitTop = 58
-      ExplicitWidth = 628
+      ExplicitWidth = 632
       ColWidths = (
         64
+        68
+        68
+        68
         67
         67
         67
         67
-        67
-        67
-        66
-        66)
+        67)
     end
     object MyPointsStringGrid2Detail: TMyPointsStringGrid
       Left = 0
@@ -216,16 +214,17 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
+      ExplicitWidth = 632
       ColWidths = (
         64
+        68
+        68
+        68
         67
         67
         67
         67
-        67
-        67
-        66
-        66)
+        67)
       RowHeights = (
         24
         25)
@@ -239,8 +238,8 @@ object Form9: TForm9
         item
           Width = 50
         end>
-      ExplicitTop = 359
-      ExplicitWidth = 627
+      ExplicitTop = 508
+      ExplicitWidth = 632
     end
     object Calculate: TButton
       Left = 559
@@ -260,8 +259,7 @@ object Form9: TForm9
       Lines.Strings = (
         'Memo1')
       TabOrder = 5
-      ExplicitLeft = 16
-      ExplicitTop = 131
+      ExplicitWidth = 632
     end
     object Save: TButton
       Left = 559

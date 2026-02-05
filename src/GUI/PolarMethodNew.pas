@@ -31,6 +31,8 @@ type
     Splitter2: TSplitter;
     StatusBar1: TStatusBar;
     Calculate: TButton;
+    Memo1: TMemo;
+    Save: TButton;
     procedure CalculateClick(Sender: TObject);
   private
   //pokusy
@@ -64,6 +66,7 @@ type
 
     procedure StationPointNoKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure DetailSSKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+    procedure ValidatePointNumber(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure ValidateCoordinate(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure ValidateQuality(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure ValidateDescription(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
@@ -401,6 +404,14 @@ begin
     Key := #0;
 end;
 
+procedure TForm9.ValidatePointNumber(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+begin
+  // jen číslice + backspace
+  if not CharInSet(Key, ['0'..'9', #8]) then
+    Key := #0;
+end;
+
+
 procedure TForm9.ValidateCoordinate(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 begin
   // dovol čísla, desetinný oddělovač , nebo ., znaménko a backspace
@@ -409,10 +420,31 @@ begin
 end;
 
 procedure TForm9.ValidateQuality(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+var
+  G: TStringGrid;
+  S: string;
 begin
-  // dovol jen 0..8 a backspace
+  // povol jen 0..8 a backspace
   if not CharInSet(Key, ['0'..'8', #8]) then
+  begin
     Key := #0;
+    Exit;
+  end;
+
+  // backspace vždy povol
+  if Key = #8 then
+    Exit;
+
+  // max 1 znak v buňce (pokud už něco je, další číslici nepustíme)
+  if AGrid is TStringGrid then
+  begin
+    G := TStringGrid(AGrid);
+    S := G.Cells[ACol, ARow];
+
+    // když je už vyplněno a uživatel nepřepisuje celý obsah, další znak zakázat
+    if Length(S) >= 1 then
+      Key := #0;
+  end;
 end;
 
 procedure TForm9.ValidateDescription(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
@@ -458,16 +490,46 @@ end;
 
 procedure TForm9.SetupOrientValidations;
 const
-COL           = 1;
+  COL_POINTNO = 1; // číslo bodu B
+  COL_C1      = 2; // začátek "coordinate" bloků
+  COL_C6      = 6; // konec "coordinate" bloků
+  COL_QUALITY = 7; // kvalita 0..8
+  COL_NOTE    = 8; // poznámka
+var
+  c: Integer;
 begin
-//
+  // 1) číslo bodu
+  MyPointsStringGrid1Orientation.SetColumnValidator(COL_POINTNO, ValidatePointNumber);
+
+  // 2..6) souřadnice / čísla (X,Y,Z, HZ/SS podle layoutu — ty chceš prostě "coordinate")
+  for c := COL_C1 to COL_C6 do
+    MyPointsStringGrid1Orientation.SetColumnValidator(c, ValidateCoordinate);
+
+  // kvalita + poznámka
+  MyPointsStringGrid1Orientation.SetColumnValidator(COL_QUALITY, ValidateQuality);
+  MyPointsStringGrid1Orientation.SetColumnValidator(COL_NOTE, ValidateDescription);
 end;
 
 procedure TForm9.SetupDetailValidations;
 const
-COL           = 1;
+  COL_POINTNO = 1; // číslo bodu P
+  COL_C1      = 2; // začátek "coordinate" bloků
+  COL_C6      = 6; // konec "coordinate" bloků  (tady máš jen SS a HZ)
+  COL_QUALITY = 7; // kvalita 0..8
+  COL_NOTE    = 8; // poznámka
+var
+  c: Integer;
 begin
-//
+  // 1) číslo bodu
+  MyPointsStringGrid2Detail.SetColumnValidator(COL_POINTNO, ValidatePointNumber);
+
+  // 2..3) číselné hodnoty (SS, HZ) – stejné chování jako u orientace
+  for c := COL_C1 to COL_C6 do
+    MyPointsStringGrid2Detail.SetColumnValidator(c, ValidateCoordinate);
+
+  // kvalita + poznámka
+  MyPointsStringGrid2Detail.SetColumnValidator(COL_QUALITY, ValidateQuality);
+  MyPointsStringGrid2Detail.SetColumnValidator(COL_NOTE, ValidateDescription);
 end;
 
 end.

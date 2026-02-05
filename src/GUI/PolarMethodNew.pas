@@ -64,6 +64,16 @@ type
 
     procedure StationPointNoKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
     procedure DetailSSKey(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+    procedure ValidateCoordinate(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+    procedure ValidateQuality(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+    procedure ValidateDescription(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+
+
+    // --- VALIDACE ---
+    procedure SetupValidations; // zatím prázdná – jen „organizér“
+    procedure SetupStationValidations; // MyStringGridStation
+    procedure SetupOrientValidations;
+    procedure SetupDetailValidations;
 
     public
       constructor Create(AOwner: TComponent); override;
@@ -89,9 +99,8 @@ begin
 
   InitPolarDataFrames;
 
-  // Validace pro první sloupec (číslo bodu A) ve stanovisku
-  MyStringGridStation.SetColumnValidator(0, StationPointNoKey);
-  MyPointsStringGrid2Detail.SetColumnValidator(2, DetailSSKey);
+  // Validace vstupů
+  SetupValidations;
 
   CheckBox1.OnClick := CheckBox1Click;
 
@@ -390,6 +399,75 @@ begin
   // povolíme: čísla, desetinné oddělovače, operátory, závorky, mezera, backspace
   if not CharInSet(Key, ['0'..'9', '+', '-', '*', '/', '(', ')', ',', '.', ' ', #8]) then
     Key := #0;
+end;
+
+procedure TForm9.ValidateCoordinate(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+begin
+  // dovol čísla, desetinný oddělovač , nebo ., znaménko a backspace
+  if not CharInSet(Key, ['0'..'9', ',', '.', '-', '+', #8]) then
+    Key := #0;
+end;
+
+procedure TForm9.ValidateQuality(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+begin
+  // dovol jen 0..8 a backspace
+  if not CharInSet(Key, ['0'..'8', #8]) then
+    Key := #0;
+end;
+
+procedure TForm9.ValidateDescription(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
+begin
+  // text povol, jen vyhoď control znaky (krom backspace)
+  if (Key < #32) and (Key <> #8) then
+    Key := #0;
+end;
+
+procedure TForm9.SetupValidations;
+begin
+  SetupStationValidations;
+  SetupOrientValidations;
+  SetupDetailValidations;
+end;
+
+procedure TForm9.SetupStationValidations;
+const
+  // layout MyStringGridStation:
+  COL_POINTNO   = 0; // číslo bodu A
+  COL_HI        = 1; // výška stroje (VS)
+  COL_X         = 2;
+  COL_Y         = 3;
+  COL_Z         = 4;
+  COL_QUALITY   = 5;
+  COL_DESC      = 6;
+begin
+  // 0) číslo bodu: jen číslice
+  MyStringGridStation.SetColumnValidator(COL_POINTNO, StationPointNoKey);
+
+  // 1..4) HI, X, Y, Z: čísla (souřadnice / výška)
+  MyStringGridStation.SetColumnValidator(COL_HI, ValidateCoordinate);
+  MyStringGridStation.SetColumnValidator(COL_X,  ValidateCoordinate);
+  MyStringGridStation.SetColumnValidator(COL_Y,  ValidateCoordinate);
+  MyStringGridStation.SetColumnValidator(COL_Z,  ValidateCoordinate);
+
+  // 5) kvalita: 0..8
+  MyStringGridStation.SetColumnValidator(COL_QUALITY, ValidateQuality);
+
+  // 6) popis: text
+  MyStringGridStation.SetColumnValidator(COL_DESC, ValidateDescription);
+end;
+
+procedure TForm9.SetupOrientValidations;
+const
+COL           = 1;
+begin
+//
+end;
+
+procedure TForm9.SetupDetailValidations;
+const
+COL           = 1;
+begin
+//
 end;
 
 end.

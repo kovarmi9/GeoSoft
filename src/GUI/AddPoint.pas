@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, Vcl.Forms, Vcl.Grids, Vcl.StdCtrls, Vcl.Controls, Vcl.Graphics,
-  Point, System.Classes, StringGridValidationUtils, ValidationUtils,
+  Point, System.Classes, StringGridValidationUtils, ValidationUtils, InputFilterUtils,
   PointsManagement, PointsUtilsSingleton;
 
 type
@@ -183,12 +183,33 @@ begin
   StringGrid1.EditorMode := True;
 end;
 
+//procedure TForm6.StringGrid1KeyPress(Sender: TObject; var Key: Char);
+//begin
+//  HandleBackspace(StringGrid1, Key);
+//  ValidatePointNumber(StringGrid1, Key);
+//  ValidateCoordinates(StringGrid1, Key);
+//  ValidateQualityCode(StringGrid1, Key);
+//end;
+
+//Provizorní řešení
 procedure TForm6.StringGrid1KeyPress(Sender: TObject; var Key: Char);
+var
+  c, r: Integer;
 begin
-  HandleBackspace(StringGrid1, Key);
-  ValidatePointNumber(StringGrid1, Key);
-  ValidateCoordinates(StringGrid1, Key);
-  ValidateQualityCode(StringGrid1, Key);
+  c := StringGrid1.Col;
+  r := StringGrid1.Row;
+
+  // nefiltruj hlavičku
+  if r < StringGrid1.FixedRows then Exit;
+
+  case c of
+    0: FilterPointNumber(StringGrid1, c, r, Key);  // číslo bodu
+    1,2,3: FilterCoordinate(StringGrid1, c, r, Key); // X,Y,Z (i výrazy)
+    4: FilterQuality(StringGrid1, c, r, Key);       // kvalita 0..8
+    5: FilterDescription(StringGrid1, c, r, Key);   // popis
+  else
+    // nic
+  end;
 end;
 
 procedure TForm6.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);

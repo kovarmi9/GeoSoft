@@ -32,7 +32,7 @@ object Form9: TForm9
     List = True
     AllowTextButtons = True
     TabOrder = 1
-    ExplicitWidth = 626
+    ExplicitWidth = 630
     object CheckBox1: TCheckBox
       Left = 0
       Top = 0
@@ -149,7 +149,7 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 632
+      ExplicitWidth = 636
       ColWidths = (
         87
         87
@@ -181,7 +181,7 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 632
+      ExplicitWidth = 636
       ColWidths = (
         64
         68
@@ -214,7 +214,7 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 632
+      ExplicitWidth = 636
       ColWidths = (
         64
         68
@@ -268,9 +268,6 @@ object Form9: TForm9
       Lines.Strings = (
         'Memo1')
       TabOrder = 6
-      ExplicitLeft = 392
-      ExplicitTop = 160
-      ExplicitWidth = 185
     end
   end
 end

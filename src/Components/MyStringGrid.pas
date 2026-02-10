@@ -6,30 +6,27 @@ uses
   System.Classes,  // TComponent, TStrings, TStringList
   System.Types,    // TRect
   System.Math,     // Max()
-  System.SysUtils, // CharInSet, StrToIntDef, Trim, FormatSettings...
+  System.SysUtils, // CharInSet, StrToIntDef, Trim...
   Vcl.Controls,    // TShiftState...
   Vcl.Grids;       // TStringGrid...
 
 type
   // Co má grid udělat, když uživatel stiskne Enter/Tab v poslední datové buňce
-  TEnterEndBehavior = (ebWrapToStart, ebAddRow);// skočí zpět/přidá řádek
+  TEnterEndBehavior = (ebWrapToStart, ebAddRow);
 
-  // Validátor buněk (of object aby šla metoda instance)
-  TMyGridKeyValidator = procedure(AGrid: TObject; ACol, ARow: Integer; var Key: Char) of object;
+  // Validátor buněk (normální procedura, NE metoda objektu)
+  TMyGridKeyValidator = procedure(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 
   TMyStringGrid = class(TStringGrid)
   private
-    // Jak se zachovat, když Enter/Tab na konci tabulky
+	// Jak se zachovat, když Enter/Tab na konci tabulky
     FEnterEndBehavior: TEnterEndBehavior;
 
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
 
-    // Pole validátorů
+    // Pole validátorů pro sloupce
     FValidators: array of TMyGridKeyValidator;
-
-    // Uložení nastavení validací
-    FColumnValidatorNames: TStrings;
 
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
@@ -37,23 +34,22 @@ type
     procedure AutoSizeDataColumns;
 
     procedure EnsureValidatorSize;
-    procedure ApplyValidatorNames;
-    procedure SetColumnValidatorNames(const Value: TStrings);
 
   protected
     procedure Loaded; override;
     procedure Resize; override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-    procedure KeyPress(var Key: Char); override; // <<< tady se validuje psaní
+    procedure KeyPress(var Key: Char); override;
     procedure DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); override;
 
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Programové nastavení validátoru sloupce
+	// Nastavení validátoru sloupce
     procedure SetColumnValidator(ACol: Integer; AValidator: TMyGridKeyValidator);
     procedure ClearColumnValidator(ACol: Integer);
+    procedure ClearAllValidators;
 
   published
     property EnterEndBehavior: TEnterEndBehavior
@@ -64,12 +60,6 @@ type
 
     property RowHeaders: TStrings
       read FRowHeaders write SetRowHeaders;
-
-    // V Object Inspectoru můžeš napsat např.:
-    // 0=StationPointNoKey
-    // 2=OnlyNumberWithCommaKey
-    property ColumnValidatorNames: TStrings
-      read FColumnValidatorNames write SetColumnValidatorNames;
   end;
 
 implementation
@@ -90,8 +80,6 @@ begin
   FColumnHeaders := TStringList.Create;
   FRowHeaders    := TStringList.Create;
 
-  FColumnValidatorNames := TStringList.Create;
-
   EnsureValidatorSize;
 end;
 
@@ -99,7 +87,6 @@ destructor TMyStringGrid.Destroy;
 begin
   FColumnHeaders.Free;
   FRowHeaders.Free;
-  FColumnValidatorNames.Free;
   inherited Destroy;
 end;
 
@@ -108,6 +95,15 @@ begin
   // drží pole validátorů stejně dlouhé jako ColCount
   if Length(FValidators) <> ColCount then
     SetLength(FValidators, ColCount);
+end;
+
+procedure TMyStringGrid.ClearAllValidators;
+var
+  i: Integer;
+begin
+  EnsureValidatorSize;
+  for i := 0 to High(FValidators) do
+    FValidators[i] := nil;
 end;
 
 procedure TMyStringGrid.SetColumnValidator(ACol: Integer; AValidator: TMyGridKeyValidator);
@@ -126,81 +122,13 @@ begin
     FValidators[ACol] := nil;
 end;
 
-procedure TMyStringGrid.SetColumnValidatorNames(const Value: TStrings);
-begin
-  // zkopíruje seznam z Object Inspectoru do interního seznamu komponenty
-  FColumnValidatorNames.Assign(Value);
-
-  // pokusí se najít odpovídající metody a napojit je jako validátory pro konkrétní sloupce
-  ApplyValidatorNames;
-end;
-
-procedure TMyStringGrid.ApplyValidatorNames;
-var
-  i, eqPos, col: Integer;
-  line, colStr, methName: string;
-
-  addr: Pointer;        // adresa metody (Code pointer)
-  m: TMethod;           // Delphi struktura: (Code, Data) = metoda objektu
-  v: TMyGridKeyValidator;
-begin
-  EnsureValidatorSize;  // ať pole FValidators odpovídá ColCount
-
-  // Všechny validátory vynuluje
-  for i := 0 to High(FValidators) do
-    FValidators[i] := nil;
-
-  // Projede seznam z Object Inspectoru
-  for i := 0 to FColumnValidatorNames.Count - 1 do
-  begin
-    line := Trim(FColumnValidatorNames[i]);
-    if line = '' then
-      Continue; // prázdný řádek ignoruje
-
-    // najde znak '='
-    eqPos := line.IndexOf('=');
-    if eqPos < 0 then
-      Continue; // pokud tam '=' není, je to špatný formát -> ignoruje
-
-    // Rozdělí text na číslo sloupce a název metody
-    colStr   := Trim(Copy(line, 1, eqPos));            // část před '='
-    methName := Trim(Copy(line, eqPos + 2, MaxInt));   // část za '='
-
-    // Sloupec převede na číslo a ověří rozsah
-    col := StrToIntDef(colStr, -1);
-    if (col < 0) or (col >= ColCount) then
-      Continue; // mimo rozsah -> ignoruje
-
-    // Metodu hledá na Ownerovi komponenty (Form)
-    if (Owner = nil) or (methName = '') then
-      Continue;
-
-    // Najde adresu metody podle jejího jména
-    addr := Owner.MethodAddress(methName);
-    if addr = nil then
-      Continue; // metoda toho jména neexistuje -> ignoruje
-
-    // Složí "metodu objektu" ve formátu (Code, Data):
-    //    - Code = adresa kódu metody
-    //    - Data = instance objektu, na které se má metoda volat (Owner)
-    m.Code := addr;
-    m.Data := Owner;
-
-    // Přetypujeme to na náš typ validátoru
-    v := TMyGridKeyValidator(m);
-
-    // Uloží validátor do pole pro daný sloupec
-    FValidators[col] := v;
-  end;
-end;
-
 procedure TMyStringGrid.KeyPress(var Key: Char);
 var
-  v: TMyGridKeyValidator;
+  V: TMyGridKeyValidator;
   VK: Word;
 begin
   // Enter/Tab řešíme jako navigaci (KeyDown), ne jako psaní znaku
-  if Key = #13 then // Enter
+  if Key = #13 then
   begin
     Key := #0;
     VK := VK_RETURN;
@@ -208,7 +136,7 @@ begin
     Exit;
   end;
 
-  if Key = #9 then // Tab
+  if Key = #9 then
   begin
     Key := #0;
     VK := VK_TAB;
@@ -223,9 +151,9 @@ begin
 
     if (Col >= 0) and (Col < Length(FValidators)) then
     begin
-      v := FValidators[Col];
-      if Assigned(v) then
-        v(Self, Col, Row, Key); // validátor může Key "sežrat" => Key := #0
+      V := FValidators[Col];
+      if Assigned(V) then
+        V(Self, Col, Row, Key); // validátor může Key "sežrat" => Key := #0
     end;
   end;
 
@@ -313,9 +241,6 @@ begin
   inherited;
   UpdateHeaders;
   AutoSizeDataColumns;
-
-  // až po načtení DFM (Owner existuje) můžeme mapovat názvy metod na validátory
-  ApplyValidatorNames;
 end;
 
 procedure TMyStringGrid.SetColumnHeaders(const Value: TStrings);

@@ -163,6 +163,7 @@
         </DCCReference>
         <DCCReference Include="..\Components\MyStringGrid.pas"/>
         <DCCReference Include="..\Components\MyPointsStringGrid.pas"/>
+        <DCCReference Include="..\Utils\InputFilterUtils.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

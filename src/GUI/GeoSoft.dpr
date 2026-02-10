@@ -19,7 +19,8 @@ uses
   CalcFormBase in 'CalcFormBase.pas' {Form8},
   PolarMethodNew in 'PolarMethodNew.pas' {Form9},
   MyStringGrid in '..\Components\MyStringGrid.pas',
-  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas';
+  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas',
+  InputFilterUtils in '..\Utils\InputFilterUtils.pas';
 
 {$R *.res}
 

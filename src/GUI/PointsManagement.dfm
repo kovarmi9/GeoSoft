@@ -134,15 +134,20 @@ object Form2: TForm2
         '7'
         '8')
     end
-    object MaskEdit1: TMaskEdit
+    object ToolButton1: TToolButton
       Left = 249
       Top = 0
-      Width = 118
+      Width = 8
+      Caption = 'ToolButton1'
+      ImageIndex = 3
+      Style = tbsSeparator
+    end
+    object ComboBox1: TComboBox
+      Left = 257
+      Top = 0
+      Width = 145
       Height = 23
-      EditMask = '000000;1; '
-      MaxLength = 6
       TabOrder = 3
-      Text = '      '
     end
   end
   object MainMenu1: TMainMenu

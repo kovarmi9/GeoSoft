@@ -38,8 +38,8 @@ implementation
 {$R *.dfm}
 
 procedure TForm6.FormCreate(Sender: TObject);
-var
-  c: Integer;
+//var
+//  c: Integer;
 begin
 
   // Vykreslení hlavičky

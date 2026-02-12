@@ -5,9 +5,10 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, Vcl.Graphics, System.Generics.Collections,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus, System.Math, ComObj,
-  StringGridValidationUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point,
+  StringGridValidationUtils, InputFilterUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.ActnMenus,
-  Vcl.ExtCtrls, System.IOUtils, Vcl.StdCtrls, Vcl.Mask;
+  Vcl.ExtCtrls, System.IOUtils, Vcl.StdCtrls, Vcl.Mask,
+  MyPointsStringGrid;
 
 type
   TForm2 = class(TForm)
@@ -32,7 +33,8 @@ type
     ComboBox5: TComboBox;
     ToolButton2: TToolButton;
     ComboBox6: TComboBox;
-    MaskEdit1: TMaskEdit;
+    ComboBox1: TComboBox;
+    ToolButton1: TToolButton;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
     procedure FormShow(Sender: TObject);
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
@@ -54,11 +56,11 @@ type
     function CurrentQuality: Integer;
     function IsValidQualityStr(const S: string): Boolean;
     procedure EnsureQualityOnLeave;
-    procedure ComboBox4KeyPress(Sender: TObject; var Key: Char);
+//    procedure ComboBox4KeyPress(Sender: TObject; var Key: Char);
     //procedure ComboBox4Change(Sender: TObject);
-    procedure ComboBox4Exit(Sender: TObject);
-    procedure ComboBox4KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    function PadSix(const S: string): string;
+//    procedure ComboBox4Exit(Sender: TObject);
+//    procedure ComboBox4KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//    function PadSix(const S: string): string;
 
     procedure SetupNumericCombo(CB: TComboBox; PadLen: Integer; const DefaultText: string);
     function  PadZeros(const S: string; PadLen: Integer): string;
@@ -264,13 +266,35 @@ begin
   StringGrid1.EditorMode := True; // rovnou zapne editaci
 end;
 
+//procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
+//begin
+//  HandleBackspace(StringGrid1, Key);
+//  ValidatePointNumber(StringGrid1, Key);
+//  ValidateCoordinates(StringGrid1, Key);
+//  ValidateQualityCode(StringGrid1, Key);
+//end;
+
+// Prozatimní oprava
 procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
-  HandleBackspace(StringGrid1, Key);
-  ValidatePointNumber(StringGrid1, Key);
-  ValidateCoordinates(StringGrid1, Key);
-  ValidateQualityCode(StringGrid1, Key);
+  // ignoruj hlavičku
+  if StringGrid1.Row < StringGrid1.FixedRows then
+  begin
+    Key := #0;
+    Exit;
+  end;
+
+  // podle sloupce zavolej správný filtr
+  case StringGrid1.Col of
+    0: FilterPointNumber(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key); // číslo bodu
+    1,2,3: FilterCoordinate(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key); // X,Y,Z
+    4: FilterQuality(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key); // kvalita 0..8 (1 znak)
+    5: FilterDescription(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key); // popis
+  else
+    ; // nic
+  end;
 end;
+
 
 procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
@@ -656,7 +680,7 @@ end;
 function TForm2.IsValidQualityStr(const S: string): Boolean;
 begin
   // povolíme jen jednociferné '0'..'8' (stejně jako v comboboxu)
-  Result := (Length(S) = 1) and (S[1] in ['0'..'8']);
+  Result := (Length(S) = 1) and CharInSet(S[1], ['0'..'8']);
 end;
 
 procedure TForm2.EnsureQualityOnLeave;
@@ -675,22 +699,22 @@ begin
 end;
 
 // Helpery pro číslo KÚ
-function TForm2.PadSix(const S: string): string;
-var
-  N: Int64;
-begin
-  // převede text na číslo a naformátuje na 6 míst s nulami zleva
-  N := StrToInt64Def(S, 0);
-  if N < 0 then N := 0;
-  Result := Format('%.6d', [N]);
-end;
+//function TForm2.PadSix(const S: string): string;
+//var
+//  N: Int64;
+//begin
+//  // převede text na číslo a naformátuje na 6 míst s nulami zleva
+//  N := StrToInt64Def(S, 0);
+//  if N < 0 then N := 0;
+//  Result := Format('%.6d', [N]);
+//end;
 
-procedure TForm2.ComboBox4KeyPress(Sender: TObject; var Key: Char);
-begin
-  // povolit jen číslice a Backspace
-  if not (Key in ['0'..'9', #8]) then
-    Key := #0;
-end;
+//procedure TForm2.ComboBox4KeyPress(Sender: TObject; var Key: Char);
+//begin
+//  // povolit jen číslice a Backspace
+//  if not CharInSet(Key, ['0'..'9', #8]) then
+//    Key := #0;
+//end;
 
 procedure TForm2.ComboBox4Change(Sender: TObject);
 var
@@ -715,22 +739,22 @@ begin
   end;
 end;
 
-procedure TForm2.ComboBox4Exit(Sender: TObject);
-begin
-  // při opuštění pole vždy dorovnat na 6 znaků
-  ComboBox4.Text := PadSix(ComboBox4.Text);
-end;
+//procedure TForm2.ComboBox4Exit(Sender: TObject);
+//begin
+//  // při opuštění pole vždy dorovnat na 6 znaků
+//  ComboBox4.Text := PadSix(CombocBox4.Text);
+//end;
 
-procedure TForm2.ComboBox4KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key = VK_RETURN then
-  begin
-    ComboBox4.Text := PadSix(ComboBox4.Text); // např. "1" -> "000001"
-    Key := 0;
-    // volitelné: přeskočit na další ovládací prvek
-    SelectNext(ActiveControl, True, True);
-  end;
-end;
+//procedure TForm2.ComboBox4KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+//begin
+//  if Key = VK_RETURN then
+//  begin
+//    ComboBox4.Text := PadSix(ComboBox4.Text); // např. "1" -> "000001"
+//    Key := 0;
+//    // volitelné: přeskočit na další ovládací prvek
+//    SelectNext(ActiveControl, True, True);
+//  end;
+//end;
 
 //Unoverzální combobox doplněni KÚ a ZPMZ
 
@@ -766,7 +790,7 @@ end;
 procedure TForm2.NumericCombo_KeyPress(Sender: TObject; var Key: Char);
 begin
   // povolit jen číslice a Backspace (psané z klávesnice)
-  if not (Key in ['0'..'9', #8]) then
+  if not CharInSet(Key, ['0'..'9', #8]) then
     Key := #0;
 end;
 

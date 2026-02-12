@@ -19,11 +19,8 @@ type
   TForm9 = class(TForm)
     ToolBar1: TToolBar;
     ToolBar2: TToolBar;
-    ComboBox4: TComboBox;
     ToolButton3: TToolButton;
-    ComboBox5: TComboBox;
     ToolButton2: TToolButton;
-    ComboBox6: TComboBox;
     CheckBox1: TCheckBox;
     MyStringGridStation: TMyStringGrid;
     Panel1: TPanel;
@@ -35,6 +32,11 @@ type
     Calculate: TButton;
     Save: TButton;
     Memo1: TMemo;
+    ComboBox1: TComboBox;
+    ComboBox6: TComboBox;
+    ComboBox5: TComboBox;
+    ComboBox4: TComboBox;
+    ToolButton1: TToolButton;
     procedure CalculateClick(Sender: TObject);
   private
   //pokusy

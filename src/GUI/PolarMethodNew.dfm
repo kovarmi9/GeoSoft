@@ -32,14 +32,14 @@ object Form9: TForm9
     List = True
     AllowTextButtons = True
     TabOrder = 1
-    ExplicitWidth = 630
+    ExplicitWidth = 626
     object CheckBox1: TCheckBox
       Left = 0
       Top = 0
       Width = 121
       Height = 23
       Caption = 'CheckBox1'
-      TabOrder = 3
+      TabOrder = 0
     end
     object ComboBox4: TComboBox
       AlignWithMargins = True
@@ -48,10 +48,14 @@ object Form9: TForm9
       Width = 99
       Height = 23
       Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
-      TabOrder = 0
-      Text = '00000000000'
+      ItemIndex = 0
+      MaxLength = 6
+      TabOrder = 4
+      Text = '000000'
       Items.Strings = (
-        '00000000000')
+        '000000'
+        '000001'
+        '000002')
     end
     object ToolButton3: TToolButton
       Left = 220
@@ -67,14 +71,21 @@ object Form9: TForm9
       Width = 94
       Height = 23
       Hint = 'Popis bodu'
-      TabOrder = 1
+      ItemIndex = 0
+      MaxLength = 5
+      TabOrder = 3
+      Text = '00000'
+      Items.Strings = (
+        '00000'
+        '00001'
+        '00002')
     end
-    object ToolButton2: TToolButton
+    object ToolButton1: TToolButton
       Left = 322
       Top = 0
       Width = 8
-      Caption = 'ToolButton2'
-      ImageIndex = 2
+      Caption = 'ToolButton1'
+      ImageIndex = 3
       Style = tbsSeparator
     end
     object ComboBox6: TComboBox
@@ -99,6 +110,21 @@ object Form9: TForm9
         '6'
         '7'
         '8')
+    end
+    object ToolButton2: TToolButton
+      Left = 370
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton2'
+      ImageIndex = 2
+      Style = tbsSeparator
+    end
+    object ComboBox1: TComboBox
+      Left = 378
+      Top = 0
+      Width = 145
+      Height = 23
+      TabOrder = 1
     end
   end
   object Panel1: TPanel
@@ -149,7 +175,7 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 636
+      ExplicitWidth = 632
       ColWidths = (
         87
         87
@@ -181,7 +207,7 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 636
+      ExplicitWidth = 632
       ColWidths = (
         64
         68
@@ -214,7 +240,7 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 636
+      ExplicitWidth = 632
       ColWidths = (
         64
         68
@@ -268,6 +294,7 @@ object Form9: TForm9
       Lines.Strings = (
         'Memo1')
       TabOrder = 6
+      ExplicitWidth = 632
     end
   end
 end

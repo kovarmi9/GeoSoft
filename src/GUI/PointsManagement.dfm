@@ -74,7 +74,6 @@ object Form2: TForm2
       MaxLength = 6
       TabOrder = 0
       Text = '000000'
-      OnChange = ComboBox4Change
       Items.Strings = (
         '000000'
         '000001'

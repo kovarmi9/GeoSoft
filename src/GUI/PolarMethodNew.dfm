@@ -97,9 +97,7 @@ object Form9: TForm9
       Hint = 'K'#243'd kvality'
       Align = alRight
       Style = csDropDownList
-      ItemIndex = 3
       TabOrder = 2
-      Text = '3'
       Items.Strings = (
         '0'
         '1'

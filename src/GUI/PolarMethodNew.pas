@@ -659,7 +659,9 @@ uses
   StringGridValidationUtils,
   InputFilterUtils,
   GeoRow,
-  GeoDataFrame;
+  GeoDataFrame,
+  PointPrefixState;
+
 
 type
   TForm9 = class(TForm)
@@ -684,6 +686,11 @@ type
     ComboBox4: TComboBox;
     ToolButton1: TToolButton;
     procedure CalculateClick(Sender: TObject);
+
+    procedure FormActivate(Sender: TObject);
+    procedure PrefixChange(Sender: TObject);
+    procedure HookPrefixEvents;
+
   private
     // pokusy
     FStationDF: TGeoDataFrame; // 1 řádek
@@ -753,6 +760,10 @@ const
 constructor TForm9.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+
+  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  HookPrefixEvents;
+  Self.OnActivate := FormActivate;
 
   InitFS;
   InitPolarDataFrames;
@@ -1215,6 +1226,27 @@ begin
   finally
     Memo1.Lines.EndUpdate;
   end;
+end;
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+procedure TForm9.HookPrefixEvents;
+begin
+  ComboBox4.OnChange := PrefixChange; // KU
+  ComboBox5.OnChange := PrefixChange; // ZPMZ
+  ComboBox6.OnChange := PrefixChange; // KK
+  ComboBox1.OnChange := PrefixChange; // Popis
+end;
+
+procedure TForm9.FormActivate(Sender: TObject);
+begin
+  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+end;
+
+procedure TForm9.PrefixChange(Sender: TObject);
+begin
+  SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
 end;
 
 end.

@@ -74,7 +74,8 @@ constructor TMyStringGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  Options := Options + [goEditing, goTabs];
+  Options := Options + [goEditing, goTabs, goColSizing, goRowSizing];
+
   FEnterEndBehavior := ebWrapToStart;
 
   FColumnHeaders := TStringList.Create;

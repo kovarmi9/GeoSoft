@@ -225,7 +225,7 @@ object Form9: TForm9
       Align = alTop
       ColCount = 9
       RowCount = 2
-      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 2
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (

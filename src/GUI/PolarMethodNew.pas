@@ -757,6 +757,43 @@ const
   CAP_VOLNE = 'Volné stanovisko';
   CAP_PEVNE = 'Pevné stanovisko';
 
+function OnlyDigits(const S: string): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 1 to Length(S) do
+    if CharInSet(S[I], ['0'..'9']) then
+      Result := Result + S[I];
+end;
+
+function PadLeftZeros(const S: string; Len: Integer): string;
+var
+  T: string;
+begin
+  T := OnlyDigits(S);
+  if Length(T) > Len then
+    Result := Copy(T, Length(T) - Len + 1, Len)
+  else
+    Result := StringOfChar('0', Len - Length(T)) + T;
+end;
+
+function BuildPointIdFromPrefixState(const RawOwn: string): string;
+var
+  Own: string;
+  KU: string;
+  ZPMZ: string;
+begin
+  Own := OnlyDigits(RawOwn);
+  KU := PadLeftZeros(GPointPrefix.KU, 6);
+  ZPMZ := PadLeftZeros(GPointPrefix.ZPMZ, 5);
+
+  if Length(Own) <= 4 then
+    Result := KU + ZPMZ + PadLeftZeros(Own, 4)
+  else
+    Result := PadLeftZeros(Own, 15);
+end;
+
 constructor TForm9.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -936,13 +973,20 @@ begin
   if G.EditorMode then
     G.EditorMode := False;
 
+  // drž global state prefixů synchronní s aktuálním stavem comboboxů
+  SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+
+  // sloupec 1: číslo bodu -> 15místné ID (KU + ZPMZ + vlastní číslo)
+  if (G.Col = 1) then
+    G.Cells[1, r] := BuildPointIdFromPrefixState(G.Cells[1, r]);
+
   // sloupec 7: kvalita (pokud prázdné)
   if (G.Col = 7) and (Trim(G.Cells[7, r]) = '') then
-    G.Cells[7, r] := Trim(ComboBox6.Text);
+    G.Cells[7, r] := Trim(GPointPrefix.KK);
 
   // sloupec 8: popis (pokud prázdné)
   if (G.Col = 8) and (Trim(G.Cells[8, r]) = '') then
-    G.Cells[8, r] := Trim(ComboBox1.Text);
+    G.Cells[8, r] := Trim(GPointPrefix.Popis);
 
   Key := 0; // zablokuj default Enter chování
 end;

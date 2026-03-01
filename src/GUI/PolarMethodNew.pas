@@ -688,7 +688,7 @@ type
     procedure CalculateClick(Sender: TObject);
 
     procedure FormActivate(Sender: TObject);
-    procedure PrefixChange(Sender: TObject);
+    procedure PrefixComboExit(Sender: TObject);
     procedure HookPrefixEvents;
 
   private
@@ -972,9 +972,6 @@ begin
   // zapiš editor do Cells (jinak Cells ještě nemusí obsahovat právě psaný text)
   if G.EditorMode then
     G.EditorMode := False;
-
-  // drž global state prefixů synchronní s aktuálním stavem comboboxů
-  SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
 
   // sloupec 1: číslo bodu -> 15místné ID (KU + ZPMZ + vlastní číslo)
   if (G.Col = 1) then
@@ -1277,10 +1274,10 @@ end;
 
 procedure TForm9.HookPrefixEvents;
 begin
-  ComboBox4.OnChange := PrefixChange; // KU
-  ComboBox5.OnChange := PrefixChange; // ZPMZ
-  ComboBox6.OnChange := PrefixChange; // KK
-  ComboBox1.OnChange := PrefixChange; // Popis
+  ComboBox4.OnExit := PrefixComboExit; // KU
+  ComboBox5.OnExit := PrefixComboExit; // ZPMZ
+  ComboBox6.OnExit := PrefixComboExit; // KK
+  ComboBox1.OnExit := PrefixComboExit; // Popis
 end;
 
 procedure TForm9.FormActivate(Sender: TObject);
@@ -1288,9 +1285,10 @@ begin
   LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
 end;
 
-procedure TForm9.PrefixChange(Sender: TObject);
+procedure TForm9.PrefixComboExit(Sender: TObject);
 begin
   SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
 end;
 
 end.

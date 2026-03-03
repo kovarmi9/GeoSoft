@@ -52,6 +52,7 @@ object Form9: TForm9
       MaxLength = 6
       TabOrder = 4
       Text = '000000'
+      OnExit = PrefixComboExit
       Items.Strings = (
         '000000'
         '000001'
@@ -75,6 +76,7 @@ object Form9: TForm9
       MaxLength = 5
       TabOrder = 3
       Text = '00000'
+      OnExit = PrefixComboExit
       Items.Strings = (
         '00000'
         '00001'
@@ -98,6 +100,7 @@ object Form9: TForm9
       Align = alRight
       Style = csDropDownList
       TabOrder = 2
+      OnExit = PrefixComboExit
       Items.Strings = (
         '0'
         '1'
@@ -123,6 +126,7 @@ object Form9: TForm9
       Width = 145
       Height = 23
       TabOrder = 1
+      OnExit = PrefixComboExit
     end
   end
   object Panel1: TPanel

@@ -10,6 +10,7 @@ object Form9: TForm9
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OnActivate = FormActivate
   TextHeight = 15
   object ToolBar1: TToolBar
     Left = 0
@@ -19,7 +20,6 @@ object Form9: TForm9
     ButtonHeight = 29
     Caption = 'ToolBar1'
     TabOrder = 0
-    ExplicitWidth = 632
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -32,14 +32,14 @@ object Form9: TForm9
     List = True
     AllowTextButtons = True
     TabOrder = 1
-    ExplicitWidth = 626
     object CheckBox1: TCheckBox
       Left = 0
       Top = 0
       Width = 121
       Height = 23
-      Caption = 'CheckBox1'
+      Caption = 'Voln'#233' stanovisko'
       TabOrder = 0
+      OnClick = CheckBox1Click
     end
     object ComboBox4: TComboBox
       AlignWithMargins = True
@@ -137,8 +137,6 @@ object Form9: TForm9
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 632
-    ExplicitHeight = 527
     object Splitter1: TSplitter
       Left = 0
       Top = 52
@@ -169,6 +167,8 @@ object Form9: TForm9
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goFixedRowDefAlign]
       TabOrder = 0
+      OnKeyDown = MyStringGridStationKeyDown
+      OnSelectCell = MyStringGridStationSelectCell
       ColumnHeaders.Strings = (
         #268#237'slo bodu'
         'V'#253#353'ka stroje'
@@ -177,7 +177,6 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 632
       ColWidths = (
         87
         87
@@ -198,6 +197,8 @@ object Form9: TForm9
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
+      OnKeyDown = MyPointsStringGrid1OrientationKeyDown
+      OnSelectCell = MyPointsStringGrid1OrientationSelectCell
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
         ''
@@ -209,7 +210,6 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 632
       ColWidths = (
         64
         68
@@ -231,6 +231,8 @@ object Form9: TForm9
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 2
+      OnKeyDown = MyPointsStringGrid2DetailKeyDown
+      OnSelectCell = MyPointsStringGrid2DetailSelectCell
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
         ''
@@ -242,7 +244,6 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
-      ExplicitWidth = 632
       ColWidths = (
         64
         68
@@ -266,8 +267,6 @@ object Form9: TForm9
         item
           Width = 50
         end>
-      ExplicitTop = 508
-      ExplicitWidth = 632
     end
     object Calculate: TButton
       Left = 559
@@ -296,7 +295,6 @@ object Form9: TForm9
       Lines.Strings = (
         'Memo1')
       TabOrder = 6
-      ExplicitWidth = 632
     end
   end
 end

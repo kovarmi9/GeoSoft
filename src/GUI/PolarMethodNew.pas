@@ -45,6 +45,15 @@ type
     procedure FormActivate(Sender: TObject);
     procedure PrefixComboExit(Sender: TObject);
 
+    procedure MyStringGridStationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure MyPointsStringGrid1OrientationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure MyPointsStringGrid2DetailKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure MyStringGridStationSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
+    procedure MyPointsStringGrid2DetailSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
+    procedure MyPointsStringGrid1OrientationSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
+
+    procedure CheckBox1Click(Sender: TObject);
+
   private
     // pokusy
     FStationDF: TGeoDataFrame; // 1 řádek
@@ -59,15 +68,7 @@ type
     FS: TFormatSettings;//Objekt formátování
     procedure InitFS;// Nastavení formátování
 
-    procedure UpdateCheckCaption;
-    procedure CheckBox1Click(Sender: TObject);
     procedure UpdateCurrentDirectoryPath;
-
-    procedure MyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure OrientGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-
-    // >>> MINIMÁLNÍ DOPLNĚNÍ: handler pro Detail grid <<<
-    procedure MyPointsStringGrid2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
     function  LookupOrPromptPoint(PointNumber: Integer; out P: Point.TPoint): Boolean;
     procedure FillRowFromPoint(const Row: Integer; const P: Point.TPoint);
@@ -153,7 +154,6 @@ begin
   inherited Create(AOwner);
 
   LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
-  Self.OnActivate := FormActivate;
 
   InitFS;
   InitPolarDataFrames;
@@ -162,23 +162,14 @@ begin
   SetupValidations;
 
   // vyhodnocení výrazů
-  MyStringGridStation.OnSelectCell := GridSelectCell;
-  MyPointsStringGrid1Orientation.OnSelectCell := GridSelectCell;
-  MyPointsStringGrid2Detail.OnSelectCell := GridSelectCell;
+//  MyStringGridStation.OnSelectCell := GridSelectCell;
+//  MyPointsStringGrid1Orientation.OnSelectCell := GridSelectCell;
+//  MyPointsStringGrid2Detail.OnSelectCell := GridSelectCell;
 
   // inicializace
   FLastGrid := nil;
   FLastCol := -1;
   FLastRow := -1;
-
-  CheckBox1.OnClick := CheckBox1Click;
-  UpdateCheckCaption;
-
-  MyStringGridStation.OnKeyDown := MyGridKeyDown;
-  MyPointsStringGrid1Orientation.OnKeyDown := OrientGridKeyDown;
-
-//  // >>> MINIMÁLNÍ DOPLNĚNÍ: napojení handleru pro Detail grid <<<
-//  MyPointsStringGrid2Detail.OnKeyDown := DetailGridKeyDown;
 
   UpdateCurrentDirectoryPath;
 end;
@@ -191,7 +182,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TForm9.UpdateCheckCaption;
+procedure TForm9.CheckBox1Click(Sender: TObject);
 begin
   if CheckBox1.Checked then
     CheckBox1.Caption := CAP_PEVNE
@@ -199,11 +190,6 @@ begin
     CheckBox1.Caption := CAP_VOLNE;
 
   UpdateMemoText;
-end;
-
-procedure TForm9.CheckBox1Click(Sender: TObject);
-begin
-  UpdateCheckCaption;
 end;
 
 procedure TForm9.UpdateCurrentDirectoryPath;
@@ -261,7 +247,7 @@ begin
 end;
 
 // OnKeyDown pro MyStringGridStation: Enter v prvním sloupci → načíst/doplnit bod
-procedure TForm9.MyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm9.MyStringGridStationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   num, r: Integer;
   pt: Point.TPoint;
@@ -280,6 +266,21 @@ begin
     FillRowFromPoint(r, pt);
 end;
 
+procedure TForm9.MyStringGridStationSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
+begin
+  GridSelectCell(Sender, ACol, ARow, CanSelect);
+end;
+
+procedure TForm9.MyPointsStringGrid1OrientationSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
+begin
+  GridSelectCell(Sender, ACol, ARow, CanSelect);
+end;
+
+procedure TForm9.MyPointsStringGrid2DetailSelectCell(Sender: TObject; ACol, ARow: LongInt; var CanSelect: Boolean);
+begin
+  GridSelectCell(Sender, ACol, ARow, CanSelect);
+end;
+
 procedure TForm9.FillRowFromPointToOrientGrid(const Row: Integer; const P: Point.TPoint);
 begin
   // X,Y,Z zapisuje do sloupců 4..6
@@ -288,7 +289,7 @@ begin
   MyPointsStringGrid1Orientation.Cells[6, Row] := FloatToStr(P.Z, FS);
 end;
 
-procedure TForm9.OrientGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm9.MyPointsStringGrid1OrientationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   num, r: Integer;
   pt: Point.TPoint;
@@ -307,8 +308,7 @@ begin
     FillRowFromPointToOrientGrid(r, pt);
 end;
 
-// >>> MINIMÁLNÍ DOPLNĚNÍ: Enter v Detail gridu doplní default kvalitu/popisek <<<
-procedure TForm9.MyPointsStringGrid2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm9.MyPointsStringGrid2DetailKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   G: TStringGrid;
   r: Integer;
@@ -550,7 +550,7 @@ begin
   MyPointsStringGrid2Detail.SetColumnValidator(COL_NOTE, FilterDescription);
 end;
 
-// pokus výrazy
+// Řešení výrazů v buňkách
 procedure TForm9.GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 var
   G: TStringGrid;
@@ -621,9 +621,6 @@ begin
     Memo1.Lines.EndUpdate;
   end;
 end;
-
-
-////////////////////////////////////////////////////////////////////////////////
 
 procedure TForm9.FormActivate(Sender: TObject);
 begin

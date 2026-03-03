@@ -67,7 +67,7 @@ type
     procedure OrientGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
     // >>> MINIMÁLNÍ DOPLNĚNÍ: handler pro Detail grid <<<
-    procedure DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure MyPointsStringGrid2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
     function  LookupOrPromptPoint(PointNumber: Integer; out P: Point.TPoint): Boolean;
     procedure FillRowFromPoint(const Row: Integer; const P: Point.TPoint);
@@ -177,8 +177,8 @@ begin
   MyStringGridStation.OnKeyDown := MyGridKeyDown;
   MyPointsStringGrid1Orientation.OnKeyDown := OrientGridKeyDown;
 
-  // >>> MINIMÁLNÍ DOPLNĚNÍ: napojení handleru pro Detail grid <<<
-  MyPointsStringGrid2Detail.OnKeyDown := DetailGridKeyDown;
+//  // >>> MINIMÁLNÍ DOPLNĚNÍ: napojení handleru pro Detail grid <<<
+//  MyPointsStringGrid2Detail.OnKeyDown := DetailGridKeyDown;
 
   UpdateCurrentDirectoryPath;
 end;
@@ -308,7 +308,7 @@ begin
 end;
 
 // >>> MINIMÁLNÍ DOPLNĚNÍ: Enter v Detail gridu doplní default kvalitu/popisek <<<
-procedure TForm9.DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm9.MyPointsStringGrid2KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   G: TStringGrid;
   r: Integer;

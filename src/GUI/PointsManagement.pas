@@ -36,6 +36,7 @@ type
     ComboBox1: TComboBox;
     ToolButton1: TToolButton;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
+    procedure FormActivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -176,6 +177,13 @@ begin
   StringGrid1.Row := 1;
   StringGrid1.Col := 0;
   StringGrid1.EditorMode := True; // rovnou zapne editaci
+end;
+
+procedure TForm2.FormActivate(Sender: TObject);
+begin
+  // Po návratu na formulář načti aktuální globální prefixy a body.
+  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  RefreshGrid;
 end;
 
 // Prozatimní oprava
@@ -604,6 +612,7 @@ begin
   end;
 end;
 
+// Po opuštění comboboxu dorovná hodnotu nulami
 procedure TForm2.NumericCombo_Exit(Sender: TObject);
 var
   CB: TComboBox;
@@ -612,6 +621,7 @@ begin
   CB.Text := PadZeros(CB.Text, CB.Tag);
 end;
 
+// Enter comboboxu dorovná hodnotu nulami
 procedure TForm2.NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   CB: TComboBox;
@@ -621,10 +631,11 @@ begin
     CB := Sender as TComboBox;
     CB.Text := PadZeros(CB.Text, CB.Tag);
     Key := 0;
-    SelectNext(ActiveControl, True, True); // volitelné: skok na další
+    SelectNext(ActiveControl, True, True); // skok na další
   end;
 end;
 
+// Uloží aktuální prefixové hodnoty do globálního stavu a znovu je načte do UI
 procedure TForm2.PrefixComboExit(Sender: TObject);
 begin
   // Pro číselné prefix comboboxy nejdřív dorovnej nuly.
@@ -636,17 +647,29 @@ begin
 end;
 
 procedure TForm2.ApplyDescriptionToRow(const ARow: Integer);
+var
+  DefaultPopis: string;
 begin
+  // Pokud je sloupec Popis v řádku prázdný, doplní do něj výchozí text z globálního prefix stavu.
   if ARow < StringGrid1.FixedRows then Exit;
-  if Trim(ComboBox1.Text) = '' then Exit;
 
   // nepřepisuj, pokud už uživatel něco napsal
-  if Trim(StringGrid1.Cells[5, ARow]) = '' then
-    StringGrid1.Cells[5, ARow] := ComboBox1.Text;
+  if Trim(StringGrid1.Cells[5, ARow]) <> '' then Exit;
+
+  // Nejprve synchronizuje UI -> globální stav, ať se použije aktuální hodnota i bez ztráty fokusu.
+  SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+
+  DefaultPopis := Trim(GPointPrefix.Popis);
+  if DefaultPopis = '' then
+    DefaultPopis := Trim(ComboBox1.Text); // pro jistotu
+
+  if DefaultPopis <> '' then
+    StringGrid1.Cells[5, ARow] := DefaultPopis;
 end;
 
 procedure TForm2.EnsureQualityOnRow(const ARow: Integer);
 begin
+  // Zajistí validní kód kvality v řádku
   if ARow < StringGrid1.FixedRows then Exit;
 
   // když je kvalita prázdná/nevalidní, doplň default z ComboBox6

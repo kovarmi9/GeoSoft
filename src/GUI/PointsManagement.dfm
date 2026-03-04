@@ -11,6 +11,7 @@ object Form2: TForm2
   Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = MainMenu1
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 15
@@ -37,8 +38,7 @@ object Form2: TForm2
       'Z'
       'Kvalita'
       'Popis')
-    ExplicitWidth = 418
-    ExplicitHeight = 281
+    ExplicitWidth = 422
     ColWidths = (
       66
       65
@@ -79,7 +79,7 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
-    ExplicitWidth = 412
+    ExplicitWidth = 416
     object ComboBox4: TComboBox
       Tag = 6
       AlignWithMargins = True

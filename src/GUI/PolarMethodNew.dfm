@@ -179,6 +179,7 @@ object Form9: TForm9
       TabOrder = 0
       OnKeyDown = MyStringGridStationKeyDown
       OnSelectCell = MyStringGridStationSelectCell
+      EnterEndBehavior = ebWrapToStart
       ColumnHeaders.Strings = (
         #268#237'slo bodu'
         'V'#253#353'ka stroje'

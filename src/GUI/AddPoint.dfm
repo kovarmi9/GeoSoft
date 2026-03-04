@@ -38,6 +38,7 @@ object Form6: TForm6
     OnDrawCell = StringGrid1DrawCell
     OnEnter = StringGrid1Enter
     OnSelectCell = StringGrid1SelectCell
+    EnterEndBehavior = ebMoveFocusNext
     ColumnHeaders.Strings = (
       #268#237'slo bodu'
       'X'

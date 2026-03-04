@@ -12,7 +12,7 @@ uses
 
 type
   // Co má grid udělat, když uživatel stiskne Enter/Tab v poslední datové buňce
-  TEnterEndBehavior = (ebWrapToStart, ebAddRow);
+  TEnterEndBehavior = (ebStayOnLastCell, ebWrapToStart, ebAddRow, ebMoveFocusNext);
 
   // Validátor buněk (normální procedura, NE metoda objektu)
   TMyGridKeyValidator = procedure(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
@@ -53,7 +53,7 @@ type
 
   published
     property EnterEndBehavior: TEnterEndBehavior
-      read FEnterEndBehavior write FEnterEndBehavior default ebWrapToStart;
+      read FEnterEndBehavior write FEnterEndBehavior default ebStayOnLastCell;
 
     property ColumnHeaders: TStrings
       read FColumnHeaders write SetColumnHeaders;
@@ -76,7 +76,7 @@ begin
 
   Options := Options + [goEditing, goTabs, goColSizing, goRowSizing];
 
-  FEnterEndBehavior := ebWrapToStart;
+  FEnterEndBehavior := ebStayOnLastCell;
 
   FColumnHeaders := TStringList.Create;
   FRowHeaders    := TStringList.Create;
@@ -166,10 +166,13 @@ end;
 
 procedure TMyStringGrid.KeyDown(var Key: Word; Shift: TShiftState);
 var
+  PressedKey: Word;
   FirstDataCol, FirstDataRow: Integer;
+  GoForward: Boolean;
 begin
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
+    PressedKey := Key;
     Key := 0;
 
     FirstDataCol := FixedCols;
@@ -188,6 +191,12 @@ begin
     else
     begin
       case FEnterEndBehavior of
+        ebStayOnLastCell:
+          begin
+            // Zůstaň na poslední buňce a nepřesouvej fokus.
+            Row := RowCount - 1;
+            Col := ColCount - 1;
+          end;
         ebWrapToStart:
           begin
             Row := FirstDataRow;
@@ -199,10 +208,16 @@ begin
             Row := Row + 1;
             Col := FirstDataCol;
           end;
+        ebMoveFocusNext:
+          begin
+            // Předej fokus dalšímu/ předchozímu ovládacímu prvku podle směru TAB.
+            GoForward := not ((PressedKey = VK_TAB) and (ssShift in Shift));
+            SelectNext(Self, GoForward, True);
+          end;
       end;
     end;
 
-    if goEditing in Options then
+    if (FEnterEndBehavior <> ebMoveFocusNext) and (goEditing in Options) then
       EditorMode := True;
 
     Exit;

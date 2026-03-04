@@ -38,7 +38,6 @@ object Form2: TForm2
       'Z'
       'Kvalita'
       'Popis')
-    ExplicitWidth = 422
     ColWidths = (
       66
       65
@@ -76,7 +75,6 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
-    ExplicitWidth = 416
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True
@@ -89,10 +87,10 @@ object Form2: TForm2
       MaxLength = 6
       TabOrder = 0
       Text = '000000'
-      OnChange = NumericCombo_Change
+      OnChange = NumericComboChange
       OnExit = PrefixComboExit
-      OnKeyDown = NumericCombo_KeyDown
-      OnKeyPress = NumericCombo_KeyPress
+      OnKeyDown = NumericComboKeyDown
+      OnKeyPress = NumericComboKeyPress
       Items.Strings = (
         '000000'
         '000001'
@@ -117,10 +115,10 @@ object Form2: TForm2
       MaxLength = 5
       TabOrder = 1
       Text = '00000'
-      OnChange = NumericCombo_Change
+      OnChange = NumericComboChange
       OnExit = PrefixComboExit
-      OnKeyDown = NumericCombo_KeyDown
-      OnKeyPress = NumericCombo_KeyPress
+      OnKeyDown = NumericComboKeyDown
+      OnKeyPress = NumericComboKeyPress
       Items.Strings = (
         '00000'
         '00001'
@@ -147,7 +145,7 @@ object Form2: TForm2
       TabOrder = 2
       Text = '3'
       OnExit = PrefixComboExit
-      OnKeyDown = NumericCombo_KeyDown
+      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '0'
         '1'
@@ -174,7 +172,7 @@ object Form2: TForm2
       Height = 23
       TabOrder = 3
       OnExit = PrefixComboExit
-      OnKeyDown = NumericCombo_KeyDown
+      OnKeyDown = NumericComboKeyDown
     end
   end
   object MainMenu1: TMainMenu

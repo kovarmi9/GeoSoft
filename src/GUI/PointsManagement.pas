@@ -53,9 +53,9 @@ type
     procedure RefreshGrid();
 
     procedure PrefixComboExit(Sender: TObject);
-    procedure NumericCombo_KeyPress(Sender: TObject; var Key: Char);
-    procedure NumericCombo_Change(Sender: TObject);
-    procedure NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure NumericComboKeyPress(Sender: TObject; var Key: Char);
+    procedure NumericComboChange(Sender: TObject);
+    procedure NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     function CurrentQuality: Integer;
     function IsValidQualityStr(const S: string): Boolean;
@@ -63,7 +63,7 @@ type
     procedure ApplyDescriptionToRow(const ARow: Integer);
     procedure EnsureQualityOnRow(const ARow: Integer);
     function  PadZeros(const S: string; PadLen: Integer): string;
-    procedure NumericCombo_Exit(Sender: TObject);
+    procedure NumericComboExit(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -572,14 +572,14 @@ begin
   Result := Format('%.*d', [PadLen, N]);  // doplnění nulami zleva
 end;
 
-procedure TForm2.NumericCombo_KeyPress(Sender: TObject; var Key: Char);
+procedure TForm2.NumericComboKeyPress(Sender: TObject; var Key: Char);
 begin
   // povolit jen číslice a Backspace (psané z klávesnice)
   if not CharInSet(Key, ['0'..'9', #8]) then
     Key := #0;
 end;
 
-procedure TForm2.NumericCombo_Change(Sender: TObject);
+procedure TForm2.NumericComboChange(Sender: TObject);
 var
   CB: TComboBox;
   S: string;
@@ -613,7 +613,7 @@ begin
 end;
 
 // Po opuštění comboboxu dorovná hodnotu nulami
-procedure TForm2.NumericCombo_Exit(Sender: TObject);
+procedure TForm2.NumericComboExit(Sender: TObject);
 var
   CB: TComboBox;
 begin
@@ -622,7 +622,7 @@ begin
 end;
 
 // Enter comboboxu dorovná hodnotu nulami
-procedure TForm2.NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TForm2.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   CB: TComboBox;
 begin
@@ -661,7 +661,7 @@ procedure TForm2.PrefixComboExit(Sender: TObject);
 begin
   // Pro číselné prefix comboboxy nejdřív dorovnej nuly.
   if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
-    NumericCombo_Exit(Sender);
+    NumericComboExit(Sender);
 
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);

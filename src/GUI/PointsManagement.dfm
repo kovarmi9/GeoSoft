@@ -27,8 +27,9 @@ object Form2: TForm2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 0
     OnDrawCell = StringGrid1DrawCell
-    ExplicitWidth = 418
-    ExplicitHeight = 281
+    OnKeyDown = StringGrid1KeyDown
+    OnKeyPress = StringGrid1KeyPress
+    OnSelectCell = StringGrid1SelectCell
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -39,8 +40,6 @@ object Form2: TForm2
       item
         Width = 50
       end>
-    ExplicitTop = 366
-    ExplicitWidth = 418
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -49,7 +48,6 @@ object Form2: TForm2
     Height = 50
     Align = alTop
     TabOrder = 2
-    ExplicitWidth = 418
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -62,7 +60,6 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
-    ExplicitWidth = 412
     object ComboBox4: TComboBox
       AlignWithMargins = True
       Left = 0
@@ -74,6 +71,7 @@ object Form2: TForm2
       MaxLength = 6
       TabOrder = 0
       Text = '000000'
+      OnExit = PrefixComboExit
       Items.Strings = (
         '000000'
         '000001'
@@ -97,6 +95,7 @@ object Form2: TForm2
       MaxLength = 5
       TabOrder = 1
       Text = '00000'
+      OnExit = PrefixComboExit
       Items.Strings = (
         '00000'
         '00001'
@@ -122,6 +121,7 @@ object Form2: TForm2
       ItemIndex = 3
       TabOrder = 2
       Text = '3'
+      OnExit = PrefixComboExit
       Items.Strings = (
         '0'
         '1'
@@ -147,6 +147,7 @@ object Form2: TForm2
       Width = 145
       Height = 23
       TabOrder = 3
+      OnExit = PrefixComboExit
     end
   end
   object MainMenu1: TMainMenu

@@ -778,6 +778,8 @@ type
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure RefreshGrid();
 //    procedure ComboBox4Change(Sender: TObject);
+
+    procedure PrefixComboExit(Sender: TObject);
   private
     function CurrentQuality: Integer;
     function IsValidQualityStr(const S: string): Boolean;
@@ -796,7 +798,6 @@ type
     procedure NumericCombo_Change(Sender: TObject);
     procedure NumericCombo_Exit(Sender: TObject);
     procedure NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure PrefixComboExit(Sender: TObject);
 
     // Doplnění čísla bodu
     function OnlyDigits(const S: string): string;
@@ -868,12 +869,6 @@ begin
 
   StringGrid1.Repaint;
 
-  // Přiřazení obslužných procedur pro události
-  StringGrid1.OnKeyPress := StringGrid1KeyPress;
-  StringGrid1.OnKeyDown := StringGrid1KeyDown;
-  StringGrid1.OnDrawCell := StringGrid1DrawCell;
-  StringGrid1.OnSelectCell := StringGrid1SelectCell;
-
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
 
@@ -886,10 +881,6 @@ begin
   SetupNumericCombo(ComboBox5, 5, '00000');
 
   LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
-  ComboBox4.OnExit := PrefixComboExit;
-  ComboBox5.OnExit := PrefixComboExit;
-  ComboBox6.OnExit := PrefixComboExit;
-  ComboBox1.OnExit := PrefixComboExit;
 
 
 end;
@@ -1605,7 +1596,6 @@ begin
 
   CB.OnKeyPress := NumericCombo_KeyPress;  // jen čísla a Backspace
   CB.OnChange   := NumericCombo_Change;    // očista při Ctrl+V apod.
-  CB.OnExit     := NumericCombo_Exit;      // dorovnání nulami
   CB.OnKeyDown  := NumericCombo_KeyDown;   // Enter = dorovnat + next
 end;
 

@@ -18,6 +18,7 @@ type
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); // Reakce na výběr buňky
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); // Vlastní vykreslení jedné buňky gridu
     procedure StringGrid1Enter(Sender: TObject); // Reakce při vstupu do gridu
+    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     procedure FocusInputCell;
     procedure TryEvalCell(ACol, ARow: Integer);
@@ -194,6 +195,20 @@ procedure TForm6.StringGrid1Enter(Sender: TObject);
 begin
   // vždy po návratu fokusu skočí na první datovou buňku
   FocusInputCell;
+end;
+
+procedure TForm6.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  // Enter na poslední datové buňce přesune fokus na OK
+  if Key <> VK_RETURN then
+    Exit;
+
+  if (StringGrid1.Col = StringGrid1.ColCount - 1) and
+     (StringGrid1.Row = StringGrid1.RowCount - 1) then
+  begin
+    Key := 0;
+    btnOK.SetFocus;
+  end;
 end;
 
 procedure TForm6.TryEvalCell(ACol, ARow: Integer);

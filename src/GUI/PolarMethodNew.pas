@@ -34,10 +34,10 @@ type
     Calculate: TButton;
     Save: TButton;
     Memo1: TMemo;
-    ComboBox1: TComboBox;
-    ComboBox6: TComboBox;
-    ComboBox5: TComboBox;
-    ComboBox4: TComboBox;
+    ComboBoxPopis: TComboBox;
+    ComboBoxKK: TComboBox;
+    ComboBoxZPMZ: TComboBox;
+    ComboBoxKU: TComboBox;
     ToolButton1: TToolButton;
 
     procedure CalculateClick(Sender: TObject);
@@ -116,7 +116,7 @@ constructor TForm9.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 
   InitFS;
   InitPolarDataFrames;
@@ -587,13 +587,13 @@ end;
 
 procedure TForm9.FormActivate(Sender: TObject);
 begin
-  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 procedure TForm9.PrefixComboExit(Sender: TObject);
 begin
-  SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
-  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 end.

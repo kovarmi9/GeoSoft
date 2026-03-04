@@ -38,7 +38,6 @@ object Form2: TForm2
       'Z'
       'Kvalita'
       'Popis')
-    ExplicitWidth = 422
     ColWidths = (
       66
       65
@@ -56,8 +55,6 @@ object Form2: TForm2
       item
         Width = 50
       end>
-    ExplicitTop = 366
-    ExplicitWidth = 418
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -66,7 +63,6 @@ object Form2: TForm2
     Height = 50
     Align = alTop
     TabOrder = 2
-    ExplicitWidth = 418
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -79,8 +75,7 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
-    ExplicitWidth = 416
-    object ComboBox4: TComboBox
+    object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True
       Left = 0
@@ -109,7 +104,7 @@ object Form2: TForm2
       ImageIndex = 1
       Style = tbsSeparator
     end
-    object ComboBox5: TComboBox
+    object ComboBoxZPMZ: TComboBox
       Tag = 5
       Left = 107
       Top = 0
@@ -137,7 +132,7 @@ object Form2: TForm2
       ImageIndex = 2
       Style = tbsSeparator
     end
-    object ComboBox6: TComboBox
+    object ComboBoxKK: TComboBox
       AlignWithMargins = True
       Left = 209
       Top = 0
@@ -169,7 +164,7 @@ object Form2: TForm2
       ImageIndex = 3
       Style = tbsSeparator
     end
-    object ComboBox1: TComboBox
+    object ComboBoxPopis: TComboBox
       Left = 257
       Top = 0
       Width = 145

@@ -43,7 +43,7 @@ object Form9: TForm9
       TabOrder = 0
       OnClick = CheckBox1Click
     end
-    object ComboBox4: TComboBox
+    object ComboBoxKU: TComboBox
       AlignWithMargins = True
       Left = 121
       Top = 0
@@ -68,7 +68,7 @@ object Form9: TForm9
       ImageIndex = 1
       Style = tbsSeparator
     end
-    object ComboBox5: TComboBox
+    object ComboBoxZPMZ: TComboBox
       Left = 228
       Top = 0
       Width = 94
@@ -92,7 +92,7 @@ object Form9: TForm9
       ImageIndex = 3
       Style = tbsSeparator
     end
-    object ComboBox6: TComboBox
+    object ComboBoxKK: TComboBox
       AlignWithMargins = True
       Left = 330
       Top = 0
@@ -122,7 +122,7 @@ object Form9: TForm9
       ImageIndex = 2
       Style = tbsSeparator
     end
-    object ComboBox1: TComboBox
+    object ComboBoxPopis: TComboBox
       Left = 378
       Top = 0
       Width = 145

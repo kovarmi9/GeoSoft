@@ -28,12 +28,12 @@ type
     FromBinary1: TMenuItem;
     SaveDialog1: TSaveDialog;
     ToolBar2: TToolBar;
-    ComboBox4: TComboBox;
+    ComboBoxKU: TComboBox;
     ToolButton3: TToolButton;
-    ComboBox5: TComboBox;
+    ComboBoxZPMZ: TComboBox;
     ToolButton2: TToolButton;
-    ComboBox6: TComboBox;
-    ComboBox1: TComboBox;
+    ComboBoxKK: TComboBox;
+    ComboBoxPopis: TComboBox;
     ToolButton1: TToolButton;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
     procedure FormActivate(Sender: TObject);
@@ -111,7 +111,7 @@ begin
   UpdateCurrentDirectoryPath;
 
   // Správa pole pro číslo KÚ/ZPMZ
-  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 
 end;
 
@@ -182,7 +182,7 @@ end;
 procedure TForm2.FormActivate(Sender: TObject);
 begin
   // Po návratu na formulář načti aktuální globální prefixy a body.
-  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   RefreshGrid;
 end;
 
@@ -237,7 +237,7 @@ begin
   // Sloupec 0 (Číslo bodu) -> převod na 15místné ID (KÚ + ZPMZ + vlastní číslo)
   if StringGrid1.Col = 0 then
   begin
-    SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+    SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
     StringGrid1.Cells[0, StringGrid1.Row] :=
       BuildPointIdFromPrefixState(StringGrid1.Cells[0, StringGrid1.Row]);
   end;
@@ -525,13 +525,13 @@ end;
 
 function TForm2.CurrentQuality: Integer;
 begin
-  // Když je ComboBox6 v csDropDownList a Items = '0'..'8',
+  // Když je ComboBoxKK v csDropDownList a Items = '0'..'8',
   // pak ItemIndex odpovídá přímo hodnotě.
-  if ComboBox6.ItemIndex >= 0 then
-    Result := ComboBox6.ItemIndex
+  if ComboBoxKK.ItemIndex >= 0 then
+    Result := ComboBoxKK.ItemIndex
   else
     // fallback, kdyby sis někdy dovolil csDropDown :)
-    Result := StrToIntDef(ComboBox6.Text, 0);
+    Result := StrToIntDef(ComboBoxKK.Text, 0);
 end;
 
 function TForm2.IsValidQualityStr(const S: string): Boolean;
@@ -549,7 +549,7 @@ begin
   row := StringGrid1.Row;
 
   // Pokud opouštíme sloupec Kvalita (index 4) a hodnota je prázdná/nevalidní,
-  // doplň default z ComboBox6.
+  // doplň default z ComboBoxKK.
   if (row >= 1) and (col = 4) then
     if not IsValidQualityStr(StringGrid1.Cells[col, row]) then
       StringGrid1.Cells[col, row] := IntToStr(CurrentQuality);
@@ -639,11 +639,11 @@ end;
 procedure TForm2.PrefixComboExit(Sender: TObject);
 begin
   // Pro číselné prefix comboboxy nejdřív dorovnej nuly.
-  if (Sender = ComboBox4) or (Sender = ComboBox5) then
+  if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
     NumericCombo_Exit(Sender);
 
-  SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
-  LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 procedure TForm2.ApplyDescriptionToRow(const ARow: Integer);
@@ -657,11 +657,11 @@ begin
   if Trim(StringGrid1.Cells[5, ARow]) <> '' then Exit;
 
   // Nejprve synchronizuje UI -> globální stav, ať se použije aktuální hodnota i bez ztráty fokusu.
-  SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 
   DefaultPopis := Trim(GPointPrefix.Popis);
   if DefaultPopis = '' then
-    DefaultPopis := Trim(ComboBox1.Text); // pro jistotu
+    DefaultPopis := Trim(ComboBoxPopis.Text); // pro jistotu
 
   if DefaultPopis <> '' then
     StringGrid1.Cells[5, ARow] := DefaultPopis;
@@ -672,7 +672,7 @@ begin
   // Zajistí validní kód kvality v řádku
   if ARow < StringGrid1.FixedRows then Exit;
 
-  // když je kvalita prázdná/nevalidní, doplň default z ComboBox6
+  // když je kvalita prázdná/nevalidní, doplňí global
   if not IsValidQualityStr(StringGrid1.Cells[4, ARow]) then
     StringGrid1.Cells[4, ARow] := IntToStr(CurrentQuality);
 end;

@@ -2,7 +2,7 @@ object Form6: TForm6
   Left = 0
   Top = 0
   Caption = 'P'#345'idat bod'
-  ClientHeight = 196
+  ClientHeight = 165
   ClientWidth = 407
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -29,7 +29,7 @@ object Form6: TForm6
     Left = 8
     Top = 29
     Width = 391
-    Height = 128
+    Height = 84
     ColCount = 6
     FixedCols = 0
     RowCount = 2
@@ -54,8 +54,8 @@ object Form6: TForm6
       60)
   end
   object btnOK: TButton
-    Left = 224
-    Top = 163
+    Left = 232
+    Top = 131
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -63,8 +63,8 @@ object Form6: TForm6
     TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 305
-    Top = 163
+    Left = 313
+    Top = 131
     Width = 75
     Height = 25
     Caption = 'Zru'#353'it'

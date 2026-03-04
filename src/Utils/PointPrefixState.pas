@@ -122,10 +122,10 @@ end;
 
 procedure ResetPointPrefixState;
 begin
-  GPointPrefix.KU := '000009';
-  GPointPrefix.ZPMZ := '00009';
+  GPointPrefix.KU := '000000';
+  GPointPrefix.ZPMZ := '00000';
   GPointPrefix.KK := '3';
-  GPointPrefix.Popis := 'kk';
+  GPointPrefix.Popis := '';
 end;
 
 initialization

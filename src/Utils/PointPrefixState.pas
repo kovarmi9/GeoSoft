@@ -18,6 +18,8 @@ var
 
 procedure LoadPrefixToCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
 procedure SavePrefixFromCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
+function BuildPointId(const RawOwn, Ku6, Zpmz5: string): string;
+function BuildPointIdFromPrefixState(const RawOwn: string): string;
 procedure ResetPointPrefixState;
 
 implementation
@@ -54,6 +56,27 @@ begin
   if S = '' then
     Exit('0');
   Result := S[1];
+end;
+
+function BuildPointId(const RawOwn, Ku6, Zpmz5: string): string;
+var
+  Own: string;
+  KU: string;
+  ZPMZ: string;
+begin
+  Own := DigitsOnly(RawOwn);
+  KU := NormalizeNumericPrefix(Ku6, 6);
+  ZPMZ := NormalizeNumericPrefix(Zpmz5, 5);
+
+  if Length(Own) <= 4 then
+    Result := KU + ZPMZ + NormalizeNumericPrefix(Own, 4)
+  else
+    Result := NormalizeNumericPrefix(Own, 15);
+end;
+
+function BuildPointIdFromPrefixState(const RawOwn: string): string;
+begin
+  Result := BuildPointId(RawOwn, GPointPrefix.KU, GPointPrefix.ZPMZ);
 end;
 
 procedure LoadPrefixToCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);

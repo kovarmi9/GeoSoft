@@ -112,43 +112,6 @@ const
   CAP_VOLNE = 'Volné stanovisko';
   CAP_PEVNE = 'Pevné stanovisko';
 
-function OnlyDigits(const S: string): string;
-var
-  I: Integer;
-begin
-  Result := '';
-  for I := 1 to Length(S) do
-    if CharInSet(S[I], ['0'..'9']) then
-      Result := Result + S[I];
-end;
-
-function PadLeftZeros(const S: string; Len: Integer): string;
-var
-  T: string;
-begin
-  T := OnlyDigits(S);
-  if Length(T) > Len then
-    Result := Copy(T, Length(T) - Len + 1, Len)
-  else
-    Result := StringOfChar('0', Len - Length(T)) + T;
-end;
-
-function BuildPointIdFromPrefixState(const RawOwn: string): string;
-var
-  Own: string;
-  KU: string;
-  ZPMZ: string;
-begin
-  Own := OnlyDigits(RawOwn);
-  KU := PadLeftZeros(GPointPrefix.KU, 6);
-  ZPMZ := PadLeftZeros(GPointPrefix.ZPMZ, 5);
-
-  if Length(Own) <= 4 then
-    Result := KU + ZPMZ + PadLeftZeros(Own, 4)
-  else
-    Result := PadLeftZeros(Own, 15);
-end;
-
 constructor TForm9.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);

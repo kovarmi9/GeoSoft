@@ -798,11 +798,6 @@ type
     procedure NumericCombo_Change(Sender: TObject);
     procedure NumericCombo_Exit(Sender: TObject);
     procedure NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-
-    // Doplnění čísla bodu
-    function OnlyDigits(const S: string): string;
-    function PadLeftZeros(const S: string; Len: Integer): string;
-    function BuildPointId(const RawOwn: string; const Ku6, Zpmz5: string): string;
   public
     { Public declarations }
   end;
@@ -1139,7 +1134,7 @@ begin
   begin
     SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
     StringGrid1.Cells[0, StringGrid1.Row] :=
-      BuildPointId(StringGrid1.Cells[0, StringGrid1.Row], GPointPrefix.KU, GPointPrefix.ZPMZ);
+      BuildPointIdFromPrefixState(StringGrid1.Cells[0, StringGrid1.Row]);
   end;
 
   // Sloupce 1..3 (X,Y,Z) -> vyhodnotí výraz a uloží jako číslo
@@ -1680,45 +1675,6 @@ procedure TForm2.PrefixComboExit(Sender: TObject);
 begin
   SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
   LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
-end;
-
-// Helpery doplnění čísla bodu
-
-function TForm2.OnlyDigits(const S: string): string;
-var
-  i: Integer;
-begin
-  Result := '';
-  for i := 1 to Length(S) do
-    if CharInSet(S[i], ['0'..'9']) then
-      Result := Result + S[i];
-end;
-
-function TForm2.PadLeftZeros(const S: string; Len: Integer): string;
-var
-  T: string;
-begin
-  T := OnlyDigits(S);
-  if Length(T) > Len then
-    Result := Copy(T, Length(T)-Len+1, Len)      // když by někdo vložil moc dlouhé číslo
-  else
-    Result := StringOfChar('0', Len - Length(T)) + T;
-end;
-
-function TForm2.BuildPointId(const RawOwn: string; const Ku6, Zpmz5: string): string;
-var
-  Own: string;
-  KU  : string;
-  ZPMZ: string;
-begin
-  Own  := OnlyDigits(RawOwn);
-  KU   := PadLeftZeros(Ku6,   6);
-  ZPMZ := PadLeftZeros(Zpmz5, 5);
-
-  if Length(Own) <= 4 then
-    Result := KU + ZPMZ + PadLeftZeros(Own, 4)   // 6 + 5 + 4 = 15
-  else
-    Result := PadLeftZeros(Own, 15);             // čistě 15-místné s nulami zleva
 end;
 
 procedure TForm2.ApplyDescriptionToRow(const ARow: Integer);

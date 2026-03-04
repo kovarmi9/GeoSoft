@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, System.SysUtils, Vcl.Forms, Vcl.Grids, Vcl.StdCtrls, Vcl.Controls, Vcl.Graphics,
   Point, System.Classes, StringGridValidationUtils, ValidationUtils, InputFilterUtils,
-  PointsManagement, PointsUtilsSingleton;
+  PointsUtilsSingleton;
 
 type
   TForm6 = class(TForm)
@@ -91,14 +91,6 @@ begin
 
   // Uložení bodu rovnou do slovníku
   TPointDictionary.GetInstance.AddPoint(NewP);
-
-  // Aktualizuje PointsManagement (pokud je spuštěn)
-  if Assigned(Form2) and Form2.Visible then
-  begin
-    Form2.RefreshGrid;
-    Form2.StringGrid1.Invalidate;
-    Form2.Update;
-  end;
 end;
 
 

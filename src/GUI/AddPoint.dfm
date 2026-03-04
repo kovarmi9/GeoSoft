@@ -33,7 +33,7 @@ object Form6: TForm6
     ColCount = 6
     FixedCols = 0
     RowCount = 2
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing]
     TabOrder = 0
     OnDrawCell = StringGrid1DrawCell
     OnEnter = StringGrid1Enter

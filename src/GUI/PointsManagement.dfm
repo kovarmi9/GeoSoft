@@ -23,7 +23,7 @@ object Form2: TForm2
     ColCount = 6
     FixedCols = 0
     RowCount = 2
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 0
     OnDrawCell = StringGrid1DrawCell
     OnKeyDown = StringGrid1KeyDown
@@ -37,7 +37,8 @@ object Form2: TForm2
       'Z'
       'Kvalita'
       'Popis')
-    ExplicitTop = 82
+    ExplicitWidth = 418
+    ExplicitHeight = 281
     ColWidths = (
       66
       65

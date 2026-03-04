@@ -1,730 +1,4 @@
-﻿//unit PointsManagement;
-//
-//interface
-//
-//uses
-//  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, Vcl.Graphics, System.Generics.Collections,
-//  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus, System.Math, ComObj,
-//  StringGridValidationUtils, InputFilterUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point,
-//  Vcl.ComCtrls, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.ActnMenus,
-//  Vcl.ExtCtrls, System.IOUtils, Vcl.StdCtrls, Vcl.Mask,
-//  MyPointsStringGrid;
-//
-//type
-//  TForm2 = class(TForm)
-//    StringGrid1: TStringGrid;
-//    MainMenu1: TMainMenu;
-//    File1: TMenuItem;
-//    File2: TMenuItem;
-//    SaveAs1: TMenuItem;
-//    SaveAs2: TMenuItem;
-//    OpenDialog1: TOpenDialog;
-//    StatusBar1: TStatusBar;
-//    ControlBar1: TControlBar;
-//    Import1: TMenuItem;
-//    Import2: TMenuItem;
-//    FromTXT1: TMenuItem;
-//    FromTXT2: TMenuItem;
-//    FromBinary1: TMenuItem;
-//    SaveDialog1: TSaveDialog;
-//    ToolBar2: TToolBar;
-//    ComboBox4: TComboBox;
-//    ToolButton3: TToolButton;
-//    ComboBox5: TComboBox;
-//    ToolButton2: TToolButton;
-//    ComboBox6: TComboBox;
-//    ComboBox1: TComboBox;
-//    ToolButton1: TToolButton;
-//
-//    procedure FormCreate(Sender: TObject);
-//    procedure FormShow(Sender: TObject);
-//    procedure StringGrid1KeyPress(Sender: TObject; var Key: Char);
-//    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-//    procedure File2Click(Sender: TObject);
-//    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-//    procedure AutoSizeColumns(const CustomWidths: array of Integer);
-//    procedure UpdateCurrentDirectoryPath;
-//    procedure FromTXTClick(Sender: TObject);
-//    procedure FromCSVClick(Sender: TObject);
-//    procedure FromBinaryClick(Sender: TObject);
-//    procedure SaveAsTXTClick(Sender: TObject);
-//    procedure SaveAsCSVClick(Sender: TObject);
-//    procedure SaveAsBinaryClick(Sender: TObject);
-//    procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-//    procedure RefreshGrid();
-//    procedure ComboBox1Change(Sender: TObject);
-//  private
-//    // --- Kvalita ---
-//    function CurrentQuality: Integer;
-//    function IsValidQualityStr(const S: string): Boolean;
-//    procedure EnsureQualityOnLeave;
-//
-//    // --- Popis z ComboBox1 ---
-//    procedure ApplyDescriptionToRow(const ARow: Integer);
-//
-//    // --- KÚ/ZPMZ comboboxy ---
-//    procedure SetupNumericCombo(CB: TComboBox; PadLen: Integer; const DefaultText: string);
-//    function  PadZeros(const S: string; PadLen: Integer): string;
-//    procedure NumericCombo_KeyPress(Sender: TObject; var Key: Char);
-//    procedure NumericCombo_Change(Sender: TObject);
-//    procedure NumericCombo_Exit(Sender: TObject);
-//    procedure NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-//
-//    // --- Doplnění čísla bodu ---
-//    function OnlyDigits(const S: string): string;
-//    function PadLeftZeros(const S: string; Len: Integer): string;
-//    function BuildPointId(const RawOwn: string; const Ku6, Zpmz5: string): string;
-//  public
-//    { Public declarations }
-//  end;
-//
-//var
-//  Form2: TForm2;
-//  PointDict: TPointDictionary;
-//  Point: TPoint;
-//
-//implementation
-//
-//{$R *.dfm}
-//
-//procedure TForm2.File2Click(Sender: TObject);
-//begin
-//  // otevřít
-//end;
-//
-//procedure TForm2.FormCreate(Sender: TObject);
-//var
-//  P: TPoint;
-//  i: Integer;
-//begin
-//  // Nastavení sloupců a řádků pro StringGrid1
-//  StringGrid1.ColCount := 6;
-//  StringGrid1.RowCount := 2;
-//  StringGrid1.FixedRows := 1;
-//  StringGrid1.FixedCols := 0;
-//
-//  // Hlavičky
-//  StringGrid1.Cells[0, 0] := 'Číslo bodu';
-//  StringGrid1.Cells[1, 0] := 'X';
-//  StringGrid1.Cells[2, 0] := 'Y';
-//  StringGrid1.Cells[3, 0] := 'Z';
-//  StringGrid1.Cells[4, 0] := 'Kvalita';
-//  StringGrid1.Cells[5, 0] := 'Popis';
-//
-//  // Výchozí prázdný řádek
-//  StringGrid1.Cells[0, 1] := '';
-//  StringGrid1.Cells[1, 1] := '';
-//  StringGrid1.Cells[2, 1] := '';
-//  StringGrid1.Cells[3, 1] := '';
-//  StringGrid1.Cells[4, 1] := '';
-//  StringGrid1.Cells[5, 1] := '';
-//
-//  AutoSizeColumns([80, 80, 80, 80, 80, 160]);
-//
-//  // Naplní grid existujícími body
-//  i := 1;
-//  for P in TPointDictionary.GetInstance.Values do
-//  begin
-//    StringGrid1.RowCount := i + 1;
-//    StringGrid1.Cells[0, i] := IntToStr(P.PointNumber);
-//    StringGrid1.Cells[1, i] := FloatToStr(P.X);
-//    StringGrid1.Cells[2, i] := FloatToStr(P.Y);
-//    StringGrid1.Cells[3, i] := FloatToStr(P.Z);
-//    StringGrid1.Cells[4, i] := IntToStr(P.Quality);
-//    StringGrid1.Cells[5, i] := P.Description;
-//    Inc(i);
-//  end;
-//
-//  StringGrid1.Repaint;
-//
-//  // Události gridu
-//  StringGrid1.OnKeyPress   := StringGrid1KeyPress;
-//  StringGrid1.OnKeyDown    := StringGrid1KeyDown;
-//  StringGrid1.OnDrawCell   := StringGrid1DrawCell;
-//  StringGrid1.OnSelectCell := StringGrid1SelectCell;
-//
-//  // Událost pro ComboBox1 (popis)
-//  ComboBox1.OnChange := ComboBox1Change;
-//
-//  UpdateCurrentDirectoryPath;
-//
-//  // Číslo KÚ a ZPMZ
-//  SetupNumericCombo(ComboBox4, 6, '000000');
-//  SetupNumericCombo(ComboBox5, 5, '00000');
-//end;
-//
-//procedure TForm2.RefreshGrid;
-//var
-//  pt: TPoint;
-//  Keys: TList<Integer>;
-//  Key: Integer;
-//  i: Integer;
-//begin
-//  Keys := TList<Integer>.Create;
-//  try
-//    for pt in TPointDictionary.GetInstance.Values do
-//      Keys.Add(pt.PointNumber);
-//    Keys.Sort;
-//
-//    StringGrid1.RowCount := Keys.Count + 2;
-//
-//    StringGrid1.Cells[0, 0] := 'číslo bodu';
-//    StringGrid1.Cells[1, 0] := 'X';
-//    StringGrid1.Cells[2, 0] := 'Y';
-//    StringGrid1.Cells[3, 0] := 'Z';
-//    StringGrid1.Cells[4, 0] := 'Kvalita';
-//    StringGrid1.Cells[5, 0] := 'Popis';
-//
-//    i := 1;
-//    for Key in Keys do
-//    begin
-//      pt := TPointDictionary.GetInstance.GetPoint(Key);
-//      StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
-//      StringGrid1.Cells[1, i] := FloatToStr(pt.X);
-//      StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
-//      StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
-//      StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
-//      StringGrid1.Cells[5, i] := pt.Description;
-//      Inc(i);
-//    end;
-//
-//    // poslední prázdný řádek
-//    StringGrid1.Cells[0, i] := '';
-//    StringGrid1.Cells[1, i] := '';
-//    StringGrid1.Cells[2, i] := '';
-//    StringGrid1.Cells[3, i] := '';
-//    StringGrid1.Cells[4, i] := '';
-//    StringGrid1.Cells[5, i] := '';
-//  finally
-//    Keys.Free;
-//  end;
-//
-//  StringGrid1.Repaint;
-//end;
-//
-//procedure TForm2.FormShow(Sender: TObject);
-//begin
-//  RefreshGrid;
-//
-//  StringGrid1.Row := 1;
-//  StringGrid1.Col := 0;
-//  StringGrid1.EditorMode := True;
-//end;
-//
-//procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
-//begin
-//  if StringGrid1.Row < StringGrid1.FixedRows then
-//  begin
-//    Key := #0;
-//    Exit;
-//  end;
-//
-//  case StringGrid1.Col of
-//    0: FilterPointNumber(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key);
-//    1,2,3: FilterCoordinate(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key);
-//    4: FilterQuality(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key);
-//    5: FilterDescription(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key);
-//  else
-//    ;
-//  end;
-//end;
-//
-//procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-//var
-//  PointNumber: Integer;
-//  X, Y, Z: Double;
-//  Quality: Integer;
-//  Description: string;
-//  NewPoint: TPoint;
-//  SaveRow: Integer;
-//begin
-//  if (Key = VK_RETURN) or (Key = VK_TAB) then
-//  begin
-//    // doplnění 15místného ID při opuštění sloupce 0
-//    if StringGrid1.Col = 0 then
-//    begin
-//      StringGrid1.Cells[0, StringGrid1.Row] :=
-//        BuildPointId(StringGrid1.Cells[0, StringGrid1.Row], ComboBox4.Text, ComboBox5.Text);
-//    end;
-//
-//    Key := 0;
-//
-//    // vyhodnocení výrazu pro souřadnice
-//    if StringGrid1.Col in [1,2,3] then
-//    begin
-//      try
-//        StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] :=
-//          FloatToStr(EvaluateExpression(StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row]));
-//      except
-//        on E: Exception do
-//          ShowMessage('Chyba ve výrazu: ' + E.Message);
-//      end;
-//    end;
-//
-//    // přechod na další buňku
-//    if StringGrid1.Col < StringGrid1.ColCount - 1 then
-//    begin
-//      StringGrid1.Col := StringGrid1.Col + 1;
-//    end
-//    else
-//    begin
-//      // ukládáme řádek, který právě dokončujeme
-//      SaveRow := StringGrid1.Row;
-//
-//      // pojistka: doplň kvalitu, pokud je prázdná/nevalidní
-//      if not IsValidQualityStr(StringGrid1.Cells[4, SaveRow]) then
-//        StringGrid1.Cells[4, SaveRow] := IntToStr(CurrentQuality);
-//
-//      // pojistka: doplň popis z ComboBox1, pokud je prázdný
-//      ApplyDescriptionToRow(SaveRow);
-//
-//      // další řádek
-//      if StringGrid1.Row = StringGrid1.RowCount - 1 then
-//        StringGrid1.RowCount := StringGrid1.RowCount + 1;
-//
-//      StringGrid1.Row := StringGrid1.Row + 1;
-//      StringGrid1.Col := 0;
-//
-//      // Načtení hodnot z uloženého řádku
-//      PointNumber := StrToIntDef(StringGrid1.Cells[0, SaveRow], -1);
-//      X := StrToFloatDef(StringGrid1.Cells[1, SaveRow], NaN);
-//      Y := StrToFloatDef(StringGrid1.Cells[2, SaveRow], NaN);
-//      Z := StrToFloatDef(StringGrid1.Cells[3, SaveRow], NaN);
-//      Quality := StrToIntDef(StringGrid1.Cells[4, SaveRow], -1);
-//      Description := StringGrid1.Cells[5, SaveRow];
-//
-//      if (PointNumber <> -1) and (not IsNan(X)) and (not IsNan(Y)) and (not IsNan(Z)) then
-//      begin
-//        TPointDictionary.GetInstance.AddPoint(TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
-//
-//        if TPointDictionary.GetInstance.PointExists(PointNumber) then
-//        begin
-//          NewPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
-//          ShowMessage(Format('Bod %d byl vložen do ss: X=%.2f, Y=%.2f, Z=%.2f, Kvalita=%d, Popis=%s',
-//            [NewPoint.PointNumber, NewPoint.X, NewPoint.Y, NewPoint.Z, NewPoint.Quality, NewPoint.Description]));
-//        end
-//        else
-//          ShowMessage(Format('Bod %d nebyl vložen.', [PointNumber]));
-//      end
-//      else
-//        ShowMessage('Neplatná data, bod nebyl uložen.');
-//    end;
-//  end
-//  else if Key = VK_DELETE then
-//  begin
-//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
-//  end;
-//end;
-//
-//procedure TForm2.UpdateCurrentDirectoryPath;
-//begin
-//  if StatusBar1.Panels.Count > 0 then
-//    StatusBar1.Panels[0].Text := GetCurrentDir;
-//end;
-//
-//procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-//  Rect: TRect; State: TGridDrawState);
-//var
-//  Text: string;
-//  TextW: Integer;
-//  X, Y: Integer;
-//begin
-//  with StringGrid1.Canvas do
-//  begin
-//    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-//    begin
-//      Brush.Color := clBtnFace;
-//      Font.Style := [fsBold];
-//      FillRect(Rect);
-//
-//      Text := StringGrid1.Cells[ACol, ARow];
-//      TextW := TextWidth(Text);
-//      X := Rect.Left + (Rect.Width - TextW) div 2;
-//      Y := Rect.Top + (Rect.Height - TextHeight(Text)) div 2;
-//      TextRect(Rect, X, Y, Text);
-//    end
-//    else
-//    begin
-//      Brush.Color := clWindow;
-//      Font.Style := [];
-//      FillRect(Rect);
-//
-//      Text := StringGrid1.Cells[ACol, ARow];
-//      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
-//    end;
-//  end;
-//end;
-//
-//procedure TForm2.AutoSizeColumns(const CustomWidths: array of Integer);
-//var
-//  i, w: Integer;
-//begin
-//  for i := 1 to StringGrid1.ColCount - 1 do
-//  begin
-//    if (i-1 < Length(CustomWidths)) and (CustomWidths[i-1] > 0) then
-//      w := CustomWidths[i-1]
-//    else
-//      w := StringGrid1.Canvas.TextWidth(StringGrid1.Cells[i,0]) + 16;
-//
-//    StringGrid1.ColWidths[i] := w;
-//  end;
-//end;
-//
-//procedure TForm2.FromTXTClick(Sender: TObject);
-//var
-//  pt: TPoint;
-//  i: Integer;
-//begin
-//  OpenDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
-//  if not OpenDialog1.Execute then Exit;
-//
-//  try
-//    TPointDictionary.GetInstance.ImportFromTXT(OpenDialog1.FileName);
-//  except
-//    on E: Exception do
-//    begin
-//      ShowMessage('Chyba při importu: ' + E.Message);
-//      Exit;
-//    end;
-//  end;
-//
-//  i := 1;
-//  for pt in TPointDictionary.GetInstance.Values do
-//  begin
-//    StringGrid1.RowCount := i + 1;
-//    StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
-//    StringGrid1.Cells[1, i] := FloatToStr(pt.X);
-//    StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
-//    StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
-//    StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
-//    StringGrid1.Cells[5, i] := pt.Description;
-//    Inc(i);
-//  end;
-//
-//  StringGrid1.Repaint;
-//end;
-//
-//// Import z CSV
-//procedure TForm2.FromCSVClick(Sender: TObject);
-//var
-//  pt: TPoint;
-//  i: Integer;
-//begin
-//  OpenDialog1.Filter := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
-//  if not OpenDialog1.Execute then Exit;
-//
-//  try
-//    TPointDictionary.GetInstance.ImportFromCSV(OpenDialog1.FileName);
-//  except
-//    on E: Exception do
-//    begin
-//      ShowMessage('Chyba při importu CSV: ' + E.Message);
-//      Exit;
-//    end;
-//  end;
-//
-//  i := 1;
-//  for pt in TPointDictionary.GetInstance.Values do
-//  begin
-//    StringGrid1.RowCount := i + 1;
-//    StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
-//    StringGrid1.Cells[1, i] := FloatToStr(pt.X);
-//    StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
-//    StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
-//    StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
-//    StringGrid1.Cells[5, i] := pt.Description;
-//    Inc(i);
-//  end;
-//
-//  StringGrid1.Repaint;
-//end;
-//
-//// Import z Binary
-//procedure TForm2.FromBinaryClick(Sender: TObject);
-//var
-//  pt: TPoint;
-//  i: Integer;
-//begin
-//  OpenDialog1.Filter := 'Binary soubory (*.bin)|*.bin|Všechny soubory|*.*';
-//  if not OpenDialog1.Execute then Exit;
-//
-//  try
-//    TPointDictionary.GetInstance.ImportFromBinary(OpenDialog1.FileName);
-//  except
-//    on E: Exception do
-//    begin
-//      ShowMessage('Chyba při importu Binary: ' + E.Message);
-//      Exit;
-//    end;
-//  end;
-//
-//  i := 1;
-//  for pt in TPointDictionary.GetInstance.Values do
-//  begin
-//    StringGrid1.RowCount := i + 1;
-//    StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
-//    StringGrid1.Cells[1, i] := FloatToStr(pt.X);
-//    StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
-//    StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
-//    StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
-//    StringGrid1.Cells[5, i] := pt.Description;
-//    Inc(i);
-//  end;
-//
-//  StringGrid1.Repaint;
-//end;
-//
-//procedure TForm2.SaveAsTXTClick(Sender: TObject);
-//var
-//  Dir: string;
-//begin
-//  SaveDialog1.Filter     := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
-//  SaveDialog1.DefaultExt := 'txt';
-//  if not SaveDialog1.Execute then Exit;
-//
-//  Dir := ExtractFilePath(SaveDialog1.FileName);
-//  if (Dir <> '') and not TDirectory.Exists(Dir) then
-//    ForceDirectories(Dir);
-//
-//  try
-//    TPointDictionary.GetInstance.ExportToTXT(SaveDialog1.FileName);
-//    ShowMessage('Export do TXT úspěšný.');
-//  except
-//    on E: Exception do
-//      ShowMessage('Chyba při exportu do TXT: ' + E.Message);
-//  end;
-//end;
-//
-//procedure TForm2.SaveAsCSVClick(Sender: TObject);
-//var
-//  Dir: string;
-//begin
-//  SaveDialog1.Filter     := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
-//  SaveDialog1.DefaultExt := 'csv';
-//  if not SaveDialog1.Execute then Exit;
-//
-//  Dir := ExtractFilePath(SaveDialog1.FileName);
-//  if (Dir <> '') and not TDirectory.Exists(Dir) then
-//    ForceDirectories(Dir);
-//
-//  try
-//    TPointDictionary.GetInstance.ExportToCSV(SaveDialog1.FileName);
-//    ShowMessage('Export do CSV úspěšný.');
-//  except
-//    on E: Exception do
-//      ShowMessage('Chyba při exportu do CSV: ' + E.Message);
-//  end;
-//end;
-//
-//procedure TForm2.SaveAsBinaryClick(Sender: TObject);
-//var
-//  Dir: string;
-//begin
-//  SaveDialog1.Filter     := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
-//  SaveDialog1.DefaultExt := 'bin';
-//  if not SaveDialog1.Execute then Exit;
-//
-//  Dir := ExtractFilePath(SaveDialog1.FileName);
-//  if (Dir <> '') and not TDirectory.Exists(Dir) then
-//    ForceDirectories(Dir);
-//
-//  try
-//    TPointDictionary.GetInstance.ExportToBinary(SaveDialog1.FileName);
-//    ShowMessage('Export do Binary úspěšný.');
-//  except
-//    on E: Exception do
-//      ShowMessage('Chyba při exportu do Binary: ' + E.Message);
-//  end;
-//end;
-//
-//procedure TForm2.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
-//  var CanSelect: Boolean);
-//begin
-//  // doplní kvalitu při opuštění sloupce 4, pokud je prázdná/nevalidní
-//  EnsureQualityOnLeave;
-//
-//  // Zamez úpravám hlavičky
-//  CanSelect := (ARow <> 0);
-//
-//  // !!! TADY už NEVOLAT ApplyDescriptionToRow(ARow) !!!
-//end;
-//
-//procedure TForm2.ComboBox1Change(Sender: TObject);
-//begin
-//  // nech prázdné (nebo jen třeba něco do statusbaru),
-//  // ale NEdoplňovat grid automaticky
-//end;
-//
-//procedure TForm2.ApplyDescriptionToRow(const ARow: Integer);
-//begin
-//  if ARow < StringGrid1.FixedRows then Exit;
-//  if Trim(ComboBox1.Text) = '' then Exit;
-//
-//  // nepřepisuj, pokud už tam něco je
-//  if Trim(StringGrid1.Cells[5, ARow]) = '' then
-//    StringGrid1.Cells[5, ARow] := ComboBox1.Text;
-//end;
-//
-//// ====== Helpery pro kvalitu ======
-//
-//function TForm2.CurrentQuality: Integer;
-//begin
-//  if ComboBox6.ItemIndex >= 0 then
-//    Result := ComboBox6.ItemIndex
-//  else
-//    Result := StrToIntDef(ComboBox6.Text, 0);
-//end;
-//
-//function TForm2.IsValidQualityStr(const S: string): Boolean;
-//begin
-//  Result := (Length(S) = 1) and CharInSet(S[1], ['0'..'8']);
-//end;
-//
-//procedure TForm2.EnsureQualityOnLeave;
-//var
-//  col, row: Integer;
-//begin
-//  col := StringGrid1.Col;
-//  row := StringGrid1.Row;
-//
-//  if (row >= 1) and (col = 4) then
-//    if not IsValidQualityStr(StringGrid1.Cells[col, row]) then
-//      StringGrid1.Cells[col, row] := IntToStr(CurrentQuality);
-//end;
-//
-//// ====== Univerzální combobox (KÚ/ZPMZ) ======
-//
-//procedure TForm2.SetupNumericCombo(CB: TComboBox; PadLen: Integer; const DefaultText: string);
-//begin
-//  CB.Style     := csDropDown;
-//  CB.MaxLength := PadLen;
-//  CB.Tag       := PadLen;
-//  CB.Text      := DefaultText;
-//
-//  CB.OnKeyPress := NumericCombo_KeyPress;
-//  CB.OnChange   := NumericCombo_Change;
-//  CB.OnExit     := NumericCombo_Exit;
-//  CB.OnKeyDown  := NumericCombo_KeyDown;
-//end;
-//
-//function TForm2.PadZeros(const S: string; PadLen: Integer): string;
-//var
-//  N, MaxVal: Int64;
-//begin
-//  N := StrToInt64Def(S, 0);
-//  if N < 0 then N := 0;
-//
-//  if PadLen > 0 then
-//    MaxVal := StrToInt64(StringOfChar('9', PadLen))
-//  else
-//    MaxVal := High(Int64);
-//
-//  if N > MaxVal then N := MaxVal;
-//
-//  Result := Format('%.*d', [PadLen, N]);
-//end;
-//
-//procedure TForm2.NumericCombo_KeyPress(Sender: TObject; var Key: Char);
-//begin
-//  if not CharInSet(Key, ['0'..'9', #8]) then
-//    Key := #0;
-//end;
-//
-//procedure TForm2.NumericCombo_Change(Sender: TObject);
-//var
-//  CB: TComboBox;
-//  S: string;
-//  i: Integer;
-//  Changed: Boolean;
-//begin
-//  CB := Sender as TComboBox;
-//  S := CB.Text;
-//  Changed := False;
-//
-//  for i := Length(S) downto 1 do
-//    if not CharInSet(S[i], ['0'..'9']) then
-//    begin
-//      Delete(S, i, 1);
-//      Changed := True;
-//    end;
-//
-//  if Length(S) > CB.MaxLength then
-//  begin
-//    S := Copy(S, 1, CB.MaxLength);
-//    Changed := True;
-//  end;
-//
-//  if Changed then
-//  begin
-//    CB.Text := S;
-//    CB.SelStart := Length(S);
-//  end;
-//end;
-//
-//procedure TForm2.NumericCombo_Exit(Sender: TObject);
-//var
-//  CB: TComboBox;
-//begin
-//  CB := Sender as TComboBox;
-//  CB.Text := PadZeros(CB.Text, CB.Tag);
-//end;
-//
-//procedure TForm2.NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-//var
-//  CB: TComboBox;
-//begin
-//  if Key = VK_RETURN then
-//  begin
-//    CB := Sender as TComboBox;
-//    CB.Text := PadZeros(CB.Text, CB.Tag);
-//    Key := 0;
-//    SelectNext(ActiveControl, True, True);
-//  end;
-//end;
-//
-//// ====== Helpery doplnění čísla bodu ======
-//
-//function TForm2.OnlyDigits(const S: string): string;
-//var
-//  i: Integer;
-//begin
-//  Result := '';
-//  for i := 1 to Length(S) do
-//    if CharInSet(S[i], ['0'..'9']) then
-//      Result := Result + S[i];
-//end;
-//
-//function TForm2.PadLeftZeros(const S: string; Len: Integer): string;
-//var
-//  T: string;
-//begin
-//  T := OnlyDigits(S);
-//  if Length(T) > Len then
-//    Result := Copy(T, Length(T)-Len+1, Len)
-//  else
-//    Result := StringOfChar('0', Len - Length(T)) + T;
-//end;
-//
-//function TForm2.BuildPointId(const RawOwn: string; const Ku6, Zpmz5: string): string;
-//var
-//  Own: string;
-//  KU  : string;
-//  ZPMZ: string;
-//begin
-//  Own  := OnlyDigits(RawOwn);
-//  KU   := PadLeftZeros(Ku6,   6);
-//  ZPMZ := PadLeftZeros(Zpmz5, 5);
-//
-//  if Length(Own) <= 4 then
-//    Result := KU + ZPMZ + PadLeftZeros(Own, 4)
-//  else
-//    Result := PadLeftZeros(Own, 15);
-//end;
-//
-//end.
-//
-//
-unit PointsManagement;
+﻿unit PointsManagement;
 
 interface
 
@@ -776,7 +50,6 @@ type
     procedure SaveAsBinaryClick(Sender: TObject);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure RefreshGrid();
-//    procedure ComboBox4Change(Sender: TObject);
 
     procedure PrefixComboExit(Sender: TObject);
     procedure NumericCombo_KeyPress(Sender: TObject; var Key: Char);
@@ -786,11 +59,6 @@ type
     function CurrentQuality: Integer;
     function IsValidQualityStr(const S: string): Boolean;
     procedure EnsureQualityOnLeave;
-//    procedure ComboBox4KeyPress(Sender: TObject; var Key: Char);
-    //procedure ComboBox4Change(Sender: TObject);
-//    procedure ComboBox4Exit(Sender: TObject);
-//    procedure ComboBox4KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-//    function PadSix(const S: string): string;
     procedure ApplyDescriptionToRow(const ARow: Integer);
     procedure EnsureQualityOnRow(const ARow: Integer);
     function  PadZeros(const S: string; PadLen: Integer): string;
@@ -813,7 +81,7 @@ begin
   // otevřít
 end;
 
-procedure TForm2.FormCreate(Sender: TObject); // Změněno z TForm2 na TForm3
+procedure TForm2.FormCreate(Sender: TObject);
 var
   P: TPoint;
   i: Integer;
@@ -841,55 +109,10 @@ begin
   // Aktualizace cesty
   UpdateCurrentDirectoryPath;
 
-  // Správa polu pro číslo KÚ/ZPMZ
-
+  // Správa pole pro číslo KÚ/ZPMZ
   LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
 
-
 end;
-
-//procedure TForm2.RefreshGrid;
-//var
-//  pt: TPoint;
-//  Keys: TList<Integer>;
-//  Key: Integer;
-//  i: Integer;
-//begin
-////  StringGrid1.RowCount := 1;  // jen hlavička
-////  Keys := TList<Integer>.Create;
-////  try
-////    for pt in TPointDictionary.GetInstance.Values do
-////      Keys.Add(pt.PointNumber);
-////    Keys.Sort;
-////
-////    i := 1;
-////    for Key in Keys do
-////    begin
-////      pt := TPointDictionary.GetInstance.GetPoint(Key);
-////      StringGrid1.RowCount := i + 1;
-////      StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
-////      StringGrid1.Cells[1, i] := FloatToStr(pt.X);
-////      StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
-////      StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
-////      StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
-////      StringGrid1.Cells[5, i] := pt.Description;
-////      Inc(i);
-////    end;
-////  finally
-////    Keys.Free;
-////  end;
-////
-////  // Přidán prázdný řádek na konec pro nový bod
-////  StringGrid1.RowCount := StringGrid1.RowCount + 1;
-////  StringGrid1.Cells[0, StringGrid1.RowCount - 1] := ''; // nový řádek prázdný
-////  StringGrid1.Cells[1, StringGrid1.RowCount - 1] := '';
-////  StringGrid1.Cells[2, StringGrid1.RowCount - 1] := '';
-////  StringGrid1.Cells[3, StringGrid1.RowCount - 1] := '';
-////  StringGrid1.Cells[4, StringGrid1.RowCount - 1] := '';
-////  StringGrid1.Cells[5, StringGrid1.RowCount - 1] := '';
-////
-////  StringGrid1.Repaint;
-//end;
 
 procedure TForm2.RefreshGrid;
 var
@@ -898,7 +121,7 @@ var
   Key: Integer;
   i: Integer;
 begin
-  // Základ: nastavit počet řádků pouze pro data (bez hlavičky a budoucího prázdného řádku)
+  // Nastaví počet řádků pouze pro data (bez hlavičky a budoucího prázdného řádku)
   Keys := TList<Integer>.Create;
   try
     for pt in TPointDictionary.GetInstance.Values do
@@ -908,7 +131,7 @@ begin
     // +1 kvůli hlavičce
     StringGrid1.RowCount := Keys.Count + 2;
 
-    // Hlavička – obnovit texty
+    // Hlavička – obnoví texty
     StringGrid1.Cells[0, 0] := 'číslo bodu';
     StringGrid1.Cells[1, 0] := 'X';
     StringGrid1.Cells[2, 0] := 'Y';
@@ -955,25 +178,17 @@ begin
   StringGrid1.EditorMode := True; // rovnou zapne editaci
 end;
 
-//procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
-//begin
-//  HandleBackspace(StringGrid1, Key);
-//  ValidatePointNumber(StringGrid1, Key);
-//  ValidateCoordinates(StringGrid1, Key);
-//  ValidateQualityCode(StringGrid1, Key);
-//end;
-
 // Prozatimní oprava
 procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
-  // ignoruj hlavičku
+  // ignoruje hlavičku
   if StringGrid1.Row < StringGrid1.FixedRows then
   begin
     Key := #0;
     Exit;
   end;
 
-  // podle sloupce zavolej správný filtr
+  // podle sloupce zavolá správný filtr
   case StringGrid1.Col of
     0: FilterPointNumber(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key); // číslo bodu
     1,2,3: FilterCoordinate(StringGrid1, StringGrid1.Col, StringGrid1.Row, Key); // X,Y,Z
@@ -984,90 +199,6 @@ begin
   end;
 end;
 
-
-//procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-//var
-//  PointNumber: Integer;
-//  X, Y, Z: Double;
-//  Quality: Integer;
-//  Description: string;
-//  NewPoint: TPoint;
-//begin
-//  if (Key = VK_RETURN) or (Key = VK_TAB) then
-//  begin
-//    // Doplněno pro Doplnění nul do čísla bodu
-//    // pokud jsme v 1. sloupci, převeď zadanou hodnotu na 15místné ID
-//    if StringGrid1.Col = 0 then
-//    begin
-//      StringGrid1.Cells[0, StringGrid1.Row] :=
-//        BuildPointId(StringGrid1.Cells[0, StringGrid1.Row], ComboBox4.Text, ComboBox5.Text);
-//    end;
-//    // Konec doplnění pro pronění čísla bodu
-//
-//    Key := 0; // Zamezí dalšímu zpracování Enteru
-//
-//    // Vyhodnocení výrazu a převedení na číslo
-//    if StringGrid1.Col in [1, 2, 3] then
-//    begin
-//      try
-//        StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := FloatToStr(EvaluateExpression(StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row]));
-//      except
-//        on E: Exception do
-//          ShowMessage('Chyba ve výrazu: ' + E.Message);
-//      end;
-//    end;
-//
-//    // Přechod na další buňku
-//    if StringGrid1.Col < StringGrid1.ColCount - 1 then
-//    begin
-//      StringGrid1.Col := StringGrid1.Col + 1;
-//    end
-//    else
-//    begin
-//      // Pokud poslední sloupec, přechod na první sloupec dalšího řádku
-//      if StringGrid1.Row = StringGrid1.RowCount - 1 then
-//      begin
-//        // Pokud poslední řádek, přidat nový řádek
-//        StringGrid1.RowCount := StringGrid1.RowCount + 1;
-//      end;
-//
-//      StringGrid1.Row := StringGrid1.Row + 1;
-//      StringGrid1.Col := 0;
-//
-//      // Načtení hodnot
-//      PointNumber := StrToIntDef(StringGrid1.Cells[0, StringGrid1.Row - 1], -1);
-//      X := StrToFloatDef(StringGrid1.Cells[1, StringGrid1.Row - 1], NaN);
-//      Y := StrToFloatDef(StringGrid1.Cells[2, StringGrid1.Row - 1], NaN);
-//      Z := StrToFloatDef(StringGrid1.Cells[3, StringGrid1.Row - 1], NaN);
-//      Quality := StrToIntDef(StringGrid1.Cells[4, StringGrid1.Row - 1], -1);
-//      Description := StringGrid1.Cells[5, StringGrid1.Row - 1];
-//
-//      // Uložení do slovníku pomocí singletonu
-//      if (PointNumber <> -1) and (not IsNan(X)) and (not IsNan(Y)) and (not IsNan(Z)) then
-//      begin
-//        // Použití singletonu pro získání instance TPointDictionary
-//        TPointDictionary.GetInstance.AddPoint(TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
-//
-//        // Kontrola, zda byl bod vložen a uložení do nového bodu
-//        if TPointDictionary.GetInstance.PointExists(PointNumber) then
-//        begin
-//          NewPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
-//          ShowMessage(Format('Bod %d byl vložen do ss: X=%.2f, Y=%.2f, Z=%.2f, Kvalita=%d, Popis=%s',
-//            [NewPoint.PointNumber, NewPoint.X, NewPoint.Y, NewPoint.Z, NewPoint.Quality, NewPoint.Description]));
-//        end
-//        else
-//          ShowMessage(Format('Bod %d nebyl vložen.', [PointNumber]));
-//      end
-//      else
-//        ShowMessage('Neplatná data, bod nebyl uložen.');
-//    end;
-//  end
-//  else if Key = VK_DELETE then
-//  begin
-//    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := ''; // Mazání obsahu buňky
-//  end;
-//end;
-
 procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
@@ -1075,7 +206,7 @@ var
   Quality: Integer;
   Description: string;
   NewPoint: TPoint;
-  SaveRow: Integer; // řádek, který ukládáme (ten právě dokončený)
+  SaveRow: Integer; // řádek, který ukládá (ten právě dokončený)
 begin
   // Mazání buňky
   if Key = VK_DELETE then
@@ -1165,47 +296,6 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-//procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-//  Rect: TRect; State: TGridDrawState);
-//var
-//  Text: string;
-//  TextW, TextH: Integer;
-//  X, Y: Integer;
-//begin
-//  with StringGrid1.Canvas do
-//  begin
-//    // Hlavička (řádek 0)
-//    if ARow < StringGrid1.FixedRows then
-//    begin
-//      Brush.Color := clBtnFace;    // šedé pozadí
-//      Font.Name := 'Segoe UI';     // můžeš si změnit
-//      Font.Size := 9;
-//      Font.Style := [fsBold];      // tučné písmo
-//      Font.Color := clBlack;       // černý text
-//      FillRect(Rect);
-//
-//      // Centrovat text
-//      Text := StringGrid1.Cells[ACol, ARow];
-//      TextW := TextWidth(Text);
-//      TextH := TextHeight(Text);
-//      X := Rect.Left + (Rect.Width - TextW) div 2;
-//      Y := Rect.Top + (Rect.Height - TextH) div 2;
-//      TextRect(Rect, X, Y, Text);
-//    end
-//    else
-//    begin
-//      // Běžné buňky
-//      Brush.Color := clWindow;
-//      Font.Assign(Self.Font);
-//      Font.Style := [];
-//      FillRect(Rect);
-//
-//      Text := StringGrid1.Cells[ACol, ARow];
-//      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
-//    end;
-//  end;
-//end;
-
 procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
@@ -1240,9 +330,6 @@ begin
       TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
     end;
   end;
-
-  // Po vykreslení přizpůsobí šířky sloupců
-  //AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
 end;
 
 procedure TForm2.FromTXTClick(Sender: TObject);
@@ -1460,66 +547,7 @@ begin
       StringGrid1.Cells[col, row] := IntToStr(CurrentQuality);
 end;
 
-// Helpery pro číslo KÚ
-//function TForm2.PadSix(const S: string): string;
-//var
-//  N: Int64;
-//begin
-//  // převede text na číslo a naformátuje na 6 míst s nulami zleva
-//  N := StrToInt64Def(S, 0);
-//  if N < 0 then N := 0;
-//  Result := Format('%.6d', [N]);
-//end;
-
-//procedure TForm2.ComboBox4KeyPress(Sender: TObject; var Key: Char);
-//begin
-//  // povolit jen číslice a Backspace
-//  if not CharInSet(Key, ['0'..'9', #8]) then
-//    Key := #0;
-//end;
-
-//procedure TForm2.ComboBox4Change(Sender: TObject);
-//var
-//  S: string;
-//  i: Integer;
-//  Changed: Boolean;
-//begin
-//  // očistit vložený text (Ctrl+V apod.) od nečíselných znaků
-//  S := ComboBox4.Text;
-//  Changed := False;
-//  for i := Length(S) downto 1 do
-//    if not CharInSet(S[i], ['0'..'9']) then
-//    begin
-//      Delete(S, i, 1);
-//      Changed := True;
-//    end;
-//
-//  if Changed then
-//  begin
-//    ComboBox4.Text := S;
-//    ComboBox4.SelStart := Length(S);
-//  end;
-//end;
-
-//procedure TForm2.ComboBox4Exit(Sender: TObject);
-//begin
-//  // při opuštění pole vždy dorovnat na 6 znaků
-//  ComboBox4.Text := PadSix(CombocBox4.Text);
-//end;
-
-//procedure TForm2.ComboBox4KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-//begin
-//  if Key = VK_RETURN then
-//  begin
-//    ComboBox4.Text := PadSix(ComboBox4.Text); // např. "1" -> "000001"
-//    Key := 0;
-//    // volitelné: přeskočit na další ovládací prvek
-//    SelectNext(ActiveControl, True, True);
-//  end;
-//end;
-
-//Unoverzální combobox doplněni KÚ a ZPMZ
-
+// Univerzální combobox doplněni KÚ a ZPMZ
 function TForm2.PadZeros(const S: string; PadLen: Integer): string;
 var
   N, MaxVal: Int64;

@@ -10,7 +10,6 @@ object Form6: TForm6
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OnActivate = FormShow
   OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 15
@@ -26,16 +25,33 @@ object Form6: TForm6
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object StringGrid1: TStringGrid
+  object StringGrid1: TMyStringGrid
     Left = 8
     Top = 29
     Width = 391
     Height = 128
     ColCount = 6
+    FixedCols = 0
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing]
     TabOrder = 0
-    OnKeyPress = StringGrid1KeyPress
+    OnDrawCell = StringGrid1DrawCell
+    OnEnter = StringGrid1Enter
+    OnSelectCell = StringGrid1SelectCell
+    ColumnHeaders.Strings = (
+      #268#237'slo bodu'
+      'X'
+      'Y'
+      'Z'
+      'Kvalita'
+      'Popis')
+    ColWidths = (
+      60
+      60
+      60
+      60
+      60
+      60)
   end
   object btnOK: TButton
     Left = 224

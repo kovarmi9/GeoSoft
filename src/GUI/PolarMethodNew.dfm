@@ -44,6 +44,7 @@ object Form9: TForm9
       OnClick = CheckBox1Click
     end
     object ComboBoxKU: TComboBox
+      Tag = 6
       AlignWithMargins = True
       Left = 121
       Top = 0
@@ -55,6 +56,7 @@ object Form9: TForm9
       TabOrder = 4
       Text = '000000'
       OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '000000'
         '000001'
@@ -69,6 +71,7 @@ object Form9: TForm9
       Style = tbsSeparator
     end
     object ComboBoxZPMZ: TComboBox
+      Tag = 5
       Left = 228
       Top = 0
       Width = 94
@@ -79,6 +82,7 @@ object Form9: TForm9
       TabOrder = 3
       Text = '00000'
       OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '00000'
         '00001'
@@ -103,6 +107,7 @@ object Form9: TForm9
       Style = csDropDownList
       TabOrder = 2
       OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '0'
         '1'
@@ -129,6 +134,7 @@ object Form9: TForm9
       Height = 23
       TabOrder = 1
       OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
     end
   end
   object Panel1: TPanel

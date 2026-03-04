@@ -44,6 +44,7 @@ type
 
     procedure FormActivate(Sender: TObject);
     procedure PrefixComboExit(Sender: TObject);
+    procedure NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
     procedure MyStringGridStationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure MyPointsStringGrid1OrientationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -588,6 +589,51 @@ end;
 procedure TForm9.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+procedure TForm9.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  CB: TComboBox;
+  N, MaxVal: Int64;
+begin
+  // Enter flow prefixů: KU -> ZPMZ -> KK -> Popis -> první buňka station gridu.
+  if Key <> VK_RETURN then
+    Exit;
+
+  CB := Sender as TComboBox;
+  Key := 0;
+
+  // U číselných prefixů dorovnej nuly podle Tag.
+  if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
+  begin
+    N := StrToInt64Def(CB.Text, 0);
+    if N < 0 then N := 0;
+    if CB.Tag > 0 then
+      MaxVal := StrToInt64(StringOfChar('9', CB.Tag))
+    else
+      MaxVal := High(Int64);
+    if N > MaxVal then N := MaxVal;
+    CB.Text := Format('%.*d', [CB.Tag, N]);
+  end;
+
+  if Sender = ComboBoxKU then
+    ComboBoxZPMZ.SetFocus
+  else if Sender = ComboBoxZPMZ then
+    ComboBoxKK.SetFocus
+  else if Sender = ComboBoxKK then
+    ComboBoxPopis.SetFocus
+  else if Sender = ComboBoxPopis then
+  begin
+    if MyStringGridStation.RowCount <= MyStringGridStation.FixedRows then
+      MyStringGridStation.RowCount := MyStringGridStation.FixedRows + 1;
+
+    MyStringGridStation.SetFocus;
+    MyStringGridStation.Row := MyStringGridStation.FixedRows;
+    MyStringGridStation.Col := 0;
+    MyStringGridStation.EditorMode := True;
+  end
+  else
+    SelectNext(ActiveControl, True, True);
 end;
 
 procedure TForm9.PrefixComboExit(Sender: TObject);

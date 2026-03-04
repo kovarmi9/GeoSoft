@@ -626,13 +626,34 @@ procedure TForm2.NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TSh
 var
   CB: TComboBox;
 begin
-  if Key = VK_RETURN then
-  begin
-    CB := Sender as TComboBox;
+  // Enter ve všech prefix combo polích: KU -> ZPMZ -> KK -> Popis -> první buňka gridu.
+  if Key <> VK_RETURN then
+    Exit;
+
+  CB := Sender as TComboBox;
+  Key := 0;
+
+  if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
     CB.Text := PadZeros(CB.Text, CB.Tag);
-    Key := 0;
-    SelectNext(ActiveControl, True, True); // skok na další
-  end;
+// Přeskakování enterem
+  if Sender = ComboBoxKU then
+    ComboBoxZPMZ.SetFocus
+  else if Sender = ComboBoxZPMZ then
+    ComboBoxKK.SetFocus
+  else if Sender = ComboBoxKK then
+    ComboBoxPopis.SetFocus
+  else if Sender = ComboBoxPopis then
+  begin
+    if StringGrid1.RowCount <= StringGrid1.FixedRows then
+      StringGrid1.RowCount := StringGrid1.FixedRows + 1;
+
+    StringGrid1.SetFocus;
+    StringGrid1.Row := StringGrid1.FixedRows;
+    StringGrid1.Col := 0;
+    StringGrid1.EditorMode := True;
+  end
+  else
+    SelectNext(ActiveControl, True, True);
 end;
 
 // Uloží aktuální prefixové hodnoty do globálního stavu a znovu je načte do UI

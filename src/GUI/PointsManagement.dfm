@@ -38,6 +38,7 @@ object Form2: TForm2
       'Z'
       'Kvalita'
       'Popis')
+    ExplicitWidth = 422
     ColWidths = (
       66
       65
@@ -75,6 +76,7 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
+    ExplicitWidth = 416
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True
@@ -145,6 +147,7 @@ object Form2: TForm2
       TabOrder = 2
       Text = '3'
       OnExit = PrefixComboExit
+      OnKeyDown = NumericCombo_KeyDown
       Items.Strings = (
         '0'
         '1'
@@ -171,6 +174,7 @@ object Form2: TForm2
       Height = 23
       TabOrder = 3
       OnExit = PrefixComboExit
+      OnKeyDown = NumericCombo_KeyDown
     end
   end
   object MainMenu1: TMainMenu

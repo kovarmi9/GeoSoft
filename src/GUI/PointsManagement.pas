@@ -767,7 +767,6 @@ type
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure File2Click(Sender: TObject);
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-    procedure AutoSizeColumns(const CustomWidths: array of Integer);
     procedure UpdateCurrentDirectoryPath;
     procedure FromTXTClick(Sender: TObject);
     procedure FromCSVClick(Sender: TObject);
@@ -780,6 +779,9 @@ type
 //    procedure ComboBox4Change(Sender: TObject);
 
     procedure PrefixComboExit(Sender: TObject);
+    procedure NumericCombo_KeyPress(Sender: TObject; var Key: Char);
+    procedure NumericCombo_Change(Sender: TObject);
+    procedure NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     function CurrentQuality: Integer;
     function IsValidQualityStr(const S: string): Boolean;
@@ -791,13 +793,8 @@ type
 //    function PadSix(const S: string): string;
     procedure ApplyDescriptionToRow(const ARow: Integer);
     procedure EnsureQualityOnRow(const ARow: Integer);
-
-    procedure SetupNumericCombo(CB: TComboBox; PadLen: Integer; const DefaultText: string);
     function  PadZeros(const S: string; PadLen: Integer): string;
-    procedure NumericCombo_KeyPress(Sender: TObject; var Key: Char);
-    procedure NumericCombo_Change(Sender: TObject);
     procedure NumericCombo_Exit(Sender: TObject);
-    procedure NumericCombo_KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   public
     { Public declarations }
   end;
@@ -821,35 +818,12 @@ var
   P: TPoint;
   i: Integer;
 begin
-  // Nastavení sloupců a řádků pro StringGrid1 (tabulka pro zadávání souřadnic)
-  StringGrid1.ColCount := 6; // Počet sloupců: Číslo bodu, X, Y, Z, Popis
-  StringGrid1.RowCount := 2; // Minimálně 2 řádky (hlavička + 1 prázdný řádek pro vstup)
-  StringGrid1.FixedRows := 1;            // první řádek je hlavička
-  StringGrid1.FixedCols := 0;            // jen pevný řádek, ne sloupce
-  // Nastavení popisků sloupců (hlavičky) pro StringGrid1
-  StringGrid1.Cells[0, 0] := 'Číslo bodu'; // Název sloupce 0
-  StringGrid1.Cells[1, 0] := 'X';          // Název sloupce 1
-  StringGrid1.Cells[2, 0] := 'Y';          // Název sloupce 2
-  StringGrid1.Cells[3, 0] := 'Z';          // Název sloupce 3
-  StringGrid1.Cells[4, 0] := 'Kvalita';    // Název sloupce 4
-  StringGrid1.Cells[5, 0] := 'Popis';      // Název sloupce 4
-
-  // Nastavení výchozích hodnot v prvním řádku pro zadávání bodů
-  StringGrid1.Cells[0, 1] := ''; // Číslo bodu (prázdná)
-  StringGrid1.Cells[1, 1] := '';  // X souřadnice (prázdná)
-  StringGrid1.Cells[2, 1] := '';  // Y souřadnice (prázdná)
-  StringGrid1.Cells[3, 1] := '';  // Z souřadnice (prázdná)
-  StringGrid1.Cells[4, 1] := '';  // Kvalita (prázdná)
-  StringGrid1.Cells[5, 1] := '';  // Popis (prázdný)
-
-  // Nastavení velikostí buněk
-  AutoSizeColumns([80, 80, 80, 80, 80, 80]);
 
   // Naplní grid existujícími body ze slovníku ---
   i := 1;  // začíná na prvním datovém řádku
   for P in TPointDictionary.GetInstance.Values do
   begin
-    // zajistíme dostatek řádků
+    // zajistí dostatek řádků
     StringGrid1.RowCount := i + 1;
     // vyplníme sloupce 0..5
     StringGrid1.Cells[0, i] := IntToStr(P.PointNumber);
@@ -868,12 +842,6 @@ begin
   UpdateCurrentDirectoryPath;
 
   // Správa polu pro číslo KÚ/ZPMZ
-
-  // Číslo KÚ: 6 míst
-  SetupNumericCombo(ComboBox4, 6, '000000');
-
-  // Číslo ZPMZ bodu: 5 míst
-  SetupNumericCombo(ComboBox5, 5, '00000');
 
   LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
 
@@ -1277,24 +1245,6 @@ begin
   //AutoSizeColumns([80, 80, 80, 80, 80, 80, 80, 80]);
 end;
 
-procedure TForm2.AutoSizeColumns(const CustomWidths: array of Integer);
-var
-  i, w: Integer;
-begin
-  // Pro všechny datové sloupce 1..ColCount-1
-  for i := 1 to StringGrid1.ColCount - 1 do
-  begin
-    // Pokud mám v CustomWidths prvek pro tento sloupec a je >0, vezmu ho
-    if (i-1 < Length(CustomWidths)) and (CustomWidths[i-1] > 0) then
-      w := CustomWidths[i-1]
-    else
-      // jinak auto podle šířky nadpisu + 16px odsazení
-      w := StringGrid1.Canvas.TextWidth(StringGrid1.Cells[i,0]) + 16;
-
-    StringGrid1.ColWidths[i] := w;
-  end;
-end;
-
 procedure TForm2.FromTXTClick(Sender: TObject);
 var
   pt: TPoint;
@@ -1570,18 +1520,6 @@ end;
 
 //Unoverzální combobox doplněni KÚ a ZPMZ
 
-procedure TForm2.SetupNumericCombo(CB: TComboBox; PadLen: Integer; const DefaultText: string);
-begin
-  CB.Style      := csDropDown;   // musí být editovatelné
-  CB.MaxLength  := PadLen;       // omezí délku
-  CB.Tag        := PadLen;       // uložíme si požadovaný počet číslic
-  CB.Text       := DefaultText;
-
-  CB.OnKeyPress := NumericCombo_KeyPress;  // jen čísla a Backspace
-  CB.OnChange   := NumericCombo_Change;    // očista při Ctrl+V apod.
-  CB.OnKeyDown  := NumericCombo_KeyDown;   // Enter = dorovnat + next
-end;
-
 function TForm2.PadZeros(const S: string; PadLen: Integer): string;
 var
   N, MaxVal: Int64;
@@ -1661,6 +1599,10 @@ end;
 
 procedure TForm2.PrefixComboExit(Sender: TObject);
 begin
+  // Pro číselné prefix comboboxy nejdřív dorovnej nuly.
+  if (Sender = ComboBox4) or (Sender = ComboBox5) then
+    NumericCombo_Exit(Sender);
+
   SavePrefixFromCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
   LoadPrefixToCombos(ComboBox4, ComboBox5, ComboBox6, ComboBox1);
 end;

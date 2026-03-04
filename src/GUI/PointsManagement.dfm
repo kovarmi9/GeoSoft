@@ -11,7 +11,6 @@ object Form2: TForm2
   Font.Name = 'Segoe UI'
   Font.Style = []
   Menu = MainMenu1
-  OnActivate = FormShow
   OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 15
@@ -31,7 +30,14 @@ object Form2: TForm2
     OnKeyPress = StringGrid1KeyPress
     OnSelectCell = StringGrid1SelectCell
     EnterEndBehavior = ebAddRow
-    ExplicitWidth = 422
+    ColumnHeaders.Strings = (
+      #268#237'slo bodu'
+      'X'
+      'Y'
+      'Z'
+      'Kvalita'
+      'Popis')
+    ExplicitTop = 82
     ColWidths = (
       66
       65
@@ -49,6 +55,8 @@ object Form2: TForm2
       item
         Width = 50
       end>
+    ExplicitTop = 366
+    ExplicitWidth = 418
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -57,6 +65,7 @@ object Form2: TForm2
     Height = 50
     Align = alTop
     TabOrder = 2
+    ExplicitWidth = 418
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -69,8 +78,9 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
-    ExplicitWidth = 416
+    ExplicitWidth = 412
     object ComboBox4: TComboBox
+      Tag = 6
       AlignWithMargins = True
       Left = 0
       Top = 0
@@ -81,7 +91,10 @@ object Form2: TForm2
       MaxLength = 6
       TabOrder = 0
       Text = '000000'
+      OnChange = NumericCombo_Change
       OnExit = PrefixComboExit
+      OnKeyDown = NumericCombo_KeyDown
+      OnKeyPress = NumericCombo_KeyPress
       Items.Strings = (
         '000000'
         '000001'
@@ -96,6 +109,7 @@ object Form2: TForm2
       Style = tbsSeparator
     end
     object ComboBox5: TComboBox
+      Tag = 5
       Left = 107
       Top = 0
       Width = 94
@@ -105,7 +119,10 @@ object Form2: TForm2
       MaxLength = 5
       TabOrder = 1
       Text = '00000'
+      OnChange = NumericCombo_Change
       OnExit = PrefixComboExit
+      OnKeyDown = NumericCombo_KeyDown
+      OnKeyPress = NumericCombo_KeyPress
       Items.Strings = (
         '00000'
         '00001'

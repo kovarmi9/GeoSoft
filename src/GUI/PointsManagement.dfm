@@ -15,7 +15,7 @@ object Form2: TForm2
   OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 15
-  object StringGrid1: TStringGrid
+  object StringGrid1: TMyPointsStringGrid
     Left = 0
     Top = 85
     Width = 420
@@ -30,6 +30,15 @@ object Form2: TForm2
     OnKeyDown = StringGrid1KeyDown
     OnKeyPress = StringGrid1KeyPress
     OnSelectCell = StringGrid1SelectCell
+    EnterEndBehavior = ebAddRow
+    ExplicitWidth = 422
+    ColWidths = (
+      66
+      65
+      65
+      65
+      65
+      65)
   end
   object StatusBar1: TStatusBar
     Left = 0
@@ -60,6 +69,7 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
+    ExplicitWidth = 416
     object ComboBox4: TComboBox
       AlignWithMargins = True
       Left = 0

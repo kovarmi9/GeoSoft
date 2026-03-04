@@ -734,11 +734,11 @@ uses
   StringGridValidationUtils, InputFilterUtils, PointsUtilsSingleton, ValidationUtils, System.Classes, Point,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ActnMan, Vcl.ActnCtrls, Vcl.ActnMenus,
   Vcl.ExtCtrls, System.IOUtils, Vcl.StdCtrls, Vcl.Mask,
-  MyPointsStringGrid, PointPrefixState;
+  MyPointsStringGrid, PointPrefixState, MyStringGrid;
 
 type
   TForm2 = class(TForm)
-    StringGrid1: TStringGrid;
+    StringGrid1: TMyPointsStringGrid;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
     File2: TMenuItem;
@@ -1120,8 +1120,6 @@ begin
   if not ((Key = VK_RETURN) or (Key = VK_TAB)) then
     Exit;
 
-  Key := 0; // zablokuje defaultní chování
-
   // Pokud by byla z nějakého důvodu zapnutá editace po enteru...
   // Commit editované buňky do Cells[] ===
   // Bez toho se může stát, že poslední napsaný znak ještě není v Cells.
@@ -1148,20 +1146,16 @@ begin
     end;
   end;
 
-  // Navigace v rámci řádku
-  // Pokud není poslední sloupec -> posun doprava a konec
+  // Navigaci Enter/Tab řeší TMyPointsStringGrid interně.
   if StringGrid1.Col < StringGrid1.ColCount - 1 then
-  begin
-    StringGrid1.Col := StringGrid1.Col + 1;
-    Exit;// konec
-  end;
+    Exit;
 
   // Pokud je poslední sloupec -> uloží aktuální řádek do slovníku
   SaveRow := StringGrid1.Row; // tenhle řádek bude uložen
 
   // Doplněníoplnit kvality/popisku defaultem, když jsou prázdné.
-   EnsureQualityOnRow(SaveRow);
-   ApplyDescriptionToRow(SaveRow);
+  EnsureQualityOnRow(SaveRow);
+  ApplyDescriptionToRow(SaveRow);
 
   // Načte hodnoty z uloženého řádku
   PointNumber := StrToIntDef(StringGrid1.Cells[0, SaveRow], -1);
@@ -1195,12 +1189,6 @@ begin
   else
     ShowMessage(Format('Bod %d nebyl vložen.', [PointNumber]));
 
-  // Přesun na další řádek (a případné přidání nového)
-  if SaveRow = StringGrid1.RowCount - 1 then
-    StringGrid1.RowCount := StringGrid1.RowCount + 1;
-
-  StringGrid1.Row := SaveRow + 1;
-  StringGrid1.Col := 0;
 end;
 
 procedure TForm2.UpdateCurrentDirectoryPath;

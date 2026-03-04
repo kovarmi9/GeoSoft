@@ -3219,8 +3219,8 @@ object Form1: TForm1
         OnClick = TransformationClick
       end
       object Pokus1: TMenuItem
-        Caption = 'Pokus'
-        OnClick = PokusClick
+        Caption = 'Kontroln'#237' om'#283'rn'#233
+        OnClick = CheckMeasurementClick
       end
       object Polrnmetodanov1: TMenuItem
         Caption = 'Pol'#225'rn'#237' metoda nov'#225

@@ -1,4 +1,4 @@
-unit Pokus;
+unit CheckMeasurement;
 
 interface
 

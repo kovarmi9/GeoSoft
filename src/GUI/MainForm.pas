@@ -8,7 +8,7 @@ uses
   Point, Vcl.StdCtrls,
   AddPoint,
   Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  PointsManagement,   GeoAlgorithmBase,
+  PointsManagement, GeoAlgorithmBase,
   GeoAlgorithmTransformBase,
   GeoAlgorithmTransformSimilarity,
   System.Generics.Collections,
@@ -33,7 +33,7 @@ type
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);
     procedure TransformationClick(Sender: TObject);
-    procedure PokusClick(Sender: TObject);
+    procedure CheckMeasurementClick(Sender: TObject);
     procedure Polrnmetodanov1Click(Sender: TObject);
   private
     { Private declarations }
@@ -48,7 +48,7 @@ implementation
 
 {$R *.dfm}
 
-uses polarMethod, OrthogonalMethod, Transformation, Pokus, PolarMethodNew;
+uses polarMethod, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethodNew;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
@@ -75,7 +75,7 @@ begin
 Form5.Show;
 end;
 
-procedure TForm1.PokusClick(Sender: TObject);
+procedure TForm1.CheckMeasurementClick(Sender: TObject);
 begin
 Form7.Show;
 end;

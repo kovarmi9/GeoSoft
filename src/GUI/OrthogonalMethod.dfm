@@ -25,7 +25,6 @@ object Form4: TForm4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 0
-    ExplicitWidth = 598
     RowHeights = (
       24
       24
@@ -39,7 +38,6 @@ object Form4: TForm4
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 1
-    ExplicitWidth = 598
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -52,44 +50,55 @@ object Form4: TForm4
     List = True
     AllowTextButtons = True
     TabOrder = 2
-    ExplicitWidth = 592
-    object ComboBox1: TComboBox
+    object ComboBoxKU: TComboBox
+      Tag = 6
       AlignWithMargins = True
       Left = 0
       Top = 0
       Width = 99
       Height = 23
       Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
-      TabOrder = 0
-      Text = '00000000000'
+      ItemIndex = 0
+      MaxLength = 6
+      TabOrder = 3
+      Text = '000000'
       Items.Strings = (
-        '00000000000')
+        '000000'
+        '000001'
+        '000002')
     end
-    object ToolButton3: TToolButton
+    object ToolButton1: TToolButton
       Left = 99
       Top = 0
       Width = 8
-      Caption = 'ToolButton3'
-      ImageIndex = 1
+      Caption = 'ToolButton1'
       Style = tbsSeparator
     end
-    object ComboBox2: TComboBox
+    object ComboBoxZPMZ: TComboBox
+      Tag = 5
       Left = 107
       Top = 0
       Width = 94
       Height = 23
       Hint = 'Popis bodu'
-      TabOrder = 1
+      ItemIndex = 0
+      MaxLength = 5
+      TabOrder = 2
+      Text = '00000'
+      Items.Strings = (
+        '00000'
+        '00001'
+        '00002')
     end
     object ToolButton2: TToolButton
       Left = 201
       Top = 0
       Width = 8
       Caption = 'ToolButton2'
-      ImageIndex = 2
+      ImageIndex = 0
       Style = tbsSeparator
     end
-    object ComboBox6: TComboBox
+    object ComboBoxKK: TComboBox
       AlignWithMargins = True
       Left = 209
       Top = 0
@@ -98,9 +107,7 @@ object Form4: TForm4
       Hint = 'K'#243'd kvality'
       Align = alRight
       Style = csDropDownList
-      ItemIndex = 3
-      TabOrder = 2
-      Text = '3'
+      TabOrder = 0
       Items.Strings = (
         '0'
         '1'
@@ -112,6 +119,21 @@ object Form4: TForm4
         '7'
         '8')
     end
+    object ToolButton3: TToolButton
+      Left = 249
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton3'
+      ImageIndex = 1
+      Style = tbsSeparator
+    end
+    object ComboBoxPopis: TComboBox
+      Left = 257
+      Top = 0
+      Width = 145
+      Height = 23
+      TabOrder = 1
+    end
   end
   object Panel1: TPanel
     Left = 0
@@ -120,8 +142,6 @@ object Form4: TForm4
     Height = 117
     Align = alBottom
     TabOrder = 3
-    ExplicitTop = 216
-    ExplicitWidth = 598
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
@@ -131,7 +151,6 @@ object Form4: TForm4
         item
           Width = 50
         end>
-      ExplicitWidth = 596
     end
   end
 end

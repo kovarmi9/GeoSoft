@@ -2,8 +2,8 @@ object Form6: TForm6
   Left = 0
   Top = 0
   Caption = 'P'#345'idat bod'
-  ClientHeight = 165
-  ClientWidth = 407
+  ClientHeight = 116
+  ClientWidth = 391
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -28,10 +28,11 @@ object Form6: TForm6
     ParentFont = False
   end
   object StringGrid1: TMyStringGrid
-    Left = 8
-    Top = 29
+    Left = 0
+    Top = 0
     Width = 391
-    Height = 84
+    Height = 116
+    Align = alClient
     ColCount = 6
     FixedCols = 0
     RowCount = 2
@@ -49,6 +50,9 @@ object Form6: TForm6
       'Z'
       'Kvalita'
       'Popis')
+    ExplicitLeft = 8
+    ExplicitTop = 29
+    ExplicitHeight = 84
     ColWidths = (
       60
       60
@@ -58,8 +62,8 @@ object Form6: TForm6
       60)
   end
   object btnOK: TButton
-    Left = 232
-    Top = 131
+    Left = 216
+    Top = 75
     Width = 75
     Height = 25
     Caption = 'OK'
@@ -67,8 +71,8 @@ object Form6: TForm6
     TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 313
-    Top = 131
+    Left = 297
+    Top = 75
     Width = 75
     Height = 25
     Caption = 'Zru'#353'it'

@@ -1,8 +1,8 @@
 object Form4: TForm4
   Left = 0
   Top = 0
-  ClientHeight = 341
-  ClientWidth = 600
+  ClientHeight = 562
+  ClientWidth = 793
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,10 +13,10 @@ object Form4: TForm4
   OnCreate = FormCreate
   OnKeyDown = StringGrid1KeyDown
   TextHeight = 15
-  object StringGrid1: TMyStringGrid
+  object StringGrid1: TMyPointsStringGrid
     Left = 0
     Top = 64
-    Width = 600
+    Width = 793
     Height = 158
     Hint = 'K'#243'd kvality'
     Align = alTop
@@ -26,17 +26,36 @@ object Form4: TForm4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 0
+    OnDrawCell = StringGrid1DrawCell
+    OnKeyDown = StringGrid1KeyDown
+    OnSelectCell = StringGrid1SelectCell
     EnterEndBehavior = ebAddRow
+    ColumnHeaders.Strings = (
+      ''
+      #268#237'slo bodu'
+      'Stani'#269'en'#237
+      'Kolmice'
+      'X'
+      'Y'
+      'Z'
+      'Kvalita'
+      'Popis')
+    RowHeaders.Strings = (
+      ''
+      'P'
+      'K'
+      '1')
+    ExplicitTop = 61
     ColWidths = (
       64
-      64
-      63
-      63
-      63
-      63
-      63
-      63
-      63)
+      88
+      88
+      87
+      87
+      87
+      87
+      87
+      87)
     RowHeights = (
       24
       24
@@ -46,7 +65,7 @@ object Form4: TForm4
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 600
+    Width = 793
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 1
@@ -55,7 +74,7 @@ object Form4: TForm4
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 594
+    Width = 787
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
@@ -157,15 +176,15 @@ object Form4: TForm4
   end
   object Panel1: TPanel
     Left = 0
-    Top = 224
-    Width = 600
+    Top = 445
+    Width = 793
     Height = 117
     Align = alBottom
     TabOrder = 3
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
-      Width = 598
+      Width = 791
       Height = 19
       Panels = <
         item

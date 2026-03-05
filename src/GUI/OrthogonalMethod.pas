@@ -45,6 +45,7 @@ type
     ToolButton3: TToolButton;
     procedure FormCreate(Sender: TObject);
     procedure FormActivate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
@@ -102,6 +103,11 @@ end;
 procedure TForm4.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+procedure TForm4.FormDeactivate(Sender: TObject);
+begin
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 procedure TForm4.SetupValidations;

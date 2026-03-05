@@ -13,6 +13,7 @@ object Form2: TForm2
   Menu = MainMenu1
   OnActivate = FormActivate
   OnCreate = FormCreate
+  OnDeactivate = FormDeactivate
   OnShow = FormShow
   TextHeight = 15
   object StringGrid1: TMyPointsStringGrid
@@ -38,6 +39,8 @@ object Form2: TForm2
       'Z'
       'Kvalita'
       'Popis')
+    ExplicitWidth = 418
+    ExplicitHeight = 281
     ColWidths = (
       66
       65
@@ -55,6 +58,8 @@ object Form2: TForm2
       item
         Width = 50
       end>
+    ExplicitTop = 366
+    ExplicitWidth = 418
   end
   object ControlBar1: TControlBar
     Left = 0
@@ -63,6 +68,7 @@ object Form2: TForm2
     Height = 50
     Align = alTop
     TabOrder = 2
+    ExplicitWidth = 418
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -75,6 +81,7 @@ object Form2: TForm2
     List = True
     AllowTextButtons = True
     TabOrder = 3
+    ExplicitWidth = 412
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True

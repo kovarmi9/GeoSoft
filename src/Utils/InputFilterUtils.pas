@@ -19,6 +19,10 @@ implementation
 
 procedure FilterPointNumber(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 begin
+  // Povolit bìžné Ctrl zkratky (Copy/Paste/Cut/Select All).
+  if CharInSet(Key, [#1, #3, #22, #24]) then
+    Exit;
+
   // èíslice + backspace
   if not CharInSet(Key, ['0'..'9', #8]) then
     Key := #0;
@@ -28,6 +32,10 @@ procedure FilterCoordinate(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 var
   DecSep: Char;
 begin
+  // Povolit bìžné Ctrl zkratky (Copy/Paste/Cut/Select All).
+  if CharInSet(Key, [#1, #3, #22, #24]) then
+    Exit;
+
   DecSep := FormatSettings.DecimalSeparator;
 
   // sjednotit . a , na systémový separátor (u tebe typicky ',')
@@ -44,6 +52,10 @@ var
   G: TStringGrid;
   S: string;
 begin
+  // Povolit bìžné Ctrl zkratky (Copy/Paste/Cut/Select All).
+  if CharInSet(Key, [#1, #3, #22, #24]) then
+    Exit;
+
   // povol jen 0..8 + backspace
   if not CharInSet(Key, ['0'..'8', #8]) then
   begin
@@ -65,6 +77,10 @@ end;
 
 procedure FilterDescription(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 begin
+  // Povolit bìžné Ctrl zkratky (Copy/Paste/Cut/Select All).
+  if CharInSet(Key, [#1, #3, #22, #24]) then
+    Exit;
+
   // text ano, øídicí znaky ne (krom backspace)
   if (Key < #32) and (Key <> #8) then
     Key := #0;

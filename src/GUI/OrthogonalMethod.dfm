@@ -11,6 +11,7 @@ object Form4: TForm4
   Font.Style = []
   OnActivate = FormActivate
   OnCreate = FormCreate
+  OnDeactivate = FormDeactivate
   OnKeyDown = StringGrid1KeyDown
   TextHeight = 15
   object StringGrid1: TMyPointsStringGrid
@@ -45,7 +46,7 @@ object Form4: TForm4
       'P'
       'K'
       '1')
-    ExplicitTop = 61
+    ExplicitWidth = 795
     ColWidths = (
       64
       88
@@ -81,6 +82,7 @@ object Form4: TForm4
     List = True
     AllowTextButtons = True
     TabOrder = 2
+    ExplicitWidth = 789
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True

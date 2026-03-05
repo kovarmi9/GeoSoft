@@ -43,6 +43,7 @@ type
     procedure CalculateClick(Sender: TObject);
 
     procedure FormActivate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
     procedure PrefixComboExit(Sender: TObject);
     procedure NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 
@@ -589,6 +590,11 @@ end;
 procedure TForm9.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+procedure TForm9.FormDeactivate(Sender: TObject);
+begin
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 procedure TForm9.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);

@@ -37,6 +37,7 @@ type
     ToolButton1: TToolButton;
     procedure FormCreate(Sender: TObject); // Procedura volaná při inicializaci formuláře
     procedure FormActivate(Sender: TObject);
+    procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure StringGrid1KeyPress(Sender: TObject; var Key: Char); // Procedura pro zpracování stisknutí klávesy
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -133,7 +134,7 @@ begin
     StringGrid1.RowCount := Keys.Count + 2;
 
     // Hlavička – obnoví texty
-    StringGrid1.Cells[0, 0] := 'číslo bodu';
+    StringGrid1.Cells[0, 0] := 'Číslo bodu';
     StringGrid1.Cells[1, 0] := 'X';
     StringGrid1.Cells[2, 0] := 'Y';
     StringGrid1.Cells[3, 0] := 'Z';
@@ -184,6 +185,11 @@ begin
   // Po návratu na formulář načti aktuální globální prefixy a body.
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   RefreshGrid;
+end;
+
+procedure TForm2.FormDeactivate(Sender: TObject);
+begin
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 // Prozatimní oprava

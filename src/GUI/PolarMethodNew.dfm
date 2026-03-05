@@ -11,6 +11,7 @@ object Form9: TForm9
   Font.Name = 'Segoe UI'
   Font.Style = []
   OnActivate = FormActivate
+  OnDeactivate = FormDeactivate
   TextHeight = 15
   object ToolBar1: TToolBar
     Left = 0

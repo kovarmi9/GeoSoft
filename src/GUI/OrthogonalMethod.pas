@@ -612,7 +612,8 @@ uses
   Point,                    // TPoint (vlastní, ne Winapi)
   GeoAlgorithmBase,         // TPointsArray
   GeoAlgorithmOrthogonal,   // TOrthogonalMethodAlgorithm
-  MyStringGrid;
+  MyStringGrid,
+  PointPrefixState;
 
 type
   TForm4 = class(TForm)
@@ -629,12 +630,15 @@ type
     ToolButton2: TToolButton;
     ToolButton3: TToolButton;
     procedure FormCreate(Sender: TObject);
+    procedure FormActivate(Sender: TObject);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+    procedure PrefixComboExit(Sender: TObject);
+    procedure NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     procedure UpdateCurrentDirectoryPath;
-    procedure MoveToNextCell;
     procedure AutoSizeColumns(const CustomWidths: array of Integer);
+    function  PadZeros(const S: string; PadLen: Integer): string;
 
     // helpery
     procedure FillRowFromPoint(const R: Integer; const P: Point.TPoint);
@@ -684,6 +688,14 @@ begin
 
   // Stavový řádek
   UpdateCurrentDirectoryPath;
+
+  // Načti globální prefixy do comboboxů.
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+procedure TForm4.FormActivate(Sender: TObject);
+begin
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 procedure TForm4.UpdateCurrentDirectoryPath;
@@ -755,6 +767,25 @@ begin
   Result := not IsNan(V);
 end;
 
+function TForm4.PadZeros(const S: string; PadLen: Integer): string;
+var
+  N, MaxVal: Int64;
+begin
+  N := StrToInt64Def(Trim(S), 0);
+  if N < 0 then
+    N := 0;
+
+  if PadLen > 0 then
+  begin
+    MaxVal := StrToInt64(StringOfChar('9', PadLen));
+    if N > MaxVal then
+      N := MaxVal;
+    Result := Format('%.*d', [PadLen, N]);
+  end
+  else
+    Result := IntToStr(N);
+end;
+
 function TForm4.TryComputeDetailRow(const R: Integer): Boolean;
 var
   P0, K0: Point.TPoint;
@@ -804,18 +835,21 @@ procedure TForm4.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShif
 var
   Confirm: Boolean;
   Anchor: Point.TPoint;
+  CurrentRow: Integer;
+  PointIdText: string;
+  PNum: Integer;
 begin
   Confirm := (Key = VK_RETURN) or (Key = VK_TAB);
 
   if Confirm then
   begin
-    Key := 0;
+    CurrentRow := StringGrid1.Row;
 
     // Kotvy P/K (řádky 1 a 2): číslo bodu → buď načti, nebo založ přes AddPoint
     if (StringGrid1.Col = 1) and (StringGrid1.Row in [1, 2]) then
     begin
-      if LoadOrPromptAnchor(StringGrid1.Row, Anchor) then
-        MoveToNextCell;
+      if not LoadOrPromptAnchor(StringGrid1.Row, Anchor) then
+        Key := 0;
       Exit;
     end;
 
@@ -825,8 +859,20 @@ begin
       // 1) Pokud potvrzuji ve sloupci 1 (číslo bodu) → jen doplň z dictionary (bez AddPoint)
       if (StringGrid1.Col = 1) then
       begin
+        SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+
+        PointIdText := BuildPointIdFromPrefixState(StringGrid1.Cells[1, StringGrid1.Row]);
+        if TryStrToInt(PointIdText, PNum) then
+          StringGrid1.Cells[1, StringGrid1.Row] := IntToStr(PNum);
+
         MaybeFillFromDict(StringGrid1.Row);
-        MoveToNextCell;
+
+        if Trim(StringGrid1.Cells[7, StringGrid1.Row]) = '' then
+          StringGrid1.Cells[7, StringGrid1.Row] := Trim(GPointPrefix.KK);
+
+        if Trim(StringGrid1.Cells[8, StringGrid1.Row]) = '' then
+          StringGrid1.Cells[8, StringGrid1.Row] := Trim(GPointPrefix.Popis);
+
         Exit;
       end;
 
@@ -834,13 +880,20 @@ begin
       if (StringGrid1.Col in [2, 3]) then
       begin
         TryComputeDetailRow(StringGrid1.Row); // tichý fail, když něco chybí
-        MoveToNextCell;
+
+        SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+        if Trim(StringGrid1.Cells[7, StringGrid1.Row]) = '' then
+          StringGrid1.Cells[7, StringGrid1.Row] := Trim(GPointPrefix.KK);
+        if Trim(StringGrid1.Cells[8, StringGrid1.Row]) = '' then
+          StringGrid1.Cells[8, StringGrid1.Row] := Trim(GPointPrefix.Popis);
+
         Exit;
       end;
     end;
 
-    // Fallback: jen navigace
-    MoveToNextCell;
+    if (CurrentRow >= 3) and (CurrentRow < StringGrid1.RowCount) and
+       (Trim(StringGrid1.Cells[0, CurrentRow]) = '') then
+      StringGrid1.Cells[0, CurrentRow] := IntToStr(CurrentRow - 2);
   end
   else if Key = VK_DELETE then
   begin
@@ -848,22 +901,46 @@ begin
   end;
 end;
 
-procedure TForm4.MoveToNextCell;
+procedure TForm4.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+var
+  CB: TComboBox;
 begin
-  if StringGrid1.Col < StringGrid1.ColCount - 1 then
-    StringGrid1.Col := StringGrid1.Col + 1
-  else
+  if Key <> VK_RETURN then
+    Exit;
+
+  CB := Sender as TComboBox;
+  Key := 0;
+
+  if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
+    CB.Text := PadZeros(CB.Text, CB.Tag);
+
+  if Sender = ComboBoxKU then
+    ComboBoxZPMZ.SetFocus
+  else if Sender = ComboBoxZPMZ then
+    ComboBoxKK.SetFocus
+  else if Sender = ComboBoxKK then
+    ComboBoxPopis.SetFocus
+  else if Sender = ComboBoxPopis then
   begin
-    if StringGrid1.Row = StringGrid1.RowCount - 1 then
-      StringGrid1.RowCount := StringGrid1.RowCount + 1;
+    if StringGrid1.RowCount <= StringGrid1.FixedRows then
+      StringGrid1.RowCount := StringGrid1.FixedRows + 1;
 
-    StringGrid1.Row := StringGrid1.Row + 1;
+    StringGrid1.SetFocus;
+    StringGrid1.Row := StringGrid1.FixedRows;
     StringGrid1.Col := 1;
+    StringGrid1.EditorMode := True;
+  end
+  else
+    SelectNext(ActiveControl, True, True);
+end;
 
-    // Auto-popisek řádku (1,2,3...) od třetího datového řádku
-    if StringGrid1.Row > 2 then
-      StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row - 2);
-  end;
+procedure TForm4.PrefixComboExit(Sender: TObject);
+begin
+  if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
+    (Sender as TComboBox).Text := PadZeros((Sender as TComboBox).Text, (Sender as TComboBox).Tag);
+
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 procedure TForm4.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;

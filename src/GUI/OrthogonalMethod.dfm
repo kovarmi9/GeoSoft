@@ -9,6 +9,7 @@ object Form4: TForm4
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OnActivate = FormActivate
   OnCreate = FormCreate
   OnKeyDown = StringGrid1KeyDown
   TextHeight = 15
@@ -26,7 +27,7 @@ object Form4: TForm4
     ParentColor = True
     TabOrder = 0
     EnterEndBehavior = ebAddRow
-    ExplicitWidth = 598
+    ExplicitWidth = 602
     ColWidths = (
       64
       64
@@ -63,7 +64,7 @@ object Form4: TForm4
     List = True
     AllowTextButtons = True
     TabOrder = 2
-    ExplicitWidth = 592
+    ExplicitWidth = 596
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True
@@ -76,6 +77,8 @@ object Form4: TForm4
       MaxLength = 6
       TabOrder = 3
       Text = '000000'
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '000000'
         '000001'
@@ -99,6 +102,8 @@ object Form4: TForm4
       MaxLength = 5
       TabOrder = 2
       Text = '00000'
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '00000'
         '00001'
@@ -122,6 +127,8 @@ object Form4: TForm4
       Align = alRight
       Style = csDropDownList
       TabOrder = 0
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '0'
         '1'
@@ -147,6 +154,8 @@ object Form4: TForm4
       Width = 145
       Height = 23
       TabOrder = 1
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
     end
   end
   object Panel1: TPanel

@@ -211,6 +211,9 @@ begin
         ebMoveFocusNext:
           begin
             // Předej fokus dalšímu/ předchozímu ovládacímu prvku podle směru TAB.
+            // Nejdřív ukonči editor buňky, aby fokus opravdu opustil grid.
+            if EditorMode then
+              EditorMode := False;
             GoForward := not ((PressedKey = VK_TAB) and (ssShift in Shift));
             SelectNext(Self, GoForward, True);
           end;

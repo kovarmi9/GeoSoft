@@ -14,6 +14,7 @@ type
     btnCancel: TButton;
     lblWarning: TLabel;
     procedure FormCreate(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject); // Úprava formuláře při každém zobrazení
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); // Reakce na výběr buňky
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); // Vlastní vykreslení jedné buňky gridu
@@ -150,6 +151,25 @@ begin
     StringGrid1.Cells[c, DATA_ROW] := '';
 
   FocusInputCell;
+end;
+
+procedure TForm6.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+begin
+  // Globální fallback: Enter na poslední buňce gridu -> přesun na OK.
+  if Key <> VK_RETURN then
+    Exit;
+
+  if ActiveControl <> StringGrid1 then
+    Exit;
+
+  if (StringGrid1.Col = StringGrid1.ColCount - 1) and
+     (StringGrid1.Row = StringGrid1.RowCount - 1) then
+  begin
+    if StringGrid1.EditorMode then
+      StringGrid1.EditorMode := False;
+    Key := 0;
+    btnOK.SetFocus;
+  end;
 end;
 
 procedure TForm6.FocusInputCell;

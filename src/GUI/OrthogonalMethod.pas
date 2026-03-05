@@ -611,11 +611,12 @@ uses
   AddPoint,                 // TForm6 (dialog pro přidání bodu)
   Point,                    // TPoint (vlastní, ne Winapi)
   GeoAlgorithmBase,         // TPointsArray
-  GeoAlgorithmOrthogonal;   // TOrthogonalMethodAlgorithm
+  GeoAlgorithmOrthogonal,   // TOrthogonalMethodAlgorithm
+  MyStringGrid;
 
 type
   TForm4 = class(TForm)
-    StringGrid1: TStringGrid;
+    StringGrid1: TMyStringGrid;
     ToolBar1: TToolBar;
     ToolBar2: TToolBar;
     Panel1: TPanel;

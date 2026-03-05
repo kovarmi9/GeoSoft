@@ -12,7 +12,7 @@ object Form4: TForm4
   OnCreate = FormCreate
   OnKeyDown = StringGrid1KeyDown
   TextHeight = 15
-  object StringGrid1: TStringGrid
+  object StringGrid1: TMyStringGrid
     Left = 0
     Top = 64
     Width = 600
@@ -25,6 +25,18 @@ object Form4: TForm4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 0
+    EnterEndBehavior = ebAddRow
+    ExplicitWidth = 598
+    ColWidths = (
+      64
+      64
+      63
+      63
+      63
+      63
+      63
+      63
+      63)
     RowHeights = (
       24
       24
@@ -38,6 +50,7 @@ object Form4: TForm4
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 1
+    ExplicitWidth = 598
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -50,6 +63,7 @@ object Form4: TForm4
     List = True
     AllowTextButtons = True
     TabOrder = 2
+    ExplicitWidth = 592
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True
@@ -142,6 +156,8 @@ object Form4: TForm4
     Height = 117
     Align = alBottom
     TabOrder = 3
+    ExplicitTop = 216
+    ExplicitWidth = 598
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
@@ -151,6 +167,7 @@ object Form4: TForm4
         item
           Width = 50
         end>
+      ExplicitWidth = 596
     end
   end
 end

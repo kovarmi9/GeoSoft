@@ -23,6 +23,7 @@ type
   private
     procedure FocusInputCell;
     procedure TryEvalCell(ACol, ARow: Integer);
+    procedure ApplyDefaultsToDataRow;
   public
     /// <summary>
     ///  Zobrazí dialog pro zadání jednoho bodu.
@@ -167,6 +168,7 @@ begin
   begin
     if StringGrid1.EditorMode then
       StringGrid1.EditorMode := False;
+    ApplyDefaultsToDataRow;
     Key := 0;
     btnOK.SetFocus;
   end;
@@ -226,9 +228,21 @@ begin
   if (StringGrid1.Col = StringGrid1.ColCount - 1) and
      (StringGrid1.Row = StringGrid1.RowCount - 1) then
   begin
+    if StringGrid1.EditorMode then
+      StringGrid1.EditorMode := False;
+    ApplyDefaultsToDataRow;
     Key := 0;
     btnOK.SetFocus;
   end;
+end;
+
+procedure TForm6.ApplyDefaultsToDataRow;
+begin
+  if Trim(StringGrid1.Cells[COL_QUALITY, DATA_ROW]) = '' then
+    StringGrid1.Cells[COL_QUALITY, DATA_ROW] := IntToStr(ReadDefaultQuality);
+
+  if Trim(StringGrid1.Cells[COL_DESC, DATA_ROW]) = '' then
+    StringGrid1.Cells[COL_DESC, DATA_ROW] := Trim(GPointPrefix.Popis);
 end;
 
 procedure TForm6.TryEvalCell(ACol, ARow: Integer);

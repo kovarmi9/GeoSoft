@@ -7,14 +7,14 @@ uses
   System.SysUtils;
 
 type
-  // Zatim podporujeme jen tri zakladni typy vstupu.
+  // Zatím jen tři základní typy vstupu
   TColumnDataType = (
     cdtNone,
     cdtInteger,
     cdtFloat
   );
 
-  // Jednoducha pravidla pro jeden sloupec gridu.
+  // Pravidla pro jeden sloupec
   TColumnRule = record
     DataType: TColumnDataType;
     MinLength: Integer;
@@ -27,7 +27,7 @@ type
     function HasSettings: Boolean;
   end;
 
-  // Jeden item odpovida jednomu sloupci.
+  // Jeden item odpovídá jednomu sloupci
   TColumnRuleItem = class(TCollectionItem)
   private
     FDataType: TColumnDataType;
@@ -53,7 +53,7 @@ type
     property MaxValue: string read FMaxValue write SetMaxValue;
   end;
 
-  // Kolekce pravidel pro vsechny sloupce gridu.
+  // Kolekce pravidel pro všechny sloupce
   TColumnRules = class(TOwnedCollection)
   private
     FOnChanged: TNotifyEvent;
@@ -69,12 +69,12 @@ type
     property OnChanged: TNotifyEvent read FOnChanged write FOnChanged;
   end;
 
-procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; var Key: Char);
+procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; const AText: string; var Key: Char);
 function ResolveColumnRule(ARules: TColumnRules; AColumn: Integer): TColumnRule;
 
 implementation
 
-// Sjednoti desetinnou tecku/carku podle lokalniho nastaveni.
+// Sjednotí desetinnou tečku nebo čárku podle místního nastavení
 function NormalizeDecimalKeyChar(Key: Char): Char;
 begin
   Result := Key;
@@ -212,7 +212,7 @@ begin
     FOnChanged(Self);
 end;
 
-procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; var Key: Char);
+procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; const AText: string; var Key: Char);
 begin
   case ARule.DataType of
     cdtNone:
@@ -233,6 +233,10 @@ begin
         Key := NormalizeDecimalKeyChar(Key);
 
         if not CharInSet(Key, ['0'..'9', '+', '-', FormatSettings.DecimalSeparator, #8]) then
+          Key := #0;
+
+        if (Key = FormatSettings.DecimalSeparator) and
+           (Pos(FormatSettings.DecimalSeparator, AText) > 0) then
           Key := #0;
       end;
   end;

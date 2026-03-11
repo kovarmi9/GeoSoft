@@ -36,9 +36,10 @@
 - `GeoAlgorithmTransformAffine` (`src/GeoAlgorithms/GeoAlgorithmTransformAffine.pas`): Afinní transformace včetně maticových pomocných funkcí.
 
 ### Components
-- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid` (hlavičky, sizing, validace).
+- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid` (hlavičky, sizing, validace). Nově obsahuje i `published` property `ColumnRules`, takže pravidla sloupců jsou vidět v Delphi Object Inspectoru.
 - `MyPointsStringGrid` (`src/Components/MyPointsStringGrid.pas`): Specializace `MyStringGrid` pro práci s body.
 - `MyStringGridReg` (`src/Components/MyStringGridReg.pas`): Registrace vlastních komponent do Delphi IDE.
+- `ColumnRuleUtils` (`src/Components/ColumnRuleUtils.pas`): Pomocné typy a filtrace pro `MyStringGrid` sloupce. Aktuálně řeší typy `cdtNone`, `cdtInteger`, `cdtFloat`, kolekci `TColumnRules` a filtraci vstupu při psaní.
 
 ### Test_gdf (datový model / test podpora)
 - `GeoRow` (`Test_gdf/GeoRow.pas`): Definice geodetického recordu `TGeoRow`, field enumů a binárního load/save řádků.
@@ -56,6 +57,8 @@
 - Transformační algoritmy (`GeoAlgorithmTransformBase`, `Similarity`, `Congruent`, `Affine`) jsou součástí GUI projektu přes `GeoSoft.dpr`, ale formulář `Transformation` je aktuálně neimportuje přímo.
 - `GeoAlgorithmPolar2` + `PolarMethodNew` -> `GeoDataFrame` + `GeoRow`.
 - `MyPointsStringGrid` -> `MyStringGrid`; `MyStringGridReg` -> `MyStringGrid`, `MyPointsStringGrid`.
+- `MyStringGrid` -> `ColumnRuleUtils`
+- `ColumnRuleUtils` je navázaný přímo na komponentu, ne na obecné utily aplikace.
 
 ### Vybrané aktuální `uses` vazby mezi project unity
 - `AddPoint` -> `Point`, `StringGridValidationUtils`, `InputFilterUtils`, `PointsUtilsSingleton`, `MyStringGrid`, `PointPrefixState`
@@ -132,6 +135,15 @@
   - Duplicity názvů unitů: `GeoAlgorithmBase`, `GeoAlgorithmPolar`, `GeoAlgorithmOrthogonal` existují současně ve `src/Utils` i `src/GeoAlgorithms`.
   - Velké komentované bloky historického kódu před aktivní unit deklarací: minimálně `PolarMethod.pas`.
   - Riziko: vyšší pravděpodobnost záměny při úpravách a nejasné rozlišení „aktivní vs legacy“ implementace.
+
+## 5) Poznámka k `MyStringGrid.ColumnRules`
+
+- `ColumnRules` je `published` property komponenty `MyStringGrid`, proto je vidět v Object Inspectoru.
+- `ColumnRules` je kolekce `TColumnRules`, takže Delphi pro ni automaticky nabízí standardní collection editor.
+- Počet itemů se interně dorovnává na `ColCount` přes `EnsureColumnRuleCount` v `MyStringGrid`.
+- Jeden item odpovídá jednomu sloupci a `Column` je odvozený z `Index`, takže se ručně nenastavuje.
+- Tlačítka `Add/Delete` jsou ve standardním Delphi editoru pořád vidět, ale komponenta si kolekci po změnách znovu srovná na počet sloupců.
+- Samotná filtrace znaků běží při psaní v `MyStringGrid.KeyPress -> ApplyColumnRule -> ApplyColumnRuleKeyPress`.
 
 ## Poznámka
 - Mapa byla aktualizována podle aktuálního stavu zdrojáků (`.pas`/`.dpr`) v repozitáři dne 11. března 2026. Je zaměřená na ručně ověřené hlavní vazby a vstupní body, ne na úplný výpis všech VCL/System závislostí.

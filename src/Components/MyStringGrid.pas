@@ -12,15 +12,15 @@ uses
   ColumnRuleUtils;
 
 type
-  // Co mÄ‚Ë‡ grid udĂ„â€şlat, kdyÄąÄľ uÄąÄľivatel stiskne Enter/Tab v poslednÄ‚Â­ datovÄ‚Â© buÄąÂce
+  // Co má grid udělat, když uživatel stiskne Enter nebo Tab v poslední datové buňce
   TEnterEndBehavior = (ebStayOnLastCell, ebWrapToStart, ebAddRow, ebMoveFocusNext);
 
-  // ValidÄ‚Ë‡tor bunĂ„â€şk (normÄ‚Ë‡lnÄ‚Â­ procedura, NE metoda objektu)
+  // Validátor buněk jako normální procedura a ne metoda objektu
   TMyGridKeyValidator = procedure(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 
   TMyStringGrid = class(TStringGrid)
   private
-    // Jak se zachovat, kdyÄąÄľ Enter/Tab na konci tabulky
+    // Jak se zachovat při Enteru nebo Tabu na konci tabulky
     FEnterEndBehavior: TEnterEndBehavior;
 
     FColumnHeaders: TStrings;
@@ -28,7 +28,7 @@ type
     FColumnRuleItems: TColumnRules;
     FSyncingColumnRules: Boolean;
 
-    // Pole validÄ‚Ë‡torÄąĹ» pro sloupce
+    // Pole validátorů pro sloupce
     FValidators: array of TMyGridKeyValidator;
 
     procedure SetColumnHeaders(const Value: TStrings);
@@ -54,7 +54,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // NastavenÄ‚Â­ validÄ‚Ë‡toru sloupce
+    // Nastavení validátoru sloupce
     procedure SetColumnValidator(ACol: Integer; AValidator: TMyGridKeyValidator);
     procedure ClearColumnValidator(ACol: Integer);
     procedure ClearAllValidators;
@@ -111,7 +111,7 @@ end;
 
 procedure TMyStringGrid.EnsureValidatorSize;
 begin
-  // drzi pole validatoru stejne dlouhe jako ColCount
+  // Drží pole validátorů stejně dlouhé jako ColCount
   if Length(FValidators) <> ColCount then
     SetLength(FValidators, ColCount);
 end;
@@ -185,11 +185,18 @@ begin
 end;
 
 procedure TMyStringGrid.ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
+var
+  CurrentText: string;
 begin
   if (ARow < FixedRows) or (ACol < FixedCols) then
     Exit;
 
-  ApplyColumnRuleKeyPress(ResolveColumnRule(FColumnRuleItems, ACol), Key);
+  if EditorMode and Assigned(InplaceEditor) then
+    CurrentText := InplaceEditor.Text
+  else
+    CurrentText := Cells[ACol, ARow];
+
+  ApplyColumnRuleKeyPress(ResolveColumnRule(FColumnRuleItems, ACol), CurrentText, Key);
 end;
 
 procedure TMyStringGrid.SetColumnRules(const Value: TColumnRules);
@@ -210,7 +217,7 @@ var
   V: TMyGridKeyValidator;
   VK: Word;
 begin
-  // Enter/Tab resime jako navigaci (KeyDown), ne jako psani znaku
+  // Enter a Tab řešíme jako navigaci a ne jako psaní znaku
   if Key = #13 then
   begin
     Key := #0;
@@ -227,7 +234,7 @@ begin
     Exit;
   end;
 
-  // validujeme jen v datove casti (ne hlavicky)
+  // Validujeme jen v datové části a ne v hlavičkách
   if (Key <> #0) and (Row >= FixedRows) and (Col >= FixedCols) then
   begin
     EnsureValidatorSize;

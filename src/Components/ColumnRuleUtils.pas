@@ -7,14 +7,14 @@ uses
   System.SysUtils;
 
 type
+  // Zatim podporujeme jen tri zakladni typy vstupu.
   TColumnDataType = (
     cdtNone,
-    cdtString,
     cdtInteger,
-    cdtFloat,
-    cdtExpression
+    cdtFloat
   );
 
+  // Jednoducha pravidla pro jeden sloupec gridu.
   TColumnRule = record
     DataType: TColumnDataType;
     MinLength: Integer;
@@ -24,10 +24,10 @@ type
     class function None: TColumnRule; static;
     class function Integer: TColumnRule; static;
     class function Float: TColumnRule; static;
-    class function Expression: TColumnRule; static;
     function HasSettings: Boolean;
   end;
 
+  // Jeden item odpovida jednomu sloupci.
   TColumnRuleItem = class(TCollectionItem)
   private
     FDataType: TColumnDataType;
@@ -53,6 +53,7 @@ type
     property MaxValue: string read FMaxValue write SetMaxValue;
   end;
 
+  // Kolekce pravidel pro vsechny sloupce gridu.
   TColumnRules = class(TOwnedCollection)
   private
     FOnChanged: TNotifyEvent;
@@ -73,6 +74,7 @@ function ResolveColumnRule(ARules: TColumnRules; AColumn: Integer): TColumnRule;
 
 implementation
 
+// Sjednoti desetinnou tecku/carku podle lokalniho nastaveni.
 function NormalizeDecimalKeyChar(Key: Char): Char;
 begin
   Result := Key;
@@ -99,12 +101,6 @@ class function TColumnRule.Float: TColumnRule;
 begin
   Result := None;
   Result.DataType := cdtFloat;
-end;
-
-class function TColumnRule.Expression: TColumnRule;
-begin
-  Result := None;
-  Result.DataType := cdtExpression;
 end;
 
 function TColumnRule.HasSettings: Boolean;
@@ -219,7 +215,7 @@ end;
 procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; var Key: Char);
 begin
   case ARule.DataType of
-    cdtNone, cdtString:
+    cdtNone:
       Exit;
     cdtInteger:
       begin
@@ -237,16 +233,6 @@ begin
         Key := NormalizeDecimalKeyChar(Key);
 
         if not CharInSet(Key, ['0'..'9', '+', '-', FormatSettings.DecimalSeparator, #8]) then
-          Key := #0;
-      end;
-    cdtExpression:
-      begin
-        if CharInSet(Key, [#1, #3, #22, #24]) then
-          Exit;
-
-        Key := NormalizeDecimalKeyChar(Key);
-
-        if not CharInSet(Key, ['0'..'9', '+', '-', '*', '/', '(', ')', FormatSettings.DecimalSeparator, #8]) then
           Key := #0;
       end;
   end;

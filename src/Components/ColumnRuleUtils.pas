@@ -7,37 +7,50 @@ uses
   System.SysUtils;
 
 type
-  TColumnRuleKind = (
-    crNone,
-    crInteger,
-    crFloat,
-    crExpression
+  TColumnDataType = (
+    cdtNone,
+    cdtString,
+    cdtInteger,
+    cdtFloat,
+    cdtExpression
   );
 
   TColumnRule = record
-    Enabled: Boolean;
-    Kind: TColumnRuleKind;
+    DataType: TColumnDataType;
+    MinLength: Integer;
+    MaxLength: Integer;
+    MinValue: string;
+    MaxValue: string;
     class function None: TColumnRule; static;
     class function Integer: TColumnRule; static;
     class function Float: TColumnRule; static;
     class function Expression: TColumnRule; static;
+    function HasSettings: Boolean;
   end;
 
   TColumnRuleItem = class(TCollectionItem)
   private
-    FColumn: Integer;
-    FEnabled: Boolean;
-    FKind: TColumnRuleKind;
-    procedure SetColumn(const Value: Integer);
-    procedure SetEnabled(const Value: Boolean);
-    procedure SetKind(const Value: TColumnRuleKind);
+    FDataType: TColumnDataType;
+    FMinLength: Integer;
+    FMaxLength: Integer;
+    FMinValue: string;
+    FMaxValue: string;
+    procedure SetDataType(const Value: TColumnDataType);
+    procedure SetMinLength(const Value: Integer);
+    procedure SetMaxLength(const Value: Integer);
+    procedure SetMinValue(const Value: string);
+    procedure SetMaxValue(const Value: string);
+    function GetColumn: Integer;
   public
     constructor Create(Collection: TCollection); override;
     function ToRule: TColumnRule;
   published
-    property Column: Integer read FColumn write SetColumn default 0;
-    property Enabled: Boolean read FEnabled write SetEnabled default False;
-    property Kind: TColumnRuleKind read FKind write SetKind default crNone;
+    property Column: Integer read GetColumn stored False;
+    property DataType: TColumnDataType read FDataType write SetDataType default cdtNone;
+    property MinLength: Integer read FMinLength write SetMinLength default -1;
+    property MaxLength: Integer read FMaxLength write SetMaxLength default -1;
+    property MinValue: string read FMinValue write SetMinValue;
+    property MaxValue: string read FMaxValue write SetMaxValue;
   end;
 
   TColumnRules = class(TOwnedCollection)
@@ -50,7 +63,7 @@ type
   public
     constructor Create(AOwner: TPersistent);
     function Add: TColumnRuleItem;
-    function FindByColumn(AColumn: Integer): TColumnRuleItem;
+    procedure EnsureCount(AColCount: Integer);
     property Items[Index: Integer]: TColumnRuleItem read GetItem write SetItem; default;
     property OnChanged: TNotifyEvent read FOnChanged write FOnChanged;
   end;
@@ -69,64 +82,103 @@ end;
 
 class function TColumnRule.None: TColumnRule;
 begin
-  Result.Enabled := False;
-  Result.Kind := crNone;
+  Result.DataType := cdtNone;
+  Result.MinLength := -1;
+  Result.MaxLength := -1;
+  Result.MinValue := '';
+  Result.MaxValue := '';
 end;
 
 class function TColumnRule.Integer: TColumnRule;
 begin
-  Result.Enabled := True;
-  Result.Kind := crInteger;
+  Result := None;
+  Result.DataType := cdtInteger;
 end;
 
 class function TColumnRule.Float: TColumnRule;
 begin
-  Result.Enabled := True;
-  Result.Kind := crFloat;
+  Result := None;
+  Result.DataType := cdtFloat;
 end;
 
 class function TColumnRule.Expression: TColumnRule;
 begin
-  Result.Enabled := True;
-  Result.Kind := crExpression;
+  Result := None;
+  Result.DataType := cdtExpression;
+end;
+
+function TColumnRule.HasSettings: Boolean;
+begin
+  Result :=
+    (DataType <> cdtNone) or
+    (MinLength >= 0) or
+    (MaxLength >= 0) or
+    (Trim(MinValue) <> '') or
+    (Trim(MaxValue) <> '');
 end;
 
 constructor TColumnRuleItem.Create(Collection: TCollection);
 begin
   inherited Create(Collection);
-  FColumn := 0;
-  FEnabled := False;
-  FKind := crNone;
+  FDataType := cdtNone;
+  FMinLength := -1;
+  FMaxLength := -1;
+  FMinValue := '';
+  FMaxValue := '';
 end;
 
-procedure TColumnRuleItem.SetColumn(const Value: Integer);
+procedure TColumnRuleItem.SetDataType(const Value: TColumnDataType);
 begin
-  if FColumn = Value then
+  if FDataType = Value then
     Exit;
-  FColumn := Value;
+  FDataType := Value;
   Changed(False);
 end;
 
-procedure TColumnRuleItem.SetEnabled(const Value: Boolean);
+function TColumnRuleItem.GetColumn: Integer;
 begin
-  if FEnabled = Value then
+  Result := Index;
+end;
+
+procedure TColumnRuleItem.SetMinLength(const Value: Integer);
+begin
+  if FMinLength = Value then
     Exit;
-  FEnabled := Value;
+  FMinLength := Value;
   Changed(False);
 end;
 
-procedure TColumnRuleItem.SetKind(const Value: TColumnRuleKind);
+procedure TColumnRuleItem.SetMaxLength(const Value: Integer);
 begin
-  if FKind = Value then
+  if FMaxLength = Value then
     Exit;
-  FKind := Value;
+  FMaxLength := Value;
+  Changed(False);
+end;
+
+procedure TColumnRuleItem.SetMinValue(const Value: string);
+begin
+  if FMinValue = Value then
+    Exit;
+  FMinValue := Value;
+  Changed(False);
+end;
+
+procedure TColumnRuleItem.SetMaxValue(const Value: string);
+begin
+  if FMaxValue = Value then
+    Exit;
+  FMaxValue := Value;
   Changed(False);
 end;
 
 function TColumnRuleItem.ToRule: TColumnRule;
 begin
-  Result.Enabled := FEnabled;
-  Result.Kind := FKind;
+  Result.DataType := FDataType;
+  Result.MinLength := FMinLength;
+  Result.MaxLength := FMaxLength;
+  Result.MinValue := FMinValue;
+  Result.MaxValue := FMaxValue;
 end;
 
 constructor TColumnRules.Create(AOwner: TPersistent);
@@ -139,14 +191,12 @@ begin
   Result := TColumnRuleItem(inherited Add);
 end;
 
-function TColumnRules.FindByColumn(AColumn: Integer): TColumnRuleItem;
-var
-  I: Integer;
+procedure TColumnRules.EnsureCount(AColCount: Integer);
 begin
-  Result := nil;
-  for I := 0 to Count - 1 do
-    if Items[I].Column = AColumn then
-      Exit(Items[I]);
+  while Count < AColCount do
+    Add;
+  while Count > AColCount do
+    Delete(Count - 1);
 end;
 
 function TColumnRules.GetItem(Index: Integer): TColumnRuleItem;
@@ -168,13 +218,10 @@ end;
 
 procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; var Key: Char);
 begin
-  if not ARule.Enabled then
-    Exit;
-
-  case ARule.Kind of
-    crNone:
+  case ARule.DataType of
+    cdtNone, cdtString:
       Exit;
-    crInteger:
+    cdtInteger:
       begin
         if CharInSet(Key, [#1, #3, #22, #24]) then
           Exit;
@@ -182,7 +229,7 @@ begin
         if not CharInSet(Key, ['0'..'9', #8]) then
           Key := #0;
       end;
-    crFloat:
+    cdtFloat:
       begin
         if CharInSet(Key, [#1, #3, #22, #24]) then
           Exit;
@@ -192,7 +239,7 @@ begin
         if not CharInSet(Key, ['0'..'9', '+', '-', FormatSettings.DecimalSeparator, #8]) then
           Key := #0;
       end;
-    crExpression:
+    cdtExpression:
       begin
         if CharInSet(Key, [#1, #3, #22, #24]) then
           Exit;
@@ -206,16 +253,12 @@ begin
 end;
 
 function ResolveColumnRule(ARules: TColumnRules; AColumn: Integer): TColumnRule;
-var
-  Item: TColumnRuleItem;
 begin
   Result := TColumnRule.None;
   if ARules = nil then
     Exit;
-
-  Item := ARules.FindByColumn(AColumn);
-  if Item <> nil then
-    Result := Item.ToRule;
+  if (AColumn >= 0) and (AColumn < ARules.Count) then
+    Result := ARules[AColumn].ToRule;
 end;
 
 end.

@@ -12,22 +12,23 @@ uses
   ColumnRuleUtils;
 
 type
-  // Co má grid udělat, když uživatel stiskne Enter/Tab v poslední datové buňce
+  // Co mÄ‚Ë‡ grid udĂ„â€şlat, kdyÄąÄľ uÄąÄľivatel stiskne Enter/Tab v poslednÄ‚Â­ datovÄ‚Â© buÄąÂce
   TEnterEndBehavior = (ebStayOnLastCell, ebWrapToStart, ebAddRow, ebMoveFocusNext);
 
-  // Validátor buněk (normální procedura, NE metoda objektu)
+  // ValidÄ‚Ë‡tor bunĂ„â€şk (normÄ‚Ë‡lnÄ‚Â­ procedura, NE metoda objektu)
   TMyGridKeyValidator = procedure(AGrid: TObject; ACol, ARow: Integer; var Key: Char);
 
   TMyStringGrid = class(TStringGrid)
   private
-    // Jak se zachovat, když Enter/Tab na konci tabulky
+    // Jak se zachovat, kdyÄąÄľ Enter/Tab na konci tabulky
     FEnterEndBehavior: TEnterEndBehavior;
 
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
     FColumnRuleItems: TColumnRules;
+    FSyncingColumnRules: Boolean;
 
-    // Pole validátorů pro sloupce
+    // Pole validÄ‚Ë‡torÄąĹ» pro sloupce
     FValidators: array of TMyGridKeyValidator;
 
     procedure SetColumnHeaders(const Value: TStrings);
@@ -38,11 +39,13 @@ type
     procedure ColumnRulesChanged(Sender: TObject);
 
     procedure EnsureValidatorSize;
+    procedure EnsureColumnRuleCount;
     procedure ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
 
   protected
     procedure Loaded; override;
     procedure Resize; override;
+    procedure SizeChanged(OldColCount, OldRowCount: Longint); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: Char); override;
     procedure DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); override;
@@ -51,7 +54,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    // Nastavení validátoru sloupce
+    // NastavenÄ‚Â­ validÄ‚Ë‡toru sloupce
     procedure SetColumnValidator(ACol: Integer; AValidator: TMyGridKeyValidator);
     procedure ClearColumnValidator(ACol: Integer);
     procedure ClearAllValidators;
@@ -95,6 +98,7 @@ begin
   FColumnRuleItems.OnChanged := ColumnRulesChanged;
 
   EnsureValidatorSize;
+  EnsureColumnRuleCount;
 end;
 
 destructor TMyStringGrid.Destroy;
@@ -110,6 +114,18 @@ begin
   // drzi pole validatoru stejne dlouhe jako ColCount
   if Length(FValidators) <> ColCount then
     SetLength(FValidators, ColCount);
+end;
+
+procedure TMyStringGrid.EnsureColumnRuleCount;
+begin
+  if FSyncingColumnRules then
+    Exit;
+  FSyncingColumnRules := True;
+  try
+    FColumnRuleItems.EnsureCount(ColCount);
+  finally
+    FSyncingColumnRules := False;
+  end;
 end;
 
 procedure TMyStringGrid.ClearAllValidators;
@@ -135,17 +151,16 @@ begin
   if ACol < 0 then
     Exit;
 
-  Item := FColumnRuleItems.FindByColumn(ACol);
-  if Item = nil then
-  begin
-    if not ARule.Enabled then
-      Exit;
-    Item := FColumnRuleItems.Add;
-    Item.Column := ACol;
-  end;
+  EnsureColumnRuleCount;
+  if ACol >= FColumnRuleItems.Count then
+    Exit;
 
-  Item.Enabled := ARule.Enabled;
-  Item.Kind := ARule.Kind;
+  Item := FColumnRuleItems[ACol];
+  Item.DataType := ARule.DataType;
+  Item.MinLength := ARule.MinLength;
+  Item.MaxLength := ARule.MaxLength;
+  Item.MinValue := ARule.MinValue;
+  Item.MaxValue := ARule.MaxValue;
 end;
 
 procedure TMyStringGrid.ClearColumnValidator(ACol: Integer);
@@ -156,17 +171,17 @@ begin
 end;
 
 procedure TMyStringGrid.ClearColumnRule(ACol: Integer);
-var
-  Item: TColumnRuleItem;
 begin
-  Item := FColumnRuleItems.FindByColumn(ACol);
-  if Item <> nil then
-    Item.Free;
+  SetColumnRule(ACol, TColumnRule.None);
 end;
 
 procedure TMyStringGrid.ClearAllColumnRules;
+var
+  I: Integer;
 begin
-  FColumnRuleItems.Clear;
+  EnsureColumnRuleCount;
+  for I := 0 to FColumnRuleItems.Count - 1 do
+    ClearColumnRule(I);
 end;
 
 procedure TMyStringGrid.ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
@@ -180,10 +195,13 @@ end;
 procedure TMyStringGrid.SetColumnRules(const Value: TColumnRules);
 begin
   FColumnRuleItems.Assign(Value);
+  EnsureColumnRuleCount;
 end;
 
 procedure TMyStringGrid.ColumnRulesChanged(Sender: TObject);
 begin
+  if FColumnRuleItems.Count <> ColCount then
+    EnsureColumnRuleCount;
   Invalidate;
 end;
 
@@ -323,8 +341,16 @@ end;
 procedure TMyStringGrid.Loaded;
 begin
   inherited;
+  EnsureColumnRuleCount;
   UpdateHeaders;
   AutoSizeDataColumns;
+end;
+
+procedure TMyStringGrid.SizeChanged(OldColCount, OldRowCount: Integer);
+begin
+  inherited SizeChanged(OldColCount, OldRowCount);
+  EnsureValidatorSize;
+  EnsureColumnRuleCount;
 end;
 
 procedure TMyStringGrid.SetColumnHeaders(const Value: TStrings);

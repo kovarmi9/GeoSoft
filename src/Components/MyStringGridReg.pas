@@ -1,10 +1,9 @@
-﻿unit MyStringGridReg;
+unit MyStringGridReg;
 
 interface
 
 uses
   System.Classes,
-  DesignIntf, DesignEditors,
   MyStringGrid,
   MyPointsStringGrid;
 
@@ -21,4 +20,3 @@ begin
 end;
 
 end.
-

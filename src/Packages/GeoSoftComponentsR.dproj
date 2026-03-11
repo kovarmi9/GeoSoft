@@ -105,6 +105,7 @@
         <DCCReference Include="vclactnband.dcp"/>
         <DCCReference Include="vclx.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
+        <DCCReference Include="..\Components\ColumnRuleUtils.pas"/>
         <DCCReference Include="..\Components\MyStringGrid.pas"/>
         <DCCReference Include="..\Components\MyStringGridReg.pas"/>
         <DCCReference Include="..\Components\MyPointsStringGrid.pas"/>

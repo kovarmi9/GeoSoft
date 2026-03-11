@@ -36,4 +36,38 @@ object Form7: TForm7
     TabOrder = 2
     OnClick = Button2Click
   end
+  object MyStringGrid1: TMyStringGrid
+    Left = 48
+    Top = 288
+    Width = 473
+    Height = 120
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 3
+    ColumnRules = <
+      item
+        Column = 1
+        Enabled = True
+      end
+      item
+        Column = 2
+        Enabled = True
+        Kind = crInteger
+      end
+      item
+        Column = 3
+        Enabled = True
+        Kind = crFloat
+      end
+      item
+        Column = 4
+        Enabled = True
+        Kind = crExpression
+      end>
+    ColWidths = (
+      64
+      57
+      57
+      57
+      56)
+  end
 end

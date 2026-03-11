@@ -8,7 +8,8 @@ uses
   System.Math,     // Max()
   System.SysUtils, // CharInSet, StrToIntDef, Trim...
   Vcl.Controls,    // TShiftState...
-  Vcl.Grids;       // TStringGrid...
+  Vcl.Grids,       // TStringGrid...
+  ColumnRuleUtils;
 
 type
   // Co má grid udělat, když uživatel stiskne Enter/Tab v poslední datové buňce
@@ -19,21 +20,25 @@ type
 
   TMyStringGrid = class(TStringGrid)
   private
-	// Jak se zachovat, když Enter/Tab na konci tabulky
+    // Jak se zachovat, když Enter/Tab na konci tabulky
     FEnterEndBehavior: TEnterEndBehavior;
 
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
+    FColumnRuleItems: TColumnRules;
 
     // Pole validátorů pro sloupce
     FValidators: array of TMyGridKeyValidator;
 
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
+    procedure SetColumnRules(const Value: TColumnRules);
     procedure UpdateHeaders;
     procedure AutoSizeDataColumns;
+    procedure ColumnRulesChanged(Sender: TObject);
 
     procedure EnsureValidatorSize;
+    procedure ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
 
   protected
     procedure Loaded; override;
@@ -46,10 +51,13 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-	// Nastavení validátoru sloupce
+    // Nastavení validátoru sloupce
     procedure SetColumnValidator(ACol: Integer; AValidator: TMyGridKeyValidator);
     procedure ClearColumnValidator(ACol: Integer);
     procedure ClearAllValidators;
+    procedure SetColumnRule(ACol: Integer; const ARule: TColumnRule);
+    procedure ClearColumnRule(ACol: Integer);
+    procedure ClearAllColumnRules;
 
   published
     property EnterEndBehavior: TEnterEndBehavior
@@ -60,6 +68,9 @@ type
 
     property RowHeaders: TStrings
       read FRowHeaders write SetRowHeaders;
+
+    property ColumnRules: TColumnRules
+      read FColumnRuleItems write SetColumnRules;
   end;
 
 implementation
@@ -79,7 +90,9 @@ begin
   FEnterEndBehavior := ebStayOnLastCell;
 
   FColumnHeaders := TStringList.Create;
-  FRowHeaders    := TStringList.Create;
+  FRowHeaders := TStringList.Create;
+  FColumnRuleItems := TColumnRules.Create(Self);
+  FColumnRuleItems.OnChanged := ColumnRulesChanged;
 
   EnsureValidatorSize;
 end;
@@ -88,39 +101,90 @@ destructor TMyStringGrid.Destroy;
 begin
   FColumnHeaders.Free;
   FRowHeaders.Free;
+  FColumnRuleItems.Free;
   inherited Destroy;
 end;
 
 procedure TMyStringGrid.EnsureValidatorSize;
 begin
-  // drží pole validátorů stejně dlouhé jako ColCount
+  // drzi pole validatoru stejne dlouhe jako ColCount
   if Length(FValidators) <> ColCount then
     SetLength(FValidators, ColCount);
 end;
 
 procedure TMyStringGrid.ClearAllValidators;
 var
-  i: Integer;
+  I: Integer;
 begin
   EnsureValidatorSize;
-  for i := 0 to High(FValidators) do
-    FValidators[i] := nil;
+  for I := 0 to High(FValidators) do
+    FValidators[I] := nil;
 end;
 
 procedure TMyStringGrid.SetColumnValidator(ACol: Integer; AValidator: TMyGridKeyValidator);
 begin
   EnsureValidatorSize;
-  // pokud je index sloupce platný, přiřadí tomuto sloupci konkrétní validační metodu
   if (ACol >= 0) and (ACol < Length(FValidators)) then
     FValidators[ACol] := AValidator;
+end;
+
+procedure TMyStringGrid.SetColumnRule(ACol: Integer; const ARule: TColumnRule);
+var
+  Item: TColumnRuleItem;
+begin
+  if ACol < 0 then
+    Exit;
+
+  Item := FColumnRuleItems.FindByColumn(ACol);
+  if Item = nil then
+  begin
+    if not ARule.Enabled then
+      Exit;
+    Item := FColumnRuleItems.Add;
+    Item.Column := ACol;
+  end;
+
+  Item.Enabled := ARule.Enabled;
+  Item.Kind := ARule.Kind;
 end;
 
 procedure TMyStringGrid.ClearColumnValidator(ACol: Integer);
 begin
   EnsureValidatorSize;
-  // pokud je index sloupce platný, zruší validaci pro daný sloupec
   if (ACol >= 0) and (ACol < Length(FValidators)) then
     FValidators[ACol] := nil;
+end;
+
+procedure TMyStringGrid.ClearColumnRule(ACol: Integer);
+var
+  Item: TColumnRuleItem;
+begin
+  Item := FColumnRuleItems.FindByColumn(ACol);
+  if Item <> nil then
+    Item.Free;
+end;
+
+procedure TMyStringGrid.ClearAllColumnRules;
+begin
+  FColumnRuleItems.Clear;
+end;
+
+procedure TMyStringGrid.ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
+begin
+  if (ARow < FixedRows) or (ACol < FixedCols) then
+    Exit;
+
+  ApplyColumnRuleKeyPress(ResolveColumnRule(FColumnRuleItems, ACol), Key);
+end;
+
+procedure TMyStringGrid.SetColumnRules(const Value: TColumnRules);
+begin
+  FColumnRuleItems.Assign(Value);
+end;
+
+procedure TMyStringGrid.ColumnRulesChanged(Sender: TObject);
+begin
+  Invalidate;
 end;
 
 procedure TMyStringGrid.KeyPress(var Key: Char);
@@ -128,7 +192,7 @@ var
   V: TMyGridKeyValidator;
   VK: Word;
 begin
-  // Enter/Tab řešíme jako navigaci (KeyDown), ne jako psaní znaku
+  // Enter/Tab resime jako navigaci (KeyDown), ne jako psani znaku
   if Key = #13 then
   begin
     Key := #0;
@@ -145,7 +209,7 @@ begin
     Exit;
   end;
 
-  // validujeme jen v datové části (ne hlavičky)
+  // validujeme jen v datove casti (ne hlavicky)
   if (Key <> #0) and (Row >= FixedRows) and (Col >= FixedCols) then
   begin
     EnsureValidatorSize;
@@ -154,7 +218,9 @@ begin
     begin
       V := FValidators[Col];
       if Assigned(V) then
-        V(Self, Col, Row, Key); // validátor může Key "sežrat" => Key := #0
+        V(Self, Col, Row, Key);
+      if not Assigned(V) then
+        ApplyColumnRule(Col, Row, Key);
     end;
   end;
 
@@ -178,8 +244,10 @@ begin
     FirstDataCol := FixedCols;
     FirstDataRow := FixedRows;
 
-    if Row < FirstDataRow then Row := FirstDataRow;
-    if Col < FirstDataCol then Col := FirstDataCol;
+    if Row < FirstDataRow then
+      Row := FirstDataRow;
+    if Col < FirstDataCol then
+      Col := FirstDataCol;
 
     if Col < ColCount - 1 then
       Col := Col + 1
@@ -193,7 +261,6 @@ begin
       case FEnterEndBehavior of
         ebStayOnLastCell:
           begin
-            // Zůstaň na poslední buňce a nepřesouvej fokus.
             Row := RowCount - 1;
             Col := ColCount - 1;
           end;
@@ -210,8 +277,6 @@ begin
           end;
         ebMoveFocusNext:
           begin
-            // Předej fokus dalšímu/ předchozímu ovládacímu prvku podle směru TAB.
-            // Nejdřív ukonči editor buňky, aby fokus opravdu opustil grid.
             if EditorMode then
               EditorMode := False;
             GoForward := not ((PressedKey = VK_TAB) and (ssShift in Shift));
@@ -244,8 +309,8 @@ begin
       Canvas.FillRect(Rect);
 
       S := Cells[ACol, ARow];
-      X := Rect.Left + (Rect.Width  - Canvas.TextWidth(S))  div 2;
-      Y := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
+      X := Rect.Left + (Rect.Width - Canvas.TextWidth(S)) div 2;
+      Y := Rect.Top + (Rect.Height - Canvas.TextHeight(S)) div 2;
       Canvas.TextRect(Rect, X, Y, S);
     finally
       RestoreDC(Canvas.Handle, SavedDC);
@@ -275,9 +340,8 @@ begin
 end;
 
 procedure TMyStringGrid.UpdateHeaders;
-// Promítnutí názvů do hlaviček gridů
 var
-  c, r: Integer;
+  C, R: Integer;
 begin
   if (FColumnHeaders.Count > 0) and (FixedRows = 0) then
     FixedRows := 1;
@@ -285,14 +349,14 @@ begin
     FixedCols := 1;
 
   if FixedRows > 0 then
-    for c := 0 to ColCount - 1 do
-      if c < FColumnHeaders.Count then
-        Cells[c, 0] := FColumnHeaders[c];
+    for C := 0 to ColCount - 1 do
+      if C < FColumnHeaders.Count then
+        Cells[C, 0] := FColumnHeaders[C];
 
   if FixedCols > 0 then
-    for r := 0 to RowCount - 1 do
-      if r < FRowHeaders.Count then
-        Cells[0, r] := FRowHeaders[r];
+    for R := 0 to RowCount - 1 do
+      if R < FRowHeaders.Count then
+        Cells[0, R] := FRowHeaders[R];
 
   Invalidate;
 end;
@@ -304,37 +368,38 @@ begin
 end;
 
 procedure TMyStringGrid.AutoSizeDataColumns;
-// dynamické nastavení šířky tabulky podle okna... nepoužívám
 var
-  c, DataCols, Avail, FixedW, Base, Extra, MinW, Used, Last: Integer;
+  C, DataCols, Avail, FixedW, Base, Extra, MinW, Used, Last: Integer;
 begin
-  if ColCount = 0 then Exit;
+  if ColCount = 0 then
+    Exit;
 
   FixedW := 0;
-  for c := 0 to FixedCols - 1 do
-    Inc(FixedW, ColWidths[c]);
+  for C := 0 to FixedCols - 1 do
+    Inc(FixedW, ColWidths[C]);
 
   DataCols := ColCount - FixedCols;
-  if DataCols <= 0 then Exit;
+  if DataCols <= 0 then
+    Exit;
 
-  Avail := ClientWidth - FixedW - GridLineWidth * (DataCols);
-  if Avail <= 0 then Exit;
+  Avail := ClientWidth - FixedW - GridLineWidth * DataCols;
+  if Avail <= 0 then
+    Exit;
 
   MinW := 40;
-  Base  := Avail div DataCols;
+  Base := Avail div DataCols;
   Extra := Avail mod DataCols;
 
   Used := 0;
   Last := ColCount - 1;
 
-  for c := FixedCols to Last - 1 do
+  for C := FixedCols to Last - 1 do
   begin
-    ColWidths[c] := Max(Base + Ord((c - FixedCols) < Extra), MinW);
-    Inc(Used, ColWidths[c]);
+    ColWidths[C] := Max(Base + Ord((C - FixedCols) < Extra), MinW);
+    Inc(Used, ColWidths[C]);
   end;
 
   ColWidths[Last] := Max(Avail - Used, MinW);
 end;
 
 end.
-

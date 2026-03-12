@@ -1,4 +1,4 @@
-unit ColumnRuleUtils;
+﻿unit ColumnRuleUtils;
 
 interface
 
@@ -7,11 +7,12 @@ uses
   System.SysUtils;
 
 type
-  // Zatím jen tři základní typy vstupu
+  // Zatím jen čtyři základní typy vstupu
   TColumnDataType = (
     cdtNone,
     cdtInteger,
-    cdtFloat
+    cdtFloat,
+    cdtExpression
   );
 
   // Pravidla pro jeden sloupec
@@ -24,6 +25,7 @@ type
     class function None: TColumnRule; static;
     class function Integer: TColumnRule; static;
     class function Float: TColumnRule; static;
+    class function Expression: TColumnRule; static;
     function HasSettings: Boolean;
   end;
 
@@ -70,6 +72,7 @@ type
   end;
 
 procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; const AText: string; var Key: Char);
+function ValidateTextByColumnRule(const ARule: TColumnRule; const AText: string): Boolean;
 function ResolveColumnRule(ARules: TColumnRules; AColumn: Integer): TColumnRule;
 
 implementation
@@ -80,6 +83,36 @@ begin
   Result := Key;
   if (Result = '.') or (Result = ',') then
     Result := FormatSettings.DecimalSeparator;
+end;
+
+function GetLastNonSpaceChar(const S: string): Char;
+var
+  I: Integer;
+begin
+  Result := #0;
+  for I := Length(S) downto 1 do
+    if S[I] <> ' ' then
+      Exit(S[I]);
+end;
+
+function GetFirstNonSpaceChar(const S: string): Char;
+var
+  I: Integer;
+begin
+  Result := #0;
+  for I := 1 to Length(S) do
+    if S[I] <> ' ' then
+      Exit(S[I]);
+end;
+
+function GetNextNonSpaceChar(const S: string; AIndex: Integer): Char;
+var
+  I: Integer;
+begin
+  Result := #0;
+  for I := AIndex + 1 to Length(S) do
+    if S[I] <> ' ' then
+      Exit(S[I]);
 end;
 
 class function TColumnRule.None: TColumnRule;
@@ -101,6 +134,12 @@ class function TColumnRule.Float: TColumnRule;
 begin
   Result := None;
   Result.DataType := cdtFloat;
+end;
+
+class function TColumnRule.Expression: TColumnRule;
+begin
+  Result := None;
+  Result.DataType := cdtExpression;
 end;
 
 function TColumnRule.HasSettings: Boolean;
@@ -214,6 +253,12 @@ end;
 
 procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; const AText: string; var Key: Char);
 begin
+  if (Key <> #8) and (Key >= #32) and (ARule.MaxLength >= 0) and (Length(AText) >= ARule.MaxLength) then
+  begin
+    Key := #0;
+    Exit;
+  end;
+
   case ARule.DataType of
     cdtNone:
       Exit;
@@ -232,12 +277,125 @@ begin
 
         Key := NormalizeDecimalKeyChar(Key);
 
-        if not CharInSet(Key, ['0'..'9', '+', '-', FormatSettings.DecimalSeparator, #8]) then
+        if not CharInSet(Key, ['0'..'9', FormatSettings.DecimalSeparator, #8]) then
           Key := #0;
 
         if (Key = FormatSettings.DecimalSeparator) and
            (Pos(FormatSettings.DecimalSeparator, AText) > 0) then
           Key := #0;
+      end;
+    cdtExpression:
+      begin
+        if CharInSet(Key, [#1, #3, #22, #24]) then
+          Exit;
+
+        Key := NormalizeDecimalKeyChar(Key);
+
+        if not CharInSet(Key, ['0'..'9', '+', '-', '*', '/', '(', ')', '^',
+          FormatSettings.DecimalSeparator, ' ', #8]) then
+          Key := #0;
+
+        if CharInSet(Key, ['+', '-', '*', '/', '^']) and CharInSet(GetLastNonSpaceChar(AText), ['+', '-', '*', '/', '^']) then
+          Key := #0;
+
+        if (Key = FormatSettings.DecimalSeparator) and
+           CharInSet(GetLastNonSpaceChar(AText), ['+', '-', '*', '/', '^', ')', '(',
+             FormatSettings.DecimalSeparator]) then
+          Key := #0;
+      end;
+  end;
+end;
+
+function ValidateTextByColumnRule(const ARule: TColumnRule; const AText: string): Boolean;
+var
+  I, DecCount, Balance: Integer;
+  Ch, LastCh, FirstCh: Char;
+begin
+  Result := True;
+
+  if (ARule.MinLength >= 0) and (Length(AText) < ARule.MinLength) then
+    Exit(False);
+
+  if (ARule.MaxLength >= 0) and (Length(AText) > ARule.MaxLength) then
+    Exit(False);
+
+  case ARule.DataType of
+    cdtNone:
+      Exit(True);
+
+    cdtInteger:
+      begin
+        for Ch in AText do
+          if not CharInSet(Ch, ['0'..'9']) then
+            Exit(False);
+      end;
+
+    cdtFloat:
+      begin
+        DecCount := 0;
+        for Ch in AText do
+        begin
+          if Ch = FormatSettings.DecimalSeparator then
+            Inc(DecCount)
+          else if not CharInSet(Ch, ['0'..'9']) then
+            Exit(False);
+        end;
+        if DecCount > 1 then
+          Exit(False);
+      end;
+
+    cdtExpression:
+      begin
+        Balance := 0;
+        LastCh := #0;
+        FirstCh := GetFirstNonSpaceChar(AText);
+
+        for I := 1 to Length(AText) do
+        begin
+          Ch := AText[I];
+
+          if Ch = ' ' then
+            Continue;
+
+          if not CharInSet(Ch, ['0'..'9', '+', '-', '*', '/', '^', '(', ')',
+            FormatSettings.DecimalSeparator]) then
+            Exit(False);
+
+          if Ch = '(' then
+            Inc(Balance)
+          else if Ch = ')' then
+          begin
+            Dec(Balance);
+            if Balance < 0 then
+              Exit(False);
+          end;
+
+          if CharInSet(Ch, ['+', '-', '*', '/', '^']) and
+             CharInSet(LastCh, ['+', '-', '*', '/', '^']) then
+            Exit(False);
+
+          if Ch = FormatSettings.DecimalSeparator then
+          begin
+            if CharInSet(LastCh, ['+', '-', '*', '/', '^', ')', '(',
+              FormatSettings.DecimalSeparator]) then
+              Exit(False);
+
+            if CharInSet(GetNextNonSpaceChar(AText, I), ['+', '-', '*', '/', '^', ')',
+              '(', FormatSettings.DecimalSeparator]) then
+              Exit(False);
+          end;
+
+          LastCh := Ch;
+        end;
+
+        if Balance <> 0 then
+          Exit(False);
+
+        if CharInSet(GetLastNonSpaceChar(AText), ['+', '-', '*', '/', '^']) then
+          Exit(False);
+
+        if (FirstCh <> #0) and CharInSet(FirstCh, ['*', '/', '^', ')']) then
+          Exit(False);
       end;
   end;
 end;

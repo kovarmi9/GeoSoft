@@ -40,11 +40,15 @@ type
 
     procedure EnsureValidatorSize;
     procedure EnsureColumnRuleCount;
+    function GetCellText(ACol, ARow: Integer): string;
+    function ValidateCellByRule(ACol, ARow: Integer): Boolean;
+    procedure ClearCellIfInvalid(ACol, ARow: Integer);
     procedure ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
 
   protected
     procedure Loaded; override;
     procedure Resize; override;
+    function SelectCell(ACol, ARow: Integer): Boolean; override;
     procedure SizeChanged(OldColCount, OldRowCount: Longint); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
     procedure KeyPress(var Key: Char); override;
@@ -199,6 +203,44 @@ begin
   ApplyColumnRuleKeyPress(ResolveColumnRule(FColumnRuleItems, ACol), CurrentText, Key);
 end;
 
+function TMyStringGrid.GetCellText(ACol, ARow: Integer): string;
+begin
+  if EditorMode and Assigned(InplaceEditor) and (ACol = Col) and (ARow = Row) then
+    Result := InplaceEditor.Text
+  else
+    Result := Cells[ACol, ARow];
+end;
+
+function TMyStringGrid.ValidateCellByRule(ACol, ARow: Integer): Boolean;
+var
+  Rule: TColumnRule;
+begin
+  Result := True;
+
+  if (ARow < FixedRows) or (ACol < FixedCols) then
+    Exit;
+
+  EnsureValidatorSize;
+  if (ACol >= 0) and (ACol < Length(FValidators)) and Assigned(FValidators[ACol]) then
+    Exit;
+
+  Rule := ResolveColumnRule(FColumnRuleItems, ACol);
+  Result := ValidateTextByColumnRule(Rule, GetCellText(ACol, ARow));
+
+  if not Result then
+    MessageBeep(MB_ICONWARNING);
+end;
+
+procedure TMyStringGrid.ClearCellIfInvalid(ACol, ARow: Integer);
+begin
+  if ValidateCellByRule(ACol, ARow) then
+    Exit;
+
+  Cells[ACol, ARow] := '';
+  if EditorMode and Assigned(InplaceEditor) and (ACol = Col) and (ARow = Row) then
+    InplaceEditor.Text := '';
+end;
+
 procedure TMyStringGrid.SetColumnRules(const Value: TColumnRules);
 begin
   FColumnRuleItems.Assign(Value);
@@ -210,6 +252,14 @@ begin
   if FColumnRuleItems.Count <> ColCount then
     EnsureColumnRuleCount;
   Invalidate;
+end;
+
+function TMyStringGrid.SelectCell(ACol, ARow: Integer): Boolean;
+begin
+  if (ACol <> Col) or (ARow <> Row) then
+    ClearCellIfInvalid(Col, Row);
+
+  Result := inherited SelectCell(ACol, ARow);
 end;
 
 procedure TMyStringGrid.KeyPress(var Key: Char);
@@ -263,6 +313,8 @@ var
 begin
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
+    ClearCellIfInvalid(Col, Row);
+
     PressedKey := Key;
     Key := 0;
 

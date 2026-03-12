@@ -3191,6 +3191,28 @@ object Form1: TForm1
     TabOrder = 0
     ExplicitWidth = 964
   end
+  object MyStringGrid1: TMyStringGrid
+    Left = 96
+    Top = 456
+    Width = 657
+    Height = 193
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 1
+    ColumnRules = <
+      item
+      end
+      item
+        DataType = cdtInteger
+      end
+      item
+        DataType = cdtFloat
+      end
+      item
+        DataType = cdtExpression
+      end
+      item
+      end>
+  end
   object MainMenu1: TMainMenu
     Left = 584
     Top = 192

@@ -9,7 +9,7 @@ uses
   System.SysUtils, // CharInSet, StrToIntDef, Trim...
   Vcl.Controls,    // TShiftState...
   Vcl.Grids,       // TStringGrid...
-  ColumnRuleUtils;
+  ColumnValidation;
 
 type
   // Co má grid udělat, když uživatel stiskne Enter nebo Tab v poslední datové buňce
@@ -98,7 +98,11 @@ begin
 
   FColumnHeaders := TStringList.Create;
   FRowHeaders := TStringList.Create;
+
+  // Vytvoření
   FColumnRuleItems := TColumnRules.Create(Self);
+
+  // Sledování změn v itemech sloupců
   FColumnRuleItems.OnChanged := ColumnRulesChanged;
 
   EnsureValidatorSize;

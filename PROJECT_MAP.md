@@ -4,12 +4,12 @@
 
 ### GUI
 - `MainForm` (`src/GUI/MainForm.pas`): Hlavní menu aplikace (Form1), které otevírá `PointsManagement`, `PolarMethod`, `OrthogonalMethod`, `Transformation`, `CheckMeasurement` a `PolarMethodNew`.
-- `PointsManagement` (`src/GUI/PointsManagement.pas`): Správa seznamu bodů v custom gridu, import/export TXT/CSV/BIN, práce nad globálním singletonem `TPointDictionary` a prefix state (`PointPrefixState`).
+- `PointsManagement` (`src/GUI/PointsManagement.pas`): Správa seznamu bodů v `TMyPointsStringGrid`, import/export TXT/CSV/BIN, práce nad globálním singletonem `TPointDictionary` a prefix state (`PointPrefixState`). Pořád používá hlavně starší callback filtry z `InputFilterUtils` a vlastní logiku v `KeyDown`.
 - `PolarMethod` (`src/GUI/PolarMethod.pas`): Klasická polární metoda nad `TStringGrid`, lookup bodů přes singleton dictionary a výpočet přes `GeoAlgorithmPolar`.
-- `OrthogonalMethod` (`src/GUI/OrthogonalMethod.pas`): UI pro ortogonální metodu s custom gridem, validacemi vstupu a výpočtem přes `GeoAlgorithmOrthogonal`.
-- `Transformation` (`src/GUI/Transformation.pas`): Formulář pro práci s transformační tabulkou bodů. Aktuálně používá sdílený slovník bodů, ale transformační algoritmy neimportuje přímo v této unitě.
-- `PolarMethodNew` (`src/GUI/PolarMethodNew.pas`): Novější varianta polární metody nad `TGeoDataFrame`/`TGeoRow`; používá custom gridy, validace, lookup bodů a ukládání pracovních dat do BIN/CSV.
-- `AddPoint` (`src/GUI/AddPoint.pas`): Dialog pro ruční zadání chybějícího bodu, s validacemi gridu a použitím `PointPrefixState`.
+- `OrthogonalMethod` (`src/GUI/OrthogonalMethod.pas`): UI pro ortogonální metodu s `TMyPointsStringGrid`, validacemi vstupu, vyhodnocováním výrazů při opuštění buňky a výpočtem přes `GeoAlgorithmOrthogonal`.
+- `Transformation` (`src/GUI/Transformation.pas`): Formulář pro práci s transformační tabulkou bodů. Aktuálně používá sdílený slovník bodů a vlastní grid rendering, ale transformační algoritmy neimportuje přímo v této unitě.
+- `PolarMethodNew` (`src/GUI/PolarMethodNew.pas`): Novější varianta polární metody nad `TGeoDataFrame`/`TGeoRow`; používá custom gridy, callback validace, lookup bodů a ukládání pracovních dat do BIN/CSV.
+- `AddPoint` (`src/GUI/AddPoint.pas`): Dialog pro ruční zadání chybějícího bodu, postavený nad `TMyStringGrid`. Pořád používá starý callback systém `SetColumnValidator(...)`.
 - `CheckMeasurement` (`src/GUI/CheckMeasurement.pas`): Pomocný formulář (Form7), který otevírá dialog `AddPoint` a pomocný formulář `CalcFormBase`.
 - `CalcFormBase` (`src/GUI/CalcFormBase.pas`): Jednoduchý základní formulář bez vlastní doménové logiky.
 - `StringGridValidationUtils` (`src/GUI/StringGridValidationUtils.pas`): Sdílené validační utility pro `TStringGrid` a custom gridy.
@@ -36,10 +36,10 @@
 - `GeoAlgorithmTransformAffine` (`src/GeoAlgorithms/GeoAlgorithmTransformAffine.pas`): Afinní transformace včetně maticových pomocných funkcí.
 
 ### Components
-- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid` (hlavičky, sizing, validace). Nově obsahuje i `published` property `ColumnRules`, takže pravidla sloupců jsou vidět v Delphi Object Inspectoru.
+- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid` (hlavičky, sizing, Enter/Tab navigace, validace). Obsahuje `published` property `ColumnRules`, takže pravidla sloupců jsou vidět v Delphi Object Inspectoru. Umí jak starý callback styl `SetColumnValidator(...)`, tak nový rule-based styl přes `ColumnValidation`.
 - `MyPointsStringGrid` (`src/Components/MyPointsStringGrid.pas`): Specializace `MyStringGrid` pro práci s body.
 - `MyStringGridReg` (`src/Components/MyStringGridReg.pas`): Registrace vlastních komponent do Delphi IDE.
-- `ColumnRuleUtils` (`src/Components/ColumnRuleUtils.pas`): Pomocné typy a filtrace pro `MyStringGrid` sloupce. Aktuálně řeší typy `cdtNone`, `cdtInteger`, `cdtFloat`, kolekci `TColumnRules` a filtraci vstupu při psaní.
+- `ColumnValidation` (`src/Components/ColumnValidation.pas`): Pomocné typy a filtrace pro `MyStringGrid` sloupce. Aktuálně řeší typy `cdtNone`, `cdtInteger`, `cdtFloat`, `cdtExpression`, kolekci `TColumnRules`, filtraci znaků při psaní a finální validaci textu při opuštění buňky.
 
 ### Test_gdf (datový model / test podpora)
 - `GeoRow` (`Test_gdf/GeoRow.pas`): Definice geodetického recordu `TGeoRow`, field enumů a binárního load/save řádků.
@@ -52,13 +52,16 @@
 - GUI výpočtové formuláře (`PolarMethod`, `OrthogonalMethod`, `Transformation`, `AddPoint`, `PointsManagement`, `PolarMethodNew`) -> `Point` + `PointsUtilsSingleton`.
 - `Point` -> `ValidationUtils`.
 - `PointsManagement`/`AddPoint`/`OrthogonalMethod`/`PolarMethodNew` -> `StringGridValidationUtils` + `InputFilterUtils`.
+- `MyStringGrid` -> `ColumnValidation`
 - `PolarMethod` -> `GeoAlgorithmPolar`; `OrthogonalMethod` -> `GeoAlgorithmOrthogonal`.
 - `PointPrefixState` -> `PointsManagement`, `AddPoint`, `OrthogonalMethod`, `PolarMethodNew`.
 - Transformační algoritmy (`GeoAlgorithmTransformBase`, `Similarity`, `Congruent`, `Affine`) jsou součástí GUI projektu přes `GeoSoft.dpr`, ale formulář `Transformation` je aktuálně neimportuje přímo.
 - `GeoAlgorithmPolar2` + `PolarMethodNew` -> `GeoDataFrame` + `GeoRow`.
 - `MyPointsStringGrid` -> `MyStringGrid`; `MyStringGridReg` -> `MyStringGrid`, `MyPointsStringGrid`.
-- `MyStringGrid` -> `ColumnRuleUtils`
-- `ColumnRuleUtils` je navázaný přímo na komponentu, ne na obecné utily aplikace.
+- `ColumnValidation` je navázaný přímo na komponentu, ne na obecné utily aplikace.
+- Projekt teď používá dva validační směry zároveň:
+  - starší callback styl přes `InputFilterUtils` a `SetColumnValidator(...)`
+  - novější komponentový styl přes `ColumnRules` a `ColumnValidation`
 
 ### Vybrané aktuální `uses` vazby mezi project unity
 - `AddPoint` -> `Point`, `StringGridValidationUtils`, `InputFilterUtils`, `PointsUtilsSingleton`, `MyStringGrid`, `PointPrefixState`
@@ -78,6 +81,7 @@
 - `MainForm` -> `Point`, `AddPoint`, `PointsManagement`, `GeoAlgorithmBase`, `GeoAlgorithmTransformBase`, `GeoAlgorithmTransformSimilarity`, `GeoAlgorithmTransformCongruent`, `GeoAlgorithmTransformAffine`, `MyStringGrid`, `MyPointsStringGrid`, `CheckMeasurement`
 - `MyPointsStringGrid` -> `MyStringGrid`
 - `MyStringGridReg` -> `MyStringGrid`, `MyPointsStringGrid`
+- `MyStringGrid` -> `ColumnValidation`
 - `OrthogonalMethod` -> `PointsUtilsSingleton`, `AddPoint`, `Point`, `GeoAlgorithmBase`, `GeoAlgorithmOrthogonal`, `MyPointsStringGrid`, `PointPrefixState`, `StringGridValidationUtils`, `InputFilterUtils`, `MyStringGrid`
 - `Point` -> `ValidationUtils`
 - `PointsManagement` -> `StringGridValidationUtils`, `InputFilterUtils`, `PointsUtilsSingleton`, `ValidationUtils`, `Point`, `MyPointsStringGrid`, `PointPrefixState`, `MyStringGrid`
@@ -144,6 +148,8 @@
 - Jeden item odpovídá jednomu sloupci a `Column` je odvozený z `Index`, takže se ručně nenastavuje.
 - Tlačítka `Add/Delete` jsou ve standardním Delphi editoru pořád vidět, ale komponenta si kolekci po změnách znovu srovná na počet sloupců.
 - Samotná filtrace znaků běží při psaní v `MyStringGrid.KeyPress -> ApplyColumnRule -> ApplyColumnRuleKeyPress`.
+- Finální kontrola celé hodnoty běží při opuštění buňky v `MyStringGrid` přes `ValidateTextByColumnRule(...)`.
+- `MyStringGrid` je teď připravený na přechod od starých callback filtrů k obecnějším pravidlům po sloupcích, ale formuláře zatím nejsou sjednocené na jeden styl.
 
 ## Poznámka
 - Mapa byla aktualizována podle aktuálního stavu zdrojáků (`.pas`/`.dpr`) v repozitáři dne 11. března 2026. Je zaměřená na ručně ověřené hlavní vazby a vstupní body, ne na úplný výpis všech VCL/System závislostí.

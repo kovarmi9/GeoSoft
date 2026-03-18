@@ -1,4 +1,4 @@
-﻿unit ColumnRuleUtils;
+﻿unit ColumnValidation;
 
 interface
 
@@ -410,3 +410,4 @@ begin
 end;
 
 end.
+

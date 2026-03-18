@@ -36,10 +36,10 @@
 - `GeoAlgorithmTransformAffine` (`src/GeoAlgorithms/GeoAlgorithmTransformAffine.pas`): Afinní transformace včetně maticových pomocných funkcí.
 
 ### Components
-- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid` (hlavičky, sizing, Enter/Tab navigace, validace). Obsahuje `published` property `ColumnRules`, takže pravidla sloupců jsou vidět v Delphi Object Inspectoru. Umí jak starý callback styl `SetColumnValidator(...)`, tak nový rule-based styl přes `ColumnValidation`.
+- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid` (hlavičky, sizing, Enter/Tab navigace, validace). Obsahuje `published` property `ColumnFilters`, takže filtry sloupců jsou vidět v Delphi Object Inspectoru. Umí jak starý callback styl `SetColumnValidator(...)`, tak nový filter-based styl přes `ColumnValidation`.
 - `MyPointsStringGrid` (`src/Components/MyPointsStringGrid.pas`): Specializace `MyStringGrid` pro práci s body.
 - `MyStringGridReg` (`src/Components/MyStringGridReg.pas`): Registrace vlastních komponent do Delphi IDE.
-- `ColumnValidation` (`src/Components/ColumnValidation.pas`): Pomocné typy a filtrace pro `MyStringGrid` sloupce. Aktuálně řeší typy `cdtNone`, `cdtInteger`, `cdtFloat`, `cdtExpression`, kolekci `TColumnRules`, filtraci znaků při psaní a finální validaci textu při opuštění buňky.
+- `ColumnValidation` (`src/Components/ColumnValidation.pas`): Pomocné typy a filtrace pro `MyStringGrid` sloupce. Aktuálně řeší typy `cdtNone`, `cdtInteger`, `cdtFloat`, `cdtExpression`, kolekci `TColumnFilters`, filtraci znaků při psaní a finální validaci textu při opuštění buňky.
 
 ### Test_gdf (datový model / test podpora)
 - `GeoRow` (`Test_gdf/GeoRow.pas`): Definice geodetického recordu `TGeoRow`, field enumů a binárního load/save řádků.
@@ -61,7 +61,7 @@
 - `ColumnValidation` je navázaný přímo na komponentu, ne na obecné utily aplikace.
 - Projekt teď používá dva validační směry zároveň:
   - starší callback styl přes `InputFilterUtils` a `SetColumnValidator(...)`
-  - novější komponentový styl přes `ColumnRules` a `ColumnValidation`
+  - novější komponentový styl přes `ColumnFilters` a `ColumnValidation`
 
 ### Vybrané aktuální `uses` vazby mezi project unity
 - `AddPoint` -> `Point`, `StringGridValidationUtils`, `InputFilterUtils`, `PointsUtilsSingleton`, `MyStringGrid`, `PointPrefixState`
@@ -140,15 +140,15 @@
   - Velké komentované bloky historického kódu před aktivní unit deklarací: minimálně `PolarMethod.pas`.
   - Riziko: vyšší pravděpodobnost záměny při úpravách a nejasné rozlišení „aktivní vs legacy“ implementace.
 
-## 5) Poznámka k `MyStringGrid.ColumnRules`
+## 5) Poznámka k `MyStringGrid.ColumnFilters`
 
-- `ColumnRules` je `published` property komponenty `MyStringGrid`, proto je vidět v Object Inspectoru.
-- `ColumnRules` je kolekce `TColumnRules`, takže Delphi pro ni automaticky nabízí standardní collection editor.
-- Počet itemů se interně dorovnává na `ColCount` přes `EnsureColumnRuleCount` v `MyStringGrid`.
+- `ColumnFilters` je `published` property komponenty `MyStringGrid`, proto je vidět v Object Inspectoru.
+- `ColumnFilters` je kolekce `TColumnFilters`, takže Delphi pro ni automaticky nabízí standardní collection editor.
+- Počet itemů se interně dorovnává na `ColCount` přes `EnsureColumnFilterCount` v `MyStringGrid`.
 - Jeden item odpovídá jednomu sloupci a `Column` je odvozený z `Index`, takže se ručně nenastavuje.
 - Tlačítka `Add/Delete` jsou ve standardním Delphi editoru pořád vidět, ale komponenta si kolekci po změnách znovu srovná na počet sloupců.
-- Samotná filtrace znaků běží při psaní v `MyStringGrid.KeyPress -> ApplyColumnRule -> ApplyColumnRuleKeyPress`.
-- Finální kontrola celé hodnoty běží při opuštění buňky v `MyStringGrid` přes `ValidateTextByColumnRule(...)`.
+- Samotná filtrace znaků běží při psaní v `MyStringGrid.KeyPress -> ApplyColumnFilter -> ApplyColumnFilterKeyPress`.
+- Finální kontrola celé hodnoty běží při opuštění buňky v `MyStringGrid` přes `ValidateTextByColumnFilter(...)`.
 - `MyStringGrid` je teď připravený na přechod od starých callback filtrů k obecnějším pravidlům po sloupcích, ale formuláře zatím nejsou sjednocené na jeden styl.
 
 ## Poznámka

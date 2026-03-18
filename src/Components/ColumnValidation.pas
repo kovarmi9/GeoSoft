@@ -9,28 +9,28 @@ uses
 type
   // Zatím jen čtyři základní typy vstupu
   TColumnDataType = (
-    cdtNone,
-    cdtInteger,
-    cdtFloat,
-    cdtExpression
+    fNone,
+    fInteger,
+    fFloat,
+    fExpression
   );
 
   // Pravidla pro jeden sloupec
-  TColumnRule = record
+  TColumnFilter = record
     DataType: TColumnDataType;
     MinLength: Integer;
     MaxLength: Integer;
     MinValue: string;
     MaxValue: string;
-    class function None: TColumnRule; static;
-    class function Integer: TColumnRule; static;
-    class function Float: TColumnRule; static;
-    class function Expression: TColumnRule; static;
+    class function None: TColumnFilter; static;
+    class function Integer: TColumnFilter; static;
+    class function Float: TColumnFilter; static;
+    class function Expression: TColumnFilter; static;
     function HasSettings: Boolean;
   end;
 
   // Jeden item odpovídá jednomu sloupci
-  TColumnRuleItem = class(TCollectionItem)
+  TColumnFilterItem = class(TCollectionItem)
   private
     FDataType: TColumnDataType;
     FMinLength: Integer;
@@ -45,10 +45,10 @@ type
     function GetColumn: Integer;
   public
     constructor Create(Collection: TCollection); override;
-    function ToRule: TColumnRule;
+    function ToFilter: TColumnFilter;
   published
     property Column: Integer read GetColumn stored False;
-    property DataType: TColumnDataType read FDataType write SetDataType default cdtNone;
+    property DataType: TColumnDataType read FDataType write SetDataType default fNone;
     property MinLength: Integer read FMinLength write SetMinLength default -1;
     property MaxLength: Integer read FMaxLength write SetMaxLength default -1;
     property MinValue: string read FMinValue write SetMinValue;
@@ -56,24 +56,24 @@ type
   end;
 
   // Kolekce pravidel pro všechny sloupce
-  TColumnRules = class(TOwnedCollection)
+  TColumnFilters = class(TOwnedCollection)
   private
     FOnChanged: TNotifyEvent;
-    function GetItem(Index: Integer): TColumnRuleItem;
-    procedure SetItem(Index: Integer; const Value: TColumnRuleItem);
+    function GetItem(Index: Integer): TColumnFilterItem;
+    procedure SetItem(Index: Integer; const Value: TColumnFilterItem);
   protected
     procedure Update(Item: TCollectionItem); override;
   public
     constructor Create(AOwner: TPersistent);
-    function Add: TColumnRuleItem;
+    function Add: TColumnFilterItem;
     procedure EnsureCount(AColCount: Integer);
-    property Items[Index: Integer]: TColumnRuleItem read GetItem write SetItem; default;
+    property Items[Index: Integer]: TColumnFilterItem read GetItem write SetItem; default;
     property OnChanged: TNotifyEvent read FOnChanged write FOnChanged;
   end;
 
-procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; const AText: string; var Key: Char);
-function ValidateTextByColumnRule(const ARule: TColumnRule; const AText: string): Boolean;
-function ResolveColumnRule(ARules: TColumnRules; AColumn: Integer): TColumnRule;
+procedure ApplyColumnFilterKeyPress(const AFilter: TColumnFilter; const AText: string; var Key: Char);
+function ValidateTextByColumnFilter(const AFilter: TColumnFilter; const AText: string): Boolean;
+function ResolveColumnFilter(AFilters: TColumnFilters; AColumn: Integer): TColumnFilter;
 
 implementation
 
@@ -115,54 +115,54 @@ begin
       Exit(S[I]);
 end;
 
-class function TColumnRule.None: TColumnRule;
+class function TColumnFilter.None: TColumnFilter;
 begin
-  Result.DataType := cdtNone;
+  Result.DataType := fNone;
   Result.MinLength := -1;
   Result.MaxLength := -1;
   Result.MinValue := '';
   Result.MaxValue := '';
 end;
 
-class function TColumnRule.Integer: TColumnRule;
+class function TColumnFilter.Integer: TColumnFilter;
 begin
   Result := None;
-  Result.DataType := cdtInteger;
+  Result.DataType := fInteger;
 end;
 
-class function TColumnRule.Float: TColumnRule;
+class function TColumnFilter.Float: TColumnFilter;
 begin
   Result := None;
-  Result.DataType := cdtFloat;
+  Result.DataType := fFloat;
 end;
 
-class function TColumnRule.Expression: TColumnRule;
+class function TColumnFilter.Expression: TColumnFilter;
 begin
   Result := None;
-  Result.DataType := cdtExpression;
+  Result.DataType := fExpression;
 end;
 
-function TColumnRule.HasSettings: Boolean;
+function TColumnFilter.HasSettings: Boolean;
 begin
   Result :=
-    (DataType <> cdtNone) or
+    (DataType <> fNone) or
     (MinLength >= 0) or
     (MaxLength >= 0) or
     (Trim(MinValue) <> '') or
     (Trim(MaxValue) <> '');
 end;
 
-constructor TColumnRuleItem.Create(Collection: TCollection);
+constructor TColumnFilterItem.Create(Collection: TCollection);
 begin
   inherited Create(Collection);
-  FDataType := cdtNone;
+  FDataType := fNone;
   FMinLength := -1;
   FMaxLength := -1;
   FMinValue := '';
   FMaxValue := '';
 end;
 
-procedure TColumnRuleItem.SetDataType(const Value: TColumnDataType);
+procedure TColumnFilterItem.SetDataType(const Value: TColumnDataType);
 begin
   if FDataType = Value then
     Exit;
@@ -170,12 +170,12 @@ begin
   Changed(False);
 end;
 
-function TColumnRuleItem.GetColumn: Integer;
+function TColumnFilterItem.GetColumn: Integer;
 begin
   Result := Index;
 end;
 
-procedure TColumnRuleItem.SetMinLength(const Value: Integer);
+procedure TColumnFilterItem.SetMinLength(const Value: Integer);
 begin
   if FMinLength = Value then
     Exit;
@@ -183,7 +183,7 @@ begin
   Changed(False);
 end;
 
-procedure TColumnRuleItem.SetMaxLength(const Value: Integer);
+procedure TColumnFilterItem.SetMaxLength(const Value: Integer);
 begin
   if FMaxLength = Value then
     Exit;
@@ -191,7 +191,7 @@ begin
   Changed(False);
 end;
 
-procedure TColumnRuleItem.SetMinValue(const Value: string);
+procedure TColumnFilterItem.SetMinValue(const Value: string);
 begin
   if FMinValue = Value then
     Exit;
@@ -199,7 +199,7 @@ begin
   Changed(False);
 end;
 
-procedure TColumnRuleItem.SetMaxValue(const Value: string);
+procedure TColumnFilterItem.SetMaxValue(const Value: string);
 begin
   if FMaxValue = Value then
     Exit;
@@ -207,7 +207,7 @@ begin
   Changed(False);
 end;
 
-function TColumnRuleItem.ToRule: TColumnRule;
+function TColumnFilterItem.ToFilter: TColumnFilter;
 begin
   Result.DataType := FDataType;
   Result.MinLength := FMinLength;
@@ -216,17 +216,17 @@ begin
   Result.MaxValue := FMaxValue;
 end;
 
-constructor TColumnRules.Create(AOwner: TPersistent);
+constructor TColumnFilters.Create(AOwner: TPersistent);
 begin
-  inherited Create(AOwner, TColumnRuleItem);
+  inherited Create(AOwner, TColumnFilterItem);
 end;
 
-function TColumnRules.Add: TColumnRuleItem;
+function TColumnFilters.Add: TColumnFilterItem;
 begin
-  Result := TColumnRuleItem(inherited Add);
+  Result := TColumnFilterItem(inherited Add);
 end;
 
-procedure TColumnRules.EnsureCount(AColCount: Integer);
+procedure TColumnFilters.EnsureCount(AColCount: Integer);
 begin
   while Count < AColCount do
     Add;
@@ -234,35 +234,35 @@ begin
     Delete(Count - 1);
 end;
 
-function TColumnRules.GetItem(Index: Integer): TColumnRuleItem;
+function TColumnFilters.GetItem(Index: Integer): TColumnFilterItem;
 begin
-  Result := TColumnRuleItem(inherited GetItem(Index));
+  Result := TColumnFilterItem(inherited GetItem(Index));
 end;
 
-procedure TColumnRules.SetItem(Index: Integer; const Value: TColumnRuleItem);
+procedure TColumnFilters.SetItem(Index: Integer; const Value: TColumnFilterItem);
 begin
   inherited SetItem(Index, Value);
 end;
 
-procedure TColumnRules.Update(Item: TCollectionItem);
+procedure TColumnFilters.Update(Item: TCollectionItem);
 begin
   inherited Update(Item);
   if Assigned(FOnChanged) then
     FOnChanged(Self);
 end;
 
-procedure ApplyColumnRuleKeyPress(const ARule: TColumnRule; const AText: string; var Key: Char);
+procedure ApplyColumnFilterKeyPress(const AFilter: TColumnFilter; const AText: string; var Key: Char);
 begin
-  if (Key <> #8) and (Key >= #32) and (ARule.MaxLength >= 0) and (Length(AText) >= ARule.MaxLength) then
+  if (Key <> #8) and (Key >= #32) and (AFilter.MaxLength >= 0) and (Length(AText) >= AFilter.MaxLength) then
   begin
     Key := #0;
     Exit;
   end;
 
-  case ARule.DataType of
-    cdtNone:
+  case AFilter.DataType of
+    fNone:
       Exit;
-    cdtInteger:
+    fInteger:
       begin
         if CharInSet(Key, [#1, #3, #22, #24]) then
           Exit;
@@ -270,7 +270,7 @@ begin
         if not CharInSet(Key, ['0'..'9', #8]) then
           Key := #0;
       end;
-    cdtFloat:
+    fFloat:
       begin
         if CharInSet(Key, [#1, #3, #22, #24]) then
           Exit;
@@ -284,7 +284,7 @@ begin
            (Pos(FormatSettings.DecimalSeparator, AText) > 0) then
           Key := #0;
       end;
-    cdtExpression:
+    fExpression:
       begin
         if CharInSet(Key, [#1, #3, #22, #24]) then
           Exit;
@@ -306,31 +306,31 @@ begin
   end;
 end;
 
-function ValidateTextByColumnRule(const ARule: TColumnRule; const AText: string): Boolean;
+function ValidateTextByColumnFilter(const AFilter: TColumnFilter; const AText: string): Boolean;
 var
   I, DecCount, Balance: Integer;
   Ch, LastCh, FirstCh: Char;
 begin
   Result := True;
 
-  if (ARule.MinLength >= 0) and (Length(AText) < ARule.MinLength) then
+  if (AFilter.MinLength >= 0) and (Length(AText) < AFilter.MinLength) then
     Exit(False);
 
-  if (ARule.MaxLength >= 0) and (Length(AText) > ARule.MaxLength) then
+  if (AFilter.MaxLength >= 0) and (Length(AText) > AFilter.MaxLength) then
     Exit(False);
 
-  case ARule.DataType of
-    cdtNone:
+  case AFilter.DataType of
+    fNone:
       Exit(True);
 
-    cdtInteger:
+    fInteger:
       begin
         for Ch in AText do
           if not CharInSet(Ch, ['0'..'9']) then
             Exit(False);
       end;
 
-    cdtFloat:
+    fFloat:
       begin
         DecCount := 0;
         for Ch in AText do
@@ -344,7 +344,7 @@ begin
           Exit(False);
       end;
 
-    cdtExpression:
+    fExpression:
       begin
         Balance := 0;
         LastCh := #0;
@@ -400,13 +400,13 @@ begin
   end;
 end;
 
-function ResolveColumnRule(ARules: TColumnRules; AColumn: Integer): TColumnRule;
+function ResolveColumnFilter(AFilters: TColumnFilters; AColumn: Integer): TColumnFilter;
 begin
-  Result := TColumnRule.None;
-  if ARules = nil then
+  Result := TColumnFilter.None;
+  if AFilters = nil then
     Exit;
-  if (AColumn >= 0) and (AColumn < ARules.Count) then
-    Result := ARules[AColumn].ToRule;
+  if (AColumn >= 0) and (AColumn < AFilters.Count) then
+    Result := AFilters[AColumn].ToFilter;
 end;
 
 end.

@@ -25,25 +25,25 @@ type
 
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
-    FColumnRuleItems: TColumnRules;
-    FSyncingColumnRules: Boolean;
+    FColumnFilterItems: TColumnFilters;
+    FSyncingColumnFilters: Boolean;
 
     // Pole validátorů pro sloupce
     FValidators: array of TMyGridKeyValidator;
 
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
-    procedure SetColumnRules(const Value: TColumnRules);
+    procedure SetColumnFilters(const Value: TColumnFilters);
     procedure UpdateHeaders;
     procedure AutoSizeDataColumns;
-    procedure ColumnRulesChanged(Sender: TObject);
+    procedure ColumnFiltersChanged(Sender: TObject);
 
     procedure EnsureValidatorSize;
-    procedure EnsureColumnRuleCount;
+    procedure EnsureColumnFilterCount;
     function GetCellText(ACol, ARow: Integer): string;
-    function ValidateCellByRule(ACol, ARow: Integer): Boolean;
+    function ValidateCellByFilter(ACol, ARow: Integer): Boolean;
     procedure ClearCellIfInvalid(ACol, ARow: Integer);
-    procedure ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
+    procedure ApplyColumnFilter(ACol, ARow: Integer; var Key: Char);
 
   protected
     procedure Loaded; override;
@@ -62,9 +62,9 @@ type
     procedure SetColumnValidator(ACol: Integer; AValidator: TMyGridKeyValidator);
     procedure ClearColumnValidator(ACol: Integer);
     procedure ClearAllValidators;
-    procedure SetColumnRule(ACol: Integer; const ARule: TColumnRule);
-    procedure ClearColumnRule(ACol: Integer);
-    procedure ClearAllColumnRules;
+    procedure SetColumnFilter(ACol: Integer; const AFilter: TColumnFilter);
+    procedure ClearColumnFilter(ACol: Integer);
+    procedure ClearAllColumnFilters;
 
   published
     property EnterEndBehavior: TEnterEndBehavior
@@ -76,8 +76,8 @@ type
     property RowHeaders: TStrings
       read FRowHeaders write SetRowHeaders;
 
-    property ColumnRules: TColumnRules
-      read FColumnRuleItems write SetColumnRules;
+    property ColumnFilters: TColumnFilters
+      read FColumnFilterItems write SetColumnFilters;
   end;
 
 implementation
@@ -100,20 +100,20 @@ begin
   FRowHeaders := TStringList.Create;
 
   // Vytvoření
-  FColumnRuleItems := TColumnRules.Create(Self);
+  FColumnFilterItems := TColumnFilters.Create(Self);
 
   // Sledování změn v itemech sloupců
-  FColumnRuleItems.OnChanged := ColumnRulesChanged;
+  FColumnFilterItems.OnChanged := ColumnFiltersChanged;
 
   EnsureValidatorSize;
-  EnsureColumnRuleCount;
+  EnsureColumnFilterCount;
 end;
 
 destructor TMyStringGrid.Destroy;
 begin
   FColumnHeaders.Free;
   FRowHeaders.Free;
-  FColumnRuleItems.Free;
+  FColumnFilterItems.Free;
   inherited Destroy;
 end;
 
@@ -124,15 +124,15 @@ begin
     SetLength(FValidators, ColCount);
 end;
 
-procedure TMyStringGrid.EnsureColumnRuleCount;
+procedure TMyStringGrid.EnsureColumnFilterCount;
 begin
-  if FSyncingColumnRules then
+  if FSyncingColumnFilters then
     Exit;
-  FSyncingColumnRules := True;
+  FSyncingColumnFilters := True;
   try
-    FColumnRuleItems.EnsureCount(ColCount);
+    FColumnFilterItems.EnsureCount(ColCount);
   finally
-    FSyncingColumnRules := False;
+    FSyncingColumnFilters := False;
   end;
 end;
 
@@ -152,23 +152,23 @@ begin
     FValidators[ACol] := AValidator;
 end;
 
-procedure TMyStringGrid.SetColumnRule(ACol: Integer; const ARule: TColumnRule);
+procedure TMyStringGrid.SetColumnFilter(ACol: Integer; const AFilter: TColumnFilter);
 var
-  Item: TColumnRuleItem;
+  Item: TColumnFilterItem;
 begin
   if ACol < 0 then
     Exit;
 
-  EnsureColumnRuleCount;
-  if ACol >= FColumnRuleItems.Count then
+  EnsureColumnFilterCount;
+  if ACol >= FColumnFilterItems.Count then
     Exit;
 
-  Item := FColumnRuleItems[ACol];
-  Item.DataType := ARule.DataType;
-  Item.MinLength := ARule.MinLength;
-  Item.MaxLength := ARule.MaxLength;
-  Item.MinValue := ARule.MinValue;
-  Item.MaxValue := ARule.MaxValue;
+  Item := FColumnFilterItems[ACol];
+  Item.DataType := AFilter.DataType;
+  Item.MinLength := AFilter.MinLength;
+  Item.MaxLength := AFilter.MaxLength;
+  Item.MinValue := AFilter.MinValue;
+  Item.MaxValue := AFilter.MaxValue;
 end;
 
 procedure TMyStringGrid.ClearColumnValidator(ACol: Integer);
@@ -178,21 +178,21 @@ begin
     FValidators[ACol] := nil;
 end;
 
-procedure TMyStringGrid.ClearColumnRule(ACol: Integer);
+procedure TMyStringGrid.ClearColumnFilter(ACol: Integer);
 begin
-  SetColumnRule(ACol, TColumnRule.None);
+  SetColumnFilter(ACol, TColumnFilter.None);
 end;
 
-procedure TMyStringGrid.ClearAllColumnRules;
+procedure TMyStringGrid.ClearAllColumnFilters;
 var
   I: Integer;
 begin
-  EnsureColumnRuleCount;
-  for I := 0 to FColumnRuleItems.Count - 1 do
-    ClearColumnRule(I);
+  EnsureColumnFilterCount;
+  for I := 0 to FColumnFilterItems.Count - 1 do
+    ClearColumnFilter(I);
 end;
 
-procedure TMyStringGrid.ApplyColumnRule(ACol, ARow: Integer; var Key: Char);
+procedure TMyStringGrid.ApplyColumnFilter(ACol, ARow: Integer; var Key: Char);
 var
   CurrentText: string;
 begin
@@ -204,7 +204,7 @@ begin
   else
     CurrentText := Cells[ACol, ARow];
 
-  ApplyColumnRuleKeyPress(ResolveColumnRule(FColumnRuleItems, ACol), CurrentText, Key);
+  ApplyColumnFilterKeyPress(ResolveColumnFilter(FColumnFilterItems, ACol), CurrentText, Key);
 end;
 
 function TMyStringGrid.GetCellText(ACol, ARow: Integer): string;
@@ -215,9 +215,9 @@ begin
     Result := Cells[ACol, ARow];
 end;
 
-function TMyStringGrid.ValidateCellByRule(ACol, ARow: Integer): Boolean;
+function TMyStringGrid.ValidateCellByFilter(ACol, ARow: Integer): Boolean;
 var
-  Rule: TColumnRule;
+  Filter: TColumnFilter;
 begin
   Result := True;
 
@@ -228,8 +228,8 @@ begin
   if (ACol >= 0) and (ACol < Length(FValidators)) and Assigned(FValidators[ACol]) then
     Exit;
 
-  Rule := ResolveColumnRule(FColumnRuleItems, ACol);
-  Result := ValidateTextByColumnRule(Rule, GetCellText(ACol, ARow));
+  Filter := ResolveColumnFilter(FColumnFilterItems, ACol);
+  Result := ValidateTextByColumnFilter(Filter, GetCellText(ACol, ARow));
 
   if not Result then
     MessageBeep(MB_ICONWARNING);
@@ -237,7 +237,7 @@ end;
 
 procedure TMyStringGrid.ClearCellIfInvalid(ACol, ARow: Integer);
 begin
-  if ValidateCellByRule(ACol, ARow) then
+  if ValidateCellByFilter(ACol, ARow) then
     Exit;
 
   Cells[ACol, ARow] := '';
@@ -245,16 +245,16 @@ begin
     InplaceEditor.Text := '';
 end;
 
-procedure TMyStringGrid.SetColumnRules(const Value: TColumnRules);
+procedure TMyStringGrid.SetColumnFilters(const Value: TColumnFilters);
 begin
-  FColumnRuleItems.Assign(Value);
-  EnsureColumnRuleCount;
+  FColumnFilterItems.Assign(Value);
+  EnsureColumnFilterCount;
 end;
 
-procedure TMyStringGrid.ColumnRulesChanged(Sender: TObject);
+procedure TMyStringGrid.ColumnFiltersChanged(Sender: TObject);
 begin
-  if FColumnRuleItems.Count <> ColCount then
-    EnsureColumnRuleCount;
+  if FColumnFilterItems.Count <> ColCount then
+    EnsureColumnFilterCount;
   Invalidate;
 end;
 
@@ -299,7 +299,7 @@ begin
       if Assigned(V) then
         V(Self, Col, Row, Key);
       if not Assigned(V) then
-        ApplyColumnRule(Col, Row, Key);
+        ApplyColumnFilter(Col, Row, Key);
     end;
   end;
 
@@ -404,7 +404,7 @@ end;
 procedure TMyStringGrid.Loaded;
 begin
   inherited;
-  EnsureColumnRuleCount;
+  EnsureColumnFilterCount;
   UpdateHeaders;
   AutoSizeDataColumns;
 end;
@@ -413,7 +413,7 @@ procedure TMyStringGrid.SizeChanged(OldColCount, OldRowCount: Integer);
 begin
   inherited SizeChanged(OldColCount, OldRowCount);
   EnsureValidatorSize;
-  EnsureColumnRuleCount;
+  EnsureColumnFilterCount;
 end;
 
 procedure TMyStringGrid.SetColumnHeaders(const Value: TStrings);

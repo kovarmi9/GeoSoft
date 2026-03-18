@@ -12,7 +12,6 @@ type
     Button1: TButton;
     Edit1: TEdit;
     Button2: TButton;
-    MyStringGrid1: TMyStringGrid;
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
   private

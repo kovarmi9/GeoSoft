@@ -4,10 +4,11 @@ interface
 
 uses
   System.Classes,
-  System.SysUtils;
+  System.SysUtils,
+  ComObj;
 
 type
-  // Zatím jen čtyři základní typy vstupu
+  // Datové typy povolené pro vstup + výrazy
   TColumnDataType = (
     fNone,
     fInteger,
@@ -26,7 +27,7 @@ type
     class function Integer: TColumnFilter; static;
     class function Float: TColumnFilter; static;
     class function Expression: TColumnFilter; static;
-    function HasSettings: Boolean;
+//    function HasSettings: Boolean;
   end;
 
   // Jeden item odpovídá jednomu sloupci
@@ -74,6 +75,7 @@ type
 procedure ApplyColumnFilterKeyPress(const AFilter: TColumnFilter; const AText: string; var Key: Char);
 function ValidateTextByColumnFilter(const AFilter: TColumnFilter; const AText: string): Boolean;
 function ResolveColumnFilter(AFilters: TColumnFilters; AColumn: Integer): TColumnFilter;
+function TryApplyColumnFilter(const AFilter: TColumnFilter; var AText: string): Boolean;
 
 implementation
 
@@ -85,34 +87,245 @@ begin
     Result := FormatSettings.DecimalSeparator;
 end;
 
-function GetLastNonSpaceChar(const S: string): Char;
+function LastTextChar(const S: string): Char;
 var
   I: Integer;
 begin
   Result := #0;
   for I := Length(S) downto 1 do
     if S[I] <> ' ' then
-      Exit(S[I]);
+    begin
+      Result := S[I];
+      Exit;
+    end;
 end;
 
-function GetFirstNonSpaceChar(const S: string): Char;
+function FirstTextChar(const S: string): Char;
 var
   I: Integer;
 begin
   Result := #0;
   for I := 1 to Length(S) do
     if S[I] <> ' ' then
-      Exit(S[I]);
+    begin
+      Result := S[I];
+      Exit;
+    end;
 end;
 
-function GetNextNonSpaceChar(const S: string; AIndex: Integer): Char;
+function NextTextChar(const S: string; StartIndex: Integer): Char;
 var
   I: Integer;
 begin
   Result := #0;
-  for I := AIndex + 1 to Length(S) do
+  for I := StartIndex + 1 to Length(S) do
     if S[I] <> ' ' then
-      Exit(S[I]);
+    begin
+      Result := S[I];
+      Exit;
+    end;
+end;
+
+function CurrentNumberHasDecimal(const S: string): Boolean;
+var
+  I: Integer;
+  Ch: Char;
+begin
+  Result := False;
+  for I := Length(S) downto 1 do
+  begin
+    Ch := S[I];
+
+    if Ch = ' ' then
+      Continue;
+
+    if CharInSet(Ch, ['+', '-', '*', '/', '^', '(', ')']) then
+      Exit;
+
+    if Ch = FormatSettings.DecimalSeparator then
+      Exit(True);
+  end;
+end;
+
+procedure ApplyIntegerKeyPress(var Key: Char);
+begin
+  if CharInSet(Key, [#1, #3, #22, #24]) then
+    Exit;
+
+  if not CharInSet(Key, ['0'..'9', #8]) then
+    Key := #0;
+end;
+
+procedure ApplyFloatKeyPress(const AText: string; var Key: Char);
+begin
+  if CharInSet(Key, [#1, #3, #22, #24]) then
+    Exit;
+
+  Key := NormalizeDecimalKeyChar(Key);
+
+  if not CharInSet(Key, ['0'..'9', FormatSettings.DecimalSeparator, #8]) then
+  begin
+    Key := #0;
+    Exit;
+  end;
+
+  if (Key = FormatSettings.DecimalSeparator) and
+     (Pos(FormatSettings.DecimalSeparator, AText) > 0) then
+    Key := #0;
+end;
+
+procedure ApplyExpressionKeyPress(const AText: string; var Key: Char);
+var
+  LastChar: Char;
+begin
+  if CharInSet(Key, [#1, #3, #22, #24]) then
+    Exit;
+
+  Key := NormalizeDecimalKeyChar(Key);
+
+  if not CharInSet(Key, ['0'..'9', '+', '-', '*', '/', '(', ')', '^',
+    FormatSettings.DecimalSeparator, ' ', #8]) then
+  begin
+    Key := #0;
+    Exit;
+  end;
+
+  LastChar := LastTextChar(AText);
+
+  if CharInSet(Key, ['+', '*', '/', '^']) and
+     CharInSet(LastChar, ['+', '-', '*', '/', '^']) then
+    Key := #0;
+
+  if (Key = '-') and CharInSet(LastChar, ['+', '-', '*', '/', '^']) and
+     (LastChar = '-') then
+    Key := #0;
+
+  if (Key = FormatSettings.DecimalSeparator) and
+     (CharInSet(LastChar, ['+', '-', '*', '/', '^', ')', '(',
+       FormatSettings.DecimalSeparator]) or CurrentNumberHasDecimal(AText)) then
+      Key := #0;
+end;
+
+function ValidateIntegerText(const AText: string): Boolean;
+var
+  Ch: Char;
+begin
+  Result := True;
+  for Ch in AText do
+    if not CharInSet(Ch, ['0'..'9']) then
+      Exit(False);
+end;
+
+function ValidateFloatText(const AText: string): Boolean;
+var
+  Ch: Char;
+  HasDecimal: Boolean;
+begin
+  Result := True;
+  HasDecimal := False;
+
+  for Ch in AText do
+  begin
+    if Ch = FormatSettings.DecimalSeparator then
+    begin
+      if HasDecimal then
+        Exit(False);
+      HasDecimal := True;
+    end
+    else if not CharInSet(Ch, ['0'..'9']) then
+      Exit(False);
+  end;
+end;
+
+function ValidateExpressionText(const AText: string): Boolean;
+var
+  I, Balance: Integer;
+  Ch, PrevChar, NextChar, FirstChar, LastChar: Char;
+  NumberHasDecimal: Boolean;
+begin
+  Result := True;
+  Balance := 0;
+  PrevChar := #0;
+  FirstChar := FirstTextChar(AText);
+  LastChar := LastTextChar(AText);
+  NumberHasDecimal := False;
+
+  for I := 1 to Length(AText) do
+  begin
+    Ch := AText[I];
+
+    if Ch = ' ' then
+      Continue;
+
+    if not CharInSet(Ch, ['0'..'9', '+', '-', '*', '/', '^', '(', ')',
+      FormatSettings.DecimalSeparator]) then
+      Exit(False);
+
+    if CharInSet(Ch, ['+', '-', '*', '/', '^', '(', ')']) then
+      NumberHasDecimal := False;
+
+    if Ch = '(' then
+      Inc(Balance)
+    else if Ch = ')' then
+    begin
+      Dec(Balance);
+      if Balance < 0 then
+        Exit(False);
+    end;
+
+    if CharInSet(Ch, ['+', '*', '/', '^']) and
+       CharInSet(PrevChar, ['+', '-', '*', '/', '^']) then
+      Exit(False);
+
+    if (Ch = '-') and CharInSet(PrevChar, ['+', '-', '*', '/', '^']) and
+       (PrevChar = '-') then
+      Exit(False);
+
+    if Ch = FormatSettings.DecimalSeparator then
+    begin
+      if NumberHasDecimal then
+        Exit(False);
+
+      if CharInSet(PrevChar, ['+', '-', '*', '/', '^', ')', '(',
+        FormatSettings.DecimalSeparator]) then
+        Exit(False);
+
+      NextChar := NextTextChar(AText, I);
+      if CharInSet(NextChar, ['+', '-', '*', '/', '^', ')', '(',
+        FormatSettings.DecimalSeparator]) then
+        Exit(False);
+
+      NumberHasDecimal := True;
+    end;
+
+    PrevChar := Ch;
+  end;
+
+  if Balance <> 0 then
+    Exit(False);
+
+  if CharInSet(LastChar, ['+', '*', '/', '^']) then
+    Exit(False);
+
+  if (FirstChar <> #0) and CharInSet(FirstChar, ['*', '/', '^', ')']) then
+    Exit(False);
+end;
+
+function TryEvaluateExpression(const Expr: string; out Value: Double): Boolean;
+var
+  ScriptEngine: OleVariant;
+  FixedExpr: string;
+begin
+  Result := False;
+  try
+    FixedExpr := StringReplace(Expr, ',', '.', [rfReplaceAll]);
+    ScriptEngine := CreateOleObject('MSScriptControl.ScriptControl');
+    ScriptEngine.Language := 'VBScript';
+    Value := ScriptEngine.Eval(FixedExpr);
+    Result := True;
+  except
+    Value := 0;
+  end;
 end;
 
 class function TColumnFilter.None: TColumnFilter;
@@ -142,15 +355,15 @@ begin
   Result.DataType := fExpression;
 end;
 
-function TColumnFilter.HasSettings: Boolean;
-begin
-  Result :=
-    (DataType <> fNone) or
-    (MinLength >= 0) or
-    (MaxLength >= 0) or
-    (Trim(MinValue) <> '') or
-    (Trim(MaxValue) <> '');
-end;
+//function TColumnFilter.HasSettings: Boolean;
+//begin
+//  Result :=
+//    (DataType <> fNone) or
+//    (MinLength >= 0) or
+//    (MaxLength >= 0) or
+//    (Trim(MinValue) <> '') or
+//    (Trim(MaxValue) <> '');
+//end;
 
 constructor TColumnFilterItem.Create(Collection: TCollection);
 begin
@@ -263,53 +476,15 @@ begin
     fNone:
       Exit;
     fInteger:
-      begin
-        if CharInSet(Key, [#1, #3, #22, #24]) then
-          Exit;
-
-        if not CharInSet(Key, ['0'..'9', #8]) then
-          Key := #0;
-      end;
+      ApplyIntegerKeyPress(Key);
     fFloat:
-      begin
-        if CharInSet(Key, [#1, #3, #22, #24]) then
-          Exit;
-
-        Key := NormalizeDecimalKeyChar(Key);
-
-        if not CharInSet(Key, ['0'..'9', FormatSettings.DecimalSeparator, #8]) then
-          Key := #0;
-
-        if (Key = FormatSettings.DecimalSeparator) and
-           (Pos(FormatSettings.DecimalSeparator, AText) > 0) then
-          Key := #0;
-      end;
+      ApplyFloatKeyPress(AText, Key);
     fExpression:
-      begin
-        if CharInSet(Key, [#1, #3, #22, #24]) then
-          Exit;
-
-        Key := NormalizeDecimalKeyChar(Key);
-
-        if not CharInSet(Key, ['0'..'9', '+', '-', '*', '/', '(', ')', '^',
-          FormatSettings.DecimalSeparator, ' ', #8]) then
-          Key := #0;
-
-        if CharInSet(Key, ['+', '-', '*', '/', '^']) and CharInSet(GetLastNonSpaceChar(AText), ['+', '-', '*', '/', '^']) then
-          Key := #0;
-
-        if (Key = FormatSettings.DecimalSeparator) and
-           CharInSet(GetLastNonSpaceChar(AText), ['+', '-', '*', '/', '^', ')', '(',
-             FormatSettings.DecimalSeparator]) then
-          Key := #0;
-      end;
+      ApplyExpressionKeyPress(AText, Key);
   end;
 end;
 
 function ValidateTextByColumnFilter(const AFilter: TColumnFilter; const AText: string): Boolean;
-var
-  I, DecCount, Balance: Integer;
-  Ch, LastCh, FirstCh: Char;
 begin
   Result := True;
 
@@ -322,81 +497,28 @@ begin
   case AFilter.DataType of
     fNone:
       Exit(True);
-
     fInteger:
-      begin
-        for Ch in AText do
-          if not CharInSet(Ch, ['0'..'9']) then
-            Exit(False);
-      end;
-
+      Exit(ValidateIntegerText(AText));
     fFloat:
-      begin
-        DecCount := 0;
-        for Ch in AText do
-        begin
-          if Ch = FormatSettings.DecimalSeparator then
-            Inc(DecCount)
-          else if not CharInSet(Ch, ['0'..'9']) then
-            Exit(False);
-        end;
-        if DecCount > 1 then
-          Exit(False);
-      end;
-
+      Exit(ValidateFloatText(AText));
     fExpression:
-      begin
-        Balance := 0;
-        LastCh := #0;
-        FirstCh := GetFirstNonSpaceChar(AText);
+      Exit(ValidateExpressionText(AText));
+  end;
+end;
 
-        for I := 1 to Length(AText) do
-        begin
-          Ch := AText[I];
+function TryApplyColumnFilter(const AFilter: TColumnFilter; var AText: string): Boolean;
+var
+  Value: Double;
+begin
+  Result := ValidateTextByColumnFilter(AFilter, AText);
+  if not Result then
+    Exit;
 
-          if Ch = ' ' then
-            Continue;
-
-          if not CharInSet(Ch, ['0'..'9', '+', '-', '*', '/', '^', '(', ')',
-            FormatSettings.DecimalSeparator]) then
-            Exit(False);
-
-          if Ch = '(' then
-            Inc(Balance)
-          else if Ch = ')' then
-          begin
-            Dec(Balance);
-            if Balance < 0 then
-              Exit(False);
-          end;
-
-          if CharInSet(Ch, ['+', '-', '*', '/', '^']) and
-             CharInSet(LastCh, ['+', '-', '*', '/', '^']) then
-            Exit(False);
-
-          if Ch = FormatSettings.DecimalSeparator then
-          begin
-            if CharInSet(LastCh, ['+', '-', '*', '/', '^', ')', '(',
-              FormatSettings.DecimalSeparator]) then
-              Exit(False);
-
-            if CharInSet(GetNextNonSpaceChar(AText, I), ['+', '-', '*', '/', '^', ')',
-              '(', FormatSettings.DecimalSeparator]) then
-              Exit(False);
-          end;
-
-          LastCh := Ch;
-        end;
-
-        if Balance <> 0 then
-          Exit(False);
-
-        if CharInSet(GetLastNonSpaceChar(AText), ['+', '-', '*', '/', '^']) then
-          Exit(False);
-
-        if (FirstCh <> #0) and CharInSet(FirstCh, ['*', '/', '^', ')']) then
-          Exit(False);
-      end;
+  if (AFilter.DataType = fExpression) and (Trim(AText) <> '') then
+  begin
+    Result := TryEvaluateExpression(AText, Value);
+    if Result then
+      AText := FloatToStr(Value);
   end;
 end;
 

@@ -41,7 +41,7 @@ type
     procedure EnsureValidatorSize;
     procedure EnsureColumnFilterCount;
     function GetCellText(ACol, ARow: Integer): string;
-    function ValidateCellByFilter(ACol, ARow: Integer): Boolean;
+    function ApplyFilterToCell(ACol, ARow: Integer): Boolean;
     procedure ClearCellIfInvalid(ACol, ARow: Integer);
     procedure ApplyColumnFilter(ACol, ARow: Integer; var Key: Char);
 
@@ -215,9 +215,10 @@ begin
     Result := Cells[ACol, ARow];
 end;
 
-function TMyStringGrid.ValidateCellByFilter(ACol, ARow: Integer): Boolean;
+function TMyStringGrid.ApplyFilterToCell(ACol, ARow: Integer): Boolean;
 var
   Filter: TColumnFilter;
+  CellText: string;
 begin
   Result := True;
 
@@ -229,7 +230,15 @@ begin
     Exit;
 
   Filter := ResolveColumnFilter(FColumnFilterItems, ACol);
-  Result := ValidateTextByColumnFilter(Filter, GetCellText(ACol, ARow));
+  CellText := GetCellText(ACol, ARow);
+  Result := TryApplyColumnFilter(Filter, CellText);
+
+  if Result and (CellText <> GetCellText(ACol, ARow)) then
+  begin
+    Cells[ACol, ARow] := CellText;
+    if EditorMode and Assigned(InplaceEditor) and (ACol = Col) and (ARow = Row) then
+      InplaceEditor.Text := CellText;
+  end;
 
   if not Result then
     MessageBeep(MB_ICONWARNING);
@@ -237,7 +246,7 @@ end;
 
 procedure TMyStringGrid.ClearCellIfInvalid(ACol, ARow: Integer);
 begin
-  if ValidateCellByFilter(ACol, ARow) then
+  if ApplyFilterToCell(ACol, ARow) then
     Exit;
 
   Cells[ACol, ARow] := '';

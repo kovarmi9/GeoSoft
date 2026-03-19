@@ -27,7 +27,6 @@ type
     class function Integer: TColumnFilter; static;
     class function Float: TColumnFilter; static;
     class function Expression: TColumnFilter; static;
-//    function HasSettings: Boolean;
   end;
 
   // Jeden item odpovídá jednomu sloupci
@@ -79,6 +78,9 @@ function TryApplyColumnFilter(const AFilter: TColumnFilter; var AText: string): 
 
 implementation
 
+function ValidateExpressionText(const AText: string): Boolean; forward;
+function TryEvaluateExpression(const Expr: string; out Value: Double): Boolean; forward;
+
 // Sjednotí desetinnou tečku nebo čárku podle místního nastavení
 function NormalizeDecimalKeyChar(Key: Char): Char;
 begin
@@ -126,6 +128,12 @@ begin
     end;
 end;
 
+function NormalizeDecimalText(const S: string): string;
+begin
+  Result := StringReplace(S, '.', FormatSettings.DecimalSeparator, [rfReplaceAll]);
+  Result := StringReplace(Result, ',', FormatSettings.DecimalSeparator, [rfReplaceAll]);
+end;
+
 function CurrentNumberHasDecimal(const S: string): Boolean;
 var
   I: Integer;
@@ -145,6 +153,83 @@ begin
     if Ch = FormatSettings.DecimalSeparator then
       Exit(True);
   end;
+end;
+
+function TryParseLimit(const S: string; out Value: Double): Boolean;
+var
+  Text: string;
+begin
+  Text := Trim(S);
+  if Text = '' then
+    Exit(False);
+
+  Text := NormalizeDecimalText(Text);
+  Result := TryStrToFloat(Text, Value);
+end;
+
+function TryGetFilterValue(const AFilter: TColumnFilter; const AText: string; out Value: Double): Boolean;
+var
+  Text: string;
+begin
+  Result := False;
+  Text := Trim(AText);
+  if Text = '' then
+    Exit;
+
+  case AFilter.DataType of
+    fInteger, fFloat:
+      begin
+        Text := NormalizeDecimalText(Text);
+        Result := TryStrToFloat(Text, Value);
+      end;
+    fExpression:
+      begin
+        if not ValidateExpressionText(Text) then
+          Exit(False);
+        Result := TryEvaluateExpression(Text, Value);
+      end;
+  else
+    begin
+      Text := NormalizeDecimalText(Text);
+      Result := TryStrToFloat(Text, Value);
+    end;
+  end;
+end;
+
+function CheckMinMaxValue(const AFilter: TColumnFilter; const AText: string): Boolean;
+var
+  Value, MinValue, MaxValue: Double;
+begin
+  Result := True;
+
+  if not TryGetFilterValue(AFilter, AText, Value) then
+    Exit(True);
+
+  if TryParseLimit(AFilter.MinValue, MinValue) and (Value < MinValue) then
+    Exit(False);
+
+  if TryParseLimit(AFilter.MaxValue, MaxValue) and (Value > MaxValue) then
+    Exit(False);
+end;
+
+function CheckMaxValueWhileTyping(const AFilter: TColumnFilter; const AText: string; Key: Char): Boolean;
+var
+  Candidate: string;
+  Value, MaxValue: Double;
+begin
+  Result := True;
+
+  if not TryParseLimit(AFilter.MaxValue, MaxValue) then
+    Exit(True);
+
+  if CharInSet(Key, [#0, #1, #3, #8, #22, #24]) then
+    Exit(True);
+
+  Candidate := AText + Key;
+  if not TryGetFilterValue(AFilter, Candidate, Value) then
+    Exit(True);
+
+  Result := Value <= MaxValue;
 end;
 
 procedure ApplyIntegerKeyPress(var Key: Char);
@@ -355,16 +440,6 @@ begin
   Result.DataType := fExpression;
 end;
 
-//function TColumnFilter.HasSettings: Boolean;
-//begin
-//  Result :=
-//    (DataType <> fNone) or
-//    (MinLength >= 0) or
-//    (MaxLength >= 0) or
-//    (Trim(MinValue) <> '') or
-//    (Trim(MaxValue) <> '');
-//end;
-
 constructor TColumnFilterItem.Create(Collection: TCollection);
 begin
   inherited Create(Collection);
@@ -482,6 +557,9 @@ begin
     fExpression:
       ApplyExpressionKeyPress(AText, Key);
   end;
+
+  if not CheckMaxValueWhileTyping(AFilter, AText, Key) then
+    Key := #0;
 end;
 
 function ValidateTextByColumnFilter(const AFilter: TColumnFilter; const AText: string): Boolean;
@@ -496,14 +574,19 @@ begin
 
   case AFilter.DataType of
     fNone:
-      Exit(True);
+      Result := True;
     fInteger:
-      Exit(ValidateIntegerText(AText));
+      Result := ValidateIntegerText(AText);
     fFloat:
-      Exit(ValidateFloatText(AText));
+      Result := ValidateFloatText(AText);
     fExpression:
-      Exit(ValidateExpressionText(AText));
+      Result := ValidateExpressionText(AText);
   end;
+
+  if not Result then
+    Exit(False);
+
+  Result := CheckMinMaxValue(AFilter, AText);
 end;
 
 function TryApplyColumnFilter(const AFilter: TColumnFilter; var AText: string): Boolean;
@@ -514,11 +597,18 @@ begin
   if not Result then
     Exit;
 
+  Result := CheckMinMaxValue(AFilter, AText);
+  if not Result then
+    Exit;
+
   if (AFilter.DataType = fExpression) and (Trim(AText) <> '') then
   begin
     Result := TryEvaluateExpression(AText, Value);
     if Result then
+    begin
       AText := FloatToStr(Value);
+      Result := CheckMinMaxValue(AFilter, AText);
+    end;
   end;
 end;
 

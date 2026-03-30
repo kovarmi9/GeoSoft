@@ -7,9 +7,8 @@ uses
   PolarMethod in 'PolarMethod.pas' {Form3},
   OrthogonalMethod in 'OrthogonalMethod.pas' {Form4},
   Transformation in 'Transformation.pas' {Form5},
-  AddPoint in 'AddPoint.pas' {Form6},
-  CheckMeasurement in 'CheckMeasurement.pas' {Form7},
-  CalcFormBase in 'CalcFormBase.pas' {Form8},
+  AddPoint in 'AddPoint.pas' {AddPointForm},
+  CheckMeasurement in 'CheckMeasurement.pas' {CheckMeasurementForm},
   PolarMethodNew in 'PolarMethodNew.pas' {Form9},
   StringGridValidationUtils in 'StringGridValidationUtils.pas',
   GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
@@ -32,9 +31,8 @@ begin
   Application.CreateForm(TForm3, Form3);
   Application.CreateForm(TForm4, Form4);
   Application.CreateForm(TForm5, Form5);
-  Application.CreateForm(TForm6, Form6);
-  Application.CreateForm(TForm7, Form7);
-  Application.CreateForm(TForm8, Form8);
+  Application.CreateForm(TAddPointForm, AddPointForm);
+  Application.CreateForm(TCheckMeasurementForm, CheckMeasurementForm);
   Application.CreateForm(TForm9, Form9);
   Application.Run;
 end.

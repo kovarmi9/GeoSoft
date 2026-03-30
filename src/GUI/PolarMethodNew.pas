@@ -188,7 +188,7 @@ end;
 // Najdi bod ve slovníku; když není, nabídni dialog pro doplnění
 function TForm9.LookupOrPromptPoint(PointNumber: Integer; out P: Point.TPoint): Boolean;
 var
-  dlg: TForm6;
+  dlg: TAddPointForm;
 begin
   Result := False;
   if PointNumber <= 0 then Exit;
@@ -200,7 +200,7 @@ begin
   end;
 
   // neexistuje -> nabídni dialog
-  dlg := TForm6.Create(Self);
+  dlg := TAddPointForm.Create(Self);
   try
     if not dlg.Execute(PointNumber, P) then
       Exit(False);

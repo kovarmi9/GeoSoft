@@ -46,7 +46,26 @@ object Form4: TForm4
       'P'
       'K'
       '1')
-    ExplicitWidth = 795
+    ColumnFilters = <
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end>
+    ExplicitWidth = 791
     ColWidths = (
       64
       88
@@ -70,6 +89,7 @@ object Form4: TForm4
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 1
+    ExplicitWidth = 791
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
@@ -82,7 +102,7 @@ object Form4: TForm4
     List = True
     AllowTextButtons = True
     TabOrder = 2
-    ExplicitWidth = 789
+    ExplicitWidth = 785
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True
@@ -183,6 +203,8 @@ object Form4: TForm4
     Height = 117
     Align = alBottom
     TabOrder = 3
+    ExplicitTop = 437
+    ExplicitWidth = 791
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
@@ -192,6 +214,7 @@ object Form4: TForm4
         item
           Width = 50
         end>
+      ExplicitWidth = 789
     end
   end
 end

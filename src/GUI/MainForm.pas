@@ -77,7 +77,7 @@ end;
 
 procedure TForm1.CheckMeasurementClick(Sender: TObject);
 begin
-Form7.Show;
+CheckMeasurementForm.Show;
 end;
 
 end.

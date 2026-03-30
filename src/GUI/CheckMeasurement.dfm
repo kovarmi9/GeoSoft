@@ -1,7 +1,7 @@
-object Form7: TForm7
+object CheckMeasurementForm: TCheckMeasurementForm
   Left = 0
   Top = 0
-  Caption = 'Form7'
+  Caption = 'CheckMeasurementForm'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace
@@ -26,14 +26,5 @@ object Form7: TForm7
     Width = 121
     Height = 23
     TabOrder = 1
-  end
-  object Button2: TButton
-    Left = 400
-    Top = 192
-    Width = 75
-    Height = 25
-    Caption = 'Button2'
-    TabOrder = 2
-    OnClick = Button2Click
   end
 end

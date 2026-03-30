@@ -1,96 +1,113 @@
-﻿# PROJECT MAP
+# PROJECT MAP
 
 ## 1) Seznam unitů + stručná role
 
 ### GUI
-- `MainForm` (`src/GUI/MainForm.pas`): Hlavní menu aplikace (Form1), které otevírá `PointsManagement`, `PolarMethod`, `OrthogonalMethod`, `Transformation`, `CheckMeasurement` a `PolarMethodNew`.
-- `PointsManagement` (`src/GUI/PointsManagement.pas`): Správa seznamu bodů v `TMyPointsStringGrid`, import/export TXT/CSV/BIN, práce nad globálním singletonem `TPointDictionary` a prefix state (`PointPrefixState`). Pořád používá hlavně starší callback filtry z `InputFilterUtils` a vlastní logiku v `KeyDown`.
-- `PolarMethod` (`src/GUI/PolarMethod.pas`): Klasická polární metoda nad `TStringGrid`, lookup bodů přes singleton dictionary a výpočet přes `GeoAlgorithmPolar`.
+- `MainForm` (`src/GUI/MainForm.pas`): Hlavní menu aplikace (Form1). Interface `uses` zahrnuje pouze `Point`, `AddPoint`, `PointsManagement` a transformační algoritmy + custom gridy. V **implementation** `uses` přidává `PolarMethod`, `OrthogonalMethod`, `Transformation`, `CheckMeasurement`, `PolarMethodNew` (formuláře jsou tedy závislé pouze v runtime části). Obsahuje také mrtvé závislosti na DB/Web stacku (`Data.DB`, `Vcl.DBGrids`, `Web.HTTPApp`, `Web.DBWeb`, `Web.DBXpressWeb`).
+- `PointsManagement` (`src/GUI/PointsManagement.pas`): Správa seznamu bodů v `TMyPointsStringGrid`, import/export TXT/CSV/BIN, práce nad globálním singletonem `TPointDictionary` a prefix state (`PointPrefixState`). Používá starší callback filtry z `InputFilterUtils` a vlastní logiku v `KeyDown`.
+- `PolarMethod` (`src/GUI/PolarMethod.pas`): ⚠️ **Celá unit je zakomentována** – pouze mrtvý kód. TForm3 není aktivní. Formulář je do projektu zahrnován přes implementation uses v MainForm, ale unit sama neposkytuje žádné třídy ani logiku.
 - `OrthogonalMethod` (`src/GUI/OrthogonalMethod.pas`): UI pro ortogonální metodu s `TMyPointsStringGrid`, validacemi vstupu, vyhodnocováním výrazů při opuštění buňky a výpočtem přes `GeoAlgorithmOrthogonal`.
-- `Transformation` (`src/GUI/Transformation.pas`): Formulář pro práci s transformační tabulkou bodů. Aktuálně používá sdílený slovník bodů a vlastní grid rendering, ale transformační algoritmy neimportuje přímo v této unitě.
+- `Transformation` (`src/GUI/Transformation.pas`): Formulář pro práci s transformační tabulkou bodů. Používá sdílený slovník bodů a vlastní grid rendering, transformační algoritmy neimportuje přímo.
 - `PolarMethodNew` (`src/GUI/PolarMethodNew.pas`): Novější varianta polární metody nad `TGeoDataFrame`/`TGeoRow`; používá custom gridy, callback validace, lookup bodů a ukládání pracovních dat do BIN/CSV.
-- `AddPoint` (`src/GUI/AddPoint.pas`): Dialog pro ruční zadání chybějícího bodu, postavený nad `TMyStringGrid`. Pořád používá starý callback systém `SetColumnValidator(...)`.
-- `CheckMeasurement` (`src/GUI/CheckMeasurement.pas`): Pomocný formulář (Form7), který otevírá dialog `AddPoint` a pomocný formulář `CalcFormBase`.
-- `CalcFormBase` (`src/GUI/CalcFormBase.pas`): Jednoduchý základní formulář bez vlastní doménové logiky.
-- `StringGridValidationUtils` (`src/GUI/StringGridValidationUtils.pas`): Sdílené validační utility pro `TStringGrid` a custom gridy.
+- `AddPoint` (`src/GUI/AddPoint.pas`): Dialog pro ruční zadání chybějícího bodu, postavený nad `TMyStringGrid`. Používá starý callback systém `SetColumnValidator(...)`. Exportuje globální `NewPoint: TPoint`.
+- `CheckMeasurement` (`src/GUI/CheckMeasurement.pas`): Pomocný formulář (Form7), který otevírá dialog `AddPoint` a pomocný formulář `CalcFormBase`. Nově také závisí na `MyStringGrid`.
+- `CalcFormBase` (`src/GUI/CalcFormBase.pas`): Jednoduchý základní formulář (Form8) bez vlastní doménové logiky.
+- `StringGridValidationUtils` (`src/GUI/StringGridValidationUtils.pas`): Sdílené validační utility pro `TStringGrid` a custom gridy (procedury, žádné třídy).
 
 ### Utils
-- `Point` (`src/Utils/Point.pas`): Datový typ bodu (`TPoint`) s validacemi hodnot. Základní model, na kterém stojí většina aplikace.
-- `ValidationUtils` (`src/Utils/ValidationUtils.pas`): Nízkourovňové validační funkce pro čísla bodů, souřadnice, kvalitu a text.
-- `InputFilterUtils` (`src/Utils/InputFilterUtils.pas`): Filtrace znaků při psaní do gridů (point no, coordinate, quality, description).
-- `PointPrefixState` (`src/Utils/PointPrefixState.pas`): Sdílený globální stav prefixů bodů (`KU`, `ZPMZ`, `KK`, `Popis`) a helpery pro naplnění/uložení comboboxů a skládání ID bodu.
-- `PointsUtils` (`src/Utils/PointsUtils.pas`): Nesingleton správce kolekce bodů + import/export (TXT/CSV/BIN).
-- `PointsUtilsSingleton` (`src/Utils/PointsUtilsSingleton.pas`): Singleton správce bodů (`TPointDictionary.GetInstance`) sdílený napříč formuláři.
-- `GeoAlgorithmBase` (`src/Utils/GeoAlgorithmBase.pas`): Základní abstrakce algoritmu (`TAlgorithm`) nad polem bodů.
-- `GeoAlgorithmPolar` (`src/Utils/GeoAlgorithmPolar.pas`): Implementace polárního výpočtu nad `TPointsArray`.
-- `GeoAlgorithmOrthogonal` (`src/Utils/GeoAlgorithmOrthogonal.pas`): Implementace ortogonálního výpočtu nad `TPointsArray`.
+- `Point` (`src/Utils/Point.pas`): Datový typ bodu (`TPoint`) s poli PointNumber, X, Y, Z, Quality, Description + ukazatel `PPoint`. Základní model celé aplikace.
+- `ValidationUtils` (`src/Utils/ValidationUtils.pas`): Nízkourovňové statické validační funkce pro čísla bodů, souřadnice, kvalitu a text.
+- `InputFilterUtils` (`src/Utils/InputFilterUtils.pas`): Filtrace znaků při psaní do gridů – typ `TGridCharFilter` (procedure type).
+- `PointPrefixState` (`src/Utils/PointPrefixState.pas`): Sdílený globální stav prefixů bodů (`GPointPrefix: TPointPrefixState`) – KU, ZPMZ, KK, Popis. Helpery pro naplnění/uložení comboboxů a skládání ID bodu.
+- `PointsUtils` (`src/Utils/PointsUtils.pas`): Nesingleton správce kolekce bodů `TPointDictionary` + import/export (TXT/CSV/BIN).
+- `PointsUtilsSingleton` (`src/Utils/PointsUtilsSingleton.pas`): Singleton správce bodů (`TPointDictionary.GetInstance`) sdílený napříč formuláři. `FInstance` je class var uvnitř třídy.
+- `GeoAlgorithmBase` (`src/Utils/GeoAlgorithmBase.pas`): Základní abstrakce algoritmu `TAlgorithm` nad `TPointsArray`. Závislý pouze na `Point`.
+- `GeoAlgorithmPolar` (`src/Utils/GeoAlgorithmPolar.pas`): Implementace polárního výpočtu nad `TPointsArray`. Typy `TOrientation`, `TOrientations`, třída `TPolarMethodAlgorithm` se statickými property A (station) a B (orientations).
+- `GeoAlgorithmOrthogonal` (`src/Utils/GeoAlgorithmOrthogonal.pas`): Implementace ortogonálního výpočtu nad `TPointsArray`. Třída `TOrthogonalMethodAlgorithm` se statickými property StartPoint, EndPoint.
 
 ### GeoAlgorithms
-- `GeoAlgorithmBase` (`src/GeoAlgorithms/GeoAlgorithmBase.pas`): Rozšířená základní abstrakce algoritmu, která navíc referencuje `GeoDataFrame`.
-- `GeoAlgorithmPolar` (`src/GeoAlgorithms/GeoAlgorithmPolar.pas`): Algoritmus polární metody (varianta ve složce GeoAlgorithms).
-- `GeoAlgorithmPolar2` (`src/GeoAlgorithms/GeoAlgorithmPolar2.pas`): Polární výpočet pracující přímo s `TGeoDataFrame` vstupy (station/orientation/detail frame).
-- `GeoAlgorithmOrthogonal` (`src/GeoAlgorithms/GeoAlgorithmOrthogonal.pas`): Algoritmus ortogonální metody (varianta ve složce GeoAlgorithms).
-- `GeoAlgorithmTransformBase` (`src/GeoAlgorithms/GeoAlgorithmTransformBase.pas`): Abstraktní základ pro transformační algoritmy.
-- `GeoAlgorithmTransformSimilarity` (`src/GeoAlgorithms/GeoAlgorithmTransformSimilarity.pas`): Similaritní transformace (výpočet parametrů + aplikace).
-- `GeoAlgorithmTransformCongruent` (`src/GeoAlgorithms/GeoAlgorithmTransformCongruent.pas`): Kongruentní transformace.
-- `GeoAlgorithmTransformAffine` (`src/GeoAlgorithms/GeoAlgorithmTransformAffine.pas`): Afinní transformace včetně maticových pomocných funkcí.
+- `GeoAlgorithmBase` (`src/GeoAlgorithms/GeoAlgorithmBase.pas`): Rozšířená základní abstrakce algoritmu – navíc referencuje `GeoDataFrame` (oproti verzi v Utils).
+- `GeoAlgorithmPolar` (`src/GeoAlgorithms/GeoAlgorithmPolar.pas`): Polární výpočet – objektová varianta s property Station, Orientations (oproti statickým property v Utils verzi).
+- `GeoAlgorithmPolar2` (`src/GeoAlgorithms/GeoAlgorithmPolar2.pas`): Polární výpočet pracující přímo s `TGeoDataFrame` vstupy (StationFrame / OrientationFrame / PointsFrame).
+- `GeoAlgorithmOrthogonal` (`src/GeoAlgorithms/GeoAlgorithmOrthogonal.pas`): Ortogonální výpočet – objektová varianta (oproti statickým property v Utils verzi).
+- `GeoAlgorithmTransformBase` (`src/GeoAlgorithms/GeoAlgorithmTransformBase.pas`): Abstraktní základ `TTransformationAlgorithm` pro transformační algoritmy.
+- `GeoAlgorithmTransformSimilarity` (`src/GeoAlgorithms/GeoAlgorithmTransformSimilarity.pas`): Similaritní transformace. Private parametry Lambda1, Lambda2, Omega, Q, X0, Y0.
+- `GeoAlgorithmTransformCongruent` (`src/GeoAlgorithms/GeoAlgorithmTransformCongruent.pas`): Kongruentní transformace. Stejná struktura parametrů jako Similarity.
+- `GeoAlgorithmTransformAffine` (`src/GeoAlgorithms/GeoAlgorithmTransformAffine.pas`): Afinní transformace s maticovými pomocnými funkcemi (`TMatrix`, `TVector`, `InvertMatrix`, `MultiplyMatrixVector`). Parametry a1–a3, b1–b3.
 
 ### Components
-- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid` (hlavičky, sizing, Enter/Tab navigace, validace). Obsahuje `published` property `ColumnFilters`, takže filtry sloupců jsou vidět v Delphi Object Inspectoru. Umí jak starý callback styl `SetColumnValidator(...)`, tak nový filter-based styl přes `ColumnValidation`.
-- `MyPointsStringGrid` (`src/Components/MyPointsStringGrid.pas`): Specializace `MyStringGrid` pro práci s body.
+- `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid`. Published property `ColumnFilters` (viditelná v Object Inspectoru). Enum `TEnterEndBehavior` (ebStayOnLastCell, ebWrapToStart, ebAddRow, ebMoveFocusNext). Obsahuje jak starý callback styl (`SetColumnValidator`, `TMyGridKeyValidator`), tak nový filter-based styl přes `ColumnValidation`.
+- `MyPointsStringGrid` (`src/Components/MyPointsStringGrid.pas`): Specializace `MyStringGrid` pro práci s body – EnterEndBehavior := ebAddRow.
 - `MyStringGridReg` (`src/Components/MyStringGridReg.pas`): Registrace vlastních komponent do Delphi IDE.
-- `ColumnValidation` (`src/Components/ColumnValidation.pas`): Pomocné typy a filtrace pro `MyStringGrid` sloupce. Aktuálně řeší typy `cdtNone`, `cdtInteger`, `cdtFloat`, `cdtExpression`, kolekci `TColumnFilters`, filtraci znaků při psaní a finální validaci textu při opuštění buňky.
+- `ColumnValidation` (`src/Components/ColumnValidation.pas`): Typy a logika pro validaci sloupců. Enum `TColumnDataType` (fNone, fInteger, fFloat, fExpression), record `TColumnFilter`, třída `TColumnFilterItem`, kolekce `TColumnFilters`. Expression evaluace přes MSScriptControl COM.
 
 ### Test_gdf (datový model / test podpora)
-- `GeoRow` (`Test_gdf/GeoRow.pas`): Definice geodetického recordu `TGeoRow`, field enumů a binárního load/save řádků.
-- `GeoDataFrame` (`Test_gdf/GeoDataFrame.pas`): Tabulkový kontejner nad poli `TGeoRow` + CSV/BIN serializace.
+- `GeoRow` (`Test_gdf/GeoRow.pas`): Definice `TGeoField` (enum, 18 polí), `TGeoFields` (set), `TGeoRow` (record), `TGeoRowArray`. Konstanta `GeoFieldNames` pro mapování názvů.
+- `GeoDataFrame` (`Test_gdf/GeoDataFrame.pas`): Tabulkový kontejner `TGeoDataFrame` nad `TGeoRowArray` + CSV/BIN serializace.
+
+### Test_FieldGrid (prototyp / test podpora)
+- `GeoFieldMeta` (`Test_FieldGrid/GeoFieldMeta.pas`): Record `TGeoFieldMeta` (DisplayName + Filter) a konstanta `GeoFieldMetaData: array[TGeoField] of TGeoFieldMeta` – mapuje každé pole enum na zobrazitelné jméno a validační filtr. Závisí na `GeoRow`, `ColumnValidation`.
+- `GeoFieldsStringGrid` (`Test_FieldGrid/GeoFieldsStringGrid.pas`): Custom grid `TGeoFieldsStringGrid` specificky pro `TGeoField`. Metody FieldToCol, ColToField, SetGeoRow, GetGeoRow. Závisí na `GeoRow`, `ColumnValidation`, `GeoFieldMeta`, `MyStringGrid`.
+- `Test_FieldGrid` (`Test_FieldGrid/Test_FieldGrid.pas`): Testovací formulář (TForm1) s CheckListBox pro výběr zobrazovaných polí. Závisí na `GeoRow`, `GeoDataFrame`, `MyStringGrid`, `ColumnValidation`, `GeoFieldMeta`, `GeoFieldsStringGrid`.
+
+---
 
 ## 2) Hlavní závislosti mezi unity (`uses`)
 
 ### Klíčové vazby (architektura)
-- `MainForm` -> `PointsManagement`, `PolarMethod`, `PolarMethodNew`, `OrthogonalMethod`, `Transformation`, `CheckMeasurement`.
-- GUI výpočtové formuláře (`PolarMethod`, `OrthogonalMethod`, `Transformation`, `AddPoint`, `PointsManagement`, `PolarMethodNew`) -> `Point` + `PointsUtilsSingleton`.
-- `Point` -> `ValidationUtils`.
-- `PointsManagement`/`AddPoint`/`OrthogonalMethod`/`PolarMethodNew` -> `StringGridValidationUtils` + `InputFilterUtils`.
+- `MainForm` (interface) -> `Point`, `AddPoint`, `PointsManagement`, `GeoAlgorithmBase`, `GeoAlgorithmTransformBase`, `GeoAlgorithmTransformSimilarity`, `GeoAlgorithmTransformCongruent`, `GeoAlgorithmTransformAffine`, `MyStringGrid`, `MyPointsStringGrid`
+- `MainForm` (implementation) -> `PolarMethod` *(zakomentovaná unit)*, `OrthogonalMethod`, `Transformation`, `CheckMeasurement`, `PolarMethodNew`
+- GUI výpočtové formuláře -> `Point` + `PointsUtilsSingleton`
+- `Point` -> `ValidationUtils`
+- `PointsManagement`/`AddPoint`/`OrthogonalMethod`/`PolarMethodNew` -> `StringGridValidationUtils` + `InputFilterUtils`
 - `MyStringGrid` -> `ColumnValidation`
-- `PolarMethod` -> `GeoAlgorithmPolar`; `OrthogonalMethod` -> `GeoAlgorithmOrthogonal`.
-- `PointPrefixState` -> `PointsManagement`, `AddPoint`, `OrthogonalMethod`, `PolarMethodNew`.
-- Transformační algoritmy (`GeoAlgorithmTransformBase`, `Similarity`, `Congruent`, `Affine`) jsou součástí GUI projektu přes `GeoSoft.dpr`, ale formulář `Transformation` je aktuálně neimportuje přímo.
-- `GeoAlgorithmPolar2` + `PolarMethodNew` -> `GeoDataFrame` + `GeoRow`.
-- `MyPointsStringGrid` -> `MyStringGrid`; `MyStringGridReg` -> `MyStringGrid`, `MyPointsStringGrid`.
-- `ColumnValidation` je navázaný přímo na komponentu, ne na obecné utily aplikace.
-- Projekt teď používá dva validační směry zároveň:
-  - starší callback styl přes `InputFilterUtils` a `SetColumnValidator(...)`
-  - novější komponentový styl přes `ColumnFilters` a `ColumnValidation`
+- `OrthogonalMethod` -> `GeoAlgorithmOrthogonal` (src/GeoAlgorithms)
+- `PointPrefixState` -> `PointsManagement`, `AddPoint`, `OrthogonalMethod`, `PolarMethodNew`
+- `GeoAlgorithmPolar2` + `PolarMethodNew` -> `GeoDataFrame` + `GeoRow`
+- `GeoAlgorithmBase` (GeoAlgorithms) -> `Point`, `GeoDataFrame`
+- `MyPointsStringGrid` -> `MyStringGrid`; `MyStringGridReg` -> `MyStringGrid`, `MyPointsStringGrid`
+- `GeoFieldsStringGrid` -> `MyStringGrid`, `GeoRow`, `ColumnValidation`, `GeoFieldMeta`
+- `GeoFieldMeta` -> `GeoRow`, `ColumnValidation`
 
-### Vybrané aktuální `uses` vazby mezi project unity
+### Aktuální `uses` vazby (ověřeno ke stavu 28. března 2026)
 - `AddPoint` -> `Point`, `StringGridValidationUtils`, `InputFilterUtils`, `PointsUtilsSingleton`, `MyStringGrid`, `PointPrefixState`
-- `CheckMeasurement` -> `Point`, `AddPoint`, `CalcFormBase`
-- `GeoAlgorithmBase` (`src/GeoAlgorithms`) -> `Point`, `GeoDataFrame`
-- `GeoAlgorithmBase` (`src/Utils`) -> `Point`
-- `GeoAlgorithmOrthogonal` (`src/GeoAlgorithms`) -> `GeoAlgorithmBase`, `Point`
-- `GeoAlgorithmOrthogonal` (`src/Utils`) -> `GeoAlgorithmBase`, `Point`
-- `GeoAlgorithmPolar` (`src/GeoAlgorithms`) -> `GeoAlgorithmBase`, `Point`
-- `GeoAlgorithmPolar` (`src/Utils`) -> `GeoAlgorithmBase`, `Point`
+- `CalcFormBase` -> *(pouze VCL/system)*
+- `CheckMeasurement` -> `Point`, `AddPoint`, `CalcFormBase`, `MyStringGrid`
+- `GeoAlgorithmBase` (GeoAlgorithms) -> `Point`, `GeoDataFrame`
+- `GeoAlgorithmBase` (Utils) -> `Point`
+- `GeoAlgorithmOrthogonal` (GeoAlgorithms) -> `GeoAlgorithmBase`, `Point`
+- `GeoAlgorithmOrthogonal` (Utils) -> `GeoAlgorithmBase`, `Point`
+- `GeoAlgorithmPolar` (GeoAlgorithms) -> `GeoAlgorithmBase`, `Point`
+- `GeoAlgorithmPolar` (Utils) -> `GeoAlgorithmBase`, `Point`
 - `GeoAlgorithmPolar2` -> `GeoAlgorithmBase`, `GeoRow`, `GeoDataFrame`
 - `GeoAlgorithmTransformAffine` -> `Point`, `GeoAlgorithmBase`, `GeoAlgorithmTransformBase`
 - `GeoAlgorithmTransformBase` -> `Point`, `GeoAlgorithmBase`
 - `GeoAlgorithmTransformCongruent` -> `Point`, `GeoAlgorithmBase`, `GeoAlgorithmTransformBase`
 - `GeoAlgorithmTransformSimilarity` -> `Point`, `GeoAlgorithmBase`, `GeoAlgorithmTransformBase`
 - `GeoDataFrame` -> `GeoRow`
-- `MainForm` -> `Point`, `AddPoint`, `PointsManagement`, `GeoAlgorithmBase`, `GeoAlgorithmTransformBase`, `GeoAlgorithmTransformSimilarity`, `GeoAlgorithmTransformCongruent`, `GeoAlgorithmTransformAffine`, `MyStringGrid`, `MyPointsStringGrid`, `CheckMeasurement`
+- `GeoFieldMeta` -> `GeoRow`, `ColumnValidation`
+- `GeoFieldsStringGrid` -> `GeoRow`, `ColumnValidation`, `GeoFieldMeta`, `MyStringGrid`
+- `InputFilterUtils` -> *(SysUtils, Vcl.Grids)*
+- `MainForm` (interface) -> `Point`, `AddPoint`, `PointsManagement`, `GeoAlgorithmBase`, `GeoAlgorithmTransformBase`, `GeoAlgorithmTransformSimilarity`, `GeoAlgorithmTransformCongruent`, `GeoAlgorithmTransformAffine`, `MyStringGrid`, `MyPointsStringGrid`
+- `MainForm` (implementation) -> `PolarMethod`*, `OrthogonalMethod`, `Transformation`, `CheckMeasurement`, `PolarMethodNew`
 - `MyPointsStringGrid` -> `MyStringGrid`
-- `MyStringGridReg` -> `MyStringGrid`, `MyPointsStringGrid`
 - `MyStringGrid` -> `ColumnValidation`
+- `MyStringGridReg` -> `MyStringGrid`, `MyPointsStringGrid`
 - `OrthogonalMethod` -> `PointsUtilsSingleton`, `AddPoint`, `Point`, `GeoAlgorithmBase`, `GeoAlgorithmOrthogonal`, `MyPointsStringGrid`, `PointPrefixState`, `StringGridValidationUtils`, `InputFilterUtils`, `MyStringGrid`
 - `Point` -> `ValidationUtils`
-- `PointsManagement` -> `StringGridValidationUtils`, `InputFilterUtils`, `PointsUtilsSingleton`, `ValidationUtils`, `Point`, `MyPointsStringGrid`, `PointPrefixState`, `MyStringGrid`
 - `PointPrefixState` -> `SysUtils`, `StdCtrls`
+- `PointsManagement` -> `StringGridValidationUtils`, `InputFilterUtils`, `PointsUtilsSingleton`, `ValidationUtils`, `Point`, `MyPointsStringGrid`, `PointPrefixState`, `MyStringGrid`
 - `PointsUtils` -> `Point`
 - `PointsUtilsSingleton` -> `Point`
-- `PolarMethod` -> `PointsUtilsSingleton`, `Point`, `AddPoint`, `GeoAlgorithmBase`, `GeoAlgorithmPolar`
+- `PolarMethod` -> *(celá unit zakomentována)*
 - `PolarMethodNew` -> `MyPointsStringGrid`, `MyStringGrid`, `PointsUtilsSingleton`, `Point`, `AddPoint`, `StringGridValidationUtils`, `InputFilterUtils`, `GeoRow`, `GeoDataFrame`, `PointPrefixState`
+- `Test_FieldGrid` -> `GeoRow`, `GeoDataFrame`, `MyStringGrid`, `ColumnValidation`, `GeoFieldMeta`, `GeoFieldsStringGrid`
 - `Transformation` -> `PointsUtilsSingleton`, `Point`
+- `ValidationUtils` -> *(SysUtils, Math)*
+
+*(* PolarMethod unit je kompletně zakomentována – závislost existuje jen textově)*
+
+---
 
 ## 3) Hlavní vstupní body
 
@@ -100,11 +117,12 @@
 - Console testy: `src/Console/PolarTest.dpr`, `src/Console/OrthogonalTest.dpr`
 - Algoritmické testy: `src/GeoAlgorithms/PolarTest.dpr`, `src/GeoAlgorithms/PolarTest2.dpr`, `src/GeoAlgorithms/OrthogonalTest.dpr`, `src/GeoAlgorithms/TransformTest.dpr`, `src/GeoAlgorithms/TransformTestTXT.dpr`, `src/GeoAlgorithms/TestReadTXT.dpr`
 - GDF testy: `Test_gdf/TestGeoRow.dpr`, `Test_gdf/TestGeoDataFrame.dpr`
+- FieldGrid test: `Test_FieldGrid/TestFieldGrid.dpr`
 
 ### Hlavní formy GUI (`GeoSoft.dpr` -> `Application.CreateForm`)
 - `TForm1` / `MainForm`
 - `TForm2` / `PointsManagement`
-- `TForm3` / `PolarMethod`
+- `TForm3` / `PolarMethod` ⚠️ *(unit zakomentována – pravděpodobně nefunkční)*
 - `TForm4` / `OrthogonalMethod`
 - `TForm5` / `Transformation`
 - `TForm6` / `AddPoint`
@@ -115,41 +133,48 @@
 ### Datamoduly
 - `TDataModule` nebyl v projektu nalezen.
 
+---
+
 ## 4) Potenciálně kritické části
 
-- Globální stav / singleton:
+- **Globální stav / singleton:**
   - `PointsUtilsSingleton.pas`: `class var FInstance` + centrální mutable dictionary pro všechny formuláře.
   - `PointsManagement.pas`: globální proměnné `PointDict` a `Point` ve `var` sekci unitu.
   - `PointPrefixState.pas`: globální stav `GPointPrefix` sdílený mezi více formuláři.
   - GUI formuláře jsou globální instance (`Form1..Form9`) vytvářené při startu.
 
-- I/O a persistence:
+- **I/O a persistence:**
   - `PointsUtils.pas` a `PointsUtilsSingleton.pas`: přímé souborové operace (`AssignFile`, `Reset`, `Rewrite`, `TFileStream`) pro TXT/CSV/BIN.
   - `GeoRow.pas` + `GeoDataFrame.pas`: binární i CSV serializace (`SaveRow/LoadRow`, `SaveToFile/LoadFromFile/ToCSV/FromCSV`).
   - `PolarMethodNew.pas`: zápis pracovních dat (`Polar_*.bin`, `Polar_*.csv`) do aktuálního adresáře.
 
-- DB / web stack indikace:
-  - `MainForm.pas` má v `uses` (`Data.DB`, `Vcl.DBGrids`, `Web.HTTPApp`, `Web.DBWeb`, `Web.DBXpressWeb`), ale v kódu není zřejmý aktivní datamodul ani DB connection vrstva.
-  - Riziko: „mrtvé“ nebo neudržované závislosti v hlavní GUI jednotce.
+- **Mrtvý kód:**
+  - `PolarMethod.pas` je kompletně zakomentovaná unit – TForm3 neexistuje jako aktivní třída. Pokud je `CreateForm(TForm3, Form3)` v DPR, způsobí to chybu při kompilaci nebo runtime crash.
+  - `MainForm.pas` má v `uses` (`Data.DB`, `Vcl.DBGrids`, `Web.HTTPApp`, `Web.DBWeb`, `Web.DBXpressWeb`) – neaktivní závislosti na DB/Web stacku.
 
-- Threads:
-  - Nebyly nalezeny explicitní thread konstrukce (`TThread`, `BeginThread`, `CreateThread`). Aktuálně to vypadá na single-thread UI + synchronní I/O.
+- **Duplicity názvů unitů:**
+  - `GeoAlgorithmBase`, `GeoAlgorithmPolar`, `GeoAlgorithmOrthogonal` existují současně ve `src/Utils` i `src/GeoAlgorithms`. Liší se implementací (statické vs objektové property, Utils verze nezávisí na GeoDataFrame).
 
-- Strukturální rizika v kódu:
-  - Duplicity názvů unitů: `GeoAlgorithmBase`, `GeoAlgorithmPolar`, `GeoAlgorithmOrthogonal` existují současně ve `src/Utils` i `src/GeoAlgorithms`.
-  - Velké komentované bloky historického kódu před aktivní unit deklarací: minimálně `PolarMethod.pas`.
-  - Riziko: vyšší pravděpodobnost záměny při úpravách a nejasné rozlišení „aktivní vs legacy“ implementace.
+- **Threads:**
+  - Nebyly nalezeny explicitní thread konstrukce. Single-thread UI + synchronní I/O.
+
+- **Dva validační směry zároveň:**
+  - Starší callback styl přes `InputFilterUtils` a `SetColumnValidator(...)`
+  - Novější komponentový styl přes `ColumnFilters` a `ColumnValidation`
+  - Formuláře nejsou sjednoceny na jeden styl.
+
+---
 
 ## 5) Poznámka k `MyStringGrid.ColumnFilters`
 
 - `ColumnFilters` je `published` property komponenty `MyStringGrid`, proto je vidět v Object Inspectoru.
-- `ColumnFilters` je kolekce `TColumnFilters`, takže Delphi pro ni automaticky nabízí standardní collection editor.
-- Počet itemů se interně dorovnává na `ColCount` přes `EnsureColumnFilterCount` v `MyStringGrid`.
-- Jeden item odpovídá jednomu sloupci a `Column` je odvozený z `Index`, takže se ručně nenastavuje.
-- Tlačítka `Add/Delete` jsou ve standardním Delphi editoru pořád vidět, ale komponenta si kolekci po změnách znovu srovná na počet sloupců.
-- Samotná filtrace znaků běží při psaní v `MyStringGrid.KeyPress -> ApplyColumnFilter -> ApplyColumnFilterKeyPress`.
-- Finální kontrola celé hodnoty běží při opuštění buňky v `MyStringGrid` přes `ValidateTextByColumnFilter(...)`.
-- `MyStringGrid` je teď připravený na přechod od starých callback filtrů k obecnějším pravidlům po sloupcích, ale formuláře zatím nejsou sjednocené na jeden styl.
+- `ColumnFilters` je kolekce `TColumnFilters` – Delphi pro ni automaticky nabízí standardní collection editor.
+- Počet itemů se interně dorovnává na `ColCount` přes `EnsureColumnFilterCount`.
+- Jeden item odpovídá jednomu sloupci; `Column` je odvozený z `Index`.
+- Filtrace znaků: `MyStringGrid.KeyPress -> ApplyColumnFilter -> ApplyColumnFilterKeyPress`.
+- Finální validace: `ValidateTextByColumnFilter(...)` při opuštění buňky.
+
+---
 
 ## Poznámka
-- Mapa byla aktualizována podle aktuálního stavu zdrojáků (`.pas`/`.dpr`) v repozitáři dne 11. března 2026. Je zaměřená na ručně ověřené hlavní vazby a vstupní body, ne na úplný výpis všech VCL/System závislostí.
+Mapa aktualizována podle aktuálního stavu zdrojáků (`.pas`/`.dpr`) ke dni **28. března 2026**. Zaměřená na ručně ověřené hlavní vazby a vstupní body, ne na úplný výpis VCL/System závislostí.

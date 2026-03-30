@@ -1,4 +1,4 @@
-object Form6: TForm6
+object AddPointForm: TAddPointForm
   Left = 0
   Top = 0
   Caption = 'P'#345'idat bod'
@@ -27,7 +27,7 @@ object Form6: TForm6
     Font.Style = [fsBold]
     ParentFont = False
   end
-  object StringGrid1: TMyStringGrid
+  object StringGrid: TMyStringGrid
     Left = 0
     Top = 0
     Width = 391
@@ -38,10 +38,10 @@ object Form6: TForm6
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs]
     TabOrder = 0
-    OnDrawCell = StringGrid1DrawCell
-    OnEnter = StringGrid1Enter
-    OnKeyDown = StringGrid1KeyDown
-    OnSelectCell = StringGrid1SelectCell
+    OnDrawCell = StringGridDrawCell
+    OnEnter = StringGridEnter
+    OnKeyDown = StringGridKeyDown
+    OnSelectCell = StringGridSelectCell
     EnterEndBehavior = ebMoveFocusNext
     ColumnHeaders.Strings = (
       #268#237'slo bodu'
@@ -50,12 +50,24 @@ object Form6: TForm6
       'Z'
       'Kvalita'
       'Popis')
-    ExplicitLeft = 8
-    ExplicitTop = 29
-    ExplicitHeight = 84
+    ColumnFilters = <
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end>
+    ExplicitWidth = 389
+    ExplicitHeight = 108
     ColWidths = (
-      60
-      60
+      61
+      61
       60
       60
       60

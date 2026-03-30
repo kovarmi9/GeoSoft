@@ -143,13 +143,10 @@
             <Form>Form5</Form>
         </DCCReference>
         <DCCReference Include="AddPoint.pas">
-            <Form>Form6</Form>
+            <Form>AddPointForm</Form>
         </DCCReference>
         <DCCReference Include="CheckMeasurement.pas">
-            <Form>Form7</Form>
-        </DCCReference>
-        <DCCReference Include="CalcFormBase.pas">
-            <Form>Form8</Form>
+            <Form>CheckMeasurementForm</Form>
         </DCCReference>
         <DCCReference Include="PolarMethodNew.pas">
             <Form>Form9</Form>

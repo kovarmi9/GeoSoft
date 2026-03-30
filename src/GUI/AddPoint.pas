@@ -3,38 +3,41 @@
 interface
 
 uses
-  Winapi.Windows, System.SysUtils, Vcl.Forms, Vcl.Grids, Vcl.StdCtrls, Vcl.Controls, Vcl.Graphics,
-  Point, System.Classes, StringGridValidationUtils, InputFilterUtils,
+
+  Winapi.Windows,
+  System.SysUtils, System.Classes,
+  Vcl.Controls, Vcl.Forms, Vcl.Graphics, Vcl.Grids, Vcl.StdCtrls,
+  Point, StringGridValidationUtils, InputFilterUtils,
   PointsUtilsSingleton, MyStringGrid, PointPrefixState;
 
 type
-  TForm6 = class(TForm)
-    StringGrid1: TMyStringGrid;
+  TAddPointForm = class(TForm)
+    StringGrid: TMyStringGrid;
     btnOK: TButton;
     btnCancel: TButton;
     lblWarning: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure FormShow(Sender: TObject); // Úprava formuláře při každém zobrazení
-    procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean); // Reakce na výběr buňky
-    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); // Vlastní vykreslení jedné buňky gridu
-    procedure StringGrid1Enter(Sender: TObject); // Reakce při vstupu do gridu
-    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FormShow(Sender: TObject);
+    procedure StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    procedure StringGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+    procedure StringGridEnter(Sender: TObject);
+    procedure StringGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     procedure FocusInputCell;
     procedure TryEvalCell(ACol, ARow: Integer);
     procedure ApplyDefaultsToDataRow;
   public
     /// <summary>
-    ///  Zobrazí dialog pro zadání jednoho bodu.
-    ///  Vrátí True, pokud uživatel potvrdí OK.
-    ///  Out NewP je validovaný bod (pomocí konstruktoru TPoint.Create).
+    ///  Shows the Add Point dialog for a single point entry.
+    ///  Returns True if the user confirms with OK.
+    ///  ANewPoint is validated by constructor TPoint.Create.
     /// </summary>
     function Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
   end;
 
 var
-  Form6: TForm6;
+  AddPointForm: TAddPointForm;
 
 implementation
 
@@ -42,57 +45,57 @@ implementation
 
 const
   COL_POINTNO = 0;
-  COL_X = 1;
-  COL_Y = 2;
-  COL_Z = 3;
+  COL_X       = 1;
+  COL_Y       = 2;
+  COL_Z       = 3;
   COL_QUALITY = 4;
-  COL_DESC = 5;
-  DATA_ROW = 1;
+  COL_DESC    = 5;
+  DATA_ROW    = 1;
 
-procedure TForm6.FormCreate(Sender: TObject);
+procedure TAddPointForm.FormCreate(Sender: TObject);
 begin
-  // Validace vstupu po sloupcích
-  StringGrid1.SetColumnValidator(COL_POINTNO, FilterPointNumber);
-  StringGrid1.SetColumnValidator(COL_X, FilterCoordinate);
-  StringGrid1.SetColumnValidator(COL_Y, FilterCoordinate);
-  StringGrid1.SetColumnValidator(COL_Z, FilterCoordinate);
-  StringGrid1.SetColumnValidator(COL_QUALITY, FilterQuality);
-  StringGrid1.SetColumnValidator(COL_DESC, FilterDescription);
+  // Validation of input by column
+  StringGrid.SetColumnValidator(COL_POINTNO, FilterPointNumber);
+  StringGrid.SetColumnValidator(COL_X, FilterCoordinate);
+  StringGrid.SetColumnValidator(COL_Y, FilterCoordinate);
+  StringGrid.SetColumnValidator(COL_Z, FilterCoordinate);
+  StringGrid.SetColumnValidator(COL_QUALITY, FilterQuality);
+  StringGrid.SetColumnValidator(COL_DESC, FilterDescription);
 end;
 
 function ReadDefaultQuality: Integer;
+// Returns the default quality code from the global state
 begin
   Result := StrToIntDef(Trim(GPointPrefix.KK), 3);
   if (Result < 0) or (Result > 8) then
     Result := 3;
 end;
 
-function TForm6.Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
+function TAddPointForm.Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
 var
   StoredPointNumber: Integer;
   QStr: string;
   DStr: string;
   Q: Integer;
 begin
-  StringGrid1.Cells[COL_POINTNO, DATA_ROW] := IntToStr(PointNumber);
+  StringGrid.Cells[COL_POINTNO, DATA_ROW] := IntToStr(PointNumber);
   lblWarning.Caption := Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [PointNumber]);
 
   Result := (ShowModal = mrOk);
   if not Result then
     Exit;
 
-  // Commit editor textu a finální vyhodnocení výrazů v souřadnicích
-  if StringGrid1.EditorMode then
-    StringGrid1.EditorMode := False;
+  // Commit text editor and final evaluation of coordinate expressions
+  if StringGrid.EditorMode then
+    StringGrid.EditorMode := False;
   TryEvalCell(COL_X, DATA_ROW);
   TryEvalCell(COL_Y, DATA_ROW);
   TryEvalCell(COL_Z, DATA_ROW);
 
-  StoredPointNumber := StrToIntDef(StringGrid1.Cells[COL_POINTNO, DATA_ROW], PointNumber);
+  StoredPointNumber := StrToIntDef(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
 
-  // Defaulty z globálního prefix stavu (stejný princip jako ostatní formy):
-  // Kvalita/Popis se použijí jen když uživatel nechá buňku prázdnou.
-  QStr := Trim(StringGrid1.Cells[COL_QUALITY, DATA_ROW]);
+  // Dafaults from global prefix... quality/description just when user let it blanc
+  QStr := Trim(StringGrid.Cells[COL_QUALITY, DATA_ROW]);
   if QStr = '' then
     Q := ReadDefaultQuality
   else
@@ -102,167 +105,166 @@ begin
       Q := ReadDefaultQuality;
   end;
 
-  DStr := Trim(StringGrid1.Cells[COL_DESC, DATA_ROW]);
+  DStr := Trim(StringGrid.Cells[COL_DESC, DATA_ROW]);
   if DStr = '' then
     DStr := Trim(GPointPrefix.Popis);
 
-  // Vytvoření bodu
+  // Creates point
   NewP := TPoint.Create(
     StoredPointNumber,
-    StrToFloatDef(StringGrid1.Cells[COL_X, DATA_ROW], 0.0),
-    StrToFloatDef(StringGrid1.Cells[COL_Y, DATA_ROW], 0.0),
-    StrToFloatDef(StringGrid1.Cells[COL_Z, DATA_ROW], 0.0),
+    StrToFloatDef(StringGrid.Cells[COL_X, DATA_ROW], 0.0),
+    StrToFloatDef(StringGrid.Cells[COL_Y, DATA_ROW], 0.0),
+    StrToFloatDef(StringGrid.Cells[COL_Z, DATA_ROW], 0.0),
     Q,
     DStr
   );
 
-  // Uložení bodu rovnou do slovníku
+  // Saves point to the dictionary
   TPointDictionary.GetInstance.AddPoint(NewP);
 end;
 
-procedure TForm6.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TAddPointForm.StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 var
   PrevCol: Integer;
   PrevRow: Integer;
 begin
   CanSelect := True;
 
-  // OnSelectCell se volá před změnou výběru, takže Col/Row jsou opouštěná buňka.
-  PrevCol := StringGrid1.Col;
-  PrevRow := StringGrid1.Row;
+  // OnSelectCell called befores change so Col/Row is lefted cell
+  PrevCol := StringGrid.Col;
+  PrevRow := StringGrid.Row;
 
-  if (PrevRow >= StringGrid1.FixedRows) then
+  if (PrevRow >= StringGrid.FixedRows) then
   begin
-    if (PrevCol = COL_QUALITY) and (Trim(StringGrid1.Cells[COL_QUALITY, PrevRow]) = '') then
-      StringGrid1.Cells[COL_QUALITY, PrevRow] := IntToStr(ReadDefaultQuality);
+    if (PrevCol = COL_QUALITY) and (Trim(StringGrid.Cells[COL_QUALITY, PrevRow]) = '') then
+      StringGrid.Cells[COL_QUALITY, PrevRow] := IntToStr(ReadDefaultQuality);
 
-    if (PrevCol = COL_DESC) and (Trim(StringGrid1.Cells[COL_DESC, PrevRow]) = '') then
-      StringGrid1.Cells[COL_DESC, PrevRow] := Trim(GPointPrefix.Popis);
+    if (PrevCol = COL_DESC) and (Trim(StringGrid.Cells[COL_DESC, PrevRow]) = '') then
+      StringGrid.Cells[COL_DESC, PrevRow] := Trim(GPointPrefix.Popis);
 
     TryEvalCell(PrevCol, PrevRow);
   end;
 end;
 
-procedure TForm6.FormShow(Sender: TObject);
+procedure TAddPointForm.FormShow(Sender: TObject);
 var
   c: Integer;
 begin
-  // Vymaže jen sloupce 1..n, sloupec 0 (PointNumber) nechá.
-  for c := COL_X to StringGrid1.ColCount - 1 do
-    StringGrid1.Cells[c, DATA_ROW] := '';
+  // delete columns 1..n, column 0 (PointNumber) leaves
+  for c := COL_X to StringGrid.ColCount - 1 do
+    StringGrid.Cells[c, DATA_ROW] := '';
 
   FocusInputCell;
 end;
 
-procedure TForm6.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TAddPointForm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  // Globální fallback: Enter na poslední buňce gridu -> přesun na OK.
+  // Enter on last cell of grid -> go to OK.
   if Key <> VK_RETURN then
     Exit;
 
-  if ActiveControl <> StringGrid1 then
+  if ActiveControl <> StringGrid then
     Exit;
 
-  if (StringGrid1.Col = StringGrid1.ColCount - 1) and
-     (StringGrid1.Row = StringGrid1.RowCount - 1) then
+  if (StringGrid.Col = StringGrid.ColCount - 1) and
+     (StringGrid.Row = StringGrid.RowCount - 1) then
   begin
-    if StringGrid1.EditorMode then
-      StringGrid1.EditorMode := False;
+    if StringGrid.EditorMode then
+      StringGrid.EditorMode := False;
     ApplyDefaultsToDataRow;
     Key := 0;
     btnOK.SetFocus;
   end;
 end;
 
-procedure TForm6.FocusInputCell;
+procedure TAddPointForm.FocusInputCell;
 begin
-  ActiveControl := StringGrid1;
-  if StringGrid1.CanFocus then
-    StringGrid1.SetFocus;
-  StringGrid1.Row := DATA_ROW;
-  StringGrid1.Col := COL_X;
-  StringGrid1.EditorMode := True;
+  ActiveControl := StringGrid;
+  if StringGrid.CanFocus then
+    StringGrid.SetFocus;
+  StringGrid.Row := DATA_ROW;
+  StringGrid.Col := COL_X;
+  StringGrid.EditorMode := True;
 end;
 
-procedure TForm6.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+procedure TAddPointForm.StringGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
   Flags: Longint;
 begin
-  with StringGrid1.Canvas do
+  with StringGrid.Canvas do
   begin
-    if ARow < StringGrid1.FixedRows then
+    if ARow < StringGrid.FixedRows then
     begin
-      Brush.Color := clBtnFace; // šedá jako tlačítka
+      Brush.Color := clBtnFace; // grey as buttons
       FillRect(Rect);
       Font.Style := [fsBold];
 
       // Centrovaný text
       Flags := DT_CENTER or DT_VCENTER or DT_SINGLELINE;
-      DrawText(Handle, PChar(StringGrid1.Cells[ACol, ARow]), -1, Rect, Flags);
+      DrawText(Handle, PChar(StringGrid.Cells[ACol, ARow]), -1, Rect, Flags);
     end
     else
     begin
-      Brush.Color := clWindow; // bílé pozadí
+      Brush.Color := clWindow; // white background
       FillRect(Rect);
       Font.Style := [];
 
       // Normální zarovnání vlevo
       Flags := DT_LEFT or DT_VCENTER or DT_SINGLELINE;
-      DrawText(Handle, PChar(StringGrid1.Cells[ACol, ARow]), -1, Rect, Flags);
+      DrawText(Handle, PChar(StringGrid.Cells[ACol, ARow]), -1, Rect, Flags);
     end;
   end;
 end;
 
-procedure TForm6.StringGrid1Enter(Sender: TObject);
+procedure TAddPointForm.StringGridEnter(Sender: TObject);
 begin
-  // vždy po návratu fokusu skočí na první datovou buňku
+  // After focus always jump to
   FocusInputCell;
 end;
 
-procedure TForm6.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TAddPointForm.StringGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  // Enter na poslední datové buňce přesune fokus na OK
+  // Enter on last data cell move focus to OK
   if Key <> VK_RETURN then
     Exit;
 
-  if (StringGrid1.Col = StringGrid1.ColCount - 1) and
-     (StringGrid1.Row = StringGrid1.RowCount - 1) then
+  if (StringGrid.Col = StringGrid.ColCount - 1) and
+     (StringGrid.Row = StringGrid.RowCount - 1) then
   begin
-    if StringGrid1.EditorMode then
-      StringGrid1.EditorMode := False;
+    if StringGrid.EditorMode then
+      StringGrid.EditorMode := False;
     ApplyDefaultsToDataRow;
     Key := 0;
     btnOK.SetFocus;
   end;
 end;
 
-procedure TForm6.ApplyDefaultsToDataRow;
+procedure TAddPointForm.ApplyDefaultsToDataRow;
 begin
-  if Trim(StringGrid1.Cells[COL_QUALITY, DATA_ROW]) = '' then
-    StringGrid1.Cells[COL_QUALITY, DATA_ROW] := IntToStr(ReadDefaultQuality);
+  if Trim(StringGrid.Cells[COL_QUALITY, DATA_ROW]) = '' then
+    StringGrid.Cells[COL_QUALITY, DATA_ROW] := IntToStr(ReadDefaultQuality);
 
-  if Trim(StringGrid1.Cells[COL_DESC, DATA_ROW]) = '' then
-    StringGrid1.Cells[COL_DESC, DATA_ROW] := Trim(GPointPrefix.Popis);
+  if Trim(StringGrid.Cells[COL_DESC, DATA_ROW]) = '' then
+    StringGrid.Cells[COL_DESC, DATA_ROW] := Trim(GPointPrefix.Popis);
 end;
 
-procedure TForm6.TryEvalCell(ACol, ARow: Integer);
+procedure TAddPointForm.TryEvalCell(ACol, ARow: Integer);
 var
   S: string;
   V: Double;
 begin
-  if (ARow < StringGrid1.FixedRows) then Exit;
-  if (ACol < 0) or (ACol >= StringGrid1.ColCount) then Exit;
+  if (ARow < StringGrid.FixedRows) then Exit;
+  if (ACol < 0) or (ACol >= StringGrid.ColCount) then Exit;
   if not (ACol in [COL_X, COL_Y, COL_Z]) then Exit;
 
-  S := Trim(StringGrid1.Cells[ACol, ARow]);
+  S := Trim(StringGrid.Cells[ACol, ARow]);
   if S = '' then Exit;
 
   if TryStrToFloat(S, V) then Exit;
 
   V := EvaluateExpression(S);
-  StringGrid1.Cells[ACol, ARow] := FloatToStr(V);
+  StringGrid.Cells[ACol, ARow] := FloatToStr(V);
 end;
 
 
 end.
-

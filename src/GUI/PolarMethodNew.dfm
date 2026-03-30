@@ -189,6 +189,21 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
+      ColumnFilters = <
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end>
       ExplicitWidth = 632
       ColWidths = (
         87
@@ -223,6 +238,25 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
+      ColumnFilters = <
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end>
       ExplicitWidth = 632
       ColWidths = (
         64
@@ -258,6 +292,25 @@ object Form9: TForm9
         'Z'
         'Kvalita'
         'Popis')
+      ColumnFilters = <
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end
+        item
+        end>
       ExplicitWidth = 632
       ColWidths = (
         64

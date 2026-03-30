@@ -20,7 +20,7 @@ uses
   Vcl.StdCtrls,
   Vcl.ActnMan,
   PointsUtilsSingleton,     // TPointDictionary
-  AddPoint,                 // TForm6 (dialog pro přidání bodu)
+  AddPoint,                 // TAddPointForm (dialog pro přidání bodu)
   Point,                    // TPoint (vlastní, ne Winapi)
   GeoAlgorithmBase,         // TPointsArray
   GeoAlgorithmOrthogonal,   // TOrthogonalMethodAlgorithm
@@ -175,7 +175,7 @@ end;
 function TForm4.LoadOrPromptAnchor(const R: Integer; out P: Point.TPoint): Boolean;
 var
   num: Integer;
-  dlg: TForm6;
+  dlg: TAddPointForm;
 begin
   Result := False;
 
@@ -191,7 +191,7 @@ begin
   else
   begin
     // pro P/K (řádky 1–2) nabídneme vložení
-    dlg := TForm6.Create(Self);
+    dlg := TAddPointForm.Create(Self);
     try
       if not dlg.Execute(num, P) then
         Exit; // zrušeno

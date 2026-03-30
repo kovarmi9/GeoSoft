@@ -79,7 +79,7 @@
 //var
 //  PointNumber: Integer;
 //  P: Point.TPoint; //
-//  dlg: TForm6;
+//  dlg: TAddPointForm;
 //begin
 //  if Key <> VK_RETURN then Exit;
 //  Key := 0;  // potlačí defaultní Enter
@@ -98,7 +98,7 @@
 //  else
 //  begin
 //    // 3) Pokud neexistuje → otevři náš formulář pro přidání bodu
-//    dlg := TForm6.Create(Self);
+//    dlg := TAddPointForm.Create(Self);
 //    try
 //      if not dlg.Execute(PointNumber, P) then
 //        Exit; // uživatel zrušil
@@ -203,7 +203,7 @@ uses
   // tvoje jednotky
   PointsUtilsSingleton,   // TPointDictionary
   Point,                  // Point.TPoint (vlastní typ bodu)
-  AddPoint,               // TForm6 (dialog pro doplnění bodu)
+  AddPoint,               // TAddPointForm (dialog pro doplnění bodu)
   GeoAlgorithmBase,       // TPointsArray
   GeoAlgorithmPolar;      // TPolarMethodAlgorithm, TOrientation, TOrientations
 
@@ -358,7 +358,7 @@ end;
 function TForm3.LoadOrPromptAnchor(const R: Integer; out P: Point.TPoint): Boolean;
 var
   num: Integer;
-  dlg: TForm6;
+  dlg: TAddPointForm;
 begin
   Result := False;
 
@@ -373,7 +373,7 @@ begin
     P := TPointDictionary.GetInstance.GetPoint(num)
   else
   begin
-    dlg := TForm6.Create(Self);
+    dlg := TAddPointForm.Create(Self);
     try
       if not dlg.Execute(num, P) then
         Exit; // zrušeno
@@ -525,7 +525,7 @@ end.
 //  // tvoje jednotky
 //  PointsUtilsSingleton,   // TPointDictionary
 //  Point,                  // Point.TPoint (vlastní typ bodu)
-//  AddPoint,               // TForm6 (dialog pro doplnění bodu)
+//  AddPoint,               // TAddPointForm (dialog pro doplnění bodu)
 //  GeoAlgorithmBase,       // TPointsArray
 //  GeoAlgorithmPolar;      // TPolarMethodAlgorithm, TOrientation, TOrientations
 //
@@ -749,7 +749,7 @@ end.
 //function TForm3.LoadOrPromptAnchor(const R: Integer; out P: Point.TPoint): Boolean;
 //var
 //  num: Integer;
-//  dlg: TForm6;
+//  dlg: TAddPointForm;
 //begin
 //  Result := False;
 //
@@ -764,7 +764,7 @@ end.
 //    P := TPointDictionary.GetInstance.GetPoint(num)
 //  else
 //  begin
-//    dlg := TForm6.Create(Self);
+//    dlg := TAddPointForm.Create(Self);
 //    try
 //      if not dlg.Execute(num, P) then
 //        Exit; // zrušeno

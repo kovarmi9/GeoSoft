@@ -1,4 +1,4 @@
-object Form5: TForm5
+object TransformationForm: TTransformationForm
   Left = 0
   Top = 0
   Caption = 'V'#253'po'#269'et transformace'
@@ -23,7 +23,7 @@ object Form5: TForm5
     List = True
     AllowTextButtons = True
     TabOrder = 0
-    ExplicitWidth = 840
+    ExplicitWidth = 786
     object StaticText1: TStaticText
       Left = 0
       Top = 0
@@ -107,7 +107,7 @@ object Form5: TForm5
     Align = alBottom
     TabOrder = 1
     ExplicitTop = 341
-    ExplicitWidth = 846
+    ExplicitWidth = 792
     object StatusBar1: TStatusBar
       Left = 1
       Top = 97
@@ -117,7 +117,7 @@ object Form5: TForm5
         item
           Width = 50
         end>
-      ExplicitWidth = 844
+      ExplicitWidth = 790
     end
   end
   object StringGrid1: TStringGrid
@@ -133,7 +133,7 @@ object Form5: TForm5
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 2
-    ExplicitWidth = 846
+    ExplicitWidth = 792
     RowHeights = (
       24
       24
@@ -147,6 +147,6 @@ object Form5: TForm5
     ButtonHeight = 19
     Caption = 'ToolBar1'
     TabOrder = 3
-    ExplicitWidth = 846
+    ExplicitWidth = 792
   end
 end

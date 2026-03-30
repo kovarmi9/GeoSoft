@@ -20,7 +20,6 @@ type
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure StringGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure StringGridEnter(Sender: TObject);
     procedure StringGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
@@ -185,35 +184,6 @@ begin
   StringGrid.Row := DATA_ROW;
   StringGrid.Col := COL_X;
   StringGrid.EditorMode := True;
-end;
-
-procedure TAddPointForm.StringGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-var
-  Flags: Longint;
-begin
-  with StringGrid.Canvas do
-  begin
-    if ARow < StringGrid.FixedRows then
-    begin
-      Brush.Color := clBtnFace; // grey as buttons
-      FillRect(Rect);
-      Font.Style := [fsBold];
-
-      // Centrovaný text
-      Flags := DT_CENTER or DT_VCENTER or DT_SINGLELINE;
-      DrawText(Handle, PChar(StringGrid.Cells[ACol, ARow]), -1, Rect, Flags);
-    end
-    else
-    begin
-      Brush.Color := clWindow; // white background
-      FillRect(Rect);
-      Font.Style := [];
-
-      // Normální zarovnání vlevo
-      Flags := DT_LEFT or DT_VCENTER or DT_SINGLELINE;
-      DrawText(Handle, PChar(StringGrid.Cells[ACol, ARow]), -1, Rect, Flags);
-    end;
-  end;
 end;
 
 procedure TAddPointForm.StringGridEnter(Sender: TObject);

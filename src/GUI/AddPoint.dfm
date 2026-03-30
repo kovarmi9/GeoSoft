@@ -38,7 +38,6 @@ object AddPointForm: TAddPointForm
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs]
     TabOrder = 0
-    OnDrawCell = StringGridDrawCell
     OnEnter = StringGridEnter
     OnKeyDown = StringGridKeyDown
     OnSelectCell = StringGridSelectCell

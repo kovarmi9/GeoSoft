@@ -11,7 +11,7 @@ uses
   MyPointsStringGrid, PointPrefixState, MyStringGrid;
 
 type
-  TForm2 = class(TForm)
+  TPointsManagementForm = class(TForm)
     StringGrid1: TMyPointsStringGrid;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
@@ -70,7 +70,7 @@ type
   end;
 
 var
-  Form2: TForm2;
+  PointsManagementForm: TPointsManagementForm;
   PointDict: TPointDictionary;
   Point: TPoint;
 
@@ -78,12 +78,12 @@ implementation
 
 {$R *.dfm}
 
-procedure TForm2.File2Click(Sender: TObject);
+procedure TPointsManagementForm.File2Click(Sender: TObject);
 begin
   // otevřít
 end;
 
-procedure TForm2.FormCreate(Sender: TObject);
+procedure TPointsManagementForm.FormCreate(Sender: TObject);
 var
   P: TPoint;
   i: Integer;
@@ -116,7 +116,7 @@ begin
 
 end;
 
-procedure TForm2.RefreshGrid;
+procedure TPointsManagementForm.RefreshGrid;
 var
   pt: TPoint;
   Keys: TList<Integer>;
@@ -170,7 +170,7 @@ begin
 end;
 
 
-procedure TForm2.FormShow(Sender: TObject);
+procedure TPointsManagementForm.FormShow(Sender: TObject);
 begin
   RefreshGrid;
 
@@ -180,20 +180,20 @@ begin
   StringGrid1.EditorMode := True; // rovnou zapne editaci
 end;
 
-procedure TForm2.FormActivate(Sender: TObject);
+procedure TPointsManagementForm.FormActivate(Sender: TObject);
 begin
   // Po návratu na formulář načti aktuální globální prefixy a body.
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   RefreshGrid;
 end;
 
-procedure TForm2.FormDeactivate(Sender: TObject);
+procedure TPointsManagementForm.FormDeactivate(Sender: TObject);
 begin
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
 // Prozatimní oprava
-procedure TForm2.StringGrid1KeyPress(Sender: TObject; var Key: Char);
+procedure TPointsManagementForm.StringGrid1KeyPress(Sender: TObject; var Key: Char);
 begin
   // ignoruje hlavičku
   if StringGrid1.Row < StringGrid1.FixedRows then
@@ -213,7 +213,7 @@ begin
   end;
 end;
 
-procedure TForm2.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TPointsManagementForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
   X, Y, Z: Double;
@@ -304,13 +304,13 @@ begin
 
 end;
 
-procedure TForm2.UpdateCurrentDirectoryPath;
+procedure TPointsManagementForm.UpdateCurrentDirectoryPath;
 begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-procedure TForm2.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+procedure TPointsManagementForm.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
   Text: string;
@@ -346,7 +346,7 @@ begin
   end;
 end;
 
-procedure TForm2.FromTXTClick(Sender: TObject);
+procedure TPointsManagementForm.FromTXTClick(Sender: TObject);
 var
   pt: TPoint;
   i: Integer;
@@ -383,7 +383,7 @@ end;
 
 
 // Import z CSV
-procedure TForm2.FromCSVClick(Sender: TObject);
+procedure TPointsManagementForm.FromCSVClick(Sender: TObject);
 var
   pt: TPoint;
   i: Integer;
@@ -418,7 +418,7 @@ begin
 end;
 
 // Import z Binary
-procedure TForm2.FromBinaryClick(Sender: TObject);
+procedure TPointsManagementForm.FromBinaryClick(Sender: TObject);
 var
   pt: TPoint;
   i: Integer;
@@ -452,7 +452,7 @@ begin
   StringGrid1.Repaint;
 end;
 
-procedure TForm2.SaveAsTXTClick(Sender: TObject);
+procedure TPointsManagementForm.SaveAsTXTClick(Sender: TObject);
 var
   Dir: string;
 begin
@@ -475,7 +475,7 @@ begin
   end;
 end;
 
-procedure TForm2.SaveAsCSVClick(Sender: TObject);
+procedure TPointsManagementForm.SaveAsCSVClick(Sender: TObject);
 var
   Dir: string;
 begin
@@ -496,7 +496,7 @@ begin
   end;
 end;
 
-procedure TForm2.SaveAsBinaryClick(Sender: TObject);
+procedure TPointsManagementForm.SaveAsBinaryClick(Sender: TObject);
 var
   Dir: string;
 begin
@@ -517,7 +517,7 @@ begin
   end;
 end;
 
-procedure TForm2.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
+procedure TPointsManagementForm.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
   var CanSelect: Boolean);
 begin
   // doplňí kvalitu při opuštění sloupce 4, pokud je prázdná/nevalidní
@@ -529,7 +529,7 @@ end;
 
 // Helpery pro automatický kod kvality:
 
-function TForm2.CurrentQuality: Integer;
+function TPointsManagementForm.CurrentQuality: Integer;
 begin
   // Když je ComboBoxKK v csDropDownList a Items = '0'..'8',
   // pak ItemIndex odpovídá přímo hodnotě.
@@ -540,13 +540,13 @@ begin
     Result := StrToIntDef(ComboBoxKK.Text, 0);
 end;
 
-function TForm2.IsValidQualityStr(const S: string): Boolean;
+function TPointsManagementForm.IsValidQualityStr(const S: string): Boolean;
 begin
   // povolíme jen jednociferné '0'..'8' (stejně jako v comboboxu)
   Result := (Length(S) = 1) and CharInSet(S[1], ['0'..'8']);
 end;
 
-procedure TForm2.EnsureQualityOnLeave;
+procedure TPointsManagementForm.EnsureQualityOnLeave;
 var
   col, row: Integer;
 begin
@@ -562,7 +562,7 @@ begin
 end;
 
 // Univerzální combobox doplněni KÚ a ZPMZ
-function TForm2.PadZeros(const S: string; PadLen: Integer): string;
+function TPointsManagementForm.PadZeros(const S: string; PadLen: Integer): string;
 var
   N, MaxVal: Int64;
 begin
@@ -578,14 +578,14 @@ begin
   Result := Format('%.*d', [PadLen, N]);  // doplnění nulami zleva
 end;
 
-procedure TForm2.NumericComboKeyPress(Sender: TObject; var Key: Char);
+procedure TPointsManagementForm.NumericComboKeyPress(Sender: TObject; var Key: Char);
 begin
   // povolit jen číslice a Backspace (psané z klávesnice)
   if not CharInSet(Key, ['0'..'9', #8]) then
     Key := #0;
 end;
 
-procedure TForm2.NumericComboChange(Sender: TObject);
+procedure TPointsManagementForm.NumericComboChange(Sender: TObject);
 var
   CB: TComboBox;
   S: string;
@@ -619,7 +619,7 @@ begin
 end;
 
 // Po opuštění comboboxu dorovná hodnotu nulami
-procedure TForm2.NumericComboExit(Sender: TObject);
+procedure TPointsManagementForm.NumericComboExit(Sender: TObject);
 var
   CB: TComboBox;
 begin
@@ -628,7 +628,7 @@ begin
 end;
 
 // Enter comboboxu dorovná hodnotu nulami
-procedure TForm2.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TPointsManagementForm.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   CB: TComboBox;
 begin
@@ -663,7 +663,7 @@ begin
 end;
 
 // Uloží aktuální prefixové hodnoty do globálního stavu a znovu je načte do UI
-procedure TForm2.PrefixComboExit(Sender: TObject);
+procedure TPointsManagementForm.PrefixComboExit(Sender: TObject);
 begin
   // Pro číselné prefix comboboxy nejdřív dorovnej nuly.
   if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
@@ -673,7 +673,7 @@ begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
-procedure TForm2.ApplyDescriptionToRow(const ARow: Integer);
+procedure TPointsManagementForm.ApplyDescriptionToRow(const ARow: Integer);
 var
   DefaultPopis: string;
 begin
@@ -694,7 +694,7 @@ begin
     StringGrid1.Cells[5, ARow] := DefaultPopis;
 end;
 
-procedure TForm2.EnsureQualityOnRow(const ARow: Integer);
+procedure TPointsManagementForm.EnsureQualityOnRow(const ARow: Integer);
 begin
   // Zajistí validní kód kvality v řádku
   if ARow < StringGrid1.FixedRows then Exit;

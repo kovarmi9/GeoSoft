@@ -1,4 +1,4 @@
-object Form2: TForm2
+object PointsManagementForm: TPointsManagementForm
   Left = 0
   Top = 0
   Caption = 'Seznam sou'#345'adnic'
@@ -39,6 +39,19 @@ object Form2: TForm2
       'Z'
       'Kvalita'
       'Popis')
+    ColumnFilters = <
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end>
     ExplicitWidth = 418
     ExplicitHeight = 281
     ColWidths = (

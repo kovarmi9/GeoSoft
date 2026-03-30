@@ -34,19 +34,19 @@ var
 begin
   if not TryStrToInt(Edit1.Text, PointNumber) then
   begin
-    ShowMessage('Zadej platné èíslo bodu!');
+    ShowMessage('Enter a valid point number!');
     Exit;
   end;
   F := TAddPointForm.Create(Self);
   try
     if F.Execute(PointNumber, NewPoint) then
     begin
-      ShowMessage(Format('Bod %d byl úspìšnì pøidán!', [NewPoint.PointNumber]));
-      // Mùžeš si s NewPoint dál dìlat co chceš, nebo ho pøedat jinam.
+      ShowMessage(Format('Point %d added successfully!', [NewPoint.PointNumber]));
+      // You can use NewPoint here or pass it elsewhere.
     end
     else
     begin
-      ShowMessage('Zadání bodu bylo zrušeno.');
+      ShowMessage('Point entry cancelled.');
     end;
   finally
     F.Free;

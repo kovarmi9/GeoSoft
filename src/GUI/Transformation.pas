@@ -9,7 +9,7 @@ uses
   Vcl.Grids, PointsUtilsSingleton, Point, System.Types;
 
 type
-  TForm5 = class(TForm)
+  TTransformationForm = class(TForm)
     ToolBar2: TToolBar;
     ComboBox4: TComboBox;
     ToolButton3: TToolButton;
@@ -34,13 +34,13 @@ type
   end;
 
 var
-  Form5: TForm5;
+  TransformationForm: TTransformationForm;
 
 implementation
 
 {$R *.dfm}
 
-procedure TForm5.FormCreate(Sender: TObject);
+procedure TTransformationForm.FormCreate(Sender: TObject);
 begin
   // Základní nastavení
   StringGrid1.ColCount := 12;
@@ -88,13 +88,13 @@ begin
   StringGrid1.Repaint;
 end;
 
-procedure TForm5.UpdateCurrentDirectoryPath;
+procedure TTransformationForm.UpdateCurrentDirectoryPath;
 begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-procedure TForm5.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+procedure TTransformationForm.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
   Text: string;
@@ -162,7 +162,7 @@ begin
 end;
 
 
-procedure TForm5.AutoSizeColumns(const CustomWidths: array of Integer);
+procedure TTransformationForm.AutoSizeColumns(const CustomWidths: array of Integer);
 var
   i, w: Integer;
 begin
@@ -177,7 +177,7 @@ begin
   end;
 end;
 
-procedure TForm5.StringGrid1MouseDown(Sender: TObject; Button: TMouseButton;
+procedure TTransformationForm.StringGrid1MouseDown(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   ACol, ARow: Integer;
@@ -206,7 +206,7 @@ begin
 end;
 
 
-procedure TForm5.StringGrid1SelectCell(Sender: TObject;
+procedure TTransformationForm.StringGrid1SelectCell(Sender: TObject;
   ACol, ARow: Integer; var CanSelect: Boolean);
 begin
   // Vždy povolíme výběr buňky, aby šla označit a kopírovat
@@ -219,7 +219,7 @@ begin
     StringGrid1.Options := StringGrid1.Options - [goEditing];
 end;
 
-procedure TForm5.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TTransformationForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   PointNumber: Integer;
   P: Point.TPoint;

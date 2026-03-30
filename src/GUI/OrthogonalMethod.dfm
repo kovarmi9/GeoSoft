@@ -1,4 +1,4 @@
-object Form4: TForm4
+object OrthogonalMethodForm: TOrthogonalMethodForm
   Left = 0
   Top = 0
   ClientHeight = 562
@@ -65,7 +65,7 @@ object Form4: TForm4
       end
       item
       end>
-    ExplicitWidth = 791
+    ExplicitWidth = 795
     ColWidths = (
       64
       88
@@ -102,7 +102,7 @@ object Form4: TForm4
     List = True
     AllowTextButtons = True
     TabOrder = 2
-    ExplicitWidth = 785
+    ExplicitWidth = 789
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True

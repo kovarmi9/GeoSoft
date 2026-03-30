@@ -52,7 +52,7 @@ uses polarMethod, OrthogonalMethod, Transformation, CheckMeasurement, PolarMetho
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
-Form2.Show;
+PointsManagementForm.Show;
 end;
 
 procedure TForm1.Polrnmetoda1Click(Sender: TObject);
@@ -67,12 +67,12 @@ end;
 
 procedure TForm1.Ortogonlnmetoda1Click(Sender: TObject);
 begin
-Form4.Show;
+OrthogonalMethodForm.Show;
 end;
 
 procedure TForm1.TransformationClick(Sender: TObject);
 begin
-Form5.Show;
+TransformationForm.Show;
 end;
 
 procedure TForm1.CheckMeasurementClick(Sender: TObject);

@@ -30,7 +30,7 @@ uses
   InputFilterUtils, MyStringGrid;
 
 type
-  TForm4 = class(TForm)
+  TOrthogonalMethodForm = class(TForm)
     StringGrid1: TMyPointsStringGrid;
     ToolBar1: TToolBar;
     ToolBar2: TToolBar;
@@ -73,13 +73,13 @@ type
   end;
 
 var
-  Form4: TForm4;
+  OrthogonalMethodForm: TOrthogonalMethodForm;
 
 implementation
 
 {$R *.dfm}
 
-procedure TForm4.FormCreate(Sender: TObject);
+procedure TOrthogonalMethodForm.FormCreate(Sender: TObject);
 begin
   InitFS;
   SetupValidations;
@@ -93,24 +93,24 @@ begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
-procedure TForm4.InitFS;
+procedure TOrthogonalMethodForm.InitFS;
 begin
   FS := TFormatSettings.Create;
   FS.DecimalSeparator := ',';
   FS.ThousandSeparator := #0;
 end;
 
-procedure TForm4.FormActivate(Sender: TObject);
+procedure TOrthogonalMethodForm.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
-procedure TForm4.FormDeactivate(Sender: TObject);
+procedure TOrthogonalMethodForm.FormDeactivate(Sender: TObject);
 begin
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
-procedure TForm4.SetupValidations;
+procedure TOrthogonalMethodForm.SetupValidations;
 begin
   StringGrid1.SetColumnValidator(1, FilterPointNumber);
   StringGrid1.SetColumnValidator(2, FilterCoordinate);
@@ -122,18 +122,18 @@ begin
   StringGrid1.SetColumnValidator(8, FilterDescription);
 end;
 
-procedure TForm4.UpdateCurrentDirectoryPath;
+procedure TOrthogonalMethodForm.UpdateCurrentDirectoryPath;
 begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-function TForm4.IsExprColumn(ACol: Integer): Boolean;
+function TOrthogonalMethodForm.IsExprColumn(ACol: Integer): Boolean;
 begin
   Result := ACol in [2, 3, 4, 5, 6];
 end;
 
-procedure TForm4.TryEvalCell(ACol, ARow: Integer);
+procedure TOrthogonalMethodForm.TryEvalCell(ACol, ARow: Integer);
 var
   S: string;
   V: Double;
@@ -151,7 +151,7 @@ begin
   StringGrid1.Cells[ACol, ARow] := FloatToStr(V, FS);
 end;
 
-procedure TForm4.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TOrthogonalMethodForm.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
   CanSelect := True;
 
@@ -162,7 +162,7 @@ begin
   FLastRow := ARow;
 end;
 
-procedure TForm4.FillRowFromPoint(const R: Integer; const P: Point.TPoint);
+procedure TOrthogonalMethodForm.FillRowFromPoint(const R: Integer; const P: Point.TPoint);
 begin
   StringGrid1.Cells[1, R] := IntToStr(P.PointNumber); // číslo bodu
   StringGrid1.Cells[4, R] := FloatToStr(P.X, FS);     // X
@@ -172,7 +172,7 @@ begin
   StringGrid1.Cells[8, R] := P.Description;           // popis
 end;
 
-function TForm4.LoadOrPromptAnchor(const R: Integer; out P: Point.TPoint): Boolean;
+function TOrthogonalMethodForm.LoadOrPromptAnchor(const R: Integer; out P: Point.TPoint): Boolean;
 var
   num: Integer;
   dlg: TAddPointForm;
@@ -204,7 +204,7 @@ begin
   Result := True;
 end;
 
-procedure TForm4.MaybeFillFromDict(const R: Integer);
+procedure TOrthogonalMethodForm.MaybeFillFromDict(const R: Integer);
 var
   num: Integer;
   P: Point.TPoint;
@@ -219,12 +219,12 @@ begin
   end;
 end;
 
-function TForm4.ReadFloatCell(Col, Row: Integer; out V: Double): Boolean;
+function TOrthogonalMethodForm.ReadFloatCell(Col, Row: Integer; out V: Double): Boolean;
 begin
   Result := TryStrToFloat(Trim(StringGrid1.Cells[Col, Row]), V, FS);
 end;
 
-function TForm4.PadZeros(const S: string; PadLen: Integer): string;
+function TOrthogonalMethodForm.PadZeros(const S: string; PadLen: Integer): string;
 var
   N, MaxVal: Int64;
 begin
@@ -243,7 +243,7 @@ begin
     Result := IntToStr(N);
 end;
 
-function TForm4.TryComputeDetailRow(const R: Integer): Boolean;
+function TOrthogonalMethodForm.TryComputeDetailRow(const R: Integer): Boolean;
 var
   P0, K0: Point.TPoint;
   s, o: Double; // staničení, kolmice
@@ -288,7 +288,7 @@ begin
   end;
 end;
 
-procedure TForm4.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TOrthogonalMethodForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   Confirm: Boolean;
   Anchor: Point.TPoint;
@@ -363,7 +363,7 @@ begin
   end;
 end;
 
-procedure TForm4.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TOrthogonalMethodForm.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   CB: TComboBox;
 begin
@@ -396,7 +396,7 @@ begin
     SelectNext(ActiveControl, True, True);
 end;
 
-procedure TForm4.PrefixComboExit(Sender: TObject);
+procedure TOrthogonalMethodForm.PrefixComboExit(Sender: TObject);
 begin
   if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
     (Sender as TComboBox).Text := PadZeros((Sender as TComboBox).Text, (Sender as TComboBox).Tag);
@@ -405,7 +405,7 @@ begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
-procedure TForm4.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
+procedure TOrthogonalMethodForm.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
 var
   S: string;

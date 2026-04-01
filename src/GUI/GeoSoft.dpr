@@ -18,8 +18,9 @@ uses
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
   MyStringGrid in '..\Components\MyStringGrid.pas',
-  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas',
-  InputFilterUtils in '..\Utils\InputFilterUtils.pas';
+  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas' {/,},
+  InputFilterUtils in '..\Utils\InputFilterUtils.pas',
+  TestFieldGrid in 'TestFieldGrid.pas' {Form2};
 
 {$R *.res}
 
@@ -34,5 +35,6 @@ begin
   Application.CreateForm(TAddPointForm, AddPointForm);
   Application.CreateForm(TCheckMeasurementForm, CheckMeasurementForm);
   Application.CreateForm(TPolarMethodForm, PolarMethodForm);
+  Application.CreateForm(TForm2, Form2);
   Application.Run;
 end.

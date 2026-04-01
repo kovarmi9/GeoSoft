@@ -10,10 +10,11 @@ object CheckMeasurementForm: TCheckMeasurementForm
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OnCreate = FormCreate
   TextHeight = 15
   object Button1: TButton
-    Left = 264
-    Top = 192
+    Left = 416
+    Top = 64
     Width = 75
     Height = 25
     Caption = 'Button1'
@@ -21,10 +22,38 @@ object CheckMeasurementForm: TCheckMeasurementForm
     OnClick = Button1Click
   end
   object Edit1: TEdit
-    Left = 264
-    Top = 136
-    Width = 121
+    Left = 416
+    Top = 16
+    Width = 169
     Height = 23
     TabOrder = 1
+  end
+  object Button2: TButton
+    Left = 510
+    Top = 64
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
+  object MyFieldsStringGrid1: TMyFieldsStringGrid
+    Left = 32
+    Top = 136
+    Width = 553
+    Height = 281
+    ColCount = 2
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 3
+    ColumnFilters = <
+      item
+      end
+      item
+        DataType = fFloat
+      end>
+    GeoFields = []
+    ColWidths = (
+      64
+      115)
   end
 end

@@ -14,7 +14,7 @@ uses
   System.Generics.Collections,
   GeoAlgorithmTransformCongruent,
   GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid, Data.DB,
-  Vcl.DBGrids, Web.HTTPApp, Web.DBWeb, Web.DBXpressWeb;
+  Vcl.DBGrids, Web.HTTPApp, Web.DBWeb, Web.DBXpressWeb, MyFieldsStringGrid;
 
 type
   TForm1 = class(TForm)
@@ -48,7 +48,7 @@ implementation
 
 {$R *.dfm}
 
-uses ParcelArea, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethod;
+uses ParcelArea, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethod, TestFieldGrid;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin

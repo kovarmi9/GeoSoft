@@ -276,7 +276,7 @@ begin
   Result := True;
 end;
 
-{=========================== Ovládání ============================}
+// Ovládání
 
 procedure TParcelAreaForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var

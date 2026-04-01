@@ -40,6 +40,10 @@ contains
   ColumnValidation in '..\Components\ColumnValidation.pas',
   MyStringGrid in '..\Components\MyStringGrid.pas',
   MyStringGridReg in '..\Components\MyStringGridReg.pas',
-  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas';
+  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas',
+  MyFieldsStringGrid in 'MyFieldsStringGrid.pas',
+  GeoFieldColumn in 'GeoFieldColumn.pas',
+  GeoRow in '..\Test_gdf\GeoRow.pas';
 
 end.
+

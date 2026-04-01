@@ -5,7 +5,8 @@ interface
 uses
   System.Classes,
   MyStringGrid,
-  MyPointsStringGrid;
+  MyPointsStringGrid,
+  MyFieldsStringGrid;
 
 procedure Register;
 
@@ -15,7 +16,8 @@ procedure Register;
 begin
   RegisterComponents('GeoSoft', [
     TMyStringGrid,
-    TMyPointsStringGrid
+    TMyPointsStringGrid,
+    TMyFieldsStringGrid
   ]);
 end;
 

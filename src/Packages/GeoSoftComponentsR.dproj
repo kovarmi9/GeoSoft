@@ -88,6 +88,9 @@
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <DCC_Description>StringGrid for list of points</DCC_Description>
+        <DCC_UnitSearchPath>C:\Users\michal\Desktop\Brigada\GeoSoft\Test_gdf;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
@@ -109,6 +112,9 @@
         <DCCReference Include="..\Components\MyStringGrid.pas"/>
         <DCCReference Include="..\Components\MyStringGridReg.pas"/>
         <DCCReference Include="..\Components\MyPointsStringGrid.pas"/>
+        <DCCReference Include="MyFieldsStringGrid.pas"/>
+        <DCCReference Include="GeoFieldColumn.pas"/>
+        <DCCReference Include="..\Test_gdf\GeoRow.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

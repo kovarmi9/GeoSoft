@@ -3,7 +3,7 @@ program TestFieldGrid;
 uses
   Vcl.Forms,
   Test_FieldGrid in 'Test_FieldGrid.pas' {Form1},
-  GeoFieldMeta in 'GeoFieldMeta.pas',
+  GeoFieldColumn in 'GeoFieldColumn.pas',
   GeoFieldsStringGrid in 'GeoFieldsStringGrid.pas',
   GeoRow in '..\Test_gdf\GeoRow.pas',
   GeoDataFrame in '..\Test_gdf\GeoDataFrame.pas',

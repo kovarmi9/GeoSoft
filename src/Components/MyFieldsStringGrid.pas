@@ -1,9 +1,9 @@
-unit GeoFieldsStringGrid;
+unit MyFieldsStringGrid;
 
 interface
 
 uses
-  System.SysUtils, System.Classes,
+  System.SysUtils, System.Classes, System.Math,
   Vcl.Controls, Vcl.Grids,
   GeoRow,
   ColumnValidation,
@@ -11,10 +11,11 @@ uses
   MyStringGrid;
 
 type
-  TGeoFieldsStringGrid = class(TMyStringGrid)
+  TMyFieldsStringGrid = class(TMyStringGrid)
   private
     FGeoFields: TGeoFields;
-    FColToField: array of TGeoField;  // index (I) -> TGeoField (F)
+    FColToField: array of TGeoField;          // visual column index -> TGeoField
+    FColumnData: array[TGeoField] of TGeoFieldColumn; // per-instance column data (copy of global)
 
     procedure SetGeoFields(const Value: TGeoFields);
     procedure RebuildColumns;
@@ -22,11 +23,18 @@ type
   public
     constructor Create(AOwner: TComponent); override;
 
-    // Prevod mezi vizualnim indexem sloupce a TGeoField
-    function FieldToCol(F: TGeoField): Integer;   // -1 pokud pole neni aktivni
-    function ColToField(ACol: Integer): TGeoField; // pouze pro datove sloupce
+    // Override display name and filter for a specific field (this instance only)
+    procedure SetColumnData(F: TGeoField; const ADisplayName: string); overload;
+    procedure SetColumnData(F: TGeoField; const ADisplayName: string; AFilter: TColumnFilter); overload;
+    // Reset one field (or all fields) back to the global GeoFieldColumnData defaults
+    procedure ResetColumnData(F: TGeoField);
+    procedure ResetAllColumnData;
 
-    // Zapis/cteni celeho radku jako TGeoRow
+    // Translate between visual column index and TGeoField
+    function FieldToCol(F: TGeoField): Integer;    // -1 if field is not active
+    function ColToField(ACol: Integer): TGeoField; // only for data columns
+
+    // Read/write a whole row as TGeoRow
     procedure SetGeoRow(ARow: Integer; const GRow: TGeoRow);
     procedure GetGeoRow(ARow: Integer; out GRow: TGeoRow);
 
@@ -38,16 +46,20 @@ implementation
 
 { TGeoFieldsStringGrid }
 
-constructor TGeoFieldsStringGrid.Create(AOwner: TComponent);
+constructor TMyFieldsStringGrid.Create(AOwner: TComponent);
+var
+  F: TGeoField;
 begin
   inherited Create(AOwner);
   FixedRows := 1;
-  FixedCols := 0;
   FGeoFields := [];
-  SetLength(FColToField, 0); // length of array
+  SetLength(FColToField, 0);
+  // Copy global defaults into per-instance metadata
+  for F := Low(TGeoField) to High(TGeoField) do
+    FColumnData[F] := GeoFieldColumnData[F];
 end;
 
-procedure TGeoFieldsStringGrid.SetGeoFields(const Value: TGeoFields);
+procedure TMyFieldsStringGrid.SetGeoFields(const Value: TGeoFields);
 begin
   if FGeoFields = Value then // if GeoFields are same do nothing
     Exit;
@@ -55,49 +67,7 @@ begin
   RebuildColumns;
 end;
 
-//procedure TGeoFieldsStringGrid.RebuildColumns;
-//var
-//  F: TGeoField;
-//  I: Integer;
-//  DataCol: Integer;
-//  Row: Integer;
-//begin
-//  // 1) Count active fields
-//  I := 0;
-//  for F := Low(TGeoField) to High(TGeoField) do
-//    if F in FGeoFields then
-//      Inc(I);
-//  SetLength(FColToField, I);
-//
-//  // 2) Build mapping: visual column index -> TGeoField
-//  I := 0;
-//  for F := Low(TGeoField) to High(TGeoField) do
-//    if F in FGeoFields then
-//    begin
-//      FColToField[I] := F;
-//      Inc(I);
-//    end;
-//
-//  // 2) Nastaveni poctu sloupcu
-//  ColCount := FixedCols + Length(FColToField);
-//
-//  // 3) Vymazani datovych bunek
-//  for DataCol := FixedCols to ColCount - 1 do
-//    for Row := FixedRows to RowCount - 1 do
-//      Cells[DataCol, Row] := '';
-//
-//  // 4) Nastaveni hlavicek a validacnich filtru
-//  for I := 0 to High(FColToField) do
-//  begin
-//    DataCol := FixedCols + I;
-//    F := FColToField[I];
-//
-//    Cells[DataCol, 0] := GeoFieldColumnData[F].DisplayName;
-//    SetColumnFilter(DataCol, GeoFieldColumnData[F].Filter);
-//  end;
-//end;
-
-procedure TGeoFieldsStringGrid.RebuildColumns;
+procedure TMyFieldsStringGrid.RebuildColumns;
 var
   F: TGeoField;
   I: Integer;
@@ -121,8 +91,8 @@ begin
       Inc(I);
     end;
 
-  // 3) Update total column count
-  ColCount := FixedCols + Length(FColToField);
+  // 3) Update total column count (always at least FixedCols + 1)
+  ColCount := Max(FixedCols + 1, FixedCols + Length(FColToField));
 
   // 4) Clear data cells (mapping has changed)
   for DataCol := FixedCols to ColCount - 1 do
@@ -135,12 +105,43 @@ begin
     DataCol := FixedCols + I;
     F := FColToField[I];
 
-    Cells[DataCol, 0] := GeoFieldColumnData[F].DisplayName;
-    SetColumnFilter(DataCol, GeoFieldColumnData[F].Filter);
+    Cells[DataCol, 0] := FColumnData[F].DisplayName;
+    SetColumnFilter(DataCol, FColumnData[F].Filter);
   end;
 end;
 
-function TGeoFieldsStringGrid.FieldToCol(F: TGeoField): Integer;
+procedure TMyFieldsStringGrid.SetColumnData(F: TGeoField; const ADisplayName: string);
+begin
+  FColumnData[F].DisplayName := ADisplayName;
+  if F in FGeoFields then
+    RebuildColumns;
+end;
+
+procedure TMyFieldsStringGrid.SetColumnData(F: TGeoField; const ADisplayName: string; AFilter: TColumnFilter);
+begin
+  FColumnData[F].DisplayName := ADisplayName;
+  FColumnData[F].Filter := AFilter;
+  if F in FGeoFields then
+    RebuildColumns;
+end;
+
+procedure TMyFieldsStringGrid.ResetColumnData(F: TGeoField);
+begin
+  FColumnData[F] := GeoFieldColumnData[F];
+  if F in FGeoFields then
+    RebuildColumns;
+end;
+
+procedure TMyFieldsStringGrid.ResetAllColumnData;
+var
+  F: TGeoField;
+begin
+  for F := Low(TGeoField) to High(TGeoField) do
+    FColumnData[F] := GeoFieldColumnData[F];
+  RebuildColumns;
+end;
+
+function TMyFieldsStringGrid.FieldToCol(F: TGeoField): Integer;
 var
   I: Integer;
 begin
@@ -153,7 +154,7 @@ begin
     end;
 end;
 
-function TGeoFieldsStringGrid.ColToField(ACol: Integer): TGeoField;
+function TMyFieldsStringGrid.ColToField(ACol: Integer): TGeoField;
 var
   I: Integer;
 begin
@@ -163,7 +164,7 @@ begin
   Result := FColToField[I];
 end;
 
-procedure TGeoFieldsStringGrid.SetGeoRow(ARow: Integer; const GRow: TGeoRow);
+procedure TMyFieldsStringGrid.SetGeoRow(ARow: Integer; const GRow: TGeoRow);
 var
   I, C: Integer;
   F: TGeoField;
@@ -177,7 +178,7 @@ begin
     C := FixedCols + I;
     case F of
       Uloha:    Cells[C, ARow] := IntToStr(GRow.Uloha);
-      CB:       Cells[C, ARow] := GRow.CB;
+      CB:       Cells[C, ARow] := string(GRow.CB);
       X:        Cells[C, ARow] := FloatToStr(GRow.X);
       Y:        Cells[C, ARow] := FloatToStr(GRow.Y);
       Z:        Cells[C, ARow] := FloatToStr(GRow.Z);
@@ -193,12 +194,12 @@ begin
       Zuhel:    Cells[C, ARow] := FloatToStr(GRow.Zuhel);
       PolarD:   Cells[C, ARow] := FloatToStr(GRow.PolarD);
       PolarK:   Cells[C, ARow] := FloatToStr(GRow.PolarK);
-      Poznamka: Cells[C, ARow] := GRow.Poznamka;
+      Poznamka: Cells[C, ARow] := string(GRow.Poznamka);
     end;
   end;
 end;
 
-procedure TGeoFieldsStringGrid.GetGeoRow(ARow: Integer; out GRow: TGeoRow);
+procedure TMyFieldsStringGrid.GetGeoRow(ARow: Integer; out GRow: TGeoRow);
 var
   I, C: Integer;
   F: TGeoField;
@@ -217,7 +218,7 @@ begin
 
     case F of
       Uloha:    TryStrToInt(S, GRow.Uloha);
-      CB:       GRow.CB := S;
+      CB:       GRow.CB := ShortString(S);
       X:        TryStrToFloat(S, GRow.X);
       Y:        TryStrToFloat(S, GRow.Y);
       Z:        TryStrToFloat(S, GRow.Z);
@@ -233,7 +234,7 @@ begin
       Zuhel:    TryStrToFloat(S, GRow.Zuhel);
       PolarD:   TryStrToFloat(S, GRow.PolarD);
       PolarK:   TryStrToFloat(S, GRow.PolarK);
-      Poznamka: GRow.Poznamka := S;
+      Poznamka: GRow.Poznamka := ShortString(S);
     end;
   end;
 end;

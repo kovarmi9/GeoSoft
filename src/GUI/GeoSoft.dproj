@@ -131,16 +131,16 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="PointsManagement.pas">
-            <Form>Form2</Form>
+            <Form>PointsManagementForm</Form>
         </DCCReference>
-        <DCCReference Include="PolarMethod.pas">
+        <DCCReference Include="ParcelArea.pas">
             <Form>Form3</Form>
         </DCCReference>
         <DCCReference Include="OrthogonalMethod.pas">
             <Form>Form4</Form>
         </DCCReference>
         <DCCReference Include="Transformation.pas">
-            <Form>Form5</Form>
+            <Form>TransformationForm</Form>
         </DCCReference>
         <DCCReference Include="AddPoint.pas">
             <Form>AddPointForm</Form>
@@ -148,8 +148,8 @@
         <DCCReference Include="CheckMeasurement.pas">
             <Form>CheckMeasurementForm</Form>
         </DCCReference>
-        <DCCReference Include="PolarMethodNew.pas">
-            <Form>Form9</Form>
+        <DCCReference Include="PolarMethod.pas">
+            <Form>PolarMethodForm</Form>
         </DCCReference>
         <DCCReference Include="StringGridValidationUtils.pas"/>
         <DCCReference Include="..\Utils\GeoAlgorithmBase.pas"/>
@@ -159,7 +159,9 @@
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas"/>
         <DCCReference Include="..\Components\MyStringGrid.pas"/>
-        <DCCReference Include="..\Components\MyPointsStringGrid.pas"/>
+        <DCCReference Include="..\Components\MyPointsStringGrid.pas">
+            <Form>/,</Form>
+        </DCCReference>
         <DCCReference Include="..\Utils\InputFilterUtils.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

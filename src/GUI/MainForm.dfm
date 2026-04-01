@@ -3206,9 +3206,9 @@ object Form1: TForm1
     end
     object Vypocty: TMenuItem
       Caption = 'V'#253'po'#269'ty'
-      object Polrnmetoda1: TMenuItem
-        Caption = 'Pol'#225'rn'#237' metoda'
-        OnClick = Polrnmetoda1Click
+      object Polrnmetodanov1: TMenuItem
+        Caption = 'Pol'#225'rn'#237' metoda nov'#225
+        OnClick = Polrnmetodanov1Click
       end
       object Ortogonlnmetoda1: TMenuItem
         Caption = 'Ortogon'#225'ln'#237' metoda'
@@ -3222,9 +3222,9 @@ object Form1: TForm1
         Caption = 'Kontroln'#237' om'#283'rn'#233
         OnClick = CheckMeasurementClick
       end
-      object Polrnmetodanov1: TMenuItem
-        Caption = 'Pol'#225'rn'#237' metoda nov'#225
-        OnClick = Polrnmetodanov1Click
+      object Polrnmetoda1: TMenuItem
+        Caption = 'V'#253'po'#269'et v'#253'm'#283'r'
+        OnClick = Polrnmetoda1Click
       end
     end
   end

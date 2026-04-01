@@ -1,4 +1,4 @@
-unit StringGridValidationUtils;
+﻿unit StringGridValidationUtils;
 
 interface
 
@@ -76,7 +76,7 @@ begin
   end;
 
   // Limit length to 1 character — block further input if already filled
-  if (Grid.Col = 4) and (Length(Grid.Cells[Grid.Col, Grid.Row]) >= 1) and (Key in ['0'..'8']) then
+  if (Grid.Col = 4) and (Length(Grid.Cells[Grid.Col, Grid.Row]) >= 1) and CharInSet(Key, ['0'..'8']) then
     Key := #0;
 end;
 

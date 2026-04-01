@@ -3,13 +3,13 @@
 uses
   Vcl.Forms,
   MainForm in 'MainForm.pas' {Form1},
-  PointsManagement in 'PointsManagement.pas' {Form2},
-  PolarMethod in 'PolarMethod.pas' {Form3},
+  PointsManagement in 'PointsManagement.pas' {PointsManagementForm},
+  ParcelArea in 'ParcelArea.pas' {Form3},
   OrthogonalMethod in 'OrthogonalMethod.pas' {Form4},
-  Transformation in 'Transformation.pas' {Form5},
+  Transformation in 'Transformation.pas' {TransformationForm},
   AddPoint in 'AddPoint.pas' {AddPointForm},
   CheckMeasurement in 'CheckMeasurement.pas' {CheckMeasurementForm},
-  PolarMethodNew in 'PolarMethodNew.pas' {Form9},
+  PolarMethod in 'PolarMethod.pas' {PolarMethodForm},
   StringGridValidationUtils in 'StringGridValidationUtils.pas',
   GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
   GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas',
@@ -27,12 +27,12 @@ begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TForm1, Form1);
-  Application.CreateForm(TForm2, Form2);
-  Application.CreateForm(TForm3, Form3);
+  Application.CreateForm(TPointsManagementForm, PointsManagementForm);
+  Application.CreateForm(TParcelAreaForm, ParcelAreaForm);
   Application.CreateForm(TOrthogonalMethodForm, OrthogonalMethodForm);
-  Application.CreateForm(TForm5, Form5);
+  Application.CreateForm(TTransformationForm, TransformationForm);
   Application.CreateForm(TAddPointForm, AddPointForm);
   Application.CreateForm(TCheckMeasurementForm, CheckMeasurementForm);
-  Application.CreateForm(TForm9, Form9);
+  Application.CreateForm(TPolarMethodForm, PolarMethodForm);
   Application.Run;
 end.

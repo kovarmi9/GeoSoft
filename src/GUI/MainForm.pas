@@ -48,7 +48,7 @@ implementation
 
 {$R *.dfm}
 
-uses polarMethod, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethodNew;
+uses ParcelArea, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethod;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
@@ -57,12 +57,12 @@ end;
 
 procedure TForm1.Polrnmetoda1Click(Sender: TObject);
 begin
-Form3.Show;
+ParcelAreaForm.Show;
 end;
 
 procedure TForm1.Polrnmetodanov1Click(Sender: TObject);
 begin
-Form9.Show;
+PolarMethodForm.Show;
 end;
 
 procedure TForm1.Ortogonlnmetoda1Click(Sender: TObject);

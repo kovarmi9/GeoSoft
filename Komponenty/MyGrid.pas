@@ -39,6 +39,14 @@ type
     procedure UpdateHeaders;
 
   protected
+    /// <summary>
+    ///   Called whenever the cursor is about to leave a cell.
+    ///   Base: writes InplaceEditor.Text into Cells[Col, Row] (the commit).
+    ///   Override in descendants to add validation or formatting.
+    /// </summary>
+    procedure CommitCell; virtual;
+
+    function  SelectCell(ACol, ARow: Integer): Boolean; override;
     procedure DrawCell(ACol, ARow: Integer; Rect: TRect;
       State: TGridDrawState); override;
     procedure KeyPress(var Key: Char); override;
@@ -87,6 +95,25 @@ begin
   FColumnHeaders.Free;
   FRowHeaders.Free;
   inherited Destroy;
+end;
+
+procedure TMyGrid.CommitCell;
+begin
+  // Write whatever is currently in the in-place editor into the cell.
+  // InplaceEditor.Text holds the live text while editing; Cells[Col,Row]
+  // is only updated when the editor closes — so we do it explicitly here.
+  if EditorMode and Assigned(InplaceEditor) then
+    Cells[Col, Row] := InplaceEditor.Text;
+end;
+
+function TMyGrid.SelectCell(ACol, ARow: Integer): Boolean;
+begin
+  // Commit the current cell before moving to a new one.
+  // This fires for every selection change: Enter, Tab, arrows, mouse click.
+  if (ACol <> Col) or (ARow <> Row) then
+    CommitCell;
+
+  Result := inherited SelectCell(ACol, ARow);
 end;
 
 procedure TMyGrid.SetColumnHeaders(const Value: TStrings);
@@ -206,6 +233,10 @@ begin
         end;
       end;
     end;
+
+    // Reopen the editor in the new cell so the user can keep typing.
+    if (FEnterEndBehavior <> ebMoveFocusNext) and (goEditing in Options) then
+      EditorMode := True;
 
     Exit;
   end;

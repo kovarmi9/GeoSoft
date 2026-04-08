@@ -94,19 +94,32 @@ begin
   // 3) Update total column count (always at least FixedCols + 1)
   ColCount := Max(FixedCols + 1, FixedCols + Length(FColToField));
 
-  // 4) Clear data cells (mapping has changed)
+  // 4) Clear all data columns — headers, filters, widths and data cells
   for DataCol := FixedCols to ColCount - 1 do
+  begin
+    Cells[DataCol, 0] := '';
+    SetColumnFilter(DataCol, TColumnFilter.None);
+    ColWidths[DataCol] := DefaultColWidth;
     for Row := FixedRows to RowCount - 1 do
       Cells[DataCol, Row] := '';
+  end;
 
-  // 5) Set column headers and validation filters
+  // 5) Set column headers and validation filters for active fields
   for I := 0 to High(FColToField) do
   begin
     DataCol := FixedCols + I;
     F := FColToField[I];
-
     Cells[DataCol, 0] := FColumnData[F].DisplayName;
     SetColumnFilter(DataCol, FColumnData[F].Filter);
+  end;
+
+  // 6) Handle placeholder column when no fields are active
+  if Length(FColToField) = 0 then
+  begin
+    if FixedCols > 0 then
+      ColWidths[FixedCols] := 0        // hide placeholder behind fixed columns
+    else
+      ColWidths[0] := DefaultColWidth; // reset to default width
   end;
 end;
 

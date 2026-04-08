@@ -49,11 +49,10 @@ object CheckMeasurementForm: TCheckMeasurementForm
       item
       end
       item
-        DataType = fFloat
       end>
     GeoFields = []
     ColWidths = (
       64
-      115)
+      0)
   end
 end

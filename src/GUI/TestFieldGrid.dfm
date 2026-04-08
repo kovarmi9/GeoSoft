@@ -28,6 +28,7 @@ object Form2: TForm2
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 0
+    ExplicitHeight = 492
     object LabelFields: TLabel
       Left = 8
       Top = 8
@@ -44,6 +45,7 @@ object Form2: TForm2
       ItemHeight = 17
       TabOrder = 0
       OnClickCheck = CheckListFieldsClickCheck
+      ExplicitTop = 20
     end
   end
   object MyFieldsStringGrid1: TMyFieldsStringGrid
@@ -52,6 +54,7 @@ object Form2: TForm2
     Width = 617
     Height = 500
     Align = alClient
+    ColCount = 3
     FixedCols = 2
     FixedRows = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
@@ -62,17 +65,13 @@ object Form2: TForm2
       item
       end
       item
-      end
-      item
-      end
-      item
       end>
     GeoFields = []
+    ExplicitWidth = 615
+    ExplicitHeight = 492
     ColWidths = (
       118
       118
-      118
-      118
-      117)
+      0)
   end
 end

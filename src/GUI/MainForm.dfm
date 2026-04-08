@@ -3191,45 +3191,6 @@ object Form1: TForm1
     TabOrder = 0
     ExplicitWidth = 964
   end
-  object MyGrid1: TMyGrid
-    Left = 48
-    Top = 296
-    Width = 697
-    Height = 273
-    TabOrder = 1
-  end
-  object MyGrid2: TMyGrid
-    Left = 48
-    Top = 170
-    Width = 320
-    Height = 120
-    TabOrder = 2
-    RowHeights = (
-      24
-      24
-      89
-      24
-      24)
-  end
-  object MyStringGrid1: TMyStringGrid
-    Left = 48
-    Top = 440
-    Width = 320
-    Height = 120
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
-    TabOrder = 3
-    ColumnFilters = <
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end>
-  end
   object MainMenu1: TMainMenu
     Left = 584
     Top = 192

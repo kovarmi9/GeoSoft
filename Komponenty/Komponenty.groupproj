@@ -3,7 +3,7 @@
         <ProjectGuid>{813A0B2F-095D-4AA5-B348-F6E00944E99A}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="MyComponentsR.dpk">
+        <Projects Include="MyComponentsR.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -15,13 +15,13 @@
         </BorlandProject>
     </ProjectExtensions>
     <Target Name="MyComponentsR">
-        <MSBuild Projects="MyComponentsR.dpk"/>
+        <MSBuild Projects="MyComponentsR.dproj"/>
     </Target>
     <Target Name="MyComponentsR:Clean">
-        <MSBuild Projects="MyComponentsR.dpk" Targets="Clean"/>
+        <MSBuild Projects="MyComponentsR.dproj" Targets="Clean"/>
     </Target>
     <Target Name="MyComponentsR:Make">
-        <MSBuild Projects="MyComponentsR.dpk" Targets="Make"/>
+        <MSBuild Projects="MyComponentsR.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
         <CallTarget Targets="MyComponentsR"/>

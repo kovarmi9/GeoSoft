@@ -34,6 +34,7 @@ requires
 
 contains
   MyGrid in 'MyGrid.pas',
+  GeoGrid in 'GeoGrid.pas',
   MyGridReg in 'MyGridReg.pas';
 
 end.

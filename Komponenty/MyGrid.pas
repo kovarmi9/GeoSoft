@@ -33,25 +33,23 @@ type
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
     FEnterEndBehavior: TEnterEndBehavior;
-    // Set to True inside KeyDown so KeyPress knows navigation already happened
-    // and does not trigger a second move (double-skip prevention).
     FNavigating: Boolean;
 
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
     procedure UpdateHeaders;
+    procedure MoveToNextCell(APressedKey: Word; AShift: TShiftState);
 
   protected
     /// <summary>
-    ///   Called whenever the cursor is about to leave a cell.
-    ///   Base: writes InplaceEditor.Text into Cells[Col, Row] (the commit).
+    ///   Called before the cursor leaves a cell.
+    ///   Base: writes InplaceEditor.Text into Cells[Col, Row].
     ///   Override in descendants to add validation or formatting.
     /// </summary>
     procedure CommitCell; virtual;
 
     function  SelectCell(ACol, ARow: Integer): Boolean; override;
-    procedure DrawCell(ACol, ARow: Integer; Rect: TRect;
-      State: TGridDrawState); override;
+    procedure DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); override;
     procedure KeyPress(var Key: Char); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
 
@@ -102,17 +100,17 @@ end;
 
 procedure TMyGrid.CommitCell;
 begin
-  // Write whatever is currently in the in-place editor into the cell.
-  // InplaceEditor.Text holds the live text while editing; Cells[Col,Row]
-  // is only updated when the editor closes — so we do it explicitly here.
+  // Explicitly save the editor text into the cell before moving away.
+  // (SelectCell also calls this, but the explicit call here in KeyDown
+  //  ensures the value is committed before navigation changes Col/Row.)
   if EditorMode and Assigned(InplaceEditor) then
     Cells[Col, Row] := InplaceEditor.Text;
 end;
 
 function TMyGrid.SelectCell(ACol, ARow: Integer): Boolean;
 begin
-  // Commit the current cell before moving to a new one.
-  // This fires for every selection change: Enter, Tab, arrows, mouse click.
+  // Safety-net commit: fires for every selection change — Enter, Tab,
+  // arrow keys, mouse click — so the value is never lost.
   if (ACol <> Col) or (ARow <> Row) then
     CommitCell;
 
@@ -140,15 +138,72 @@ begin
   if (FRowHeaders.Count > 0) and (FixedCols = 0) then
     FixedCols := 1;
 
-  for C := 0 to FColumnHeaders.Count - 1 do
-    if C < ColCount then
-      Cells[C, 0] := FColumnHeaders[C];
+  if FixedRows > 0 then
+    for C := 0 to ColCount - 1 do
+      if C < FColumnHeaders.Count then
+        Cells[C, 0] := FColumnHeaders[C];
 
-  for R := 0 to FRowHeaders.Count - 1 do
-    if R < RowCount then
-      Cells[0, R] := FRowHeaders[R];
+  if FixedCols > 0 then
+    for R := 0 to RowCount - 1 do
+      if R < FRowHeaders.Count then
+        Cells[0, R] := FRowHeaders[R];
 
   Invalidate;
+end;
+
+procedure TMyGrid.MoveToNextCell(APressedKey: Word; AShift: TShiftState);
+var
+  FirstDataCol, FirstDataRow: Integer;
+  GoForward: Boolean;
+begin
+  FirstDataCol := FixedCols;
+  FirstDataRow := FixedRows;
+
+  // Stay inside the data area
+  if Row < FirstDataRow then Row := FirstDataRow;
+  if Col < FirstDataCol then Col := FirstDataCol;
+
+  if Col < ColCount - 1 then
+    Col := Col + 1
+
+  else if Row < RowCount - 1 then
+  begin
+    Row := Row + 1;
+    Col := FirstDataCol;
+  end
+
+  else // last cell — apply EnterEndBehavior
+  begin
+    case FEnterEndBehavior of
+      ebStayOnLastCell:
+        ;
+
+      ebWrapToStart:
+      begin
+        Row := FirstDataRow;
+        Col := FirstDataCol;
+      end;
+
+      ebAddRow:
+      begin
+        RowCount := RowCount + 1;
+        Row      := Row + 1;
+        Col      := FirstDataCol;
+      end;
+
+      ebMoveFocusNext:
+      begin
+        EditorMode := False;
+        GoForward  := not ((APressedKey = VK_TAB) and (ssShift in AShift));
+        SelectNext(Self, GoForward, True);
+        Exit; // focus left the grid — skip EditorMode := True below
+      end;
+    end;
+  end;
+
+  // Open the editor at the new cell so the user can type immediately.
+  if goEditing in Options then
+    EditorMode := True;
 end;
 
 procedure TMyGrid.DrawCell(ACol, ARow: Integer; Rect: TRect;
@@ -180,18 +235,16 @@ begin
   begin
     Key := #0;
 
-    // If KeyDown already handled this key press (called via TInplaceEdit's
-    // forwarded WM_KEYDOWN), just reset the flag and exit — no second move.
-    // If KeyDown was NOT called (some Delphi versions do not forward VK_RETURN
-    // from TInplaceEdit to Grid.KeyDown), call it now from this WM_CHAR path,
-    // which runs outside the TInplaceEdit editor-lock — navigation works here.
     if FNavigating then
+      // KeyDown already handled this key press — just reset and exit.
       FNavigating := False
     else
     begin
+      // KeyDown was not called (TInplaceEdit did not forward VK_RETURN/VK_TAB).
+      // Navigate from this WM_CHAR path, which runs outside the editor lock.
       VK := VK_RETURN;
       KeyDown(VK, []);
-      FNavigating := False; // reset after KeyDown sets it
+      FNavigating := False;
     end;
 
     Exit;
@@ -201,59 +254,23 @@ begin
 end;
 
 procedure TMyGrid.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  PressedKey: Word;
 begin
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
-    Key := 0;
+    PressedKey := Key;
+    Key        := 0;
 
-    // Guard: if we are already navigating (called a second time for the same
-    // key press), do nothing. KeyPress will reset FNavigating afterwards.
+    // If FNavigating is already True, this is a duplicate call for the same
+    // key press — KeyPress will reset the flag; just exit here.
     if FNavigating then
       Exit;
 
     FNavigating := True;
 
-    if Col < ColCount - 1 then
-      Col := Col + 1
-
-    else if Row < RowCount - 1 then
-    begin
-      Row := Row + 1;
-      Col := FixedCols;
-    end
-
-    else
-    begin
-      case FEnterEndBehavior of
-        ebStayOnLastCell:
-          ;
-
-        ebWrapToStart:
-        begin
-          Row := FixedRows;
-          Col := FixedCols;
-        end;
-
-        ebAddRow:
-        begin
-          RowCount := RowCount + 1;
-          Row      := Row + 1;
-          Col      := FixedCols;
-        end;
-
-        ebMoveFocusNext:
-        begin
-          EditorMode := False;
-          SelectNext(Self, True, True);
-          FNavigating := False;
-          Exit;
-        end;
-      end;
-    end;
-
-    // Reopen the editor in the new cell so the user can keep typing.
-    if goEditing in Options then
-      EditorMode := True;
+    CommitCell;
+    MoveToNextCell(PressedKey, Shift);
 
     Exit;
   end;

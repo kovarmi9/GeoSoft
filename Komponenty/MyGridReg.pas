@@ -8,14 +8,14 @@ implementation
 
 uses
   System.Classes,
-  MyGrid;          // sem přidáváš každou novou komponentu
+  MyGrid,
+  GeoGrid;
 
 procedure Register;
 begin
   RegisterComponents('MyComponents', [
-    TMyGrid
-    // TMyDataGrid,   ← až je přidáš
-    // TMyGeoGrid
+    TMyGrid,
+    TGeoGrid
   ]);
 end;
 

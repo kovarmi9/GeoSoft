@@ -3198,6 +3198,13 @@ object Form1: TForm1
     Height = 233
     TabOrder = 1
   end
+  object GeoGrid1: TGeoGrid
+    Left = 72
+    Top = 56
+    Width = 385
+    Height = 218
+    TabOrder = 2
+  end
   object MainMenu1: TMainMenu
     Left = 584
     Top = 192

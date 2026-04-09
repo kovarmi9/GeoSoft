@@ -15,7 +15,7 @@ uses
   GeoAlgorithmTransformCongruent,
   GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid, Data.DB,
   Vcl.DBGrids, Web.HTTPApp, Web.DBWeb, Web.DBXpressWeb, MyFieldsStringGrid,
-  MyGrid;
+  MyGrid, GeoGrid;
 
 type
   TForm1 = class(TForm)
@@ -31,6 +31,7 @@ type
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
     MyGrid1: TMyGrid;
+    GeoGrid1: TGeoGrid;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);

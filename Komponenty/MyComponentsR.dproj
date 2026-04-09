@@ -87,6 +87,7 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="MyGrid.pas"/>
+        <DCCReference Include="GeoGrid.pas"/>
         <DCCReference Include="MyGridReg.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

@@ -3191,19 +3191,13 @@ object Form1: TForm1
     TabOrder = 0
     ExplicitWidth = 964
   end
-  object MyGrid1: TMyGrid
-    Left = 72
-    Top = 280
-    Width = 689
-    Height = 233
-    TabOrder = 1
-  end
   object GeoGrid1: TGeoGrid
-    Left = 72
-    Top = 56
-    Width = 385
-    Height = 218
-    TabOrder = 2
+    Left = 176
+    Top = 352
+    Width = 577
+    Height = 273
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 1
   end
   object MainMenu1: TMainMenu
     Left = 584

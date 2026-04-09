@@ -30,7 +30,6 @@ type
     ransformace1: TMenuItem;
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
-    MyGrid1: TMyGrid;
     GeoGrid1: TGeoGrid;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);

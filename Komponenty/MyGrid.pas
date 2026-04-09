@@ -33,6 +33,9 @@ type
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
     FEnterEndBehavior: TEnterEndBehavior;
+    // Set to True inside KeyDown so KeyPress knows navigation already happened
+    // and does not trigger a second move (double-skip prevention).
+    FNavigating: Boolean;
 
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
@@ -173,19 +176,24 @@ procedure TMyGrid.KeyPress(var Key: Char);
 var
   VK: Word;
 begin
-  if Key = #13 then
+  if (Key = #13) or (Key = #9) then
   begin
     Key := #0;
-    VK  := VK_RETURN;
-    KeyDown(VK, []);
-    Exit;
-  end;
 
-  if Key = #9 then
-  begin
-    Key := #0;
-    VK  := VK_TAB;
-    KeyDown(VK, []);
+    // If KeyDown already handled this key press (called via TInplaceEdit's
+    // forwarded WM_KEYDOWN), just reset the flag and exit — no second move.
+    // If KeyDown was NOT called (some Delphi versions do not forward VK_RETURN
+    // from TInplaceEdit to Grid.KeyDown), call it now from this WM_CHAR path,
+    // which runs outside the TInplaceEdit editor-lock — navigation works here.
+    if FNavigating then
+      FNavigating := False
+    else
+    begin
+      VK := VK_RETURN;
+      KeyDown(VK, []);
+      FNavigating := False; // reset after KeyDown sets it
+    end;
+
     Exit;
   end;
 
@@ -197,6 +205,13 @@ begin
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
     Key := 0;
+
+    // Guard: if we are already navigating (called a second time for the same
+    // key press), do nothing. KeyPress will reset FNavigating afterwards.
+    if FNavigating then
+      Exit;
+
+    FNavigating := True;
 
     if Col < ColCount - 1 then
       Col := Col + 1
@@ -230,12 +245,14 @@ begin
         begin
           EditorMode := False;
           SelectNext(Self, True, True);
+          FNavigating := False;
+          Exit;
         end;
       end;
     end;
 
     // Reopen the editor in the new cell so the user can keep typing.
-    if (FEnterEndBehavior <> ebMoveFocusNext) and (goEditing in Options) then
+    if goEditing in Options then
       EditorMode := True;
 
     Exit;

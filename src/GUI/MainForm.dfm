@@ -3192,10 +3192,10 @@ object Form1: TForm1
     ExplicitWidth = 964
   end
   object MyGrid1: TMyGrid
-    Left = 120
-    Top = 400
-    Width = 569
-    Height = 177
+    Left = 72
+    Top = 280
+    Width = 689
+    Height = 233
     TabOrder = 1
   end
   object MainMenu1: TMainMenu

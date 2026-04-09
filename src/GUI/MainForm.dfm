@@ -3192,10 +3192,10 @@ object Form1: TForm1
     ExplicitWidth = 964
   end
   object GeoGrid1: TGeoGrid
-    Left = 176
-    Top = 352
-    Width = 577
-    Height = 273
+    Left = 112
+    Top = 272
+    Width = 481
+    Height = 257
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 1
   end

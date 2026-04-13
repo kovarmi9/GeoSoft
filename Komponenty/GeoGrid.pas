@@ -5,39 +5,69 @@ interface
 uses
   System.Classes,
   System.Types,
+  Winapi.Windows,
+  Winapi.Messages,
   Vcl.Grids,
   Vcl.Graphics,
   Vcl.Controls;
 
 type
+
+  TEnterEndBehavior = (
+    ebStayOnLastCell, // zůstat na poslední buňce
+    ebWrapToStart,    // skočit zpět na první datovou buňku
+    ebAddRow,         // přidat řádek a přejít na něj
+    ebMoveFocusNext   // přesunout focus na další komponentu
+  );
+
+  TGeoInplaceEdit = class(TInplaceEdit)
+  protected
+    procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+  end;
+
   TGeoGrid = class(TStringGrid)
   private
-    FNavigating: Boolean;
+    FEnterEndBehavior: TEnterEndBehavior;
 
   protected
-    procedure DrawCell(ACol, ARow: Integer; Rect: TRect;
-      State: TGridDrawState); override;
-    procedure KeyPress(var Key: Char); override;
+    function CreateEditor: TInplaceEdit; override;
+    procedure DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); override;
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
 
   public
     constructor Create(AOwner: TComponent); override;
 
   published
-    // future geo-specific published properties go here
+    property EnterEndBehavior: TEnterEndBehavior
+      read FEnterEndBehavior write FEnterEndBehavior
+      default ebStayOnLastCell;
   end;
 
 implementation
 
-uses
-  Winapi.Windows;
+{ TGeoInplaceEdit }
+
+procedure TGeoInplaceEdit.KeyDown(var Key: Word; Shift: TShiftState);
+begin
+  if Key = VK_RETURN then
+  begin
+    Key := VK_TAB
+  end;
+  inherited KeyDown(Key, Shift);
+end;
 
 { TGeoGrid }
+
+function TGeoGrid.CreateEditor: TInplaceEdit;
+begin
+  Result := TGeoInplaceEdit.Create(Self);
+end;
 
 constructor TGeoGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Options := Options + [goEditing, goTabs];
+  FEnterEndBehavior := ebStayOnLastCell;
 end;
 
 procedure TGeoGrid.DrawCell(ACol, ARow: Integer; Rect: TRect;
@@ -61,60 +91,12 @@ begin
     inherited DrawCell(ACol, ARow, Rect, State);
 end;
 
-procedure TGeoGrid.KeyPress(var Key: Char);
-var
-  VK: Word;
-begin
-  if (Key = #13) or (Key = #9) then
-  begin
-    Key := #0;
-
-    if FNavigating then
-      FNavigating := False   // KeyDown already navigated — just reset
-    else
-    begin
-      VK := VK_RETURN;
-      KeyDown(VK, []);       // navigate from the WM_CHAR path (no editor lock)
-      FNavigating := False;
-    end;
-
-    Exit;
-  end;
-
-  inherited KeyPress(Key);
-end;
-
 procedure TGeoGrid.KeyDown(var Key: Word; Shift: TShiftState);
 begin
-  if (Key = VK_RETURN) or (Key = VK_TAB) then
+  if Key = VK_RETURN then
   begin
-    Key := 0;
-
-    if FNavigating then
-      Exit;  // duplicate call — KeyPress will reset the flag
-
-    FNavigating := True;
-
-    // Commit the current editor value before moving
-    if EditorMode and Assigned(InplaceEditor) then
-      Cells[Col, Row] := InplaceEditor.Text;
-
-    // Navigate to the next cell
-    if Col < ColCount - 1 then
-      Col := Col + 1
-    else if Row < RowCount - 1 then
-    begin
-      Row := Row + 1;
-      Col := FixedCols;
-    end;
-
-    // Reopen the editor at the new cell
-    if goEditing in Options then
-      EditorMode := True;
-
-    Exit;
+    Key := VK_TAB;
   end;
-
   inherited KeyDown(Key, Shift);
 end;
 

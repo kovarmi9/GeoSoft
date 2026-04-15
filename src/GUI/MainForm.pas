@@ -31,6 +31,7 @@ type
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
     GeoGrid1: TGeoGrid;
+    StringGrid1: TStringGrid;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);

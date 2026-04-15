@@ -3192,12 +3192,20 @@ object Form1: TForm1
     ExplicitWidth = 964
   end
   object GeoGrid1: TGeoGrid
-    Left = 120
+    Left = 8
     Top = 328
     Width = 465
     Height = 217
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 1
+  end
+  object StringGrid1: TStringGrid
+    Left = 488
+    Top = 328
+    Width = 449
+    Height = 217
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 2
   end
   object MainMenu1: TMainMenu
     Left = 584

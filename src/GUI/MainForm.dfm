@@ -3192,20 +3192,49 @@ object Form1: TForm1
     ExplicitWidth = 964
   end
   object GeoGrid1: TGeoGrid
-    Left = 8
-    Top = 328
-    Width = 465
-    Height = 217
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
+    Left = 72
+    Top = 296
+    Width = 601
+    Height = 353
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 1
+    EnterEndBehavior = ebMoveFocusNext
+    ColumnHeaders.Strings = (
+      ''
+      ''
+      ''
+      ''
+      'AHOJ'
+      'Jak '
+      'to jde? ')
+    RowHeaders.Strings = (
+      '1'
+      '4'
+      '2'
+      'ahoj')
+  end
+  object Button1: TButton
+    Left = 800
+    Top = 304
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 2
+  end
+  object Button2: TButton
+    Left = 808
+    Top = 376
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 3
   end
   object StringGrid1: TStringGrid
-    Left = 488
-    Top = 328
-    Width = 449
-    Height = 217
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goEditing, goTabs, goFixedRowDefAlign]
-    TabOrder = 2
+    Left = 679
+    Top = 488
+    Width = 320
+    Height = 120
+    TabOrder = 4
   end
   object MainMenu1: TMainMenu
     Left = 584

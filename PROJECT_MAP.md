@@ -46,7 +46,15 @@
 ### Komponenty (design-time package `MyComponentsR.dpk`)
 Samostatná větev komponent v rootu `Komponenty/`, nezávislá na `src/Components/`. Instalovaná v Delphi IDE přes package, paleta `MyComponents`.
 - `MyGrid` (`Komponenty/MyGrid.pas`): `TMyGrid = class(TStringGrid)` – čistý základní grid. Published properties `ColumnHeaders`, `RowHeaders`, `EnterEndBehavior`. Konstanta `MyGridDefaultOptions` pro výchozí options. Virtuální `CommitCell` (commit hook před každým pohybem), `MoveToNextCell` pro navigační logiku + `FNavigating` flag proti dvojí navigaci. Enum `TEnterEndBehavior` definován zde.
-- `GeoGrid` (`Komponenty/GeoGrid.pas`): `TGeoGrid = class(TStringGrid)` – minimální specializace. Klíčová část: vnitřní `TGeoInplaceEdit = class(TInplaceEdit)` podstrčený přes override `CreateEditor`, který v `KeyDown` přemapovává Enter→Tab. `DrawCell` override vykresluje tučné centrované hlavičky. Published property `EnterEndBehavior` (enum je zde redefinovaný, ne z `MyGrid`). Používá se v `MainForm` jako `GeoGrid1: TGeoGrid`.
+- `GeoGrid` (`Komponenty/GeoGrid.pas`): `TGeoGrid = class(TStringGrid)` – samostatná specializace gridu s vlastní navigací a podporou hlaviček. Všechny metody mají XMLDoc komentáře. Klíčové části:
+    - Vnitřní `TGeoInplaceEdit = class(TInplaceEdit)` podstrčený přes override `CreateEditor`. Grid i InplaceEdit v `KeyDown` zachytávají VK_RETURN/VK_TAB a delegují na **virtuální** `TGeoGrid.MoveToNextCell(PressedKey, Shift)`.
+    - `MoveToNextCell` zavře editor, posune Col/Row, na poslední buňce aplikuje `FEnterEndBehavior`. Pro `ebMoveFocusNext` posílá `WM_NEXTDLGCTL` formuláři přes `PostMessage` – respektuje Shift+Tab pro reverse. Po pohybu znovu otevře editor **pouze pokud stisknutá klávesa byla Enter** – Tab jen naviguje.
+    - Publikované `ColumnHeaders: TStrings` a `RowHeaders: TStrings` (editovatelné v Object Inspectoru). Virtuální `UpdateHeaders` plní buňky fixních řádků/sloupců. Override `Loaded` volá `UpdateHeaders` po streamování z DFM.
+    - Virtuální `IsHeaderCell(ACol, ARow)` a `IsDataCell(ACol, ARow)` – pohodlné helpery pro potomky (rozlišení fixních a datových buněk).
+    - `DrawCell` override používá `IsHeaderCell` a vykresluje hlavičky tučně + centrovaně (clBtnFace + fsBold).
+    - Konstruktor nastavuje `[goEditing, goTabs, goColSizing, goRowSizing]` do `Options`.
+    - Enum `TEnterEndBehavior` je redefinovaný lokálně (nezávislý na `MyGrid`).
+  Určeno jako základ budoucího `TGeoFieldsGrid`, který přepíše `UpdateHeaders` a naplní `ColumnHeaders` z `TGeoFields` (+ `stored False` pro nepřelévání do DFM). `MainForm` má unit v `uses`, ale komponenta z designeru byla odstraněna (hotová, čeká na produkční nasazení).
 - `MyGridReg` (`Komponenty/MyGridReg.pas`): Registrace `TMyGrid` a `TGeoGrid` do IDE palety.
 
 ### Test_gdf (datový model / test podpora)
@@ -190,6 +198,7 @@ Mapa aktualizována ke dni **13. dubna 2026**. Zaměřená na ručně ověřené
 
 ### Hlavní změny od 28. března 2026
 - Přibyl design-time package `Komponenty/MyComponentsR.dpk` s komponentami `TMyGrid` a `TGeoGrid`.
-- `TGeoGrid` řeší Enter→Tab přes custom `TGeoInplaceEdit` (override `CreateEditor`), nepoužívá `FNavigating` flag.
-- `MainForm` nově používá `TGeoGrid` (pole `GeoGrid1`).
+- `TGeoGrid` je dokončená komponenta s vlastní navigací přes `TGeoInplaceEdit` + virtuální `MoveToNextCell`, podporou `ColumnHeaders`/`RowHeaders` (publikované TStrings, editovatelné v OI) a virtuálními helpery `IsHeaderCell`/`IsDataCell`. Připravena jako základ pro `TGeoFieldsGrid`.
+- `MoveToNextCell` pokrývá celé chování `TEnterEndBehavior` (ebStayOnLastCell / ebWrapToStart / ebAddRow / ebMoveFocusNext). Pro přechod fokusu používá `PostMessage(..., WM_NEXTDLGCTL, ...)` (respektuje Shift+Tab reverse).
 - V `src/Components/` přibyly `GeoFieldColumn.pas` (nástupce `GeoFieldMeta`) a `MyFieldsStringGrid.pas` (nástupce `GeoFieldsStringGrid`).
+- `MainForm` má `GeoGrid` v uses, ale test komponenty byly z designeru odstraněny.

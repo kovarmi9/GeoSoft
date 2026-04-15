@@ -38,17 +38,26 @@
 ### Components
 - `MyStringGrid` (`src/Components/MyStringGrid.pas`): Custom komponenta nad `TStringGrid`. Published property `ColumnFilters` (viditelná v Object Inspectoru). Enum `TEnterEndBehavior` (ebStayOnLastCell, ebWrapToStart, ebAddRow, ebMoveFocusNext). Obsahuje jak starý callback styl (`SetColumnValidator`, `TMyGridKeyValidator`), tak nový filter-based styl přes `ColumnValidation`.
 - `MyPointsStringGrid` (`src/Components/MyPointsStringGrid.pas`): Specializace `MyStringGrid` pro práci s body – EnterEndBehavior := ebAddRow.
+- `MyFieldsStringGrid` (`src/Components/MyFieldsStringGrid.pas`): `TMyFieldsStringGrid = class(TMyStringGrid)` specializace pro `TGeoField` sloupce. Published property `GeoFields: TGeoFields` – dynamicky buduje sloupce přes `RebuildColumns`. Per-instance kopie `FColumnData: array[TGeoField] of TGeoFieldColumn`, metody `FieldToCol`/`ColToField`/`SetGeoRow`/`GetGeoRow`. Nahrazuje starší `GeoFieldsStringGrid`.
 - `MyStringGridReg` (`src/Components/MyStringGridReg.pas`): Registrace vlastních komponent do Delphi IDE.
 - `ColumnValidation` (`src/Components/ColumnValidation.pas`): Typy a logika pro validaci sloupců. Enum `TColumnDataType` (fNone, fInteger, fFloat, fExpression), record `TColumnFilter`, třída `TColumnFilterItem`, kolekce `TColumnFilters`. Expression evaluace přes MSScriptControl COM.
+- `GeoFieldColumn` (`src/Components/GeoFieldColumn.pas`): Record `TGeoFieldColumn` (DisplayName + `TColumnFilter`) a globální `GeoFieldColumnData: array[TGeoField] of TGeoFieldColumn` naplněný v `initialization`. Mapování enum `TGeoField` → jméno sloupce + validační pravidla. Závisí na `GeoRow`, `ColumnValidation`. Obecnější nástupce `GeoFieldMeta` z `Test_FieldGrid`.
+
+### Komponenty (design-time package `MyComponentsR.dpk`)
+Samostatná větev komponent v rootu `Komponenty/`, nezávislá na `src/Components/`. Instalovaná v Delphi IDE přes package, paleta `MyComponents`.
+- `MyGrid` (`Komponenty/MyGrid.pas`): `TMyGrid = class(TStringGrid)` – čistý základní grid. Published properties `ColumnHeaders`, `RowHeaders`, `EnterEndBehavior`. Konstanta `MyGridDefaultOptions` pro výchozí options. Virtuální `CommitCell` (commit hook před každým pohybem), `MoveToNextCell` pro navigační logiku + `FNavigating` flag proti dvojí navigaci. Enum `TEnterEndBehavior` definován zde.
+- `GeoGrid` (`Komponenty/GeoGrid.pas`): `TGeoGrid = class(TStringGrid)` – minimální specializace. Klíčová část: vnitřní `TGeoInplaceEdit = class(TInplaceEdit)` podstrčený přes override `CreateEditor`, který v `KeyDown` přemapovává Enter→Tab. `DrawCell` override vykresluje tučné centrované hlavičky. Published property `EnterEndBehavior` (enum je zde redefinovaný, ne z `MyGrid`). Používá se v `MainForm` jako `GeoGrid1: TGeoGrid`.
+- `MyGridReg` (`Komponenty/MyGridReg.pas`): Registrace `TMyGrid` a `TGeoGrid` do IDE palety.
 
 ### Test_gdf (datový model / test podpora)
 - `GeoRow` (`Test_gdf/GeoRow.pas`): Definice `TGeoField` (enum, 18 polí), `TGeoFields` (set), `TGeoRow` (record), `TGeoRowArray`. Konstanta `GeoFieldNames` pro mapování názvů.
 - `GeoDataFrame` (`Test_gdf/GeoDataFrame.pas`): Tabulkový kontejner `TGeoDataFrame` nad `TGeoRowArray` + CSV/BIN serializace.
 
 ### Test_FieldGrid (prototyp / test podpora)
-- `GeoFieldMeta` (`Test_FieldGrid/GeoFieldMeta.pas`): Record `TGeoFieldMeta` (DisplayName + Filter) a konstanta `GeoFieldMetaData: array[TGeoField] of TGeoFieldMeta` – mapuje každé pole enum na zobrazitelné jméno a validační filtr. Závisí na `GeoRow`, `ColumnValidation`.
-- `GeoFieldsStringGrid` (`Test_FieldGrid/GeoFieldsStringGrid.pas`): Custom grid `TGeoFieldsStringGrid` specificky pro `TGeoField`. Metody FieldToCol, ColToField, SetGeoRow, GetGeoRow. Závisí na `GeoRow`, `ColumnValidation`, `GeoFieldMeta`, `MyStringGrid`.
-- `Test_FieldGrid` (`Test_FieldGrid/Test_FieldGrid.pas`): Testovací formulář (TForm1) s CheckListBox pro výběr zobrazovaných polí. Závisí na `GeoRow`, `GeoDataFrame`, `MyStringGrid`, `ColumnValidation`, `GeoFieldMeta`, `GeoFieldsStringGrid`.
+- `GeoFieldMeta` (`Test_FieldGrid/GeoFieldMeta.pas`): Starší varianta `TGeoFieldMeta` – nahrazena `GeoFieldColumn` v `src/Components/`. V adresáři zůstává jen zkompilované DCU jako historie.
+- `GeoFieldColumn` (`Test_FieldGrid/GeoFieldColumn.pas`): Lokální kopie záznamu `TGeoFieldColumn` pro testovací projekt.
+- `GeoFieldsStringGrid` (`Test_FieldGrid/GeoFieldsStringGrid.pas`): Custom grid `TGeoFieldsStringGrid` specificky pro `TGeoField`. Metody FieldToCol, ColToField, SetGeoRow, GetGeoRow. Závisí na `GeoRow`, `ColumnValidation`, `GeoFieldMeta`, `MyStringGrid`. V produkci nahrazován `MyFieldsStringGrid` (`src/Components/`).
+- `Test_FieldGrid` (`Test_FieldGrid/Test_FieldGrid.pas`): Testovací formulář (TForm1) s CheckListBox pro výběr zobrazovaných polí.
 
 ---
 
@@ -177,4 +186,10 @@
 ---
 
 ## Poznámka
-Mapa aktualizována podle aktuálního stavu zdrojáků (`.pas`/`.dpr`) ke dni **28. března 2026**. Zaměřená na ručně ověřené hlavní vazby a vstupní body, ne na úplný výpis VCL/System závislostí.
+Mapa aktualizována ke dni **13. dubna 2026**. Zaměřená na ručně ověřené hlavní vazby a vstupní body, ne na úplný výpis VCL/System závislostí.
+
+### Hlavní změny od 28. března 2026
+- Přibyl design-time package `Komponenty/MyComponentsR.dpk` s komponentami `TMyGrid` a `TGeoGrid`.
+- `TGeoGrid` řeší Enter→Tab přes custom `TGeoInplaceEdit` (override `CreateEditor`), nepoužívá `FNavigating` flag.
+- `MainForm` nově používá `TGeoGrid` (pole `GeoGrid1`).
+- V `src/Components/` přibyly `GeoFieldColumn.pas` (nástupce `GeoFieldMeta`) a `MyFieldsStringGrid.pas` (nástupce `GeoFieldsStringGrid`).

@@ -9,13 +9,16 @@ implementation
 uses
   System.Classes,
   MyGrid,
-  GeoGrid;
+  GeoGrid,
+  GeoFieldsGrid,
+  GeoColumnValidation;
 
 procedure Register;
 begin
   RegisterComponents('MyComponents', [
     TMyGrid,
-    TGeoGrid
+    TGeoGrid,
+    TGeoFieldsGrid
   ]);
 end;
 

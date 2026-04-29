@@ -3191,50 +3191,31 @@ object Form1: TForm1
     TabOrder = 0
     ExplicitWidth = 964
   end
-  object GeoGrid1: TGeoGrid
-    Left = 72
-    Top = 296
-    Width = 601
-    Height = 353
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
-    TabOrder = 1
-    EnterEndBehavior = ebMoveFocusNext
-    ColumnHeaders.Strings = (
-      ''
-      ''
-      ''
-      ''
-      'AHOJ'
-      'Jak '
-      'to jde? ')
-    RowHeaders.Strings = (
-      '1'
-      '4'
-      '2'
-      'ahoj')
-  end
   object Button1: TButton
-    Left = 800
-    Top = 304
+    Left = 792
+    Top = 200
     Width = 75
     Height = 25
     Caption = 'Button1'
-    TabOrder = 2
+    TabOrder = 1
+    OnClick = Button1Click
   end
-  object Button2: TButton
-    Left = 808
-    Top = 376
-    Width = 75
-    Height = 25
-    Caption = 'Button2'
-    TabOrder = 3
+  object GeoGrid1: TGeoGrid
+    Left = 24
+    Top = 360
+    Width = 457
+    Height = 265
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 2
+    EnterEndBehavior = ebMoveFocusNext
   end
   object StringGrid1: TStringGrid
-    Left = 679
-    Top = 488
-    Width = 320
-    Height = 120
-    TabOrder = 4
+    Left = 504
+    Top = 360
+    Width = 425
+    Height = 265
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 3
   end
   object MainMenu1: TMainMenu
     Left = 584

@@ -20,7 +20,8 @@ uses
   MyStringGrid in '..\Components\MyStringGrid.pas',
   MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas' {/,},
   InputFilterUtils in '..\Utils\InputFilterUtils.pas',
-  TestFieldGrid in 'TestFieldGrid.pas' {Form2};
+  TestFieldGrid in 'TestFieldGrid.pas' {Form2},
+  Unit5 in 'Unit5.pas' {Form5};
 
 {$R *.res}
 
@@ -36,5 +37,6 @@ begin
   Application.CreateForm(TCheckMeasurementForm, CheckMeasurementForm);
   Application.CreateForm(TPolarMethodForm, PolarMethodForm);
   Application.CreateForm(TForm2, Form2);
+  Application.CreateForm(TForm5, Form5);
   Application.Run;
 end.

@@ -250,7 +250,7 @@ begin
           //   move backward Shift+Tab
           //
           // 0 -> use tab order navigation
-          //
+          //   TForm
           PostMessage(GetParentForm(Self).Handle, WM_NEXTDLGCTL, Ord(ssShift in Shift), 0);
           Exit;
         end;

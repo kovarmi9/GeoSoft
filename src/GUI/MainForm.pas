@@ -15,7 +15,8 @@ uses
   GeoAlgorithmTransformCongruent,
   GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid, Data.DB,
   Vcl.DBGrids, Web.HTTPApp, Web.DBWeb, Web.DBXpressWeb, MyFieldsStringGrid,
-  MyGrid, GeoGrid;
+  MyGrid, GeoGrid, GeoFieldsGrid,
+  Unit5;
 
 type
   TForm1 = class(TForm)
@@ -30,9 +31,8 @@ type
     ransformace1: TMenuItem;
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
-    GeoGrid1: TGeoGrid;
     Button1: TButton;
-    Button2: TButton;
+    GeoGrid1: TGeoGrid;
     StringGrid1: TStringGrid;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
@@ -40,6 +40,7 @@ type
     procedure TransformationClick(Sender: TObject);
     procedure CheckMeasurementClick(Sender: TObject);
     procedure Polrnmetodanov1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -78,6 +79,11 @@ end;
 procedure TForm1.TransformationClick(Sender: TObject);
 begin
 TransformationForm.Show;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+Form5.Show;
 end;
 
 procedure TForm1.CheckMeasurementClick(Sender: TObject);

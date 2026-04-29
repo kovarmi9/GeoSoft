@@ -1,7 +1,6 @@
 package MyComponentsR;
 
 {$R *.res}
-{$R *.otares}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -35,6 +34,9 @@ requires
 contains
   MyGrid in 'MyGrid.pas',
   GeoGrid in 'GeoGrid.pas',
+  GeoColumnValidation in 'GeoColumnValidation.pas',
+  GeoFieldsDef in 'GeoFieldsDef.pas',
+  GeoFieldsGrid in 'GeoFieldsGrid.pas',
   MyGridReg in 'MyGridReg.pas';
 
 end.

@@ -91,6 +91,7 @@
         <DCCReference Include="GeoColumnValidation.pas"/>
         <DCCReference Include="GeoFieldsDef.pas"/>
         <DCCReference Include="GeoFieldsGrid.pas"/>
+        <DCCReference Include="GeoPointsGrid.pas"/>
         <DCCReference Include="MyGridReg.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

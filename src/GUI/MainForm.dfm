@@ -3200,22 +3200,33 @@ object Form1: TForm1
     TabOrder = 1
     OnClick = Button1Click
   end
-  object GeoGrid1: TGeoGrid
-    Left = 24
+  object GeoPointsGrid1: TGeoPointsGrid
+    Left = 72
     Top = 360
-    Width = 457
-    Height = 265
+    Width = 617
+    Height = 281
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
-    EnterEndBehavior = ebMoveFocusNext
-  end
-  object StringGrid1: TStringGrid
-    Left = 504
-    Top = 360
-    Width = 425
-    Height = 265
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
-    TabOrder = 3
+    ColumnFilters = <
+      item
+        DataType = cdtInteger
+      end
+      item
+        DataType = cdtFloat
+      end
+      item
+        DataType = cdtExpression
+      end
+      item
+        DataType = cdtFloat
+        MinLength = 2
+        MaxLength = 5
+        HasMinValue = True
+        MinValue = 20.000000000000000000
+        HasMaxValue = True
+        MaxValue = 20000.000000000000000000
+        DecimalPlaces = 2
+      end>
   end
   object MainMenu1: TMainMenu
     Left = 584

@@ -11,6 +11,7 @@ uses
   MyGrid,
   GeoGrid,
   GeoFieldsGrid,
+  GeoPointsGrid,
   GeoColumnValidation;
 
 procedure Register;
@@ -18,7 +19,8 @@ begin
   RegisterComponents('MyComponents', [
     TMyGrid,
     TGeoGrid,
-    TGeoFieldsGrid
+    TGeoFieldsGrid,
+    TGeoPointsGrid
   ]);
 end;
 

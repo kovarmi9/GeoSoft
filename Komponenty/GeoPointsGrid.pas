@@ -1,4 +1,4 @@
-unit GeoPointsGrid;
+﻿unit GeoPointsGrid;
 
 /// <summary>
 /// Grid with column-based validation filters.
@@ -57,11 +57,6 @@ type
     /// </summary>
     procedure FilterTypedChar(const AText: string; var Key: Char);
 
-    /// <summary>
-    /// Second validation layer: validates and commits full cell value.
-    /// </summary>
-    procedure ValidateCurrentCell;
-
   protected
     /// <summary>Create custom inplace editor.</summary>
     function CreateEditor: TInplaceEdit; override;
@@ -73,9 +68,10 @@ type
     procedure SizeChanged(OldColCount, OldRowCount: Longint); override;
 
     /// <summary>
-    /// Handles navigation and validates cell before leaving it.
+    /// Validates and commits cell value.
+    /// Invalid value is cleared and user is notified with a beep.
     /// </summary>
-    procedure MoveToNextCell(PressedKey: Word; Shift: TShiftState); override;
+    procedure CommitCell; override;
 
   public
     /// <summary>Constructor.</summary>
@@ -204,45 +200,37 @@ begin
     FilterKeyPress(Filter, AText, Key);
 end;
 
-procedure TGeoPointsGrid.ValidateCurrentCell;
+procedure TGeoPointsGrid.CommitCell;
 var
   Filter: TColumnFilter;
   Text: string;
 begin
-  // Ignore header cells
-  if IsHeaderCell(Col, Row) then
+  // Skip header cells and cells without active editor
+  if IsHeaderCell(Col, Row) or not EditorMode or not Assigned(InplaceEditor) then
+  begin
+    inherited;
     Exit;
+  end;
 
   Filter := FilterForCol(Col);
   if Filter = nil then
+  begin
+    // No filter — default commit
+    inherited;
     Exit;
+  end;
 
-  // Get current text (from editor or cell)
-  if EditorMode and Assigned(InplaceEditor) then
-    Text := InplaceEditor.Text
-  else
-    Text := Cells[Col, Row];
-
-  // Validate and commit value
+  // Validate and format
+  Text := InplaceEditor.Text;
   if TryCommitText(Filter, Text) then
     Cells[Col, Row] := Text
   else
   begin
-    // Reset invalid value
+    // Invalid value — clear and notify
     Cells[Col, Row] := '';
-    if EditorMode and Assigned(InplaceEditor) then
-      InplaceEditor.Text := '';
-
+    InplaceEditor.Text := '';
     MessageBeep(MB_ICONWARNING);
   end;
-end;
-
-procedure TGeoPointsGrid.MoveToNextCell(PressedKey: Word; Shift: TShiftState);
-begin
-  // Validate cell before navigation
-  ValidateCurrentCell;
-
-  inherited MoveToNextCell(PressedKey, Shift);
 end;
 
 end.

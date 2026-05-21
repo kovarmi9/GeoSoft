@@ -33,6 +33,7 @@ type
     Polrnmetodanov1: TMenuItem;
     Button1: TButton;
     GeoPointsGrid1: TGeoPointsGrid;
+    GeoGrid1: TGeoGrid;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);

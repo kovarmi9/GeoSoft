@@ -368,7 +368,12 @@ type
     function CreateEditor: TInplaceEdit; override;
     procedure UpdateHeaders; override;
     procedure Loaded; override;
-    function SelectCell(ACol, ARow: Integer): Boolean; override;
+
+    /// <summary>
+    /// Validates and commits cell value.
+    /// Invalid value is kept as-is (navigation is not blocked).
+    /// </summary>
+    procedure CommitCell; override;
 
     /// <summary>
     /// Delegate from the inplace editor's KeyPress.
@@ -577,26 +582,31 @@ begin
     FilterKeyPress(Filter, AText, Key);
 end;
 
-function TGeoFieldsGrid.SelectCell(ACol, ARow: Integer): Boolean;
+procedure TGeoFieldsGrid.CommitCell;
 var
   Filter: TColumnFilter;
   Text: string;
 begin
-  // Commit current cell before moving.
-  // This also validates pasted text, not only typed characters.
-  if ((ACol <> Col) or (ARow <> Row)) and EditorMode and Assigned(InplaceEditor) then
+  // Skip header cells and cells without active editor
+  if IsHeaderCell(Col, Row) or not EditorMode or not Assigned(InplaceEditor) then
   begin
-    Filter := GetColumnFilter(Col - FixedCols);
-    if Filter <> nil then
-    begin
-      Text := InplaceEditor.Text;
-      if TryCommitText(Filter, Text) then
-        Cells[Col, Row] := Text;
-      // If invalid, keep the original editor text and still allow selection change.
-    end;
+    inherited;
+    Exit;
   end;
 
-  Result := inherited SelectCell(ACol, ARow);
+  Filter := GetColumnFilter(Col - FixedCols);
+  if Filter = nil then
+  begin
+    // No filter — default commit
+    inherited;
+    Exit;
+  end;
+
+  // Validate and format
+  Text := InplaceEditor.Text;
+  if TryCommitText(Filter, Text) then
+    Cells[Col, Row] := Text;
+  // If invalid: keep original editor text, allow navigation
 end;
 
 { Column mapping helpers }

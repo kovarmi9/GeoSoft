@@ -62,6 +62,17 @@ type
     /// <summary>Main navigation logic (Enter/Tab behavior).</summary>
     procedure MoveToNextCell(PressedKey: Word; Shift: TShiftState); virtual;
 
+    /// <summary>
+    /// Commits current cell value before leaving it.
+    /// Base: writes InplaceEditor.Text into Cells[Col, Row].
+    /// Override in descendants to add validation or formatting.
+    /// Called automatically before any navigation (Enter, Tab, mouse, arrows).
+    /// </summary>
+    procedure CommitCell; virtual;
+
+    /// <summary>Fires before every cell change — calls CommitCell.</summary>
+    function SelectCell(ACol, ARow: Integer): Boolean; override;
+
     /// <summary>Apply header texts to grid.</summary>
     procedure UpdateHeaders; virtual;
 
@@ -194,6 +205,9 @@ begin
   if Col < FirstDataCol then
     Col := FirstDataCol;
 
+  // Commit current value before closing editor
+  CommitCell;
+
   // Close editor before moving
   if EditorMode then
     EditorMode := False;
@@ -260,6 +274,21 @@ begin
   // Close editor after Enter
   if (PressedKey = VK_RETURN) and (goEditing in Options) then
     EditorMode := True;
+end;
+
+procedure TGeoGrid.CommitCell;
+begin
+  // Base implementation: write editor text into cell
+  if EditorMode and Assigned(InplaceEditor) then
+    Cells[Col, Row] := InplaceEditor.Text;
+end;
+
+function TGeoGrid.SelectCell(ACol, ARow: Integer): Boolean;
+begin
+  // Commit current cell before moving (catches mouse clicks and arrow keys)
+  if (ACol <> Col) or (ARow <> Row) then
+    CommitCell;
+  Result := inherited SelectCell(ACol, ARow);
 end;
 
 procedure TGeoGrid.SetColumnHeaders(const Value: TStrings);

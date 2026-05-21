@@ -3218,7 +3218,6 @@ object Form1: TForm1
         DataType = cdtExpression
       end
       item
-        DataType = cdtFloat
         MinLength = 2
         MaxLength = 5
         HasMinValue = True
@@ -3227,6 +3226,14 @@ object Form1: TForm1
         MaxValue = 20000.000000000000000000
         DecimalPlaces = 2
       end>
+  end
+  object GeoGrid1: TGeoGrid
+    Left = 72
+    Top = 120
+    Width = 393
+    Height = 177
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 3
   end
   object MainMenu1: TMainMenu
     Left = 584

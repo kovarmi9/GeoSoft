@@ -10,17 +10,16 @@ uses
   System.Classes,
   MyGrid,
   GeoGrid,
-  GeoFieldsGrid,
   GeoPointsGrid,
-  GeoColumnValidation;
+  GeoFieldsGrid;
 
 procedure Register;
 begin
   RegisterComponents('MyComponents', [
     TMyGrid,
     TGeoGrid,
-    TGeoFieldsGrid,
-    TGeoPointsGrid
+    TGeoPointsGrid,
+    TGeoFieldsGrid
   ]);
 end;
 

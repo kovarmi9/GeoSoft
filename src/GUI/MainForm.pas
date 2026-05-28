@@ -13,9 +13,8 @@ uses
   GeoAlgorithmTransformSimilarity,
   System.Generics.Collections,
   GeoAlgorithmTransformCongruent,
-  GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid, MyFieldsStringGrid,
-  GeoGrid, GeoFieldsGrid,
-  Unit5, GeoPointsGrid;
+  GeoAlgorithmTransformAffine,
+  GeoGrid, GeoFieldsGrid, GeoPointsGrid;
 
 type
   TForm1 = class(TForm)
@@ -51,7 +50,7 @@ implementation
 
 {$R *.dfm}
 
-uses ParcelArea, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethod, TestFieldGrid;
+uses ParcelArea, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethod, TestFieldGrid, Unit5;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin

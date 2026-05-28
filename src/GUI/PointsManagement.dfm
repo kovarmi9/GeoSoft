@@ -16,7 +16,7 @@ object PointsManagementForm: TPointsManagementForm
   OnDeactivate = FormDeactivate
   OnShow = FormShow
   TextHeight = 15
-  object StringGrid1: TMyPointsStringGrid
+  object StringGrid1: TGeoPointsGrid
     Left = 0
     Top = 85
     Width = 420
@@ -29,7 +29,6 @@ object PointsManagementForm: TPointsManagementForm
     TabOrder = 0
     OnDrawCell = StringGrid1DrawCell
     OnKeyDown = StringGrid1KeyDown
-    OnKeyPress = StringGrid1KeyPress
     OnSelectCell = StringGrid1SelectCell
     EnterEndBehavior = ebAddRow
     ColumnHeaders.Strings = (
@@ -94,7 +93,7 @@ object PointsManagementForm: TPointsManagementForm
     List = True
     AllowTextButtons = True
     TabOrder = 3
-    ExplicitWidth = 412
+    ExplicitWidth = 416
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True
@@ -202,7 +201,6 @@ object PointsManagementForm: TPointsManagementForm
       Caption = 'Soubor'
       object File2: TMenuItem
         Caption = 'Ulo'#382'it'
-        OnClick = File2Click
       end
       object SaveAs1: TMenuItem
         Caption = 'Ulo'#382'it jako'

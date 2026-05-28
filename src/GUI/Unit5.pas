@@ -1,6 +1,6 @@
 //unit Unit5;
 //
-//// Testing playground for TGeoFieldsGrid (Komponenty package).
+//// Testing playground for TGeoFieldsGrid (GeoComponents package).
 //// Mirrors TestFieldGrid (TMyFieldsStringGrid + GeoFieldColumn) layout
 //// but uses the new TGeoFieldsGrid + GeoFieldsDef.
 //

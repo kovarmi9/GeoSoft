@@ -3200,41 +3200,6 @@ object Form1: TForm1
     TabOrder = 1
     OnClick = Button1Click
   end
-  object GeoPointsGrid1: TGeoPointsGrid
-    Left = 72
-    Top = 360
-    Width = 617
-    Height = 281
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
-    TabOrder = 2
-    ColumnFilters = <
-      item
-        DataType = cdtInteger
-      end
-      item
-        DataType = cdtFloat
-      end
-      item
-        DataType = cdtExpression
-      end
-      item
-        MinLength = 2
-        MaxLength = 5
-        HasMinValue = True
-        MinValue = 20.000000000000000000
-        HasMaxValue = True
-        MaxValue = 20000.000000000000000000
-        DecimalPlaces = 2
-      end>
-  end
-  object GeoGrid1: TGeoGrid
-    Left = 72
-    Top = 120
-    Width = 393
-    Height = 177
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
-    TabOrder = 3
-  end
   object MainMenu1: TMainMenu
     Left = 584
     Top = 192

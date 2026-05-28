@@ -3,7 +3,7 @@
         <ProjectGuid>{813A0B2F-095D-4AA5-B348-F6E00944E99A}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="MyComponentsR.dproj">
+        <Projects Include="GeoComponentsR.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -14,23 +14,23 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="MyComponentsR">
-        <MSBuild Projects="MyComponentsR.dproj"/>
+    <Target Name="GeoComponentsR">
+        <MSBuild Projects="GeoComponentsR.dproj"/>
     </Target>
-    <Target Name="MyComponentsR:Clean">
-        <MSBuild Projects="MyComponentsR.dproj" Targets="Clean"/>
+    <Target Name="GeoComponentsR:Clean">
+        <MSBuild Projects="GeoComponentsR.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="MyComponentsR:Make">
-        <MSBuild Projects="MyComponentsR.dproj" Targets="Make"/>
+    <Target Name="GeoComponentsR:Make">
+        <MSBuild Projects="GeoComponentsR.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="MyComponentsR"/>
+        <CallTarget Targets="GeoComponentsR"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="MyComponentsR:Clean"/>
+        <CallTarget Targets="GeoComponentsR:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="MyComponentsR:Make"/>
+        <CallTarget Targets="GeoComponentsR:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -13,9 +13,8 @@ uses
   GeoAlgorithmTransformSimilarity,
   System.Generics.Collections,
   GeoAlgorithmTransformCongruent,
-  GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid, Data.DB,
-  Vcl.DBGrids, Web.HTTPApp, Web.DBWeb, Web.DBXpressWeb, MyFieldsStringGrid,
-  MyGrid, GeoGrid, GeoFieldsGrid,
+  GeoAlgorithmTransformAffine, MyStringGrid, MyPointsStringGrid, MyFieldsStringGrid,
+  GeoGrid, GeoFieldsGrid,
   Unit5, GeoPointsGrid;
 
 type
@@ -32,8 +31,6 @@ type
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
     Button1: TButton;
-    GeoPointsGrid1: TGeoPointsGrid;
-    GeoGrid1: TGeoGrid;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);

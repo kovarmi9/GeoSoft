@@ -1,7 +1,7 @@
 ﻿////unit GeoFieldsDef;
 ////
 ////// Geodetic field enum and per-field column metadata for TGeoFieldsGrid.
-////// Self-contained inside the MyComponentsR package (no dependency on Test_gdf).
+////// Self-contained inside the GeoComponentsR package (no dependency on Test_gdf).
 //////
 ////// TGeoField / TGeoFields mirror the definitions in Test_gdf/GeoRow.pas —
 ////// keep these two in sync if you add new fields.

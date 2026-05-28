@@ -1,4 +1,4 @@
-﻿unit MyGridReg;
+﻿unit GeoGridReg;
 
 interface
 
@@ -8,15 +8,13 @@ implementation
 
 uses
   System.Classes,
-  MyGrid,
   GeoGrid,
   GeoPointsGrid,
   GeoFieldsGrid;
 
 procedure Register;
 begin
-  RegisterComponents('MyComponents', [
-    TMyGrid,
+  RegisterComponents('GeoComponents', [
     TGeoGrid,
     TGeoPointsGrid,
     TGeoFieldsGrid

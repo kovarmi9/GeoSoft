@@ -41,8 +41,8 @@ contains
   MyStringGrid in '..\Components\MyStringGrid.pas',
   MyStringGridReg in '..\Components\MyStringGridReg.pas',
   MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas',
-  MyFieldsStringGrid in 'MyFieldsStringGrid.pas',
-  GeoFieldColumn in 'GeoFieldColumn.pas',
+  MyFieldsStringGrid in '..\Components\MyFieldsStringGrid.pas',
+  GeoFieldColumn in '..\Components\GeoFieldColumn.pas',
   GeoRow in '..\Test_gdf\GeoRow.pas';
 
 end.

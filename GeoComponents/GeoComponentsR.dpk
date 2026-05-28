@@ -1,4 +1,4 @@
-package MyComponentsR;
+package GeoComponentsR;
 
 {$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -32,12 +32,11 @@ requires
   vcl;
 
 contains
-  MyGrid in 'MyGrid.pas',
   GeoGrid in 'GeoGrid.pas',
   GeoColumnValidation in 'GeoColumnValidation.pas',
   GeoFieldsDef in 'GeoFieldsDef.pas',
   GeoFieldsGrid in 'GeoFieldsGrid.pas',
   GeoPointsGrid in 'GeoPointsGrid.pas',
-  MyGridReg in 'MyGridReg.pas';
+  GeoGridReg in 'GeoGridReg.pas';
 
 end.

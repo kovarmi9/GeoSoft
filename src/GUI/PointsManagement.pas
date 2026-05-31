@@ -61,7 +61,7 @@ type
     function  CurrentQuality: Integer;
     function  IsValidQualityStr(const S: string): Boolean;
     function  PadZeros(const S: string; PadLen: Integer): string;
-    procedure EnsureQualityOnLeave;
+    procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
     procedure EnsureQualityOnRow(const ARow: Integer);
     procedure ApplyDescriptionToRow(const ARow: Integer);
     procedure DoImport(AFormat: TFileFormat);
@@ -88,12 +88,14 @@ begin
   StringGrid1.ColumnFilters[2].DecimalPlaces := 3;
   StringGrid1.ColumnFilters[3].DataType      := cdtExpression;  // Z
   StringGrid1.ColumnFilters[3].DecimalPlaces := 3;
-  StringGrid1.ColumnFilters[4].DataType      := cdtInteger;     // Kvalita 0–8
-  StringGrid1.ColumnFilters[4].MaxLength     := 1;
-  StringGrid1.ColumnFilters[4].HasMinValue   := True;
-  StringGrid1.ColumnFilters[4].MinValue      := 0;
-  StringGrid1.ColumnFilters[4].HasMaxValue   := True;
-  StringGrid1.ColumnFilters[4].MaxValue      := 8;
+  StringGrid1.ColumnFilters[4].DataType          := cdtInteger;     // Kvalita 0–8
+  StringGrid1.ColumnFilters[4].MaxLength         := 1;
+  StringGrid1.ColumnFilters[4].HasMinValue       := True;
+  StringGrid1.ColumnFilters[4].MinValue          := 0;
+  StringGrid1.ColumnFilters[4].HasMaxValue       := True;
+  StringGrid1.ColumnFilters[4].MaxValue          := 8;
+  StringGrid1.ColumnFilters[4].OnInvalidCommit   := ciaBlock;
+  StringGrid1.ColumnFilters[4].OnGetDefaultText  := GetQualityDefault;
   StringGrid1.ColumnFilters[5].DataType      := cdtNone;        // Popis
 
   UpdateCurrentDirectoryPath;
@@ -249,7 +251,6 @@ end;
 procedure TPointsManagementForm.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
   var CanSelect: Boolean);
 begin
-  EnsureQualityOnLeave;
   CanSelect := (ARow <> 0);
 end;
 
@@ -368,16 +369,20 @@ begin
   Result := (Length(S) = 1) and CharInSet(S[1], ['0'..'8']);
 end;
 
-procedure TPointsManagementForm.EnsureQualityOnLeave;
-var
-  col, row: Integer;
+// Callback pro komponentu — vrátí defaultní kvalitu z toolbaru.
+// Spustí se automaticky při opuštění prázdné buňky Kvality.
+procedure TPointsManagementForm.GetQualityDefault(var AText: string; var AHandled: Boolean);
 begin
-  col := StringGrid1.Col;
-  row := StringGrid1.Row;
-  if (row >= 1) and (col = 4) and not IsValidQualityStr(StringGrid1.Cells[col, row]) then
-    StringGrid1.Cells[col, row] := IntToStr(CurrentQuality);
+  if ComboBoxKK.ItemIndex >= 0 then
+  begin
+    AText    := IntToStr(CurrentQuality);
+    AHandled := True;
+  end;
+  // Pokud není vybraná hodnota (ItemIndex = -1), AHandled zůstane False
+  // → komponenta zablokuje navigaci a kurzor zůstane v buňce
 end;
 
+// Záchrana při uložení bodu (pokud uživatel přeskočil sloupec Kvality myší)
 procedure TPointsManagementForm.EnsureQualityOnRow(const ARow: Integer);
 begin
   if ARow < StringGrid1.FixedRows then Exit;

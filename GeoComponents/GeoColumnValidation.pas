@@ -28,6 +28,20 @@ type
     cdtExpression   // arithmetic expression, evaluated at commit
   );
 
+  /// <summary>Action taken when cell commit validation fails.</summary>
+  TCommitInvalidAction = (
+    ciaBeepAndClear, // beep + clear the cell (default)
+    ciaBlock         // beep + stay on cell, don't clear
+  );
+
+  /// <summary>
+  /// Called when committing an empty cell that has ciaBlock set.
+  /// Set AHandled := True and fill AText to provide a default value.
+  /// If not handled, navigation is blocked and user must fill the cell manually.
+  /// Not serialized to DFM — assign at runtime (e.g. in FormCreate).
+  /// </summary>
+  TGetDefaultTextEvent = procedure(var AText: string; var AHandled: Boolean) of object;
+
   /// <summary>
   /// Validation and formatting rules for one column.
   ///
@@ -53,6 +67,8 @@ type
     FHasMaxValue: Boolean;
     FMaxValue: Double;
     FDecimalPlaces: Integer;
+    FOnInvalidCommit: TCommitInvalidAction;
+    FOnGetDefaultText: TGetDefaultTextEvent;
 
     procedure SetDataType(const Value: TColumnDataType);
     procedure SetMinLength(const Value: Integer);
@@ -64,10 +80,19 @@ type
     procedure SetDecimalPlaces(const Value: Integer);
 
     function GetColumn: Integer;
+    procedure SetOnInvalidCommit(const Value: TCommitInvalidAction);
 
   public
     constructor Create(Collection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
+
+    /// <summary>
+    /// Called when the cell is empty at commit time.
+    /// Assign this in FormCreate to supply a toolbar/UI default value.
+    /// Not stored in DFM.
+    /// </summary>
+    property OnGetDefaultText: TGetDefaultTextEvent
+      read FOnGetDefaultText write FOnGetDefaultText;
 
   published
     /// <summary>Column index (read-only, derived from collection position).</summary>
@@ -108,6 +133,15 @@ type
     /// </summary>
     property DecimalPlaces: Integer
       read FDecimalPlaces write SetDecimalPlaces default -1;
+
+    /// <summary>
+    /// Controls what happens when commit validation fails.
+    ///   ciaBeepAndClear — beep + clear cell, cursor moves on (default)
+    ///   ciaBlock        — beep + keep cell content, cursor stays
+    /// </summary>
+    property OnInvalidCommit: TCommitInvalidAction
+      read FOnInvalidCommit write SetOnInvalidCommit
+      default ciaBeepAndClear;
   end;
 
   /// <summary>
@@ -192,14 +226,15 @@ implementation
 constructor TColumnFilter.Create(Collection: TCollection);
 begin
   inherited Create(Collection);
-  FDataType      := cdtNone;
-  FMinLength     := 0;
-  FMaxLength     := 0;
-  FHasMinValue   := False;
-  FMinValue      := 0.0;
-  FHasMaxValue   := False;
-  FMaxValue      := 0.0;
-  FDecimalPlaces := -1;
+  FDataType        := cdtNone;
+  FMinLength       := 0;
+  FMaxLength       := 0;
+  FHasMinValue     := False;
+  FMinValue        := 0.0;
+  FHasMaxValue     := False;
+  FMaxValue        := 0.0;
+  FDecimalPlaces   := -1;
+  FOnInvalidCommit := ciaBeepAndClear;
 end;
 
 procedure TColumnFilter.Assign(Source: TPersistent);
@@ -209,14 +244,16 @@ begin
   if Source is TColumnFilter then
   begin
     Src := TColumnFilter(Source);
-    FDataType      := Src.FDataType;
-    FMinLength     := Src.FMinLength;
-    FMaxLength     := Src.FMaxLength;
-    FHasMinValue   := Src.FHasMinValue;
-    FMinValue      := Src.FMinValue;
-    FHasMaxValue   := Src.FHasMaxValue;
-    FMaxValue      := Src.FMaxValue;
-    FDecimalPlaces := Src.FDecimalPlaces;
+    FDataType        := Src.FDataType;
+    FMinLength       := Src.FMinLength;
+    FMaxLength       := Src.FMaxLength;
+    FHasMinValue     := Src.FHasMinValue;
+    FMinValue        := Src.FMinValue;
+    FHasMaxValue     := Src.FHasMaxValue;
+    FMaxValue        := Src.FMaxValue;
+    FDecimalPlaces   := Src.FDecimalPlaces;
+    FOnInvalidCommit := Src.FOnInvalidCommit;
+    // FOnGetDefaultText intentionally not copied — runtime-assigned callback
     Changed(False);
   end
   else
@@ -281,6 +318,13 @@ procedure TColumnFilter.SetDecimalPlaces(const Value: Integer);
 begin
   if FDecimalPlaces = Value then Exit;
   FDecimalPlaces := Value;
+  Changed(False);
+end;
+
+procedure TColumnFilter.SetOnInvalidCommit(const Value: TCommitInvalidAction);
+begin
+  if FOnInvalidCommit = Value then Exit;
+  FOnInvalidCommit := Value;
   Changed(False);
 end;
 

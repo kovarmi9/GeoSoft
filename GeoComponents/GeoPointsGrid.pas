@@ -9,6 +9,7 @@ interface
 
 uses
   System.Classes,
+  System.SysUtils,
   Winapi.Windows,
   Vcl.Controls,
   Vcl.Grids,
@@ -36,6 +37,12 @@ type
   private
     /// <summary>Collection of validation filters.</summary>
     FColumnFilters: TColumnFilters;
+
+    /// <summary>
+    /// Set by CommitCell when ciaBlock is active and validation fails.
+    /// Consumed by SelectCell to block navigation and re-open the editor.
+    /// </summary>
+    FLastCommitFailed: Boolean;
 
     /// <summary>Returns number of data columns (excluding fixed columns).</summary>
     function DataColumnCount: Integer;
@@ -69,9 +76,15 @@ type
 
     /// <summary>
     /// Validates and commits cell value.
-    /// Invalid value is cleared and user is notified with a beep.
+    /// Behaviour on failure depends on TColumnFilter.OnInvalidCommit.
     /// </summary>
     procedure CommitCell; override;
+
+    /// <summary>
+    /// Intercepts navigation after a failed commit with ciaBlock:
+    /// returns False to keep the cursor on the current cell and re-opens the editor.
+    /// </summary>
+    function SelectCell(ACol, ARow: Integer): Boolean; override;
 
   public
     /// <summary>Constructor.</summary>
@@ -202,8 +215,10 @@ end;
 
 procedure TGeoPointsGrid.CommitCell;
 var
-  Filter: TColumnFilter;
-  Text: string;
+  Filter:         TColumnFilter;
+  Text:           string;
+  DefaultText:    string;
+  DefaultHandled: Boolean;
 begin
   // Skip header cells and cells without active editor
   if IsHeaderCell(Col, Row) or not EditorMode or not Assigned(InplaceEditor) then
@@ -215,21 +230,59 @@ begin
   Filter := FilterForCol(Col);
   if Filter = nil then
   begin
-    // No filter — default commit
     inherited;
     Exit;
   end;
 
-  // Validate and format
+  // Assume success — will be set to True only in ciaBlock failure case
+  FLastCommitFailed := False;
+
   Text := InplaceEditor.Text;
+
+  // Empty cell + default provider → try to fill before validating
+  if (Trim(Text) = '') and Assigned(Filter.OnGetDefaultText) then
+  begin
+    DefaultText    := '';
+    DefaultHandled := False;
+    Filter.OnGetDefaultText(DefaultText, DefaultHandled);
+    if DefaultHandled then
+      Text := DefaultText;
+  end;
+
   if TryCommitText(Filter, Text) then
     Cells[Col, Row] := Text
   else
   begin
-    // Invalid value — clear and notify
-    Cells[Col, Row] := '';
-    InplaceEditor.Text := '';
-    MessageBeep(MB_ICONWARNING);
+    case Filter.OnInvalidCommit of
+      ciaBeepAndClear:
+      begin
+        // Clear cell + notify — cursor moves on normally
+        Cells[Col, Row]    := '';
+        InplaceEditor.Text := '';
+        MessageBeep(MB_ICONWARNING);
+      end;
+      ciaBlock:
+      begin
+        // Keep cell content — SelectCell will block navigation
+        MessageBeep(MB_ICONWARNING);
+        FLastCommitFailed := True;
+      end;
+    end;
+  end;
+end;
+
+function TGeoPointsGrid.SelectCell(ACol, ARow: Integer): Boolean;
+begin
+  // inherited: TGeoGrid.SelectCell calls CommitCell (when cell changes),
+  // then TCustomGrid.SelectCell fires OnSelectCell event.
+  Result := inherited SelectCell(ACol, ARow);
+
+  // If CommitCell flagged a block, cancel the navigation and re-open the editor
+  if FLastCommitFailed then
+  begin
+    FLastCommitFailed := False;
+    Result     := False;   // cursor stays where it is
+    EditorMode := True;    // re-open editor on current cell
   end;
 end;
 

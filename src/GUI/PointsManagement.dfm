@@ -1,0 +1,257 @@
+object PointsManagementForm: TPointsManagementForm
+  Left = 0
+  Top = 0
+  Caption = 'Seznam sou'#345'adnic'
+  ClientHeight = 393
+  ClientWidth = 420
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  Menu = MainMenu1
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  OnDeactivate = FormDeactivate
+  OnShow = FormShow
+  TextHeight = 15
+  object StringGrid1: TGeoPointsGrid
+    Left = 0
+    Top = 85
+    Width = 420
+    Height = 289
+    Align = alClient
+    ColCount = 6
+    FixedCols = 0
+    RowCount = 2
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 0
+    OnDrawCell = StringGrid1DrawCell
+    OnKeyDown = StringGrid1KeyDown
+    OnSelectCell = StringGrid1SelectCell
+    EnterEndBehavior = ebAddRow
+    ColumnHeaders.Strings = (
+      #268#237'slo bodu'
+      'X'
+      'Y'
+      'Z'
+      'Kvalita'
+      'Popis')
+    ColumnFilters = <
+      item
+        OnInvalidCommit = ciaBlock
+      end
+      item
+        OnInvalidCommit = ciaBlock
+      end
+      item
+        OnInvalidCommit = ciaBlock
+      end
+      item
+        OnInvalidCommit = ciaBlock
+      end
+      item
+        OnInvalidCommit = ciaBlock
+      end
+      item
+        OnInvalidCommit = ciaBlock
+      end>
+    ExplicitWidth = 418
+    ExplicitHeight = 281
+    ColWidths = (
+      66
+      65
+      65
+      65
+      65
+      65)
+  end
+  object StatusBar1: TStatusBar
+    Left = 0
+    Top = 374
+    Width = 420
+    Height = 19
+    Panels = <
+      item
+        Width = 50
+      end>
+    ExplicitTop = 366
+    ExplicitWidth = 418
+  end
+  object ControlBar1: TControlBar
+    Left = 0
+    Top = 0
+    Width = 420
+    Height = 50
+    Align = alTop
+    TabOrder = 2
+    ExplicitWidth = 418
+  end
+  object ToolBar2: TToolBar
+    AlignWithMargins = True
+    Left = 3
+    Top = 53
+    Width = 414
+    Height = 29
+    ButtonHeight = 23
+    Caption = 'ToolBar2'
+    List = True
+    AllowTextButtons = True
+    TabOrder = 3
+    ExplicitWidth = 412
+    object ComboBoxKU: TComboBox
+      Tag = 6
+      AlignWithMargins = True
+      Left = 0
+      Top = 0
+      Width = 99
+      Height = 23
+      Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
+      ItemIndex = 0
+      MaxLength = 6
+      TabOrder = 0
+      Text = '000000'
+      OnChange = NumericComboChange
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
+      OnKeyPress = NumericComboKeyPress
+      Items.Strings = (
+        '000000'
+        '000001'
+        '000002')
+    end
+    object ToolButton3: TToolButton
+      Left = 99
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton3'
+      ImageIndex = 1
+      Style = tbsSeparator
+    end
+    object ComboBoxZPMZ: TComboBox
+      Tag = 5
+      Left = 107
+      Top = 0
+      Width = 94
+      Height = 23
+      Hint = 'Popis bodu'
+      ItemIndex = 0
+      MaxLength = 5
+      TabOrder = 1
+      Text = '00000'
+      OnChange = NumericComboChange
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
+      OnKeyPress = NumericComboKeyPress
+      Items.Strings = (
+        '00000'
+        '00001'
+        '00002')
+    end
+    object ToolButton2: TToolButton
+      Left = 201
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton2'
+      ImageIndex = 2
+      Style = tbsSeparator
+    end
+    object ComboBoxKK: TComboBox
+      AlignWithMargins = True
+      Left = 209
+      Top = 0
+      Width = 40
+      Height = 23
+      Hint = 'K'#243'd kvality'
+      Align = alRight
+      Style = csDropDownList
+      ItemIndex = 3
+      TabOrder = 2
+      Text = '3'
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
+      Items.Strings = (
+        '0'
+        '1'
+        '2'
+        '3'
+        '4'
+        '5'
+        '6'
+        '7'
+        '8')
+    end
+    object ToolButton1: TToolButton
+      Left = 249
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton1'
+      ImageIndex = 3
+      Style = tbsSeparator
+    end
+    object ComboBoxPopis: TComboBox
+      Left = 257
+      Top = 0
+      Width = 145
+      Height = 23
+      TabOrder = 3
+      OnExit = PrefixComboExit
+      OnKeyDown = NumericComboKeyDown
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 584
+    Top = 24
+    object File1: TMenuItem
+      Caption = 'Soubor'
+      object File2: TMenuItem
+        Caption = 'Ulo'#382'it'
+      end
+      object SaveAs1: TMenuItem
+        Caption = 'Ulo'#382'it jako'
+      end
+      object SaveAs2: TMenuItem
+        Caption = 'Otev'#345#237't'
+      end
+    end
+    object Import1: TMenuItem
+      Caption = 'Import'
+      object FromTXT1: TMenuItem
+        Caption = 'From TXT'
+        OnClick = FromTXTClick
+      end
+      object FromTXT2: TMenuItem
+        Caption = 'From CSV'
+        OnClick = FromCSVClick
+      end
+      object FromBinary1: TMenuItem
+        Caption = 'From Binary'
+        OnClick = FromBinaryClick
+      end
+    end
+    object Import2: TMenuItem
+      Caption = 'Export'
+      object oTXT1: TMenuItem
+        Caption = 'To TXT'
+        OnClick = SaveAsTXTClick
+      end
+      object oTXT2: TMenuItem
+        Caption = 'To CSV'
+        OnClick = SaveAsCSVClick
+      end
+      object oBinary1: TMenuItem
+        Caption = 'To Binary'
+        OnClick = SaveAsBinaryClick
+      end
+    end
+  end
+  object OpenDialog1: TOpenDialog
+    Left = 584
+    Top = 96
+  end
+  object SaveDialog1: TSaveDialog
+    Left = 384
+    Top = 152
+  end
+end

@@ -1,0 +1,82 @@
+﻿unit MainForm;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls;
+
+type
+  TForm1 = class(TForm)
+    ToolBar1: TToolBar;
+    MainMenu1: TMainMenu;
+    N1: TMenuItem;
+    Vytvoitseznam1: TMenuItem;
+    Vypocty: TMenuItem;
+    Open2: TMenuItem;
+    Polrnmetoda1: TMenuItem;
+    Ortogonlnmetoda1: TMenuItem;
+    ransformace1: TMenuItem;
+    Pokus1: TMenuItem;
+    Polrnmetodanov1: TMenuItem;
+    Button1: TButton;
+    procedure Open2Click(Sender: TObject);
+    procedure Polrnmetoda1Click(Sender: TObject);
+    procedure Ortogonlnmetoda1Click(Sender: TObject);
+    procedure TransformationClick(Sender: TObject);
+    procedure CheckMeasurementClick(Sender: TObject);
+    procedure Polrnmetodanov1Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+uses ParcelArea, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethod, TestFieldGrid, Unit5,
+  PointsManagement;
+
+procedure TForm1.Open2Click(Sender: TObject);
+begin
+PointsManagementForm.Show;
+end;
+
+procedure TForm1.Polrnmetoda1Click(Sender: TObject);
+begin
+ParcelAreaForm.Show;
+end;
+
+procedure TForm1.Polrnmetodanov1Click(Sender: TObject);
+begin
+PolarMethodForm.Show;
+end;
+
+procedure TForm1.Ortogonlnmetoda1Click(Sender: TObject);
+begin
+OrthogonalMethodForm.Show;
+end;
+
+procedure TForm1.TransformationClick(Sender: TObject);
+begin
+TransformationForm.Show;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+Form5.Show;
+end;
+
+procedure TForm1.CheckMeasurementClick(Sender: TObject);
+begin
+CheckMeasurementForm.Show;
+end;
+
+end.

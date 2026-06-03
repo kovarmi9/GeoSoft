@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{F60F935B-EEDB-4E33-8A63-9FB4C814BA0A}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="PolarTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="OrthogonalTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\GUI\GeoSoft.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="PolarTest">
+        <MSBuild Projects="PolarTest.dproj"/>
+    </Target>
+    <Target Name="PolarTest:Clean">
+        <MSBuild Projects="PolarTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PolarTest:Make">
+        <MSBuild Projects="PolarTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OrthogonalTest">
+        <MSBuild Projects="OrthogonalTest.dproj"/>
+    </Target>
+    <Target Name="OrthogonalTest:Clean">
+        <MSBuild Projects="OrthogonalTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OrthogonalTest:Make">
+        <MSBuild Projects="OrthogonalTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="GeoSoft">
+        <MSBuild Projects="..\GUI\GeoSoft.dproj"/>
+    </Target>
+    <Target Name="GeoSoft:Clean">
+        <MSBuild Projects="..\GUI\GeoSoft.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="GeoSoft:Make">
+        <MSBuild Projects="..\GUI\GeoSoft.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="PolarTest;OrthogonalTest;GeoSoft"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;GeoSoft:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;GeoSoft:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

@@ -18,7 +18,7 @@ object OrthogonalMethodForm: TOrthogonalMethodForm
     Left = 0
     Top = 64
     Width = 793
-    Height = 158
+    Height = 345
     Hint = 'K'#243'd kvality'
     Align = alTop
     ColCount = 9
@@ -36,8 +36,8 @@ object OrthogonalMethodForm: TOrthogonalMethodForm
       #268#237'slo bodu'
       'Stani'#269'en'#237
       'Kolmice'
-      'X'
       'Y'
+      'X'
       'Z'
       'Kvalita'
       'Popis')
@@ -65,7 +65,7 @@ object OrthogonalMethodForm: TOrthogonalMethodForm
       end
       item
       end>
-    ExplicitWidth = 795
+    ExplicitWidth = 791
     ColWidths = (
       64
       88
@@ -102,7 +102,7 @@ object OrthogonalMethodForm: TOrthogonalMethodForm
     List = True
     AllowTextButtons = True
     TabOrder = 2
-    ExplicitWidth = 789
+    ExplicitWidth = 785
     object ComboBoxKU: TComboBox
       Tag = 6
       AlignWithMargins = True

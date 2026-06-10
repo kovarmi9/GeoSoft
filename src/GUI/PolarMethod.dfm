@@ -184,8 +184,8 @@ object PolarMethodForm: TPolarMethodForm
       ColumnHeaders.Strings = (
         #268#237'slo bodu'
         'V'#253#353'ka stroje'
-        'X'
         'Y'
+        'X'
         'Z'
         'Kvalita'
         'Popis')
@@ -363,7 +363,7 @@ object PolarMethodForm: TPolarMethodForm
       Height = 89
       Align = alTop
       Lines.Strings = (
-        'Memo1')
+        'Protokol')
       TabOrder = 6
       ExplicitWidth = 632
     end

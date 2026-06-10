@@ -44,8 +44,8 @@ object AddPointForm: TAddPointForm
     EnterEndBehavior = ebMoveFocusNext
     ColumnHeaders.Strings = (
       #268#237'slo bodu'
-      'X'
       'Y'
+      'X'
       'Z'
       'Kvalita'
       'Popis')

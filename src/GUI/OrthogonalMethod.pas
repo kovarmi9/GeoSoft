@@ -246,41 +246,48 @@ end;
 function TOrthogonalMethodForm.TryComputeDetailRow(const R: Integer): Boolean;
 var
   P0, K0: Point.TPoint;
-  s, o: Double; // staničení, kolmice
+  s, q: Double;          // stationing and perpendicular offset of the detail point
+  sP, qP, sK, qK: Double; // measured s and q of anchors P and K on the tape
   Alg: TOrthogonalMethodAlgorithm;
   InPts, OutPts: TPointsArray;
 begin
   Result := False;
   if R < 3 then Exit;
 
-  // Potřebujeme mít P a K
   if not LoadOrPromptAnchor(1, P0) then Exit;
   if not LoadOrPromptAnchor(2, K0) then Exit;
 
-  // Musíme mít staničení a kolmici na řádku R
-  if not ReadFloatCell(2, R, s) then Exit; // sloupec 2 = staničení
-  if not ReadFloatCell(3, R, o) then Exit; // sloupec 3 = kolmice
+  // Detail point must have both stationing and perpendicular offset
+  if not ReadFloatCell(2, R, s) then Exit;
+  if not ReadFloatCell(3, R, q) then Exit;
 
-  Alg := TOrthogonalMethodAlgorithm.Create();
+  // Read measured s and q of P and K from their grid rows (optional — default 0)
+  if not ReadFloatCell(2, 1, sP) then sP := 0;
+  if not ReadFloatCell(3, 1, qP) then qP := 0;
+  if not ReadFloatCell(2, 2, sK) then sK := 0;
+  if not ReadFloatCell(3, 2, qK) then qK := 0;
+
   TOrthogonalMethodAlgorithm.StartPoint := P0;
-  TOrthogonalMethodAlgorithm.EndPoint := k0;
+  TOrthogonalMethodAlgorithm.EndPoint   := K0;
+  TOrthogonalMethodAlgorithm.SP := sP;  TOrthogonalMethodAlgorithm.QP := qP;
+  TOrthogonalMethodAlgorithm.SK := sK;  TOrthogonalMethodAlgorithm.QK := qK;
+  Alg := TOrthogonalMethodAlgorithm.Create;
   try
     Alg.Scale := 1.0;
 
     SetLength(InPts, 1);
     InPts[0].PointNumber := StrToIntDef(StringGrid1.Cells[1, R], 0);
-    InPts[0].X := s;  // staničení
-    InPts[0].Y := o;  // kolmice
+    InPts[0].X := s;
+    InPts[0].Y := q;
     InPts[0].Z := 0.0;
-    InPts[0].Quality := StrToIntDef(StringGrid1.Cells[7, R], 0);
+    InPts[0].Quality     := StrToIntDef(StringGrid1.Cells[7, R], 0);
     InPts[0].Description := StringGrid1.Cells[8, R];
 
     OutPts := Alg.Calculate(InPts);
     if Length(OutPts) > 0 then
     begin
-      StringGrid1.Cells[4, R] := FloatToStr(OutPts[0].X, FS); // X
-      StringGrid1.Cells[5, R] := FloatToStr(OutPts[0].Y, FS); // Y
-      // Z necháváme beze změny (ortogonála řeší XY)
+      StringGrid1.Cells[4, R] := FloatToStr(OutPts[0].X, FS);
+      StringGrid1.Cells[5, R] := FloatToStr(OutPts[0].Y, FS);
       TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
       Result := True;
     end;

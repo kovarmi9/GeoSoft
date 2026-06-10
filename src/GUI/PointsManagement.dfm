@@ -33,29 +33,23 @@ object PointsManagementForm: TPointsManagementForm
     EnterEndBehavior = ebAddRow
     ColumnHeaders.Strings = (
       #268#237'slo bodu'
-      'X'
       'Y'
+      'X'
       'Z'
       'Kvalita'
       'Popis')
     ColumnFilters = <
       item
-        OnInvalidCommit = ciaBlock
       end
       item
-        OnInvalidCommit = ciaBlock
       end
       item
-        OnInvalidCommit = ciaBlock
       end
       item
-        OnInvalidCommit = ciaBlock
       end
       item
-        OnInvalidCommit = ciaBlock
       end
       item
-        OnInvalidCommit = ciaBlock
       end>
     ExplicitWidth = 418
     ExplicitHeight = 281

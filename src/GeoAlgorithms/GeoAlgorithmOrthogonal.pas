@@ -1,15 +1,5 @@
 ﻿unit GeoAlgorithmOrthogonal;
 
-// Orthogonal (rectangular) survey method.
-// Each input point carries a measured stationing s (along the tape) and
-// perpendicular offset q (kolmice). The algorithm projects these into
-// the global coordinate system defined by StartPoint and EndPoint.
-//
-// Optional baseline stretching: if the measured stationings of P and K
-// (SP, SK) are set, the coordinate distance is scaled to match the
-// measured tape length. Perpendicular offsets of P and K (QP, QK) shift
-// the local origin so that detail points are computed relative to P.
-
 interface
 
 uses
@@ -18,12 +8,12 @@ uses
 type
   TOrthogonalMethodAlgorithm = class(TAlgorithm)
   private
-    FStartPoint: TPoint; // P — first baseline point (known coords)
-    FEndPoint:   TPoint; // K — second baseline point (known coords)
-    FSP: Double;         // s_P — stationing of P on the tape (default 0)
-    FQP: Double;         // q_P — perpendicular offset of P from tape (default 0)
-    FSK: Double;         // s_K — stationing of K on the tape (default 0)
-    FQK: Double;         // q_K — perpendicular offset of K from tape (default 0)
+    FStartPoint: TPoint; // P first baseline point
+    FEndPoint:   TPoint; // K second baseline point
+    FSP: Double;         // s_P stationing of P on the baseline
+    FQP: Double;         // q_P perpendicular offset of P from baseline
+    FSK: Double;         // s_K stationing of K on the baseline
+    FQK: Double;         // q_K perpendicular offset of K from baseline
   public
     constructor Create; overload;
     constructor Create(const AStartPoint, AEndPoint: TPoint); overload;
@@ -31,8 +21,7 @@ type
     property StartPoint: TPoint read FStartPoint write FStartPoint;
     property EndPoint:   TPoint read FEndPoint   write FEndPoint;
 
-    // Measured stationings and offsets of the baseline anchors on the tape.
-    // Leave at zero to skip stretching correction.
+    // Measured stationings and offsets of the baseline
     property SP: Double read FSP write FSP;
     property QP: Double read FQP write FQP;
     property SK: Double read FSK write FSK;
@@ -62,47 +51,64 @@ end;
 
 function TOrthogonalMethodAlgorithm.Calculate(const InputPoints: TPointsArray): TPointsArray;
 var
-  dX, dY, dg: Double;  // coordinate vector P→K and its length
-  dm: Double;          // measured tape length between P and K
-  stretch: Double;     // stretching factor = dg / dm
-  ux, uy: Double;      // unit vector along P→K (from coordinates)
-  vx, vy: Double;      // unit vector perpendicular to P→K
-  s, q: Double;        // detail point offsets relative to P
+  dx, dy: Double;       // S-JTSK vector P→K
+  dS, dQ: Double;       // tape vector P→K scaled to S-JTSK
+  sP, qP: Double;       // start connection point in S-JTSK
+  sK, qK: Double;       // end connection point in S-JTSK
+  j: Double;            // dS^2 + dQ^2
+  A, B: Double;         // Helmert coefficients
+  si, qi: Double;       // detail point in S-JTSK
+  offS, offQ: Double;   // offsets from P
+  L: Double;            // SJTSK length of measuring line
   i: Integer;
 begin
-  // Coordinate vector and length P→K
-  dX := FEndPoint.X - FStartPoint.X;
-  dY := FEndPoint.Y - FStartPoint.Y;
-  dg := Sqrt(Sqr(dX) + Sqr(dY));
+  ClearWarnings;
 
-  if dg = 0 then
+  if Sqrt(Sqr(FEndPoint.X - FStartPoint.X) + Sqr(FEndPoint.Y - FStartPoint.Y)) = 0 then
     raise Exception.Create('StartPoint a EndPoint nesmí splývat.');
 
-  // Unit vector along baseline (from coordinates)
-  ux := dX / dg;
-  uy := dY / dg;
+  // 1: convert connection point tape measurements to S-JTSK
+  sP := FSP * Scale;
+  qP := FQP * Scale;
+  sK := FSK * Scale;
+  qK := FQK * Scale;
 
-  // Perpendicular unit vector (rotate 90°)
-  vx := -uy;
-  vy :=  ux;
+  dS := sK - sP;
+  dQ := qK - qP;
 
-  // Stretching: ratio of coordinate distance to measured tape length.
-  // Applied only when SP and SK are set (measured length > 0).
-  dm := FSK - FSP;
-  if dm > 0 then
-    stretch := dg / dm
-  else
-    stretch := 1.0;  // no stretching — use coordinates as-is
+  j := Sqr(dS) + Sqr(dQ);
+  if j = 0 then
+    raise Exception.Create('Připojovací body nesmí splývat na pásce.');
 
+  L := Sqrt(j);
+
+  // 2: Helmert similarity transform coefficients
+  dx := FEndPoint.X - FStartPoint.X;
+  dy := FEndPoint.Y - FStartPoint.Y;
+
+  A := (dx * dS + dy * dQ) / j;
+  B := (dy * dS - dx * dQ) / j;
+
+  // 3: compute detail point coordinates
   SetLength(Result, Length(InputPoints));
   for i := 0 to High(InputPoints) do
   begin
-    // Offsets relative to P (subtract P's position on the tape)
-    s := InputPoints[i].X - FSP;
-    q := InputPoints[i].Y - FQP;
+    si := InputPoints[i].X * Scale;
+    qi := InputPoints[i].Y * Scale;
 
-    Result[i].X := FStartPoint.X + Scale * stretch * (s * ux + q * vx);
-    Result[i].Y := FStartPoint.Y + Scale * stretch * (s * uy + q * vy);
+    offS := si - sP;
+    offQ := qi - qP;
+
+    // 4: Check <-L/3 ; 4L/3>
+    if offS < -L / 3 then
+      AddWarning(Format('Bod %d: prekroceno prodlouzeni za P o %.3f m (max. L/3 = %.3f m)',
+        [InputPoints[i].PointNumber, Abs(offS) - L / 3, L / 3]))
+    else if offS > 4 * L / 3 then
+      AddWarning(Format('Bod %d: prekroceno prodlouzeni za K o %.3f m (max. L/3 = %.3f m)',
+        [InputPoints[i].PointNumber, offS - 4 * L / 3, L / 3]));
+
+    Result[i].X := FStartPoint.X + A * offS - B * offQ;
+    Result[i].Y := FStartPoint.Y + B * offS + A * offQ;
     Result[i].Z           := InputPoints[i].Z;
     Result[i].PointNumber := InputPoints[i].PointNumber;
     Result[i].Quality     := InputPoints[i].Quality;

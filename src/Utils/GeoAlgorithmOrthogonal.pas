@@ -1,4 +1,4 @@
-unit GeoAlgorithmOrthogonal;
+﻿unit GeoAlgorithmOrthogonal;
 
 // Orthogonal (rectangular) survey method.
 // Each input point carries a measured stationing s (along the tape) and
@@ -42,48 +42,86 @@ type
 implementation
 
 class function TOrthogonalMethodAlgorithm.Calculate(const InputPoints: TPointsArray): TPointsArray;
+const
+  MAX_OFFSET_ABS   = 30.0;  // absolute max perpendicular offset [m]
+  MAX_OFFSET_RATIO = 0.75;  // max offset as fraction of baseline length
+  WARN_RATIO       = 0.50;  // soft warning threshold for offset/L ratio
+  MAX_STRETCH_WARN = 0.005; // 0.5 % — tape stretching warning
+  MAX_STRETCH_ERR  = 0.020; // 2.0 % — tape stretching suspected blunder
 var
-  dX, dY, dg: Double;  // coordinate vector P->K and its length
-  dm: Double;          // measured tape length between P and K
-  stretch: Double;     // stretching factor = dg / dm
-  ux, uy: Double;      // unit vector along P->K (from coordinates)
-  vx, vy: Double;      // unit vector perpendicular to P->K
-  s, q: Double;        // detail point offsets relative to P on the tape
+  dx, dy: Double;       // S-JTSK vector P→K
+  dS, dQ: Double;       // tape vector P→K scaled to S-JTSK
+  sP, qP: Double;       // connection point P — tape coords in S-JTSK
+  j: Double;            // denominator dS² + dQ²
+  A, B: Double;         // Helmert coefficients
+  si, qi: Double;       // detail point tape coords in S-JTSK
+  offS, offQ: Double;   // offsets from P
+  L, Lg: Double;        // L = measured tape length, Lg = JTSK baseline length
+  qMax: Double;         // effective offset limit for this baseline
+  k: Double;            // stretching ratio Lg/L
   i: Integer;
 begin
-  // Coordinate vector and length P->K
-  dX := FEndPoint.X - FStartPoint.X;
-  dY := FEndPoint.Y - FStartPoint.Y;
-  dg := Sqrt(Sqr(dX) + Sqr(dY));
+  ClearWarnings;
 
-  if dg = 0 then
-    raise Exception.Create('StartPoint a EndPoint nesmí splývat.');
+  Lg := Sqrt(Sqr(FEndPoint.X - FStartPoint.X) + Sqr(FEndPoint.Y - FStartPoint.Y));
+  if Lg < 0.01 then
+    raise Exception.Create('Základní body P a K splývají nebo chybí souřadnice.');
 
-  // Unit vector along baseline (from coordinates)
-  ux := dX / dg;
-  uy := dY / dg;
+  // Step 1: convert connection point tape measurements to S-JTSK
+  sP := FSP * Scale;
+  qP := FQP * Scale;
+  dS := (FSK - FSP) * Scale;
+  dQ := (FQK - FQP) * Scale;
 
-  // Perpendicular unit vector (rotate 90 degrees)
-  vx := -uy;
-  vy :=  ux;
+  j := Sqr(dS) + Sqr(dQ);
+  if j < 1e-10 then
+    raise Exception.Create('Staničení připojovacích bodů P a K na pásce musí být různá.');
 
-  // Stretching: ratio of coordinate distance to measured tape length.
-  // Applied only when SP and SK are set (measured length > 0).
-  dm := FSK - FSP;
-  if dm > 0 then
-    stretch := dg / dm
-  else
-    stretch := 1.0;  // no stretching — use coordinates as-is
+  L := Sqrt(j);
 
+  // Step 2: stretching check — k = JTSK length / measured tape length
+  k := Lg / L;
+  if Abs(k - 1) > MAX_STRETCH_ERR then
+    AddWarning(Format('Napínání pásky %.1f %% - podezření na hrubou chybu (mezní hodnota %.1f %%)',
+      [Abs(k - 1) * 100, MAX_STRETCH_ERR * 100]))
+  else if Abs(k - 1) > MAX_STRETCH_WARN then
+    AddWarning(Format('Napínání pásky %.1f %% překračuje mezní hodnotu %.1f %%',
+      [Abs(k - 1) * 100, MAX_STRETCH_WARN * 100]));
+
+  // Step 3: Helmert similarity transform coefficients
+  dx := FEndPoint.X - FStartPoint.X;
+  dy := FEndPoint.Y - FStartPoint.Y;
+
+  A := (dx * dS + dy * dQ) / j;
+  B := (dy * dS - dx * dQ) / j;
+
+  // Effective offset limit: min(30 m, 0.75 * L)
+  qMax := Min(MAX_OFFSET_ABS, MAX_OFFSET_RATIO * L);
+
+  // Step 4: compute detail point coordinates
   SetLength(Result, Length(InputPoints));
   for i := 0 to High(InputPoints) do
   begin
-    // Offsets relative to P (subtract P's position on the tape)
-    s := InputPoints[i].X - FSP;
-    q := InputPoints[i].Y - FQP;
+    si := InputPoints[i].X * Scale;
+    qi := InputPoints[i].Y * Scale;
 
-    Result[i].X := FStartPoint.X + Scale * stretch * (s * ux + q * vx);
-    Result[i].Y := FStartPoint.Y + Scale * stretch * (s * uy + q * vy);
+    offS := si - sP;
+    offQ := qi - qP;
+
+    // Extension beyond P or K
+    if (offS < -L / 3) or (offS > 4 * L / 3) then
+      AddWarning('Staničení je větší než 1.33 násobek celé přímky - bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění');
+
+    // Perpendicular offset checks
+    if Abs(offQ) > qMax then
+      AddWarning(Format('Délka kolmice je větší než povolených %.1f m - bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění',
+        [qMax]))
+    else if Abs(offQ) / L > WARN_RATIO then
+      AddWarning(Format('Kolmice/přímka = %.2f - přibližuje se mezní hodnotě %.2f',
+        [Abs(offQ) / L, MAX_OFFSET_RATIO]));
+
+    Result[i].X           := FStartPoint.X + A * offS - B * offQ;
+    Result[i].Y           := FStartPoint.Y + B * offS + A * offQ;
     Result[i].Z           := InputPoints[i].Z;
     Result[i].PointNumber := InputPoints[i].PointNumber;
     Result[i].Quality     := InputPoints[i].Quality;

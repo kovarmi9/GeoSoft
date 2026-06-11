@@ -6,26 +6,48 @@ unit GeoAlgorithmBase;
 interface
 
 uses
-  System.SysUtils, Point;
+  System.SysUtils, System.Classes, Point;
 
 type
   // Dynamic array of points used as input/output for all algorithms
   TPointsArray = array of TPoint;
 
-  // Abstract base class; Scale is a shared class variable
+  // Abstract base class; Scale and Warnings are shared class variables
   TAlgorithm = class abstract
   private
     class var FScale: Double;
+    class var FWarnings: TStringList;
+  protected
+    class procedure AddWarning(const AMsg: string);
+    class procedure ClearWarnings;
   public
     // Scale factor applied to computed coordinates (default 1.0, set in initialization)
     class property Scale: Double read FScale write FScale;
+
+    // Warnings produced by the last Calculate call (cleared at the start of each call)
+    class property Warnings: TStringList read FWarnings;
+
     // Runs the algorithm on InputPoints and returns computed output points
-    class function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
+    function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
   end;
 
 implementation
 
+class procedure TAlgorithm.AddWarning(const AMsg: string);
+begin
+  FWarnings.Add(AMsg);
+end;
+
+class procedure TAlgorithm.ClearWarnings;
+begin
+  FWarnings.Clear;
+end;
+
 initialization
-  TAlgorithm.Scale := 1.0;
+  TAlgorithm.FScale := 1.0;
+  TAlgorithm.FWarnings := TStringList.Create;
+
+finalization
+  TAlgorithm.FWarnings.Free;
 
 end.

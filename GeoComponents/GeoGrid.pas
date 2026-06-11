@@ -24,6 +24,12 @@ type
   );
 
   /// <summary>
+  /// Fired after a cell value is committed (user left the cell).
+  /// ACol/ARow identify the cell that was just committed.
+  /// </summary>
+  TCellCommittedEvent = procedure(Sender: TObject; ACol, ARow: Integer) of object;
+
+  /// <summary>
   /// Custom inplace editor handling Enter/Tab navigation.
   /// </summary>
   TGeoInplaceEdit = class(TInplaceEdit)
@@ -45,6 +51,7 @@ type
     FEnterEndBehavior: TEnterEndBehavior;
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
+    FOnCellCommitted: TCellCommittedEvent;
 
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
@@ -114,6 +121,13 @@ type
     /// <summary>Row header captions.</summary>
     property RowHeaders: TStrings
       read FRowHeaders write SetRowHeaders;
+
+    /// <summary>
+    /// Fired after the user leaves a cell and its value is committed.
+    /// ACol/ARow identify the cell that was just committed.
+    /// </summary>
+    property OnCellCommitted: TCellCommittedEvent
+      read FOnCellCommitted write FOnCellCommitted;
 
   end;
 
@@ -202,7 +216,8 @@ begin
     Canvas.Font.Style  := [fsBold];
     Canvas.FillRect(Rect);
 
-    S     := Cells[ACol, ARow];
+    S := Cells[ACol, ARow];
+
     TextX := Rect.Left + (Rect.Width  - Canvas.TextWidth(S)) div 2;
     TextY := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
     Canvas.TextRect(Rect, TextX, TextY, S);
@@ -315,6 +330,8 @@ begin
   // Base implementation: write editor text into cell
   if EditorMode and Assigned(InplaceEditor) then
     Cells[Col, Row] := InplaceEditor.Text;
+  if Assigned(FOnCellCommitted) then
+    FOnCellCommitted(Self, Col, Row);
 end;
 
 function TGeoGrid.CommitCurrentCell: Boolean;

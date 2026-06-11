@@ -786,6 +786,10 @@ function TryCommitText(AFilter: TColumnFilter;
 var
   V: Double;
 begin
+  if (AFilter <> nil) and (Trim(AText) = '') and
+     (AFilter.DataType in [cdtInteger, cdtFloat, cdtExpression]) then
+    AText := '0';
+
   Result := ValidateText(AFilter, AText);
   if not Result then
     Exit;

@@ -28,7 +28,7 @@ type
     class property Warnings: TStringList read FWarnings;
 
     // Runs the algorithm on InputPoints and returns computed output points
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
+    class function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
   end;
 
 implementation

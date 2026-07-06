@@ -1,9 +1,9 @@
 object PolarMethodForm: TPolarMethodForm
   Left = 0
   Top = 0
-  Caption = 'PolarMethodForm'
-  ClientHeight = 599
-  ClientWidth = 634
+  Caption = 'Pol'#225'rn'#237' metoda'
+  ClientHeight = 614
+  ClientWidth = 666
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,25 +16,25 @@ object PolarMethodForm: TPolarMethodForm
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 634
+    Width = 666
     Height = 29
     ButtonHeight = 29
     Caption = 'ToolBar1'
     TabOrder = 0
-    ExplicitWidth = 632
+    ExplicitWidth = 664
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 628
+    Width = 660
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
     List = True
     AllowTextButtons = True
     TabOrder = 1
-    ExplicitWidth = 626
+    ExplicitWidth = 658
     object CheckBox1: TCheckBox
       Left = 0
       Top = 0
@@ -141,17 +141,17 @@ object PolarMethodForm: TPolarMethodForm
   object Panel1: TPanel
     Left = 0
     Top = 64
-    Width = 634
-    Height = 535
+    Width = 666
+    Height = 550
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 632
-    ExplicitHeight = 527
+    ExplicitWidth = 664
+    ExplicitHeight = 542
     object Splitter1: TSplitter
       Left = 0
       Top = 52
-      Width = 634
+      Width = 666
       Height = 5
       Cursor = crVSplit
       Align = alTop
@@ -161,63 +161,116 @@ object PolarMethodForm: TPolarMethodForm
     object Splitter2: TSplitter
       Left = 0
       Top = 274
-      Width = 634
+      Width = 666
       Height = 35
       Cursor = crVSplit
       Align = alTop
       ExplicitTop = 326
+      ExplicitWidth = 634
     end
-    object MyStringGridStation: TMyStringGrid
+    object PanelStation: TPanel
       Left = 0
       Top = 0
-      Width = 634
+      Width = 666
       Height = 52
       Align = alTop
-      ColCount = 7
-      FixedCols = 0
-      RowCount = 2
-      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goFixedRowDefAlign]
+      BevelOuter = bvNone
       TabOrder = 0
-      OnKeyDown = MyStringGridStationKeyDown
-      OnSelectCell = MyStringGridStationSelectCell
-      EnterEndBehavior = ebWrapToStart
-      ColumnHeaders.Strings = (
-        #268#237'slo bodu'
-        'V'#253#353'ka stroje'
-        'Y'
-        'X'
-        'Z'
-        'Kvalita'
-        'Popis')
-      ColumnFilters = <
-        item
-        end
-        item
-        end
-        item
-        end
-        item
-        end
-        item
-        end
-        item
-        end
-        item
-        end>
-      ExplicitWidth = 632
-      ColWidths = (
-        87
-        87
-        86
-        86
-        86
-        86
-        86)
+      ExplicitWidth = 664
+      object EditStationNo: TLabeledEdit
+        Left = 8
+        Top = 22
+        Width = 100
+        Height = 23
+        EditLabel.Width = 57
+        EditLabel.Height = 15
+        EditLabel.Caption = 'Stanovisko'
+        TabOrder = 0
+        Text = ''
+        OnKeyDown = EditStationNoKeyDown
+      end
+      object EditStationY: TLabeledEdit
+        Left = 116
+        Top = 22
+        Width = 80
+        Height = 23
+        Color = clBtnFace
+        EditLabel.Width = 7
+        EditLabel.Height = 15
+        EditLabel.Caption = 'Y'
+        ReadOnly = True
+        TabOrder = 1
+        Text = ''
+      end
+      object EditStationX: TLabeledEdit
+        Left = 204
+        Top = 22
+        Width = 80
+        Height = 23
+        Color = clBtnFace
+        EditLabel.Width = 7
+        EditLabel.Height = 15
+        EditLabel.Caption = 'X'
+        ReadOnly = True
+        TabOrder = 2
+        Text = ''
+      end
+      object EditStationZ: TLabeledEdit
+        Left = 292
+        Top = 22
+        Width = 70
+        Height = 23
+        Color = clBtnFace
+        EditLabel.Width = 7
+        EditLabel.Height = 15
+        EditLabel.Caption = 'Z'
+        ReadOnly = True
+        TabOrder = 3
+        Text = ''
+      end
+      object EditStationVS: TLabeledEdit
+        Left = 368
+        Top = 23
+        Width = 70
+        Height = 23
+        EditLabel.Width = 62
+        EditLabel.Height = 15
+        EditLabel.Caption = 'V'#253#353'ka stroje'
+        TabOrder = 4
+        Text = ''
+        OnKeyDown = EditStationVSKeyDown
+      end
+      object EditStationKK: TLabeledEdit
+        Left = 448
+        Top = 22
+        Width = 40
+        Height = 23
+        Color = clBtnFace
+        EditLabel.Width = 35
+        EditLabel.Height = 15
+        EditLabel.Caption = 'Kvalita'
+        ReadOnly = True
+        TabOrder = 5
+        Text = ''
+      end
+      object EditStationPopis: TLabeledEdit
+        Left = 496
+        Top = 22
+        Width = 130
+        Height = 23
+        Color = clBtnFace
+        EditLabel.Width = 29
+        EditLabel.Height = 15
+        EditLabel.Caption = 'Popis'
+        ReadOnly = True
+        TabOrder = 6
+        Text = ''
+      end
     end
-    object MyPointsStringGrid1Orientation: TMyPointsStringGrid
+    object MyPointsStringGrid1Orientation: TGeoPointsGrid
       Left = 0
       Top = 57
-      Width = 634
+      Width = 666
       Height = 128
       Cursor = crVSplit
       Align = alTop
@@ -226,7 +279,6 @@ object PolarMethodForm: TPolarMethodForm
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
       OnKeyDown = MyPointsStringGrid1OrientationKeyDown
-      OnSelectCell = MyPointsStringGrid1OrientationSelectCell
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
         ''
@@ -240,24 +292,32 @@ object PolarMethodForm: TPolarMethodForm
         'Popis')
       ColumnFilters = <
         item
+          DataType = cdtInteger
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
-        end
-        item
+          DataType = cdtInteger
+          MaxLength = 1
+          HasMaxValue = True
+          MaxValue = 8.000000000000000000
         end
         item
         end>
-      ExplicitWidth = 632
+      ExplicitWidth = 664
       ColWidths = (
         64
         68
@@ -269,10 +329,10 @@ object PolarMethodForm: TPolarMethodForm
         67
         67)
     end
-    object MyPointsStringGrid2Detail: TMyPointsStringGrid
+    object MyPointsStringGrid2Detail: TGeoPointsGrid
       Left = 0
       Top = 309
-      Width = 634
+      Width = 666
       Height = 161
       Align = alTop
       ColCount = 9
@@ -294,24 +354,32 @@ object PolarMethodForm: TPolarMethodForm
         'Popis')
       ColumnFilters = <
         item
+          DataType = cdtInteger
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
+          DataType = cdtExpression
         end
         item
-        end
-        item
+          DataType = cdtInteger
+          MaxLength = 1
+          HasMaxValue = True
+          MaxValue = 8.000000000000000000
         end
         item
         end>
-      ExplicitWidth = 632
+      ExplicitWidth = 664
       ColWidths = (
         64
         68
@@ -328,15 +396,15 @@ object PolarMethodForm: TPolarMethodForm
     end
     object StatusBar1: TStatusBar
       Left = 0
-      Top = 516
-      Width = 634
+      Top = 531
+      Width = 666
       Height = 19
       Panels = <
         item
           Width = 50
         end>
-      ExplicitTop = 508
-      ExplicitWidth = 632
+      ExplicitTop = 523
+      ExplicitWidth = 664
     end
     object Calculate: TButton
       Left = 559
@@ -359,13 +427,13 @@ object PolarMethodForm: TPolarMethodForm
     object Memo1: TMemo
       Left = 0
       Top = 185
-      Width = 634
+      Width = 666
       Height = 89
       Align = alTop
       Lines.Strings = (
         'Protokol')
       TabOrder = 6
-      ExplicitWidth = 632
+      ExplicitWidth = 664
     end
   end
 end

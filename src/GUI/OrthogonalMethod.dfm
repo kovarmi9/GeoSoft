@@ -1,6 +1,7 @@
 object OrthogonalMethodForm: TOrthogonalMethodForm
   Left = 0
   Top = 0
+  Caption = 'Ortogon'#225'ln'#237' metoda'
   ClientHeight = 672
   ClientWidth = 793
   Color = clBtnFace

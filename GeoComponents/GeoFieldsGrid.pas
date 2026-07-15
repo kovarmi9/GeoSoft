@@ -14,7 +14,8 @@ uses
   Vcl.Grids,
   GeoGrid,
   GeoColumnValidation,
-  GeoFieldsDef;
+  GeoFieldsDef,
+  GeoRow;
 
 type
   /// <summary>
@@ -91,6 +92,9 @@ type
     /// Reset all fields to global defaults.
     /// </summary>
     procedure ResetAllColumnData;
+
+    procedure SetGeoRow(ARow: Integer; const GRow: TGeoRow);
+    procedure GetGeoRow(ARow: Integer; out GRow: TGeoRow);
 
     // Ancestor-published headers are auto-derived from GeoFields.
     // Re-declaring them as public hides them from Object Inspector.
@@ -367,6 +371,81 @@ begin
   for F := Low(TGeoField) to High(TGeoField) do
     FColumnData[F] := GeoFieldColumns[F];
   RebuildColumns;
+end;
+
+procedure TGeoFieldsGrid.SetGeoRow(ARow: Integer; const GRow: TGeoRow);
+var
+  I, C: Integer;
+  F: TGeoField;
+begin
+  if (ARow < FixedRows) or (ARow >= RowCount) then
+    raise Exception.CreateFmt('Row %d is out of range.', [ARow]);
+
+  for I := 0 to High(FColToField) do
+  begin
+    F := FColToField[I];
+    C := FixedCols + I;
+    case F of
+      Uloha:    Cells[C, ARow] := IntToStr(GRow.Uloha);
+      CB:       Cells[C, ARow] := string(GRow.CB);
+      X:        Cells[C, ARow] := FloatToStr(GRow.X);
+      Y:        Cells[C, ARow] := FloatToStr(GRow.Y);
+      Z:        Cells[C, ARow] := FloatToStr(GRow.Z);
+      Xm:       Cells[C, ARow] := FloatToStr(GRow.Xm);
+      Ym:       Cells[C, ARow] := FloatToStr(GRow.Ym);
+      Zm:       Cells[C, ARow] := FloatToStr(GRow.Zm);
+      TypS:     Cells[C, ARow] := IntToStr(GRow.TypS);
+      SH:       Cells[C, ARow] := FloatToStr(GRow.SH);
+      SS:       Cells[C, ARow] := FloatToStr(GRow.SS);
+      VS:       Cells[C, ARow] := FloatToStr(GRow.VS);
+      VC:       Cells[C, ARow] := FloatToStr(GRow.VC);
+      HZ:       Cells[C, ARow] := FloatToStr(GRow.HZ);
+      Zuhel:    Cells[C, ARow] := FloatToStr(GRow.Zuhel);
+      PolarD:   Cells[C, ARow] := FloatToStr(GRow.PolarD);
+      PolarK:   Cells[C, ARow] := FloatToStr(GRow.PolarK);
+      Poznamka: Cells[C, ARow] := string(GRow.Poznamka);
+    end;
+  end;
+end;
+
+procedure TGeoFieldsGrid.GetGeoRow(ARow: Integer; out GRow: TGeoRow);
+var
+  I, C: Integer;
+  F: TGeoField;
+  S: string;
+begin
+  if (ARow < FixedRows) or (ARow >= RowCount) then
+    raise Exception.CreateFmt('Row %d is out of range.', [ARow]);
+
+  ClearGeoRow(GRow);
+
+  for I := 0 to High(FColToField) do
+  begin
+    F := FColToField[I];
+    C := FixedCols + I;
+    S := Trim(Cells[C, ARow]);
+
+    case F of
+      Uloha:    TryStrToInt(S, GRow.Uloha);
+      CB:       GRow.CB := ShortString(S);
+      X:        TryStrToFloat(S, GRow.X);
+      Y:        TryStrToFloat(S, GRow.Y);
+      Z:        TryStrToFloat(S, GRow.Z);
+      Xm:       TryStrToFloat(S, GRow.Xm);
+      Ym:       TryStrToFloat(S, GRow.Ym);
+      Zm:       TryStrToFloat(S, GRow.Zm);
+      TypS:     TryStrToInt(S, GRow.TypS);
+      SH:       TryStrToFloat(S, GRow.SH);
+      SS:       TryStrToFloat(S, GRow.SS);
+      VS:       TryStrToFloat(S, GRow.VS);
+      VC:       TryStrToFloat(S, GRow.VC);
+      HZ:       TryStrToFloat(S, GRow.HZ);
+      Zuhel:    TryStrToFloat(S, GRow.Zuhel);
+      PolarD:   TryStrToFloat(S, GRow.PolarD);
+      PolarK:   TryStrToFloat(S, GRow.PolarK);
+      Poznamka: GRow.Poznamka := ShortString(S);
+    end;
+  end;
 end;
 
 end.

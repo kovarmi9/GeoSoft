@@ -171,6 +171,10 @@
             <Form>Form5</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="CalcBase.pas">
+            <ModuleName>CalcBaseForm</ModuleName>
+            <Form>CalcBase</Form>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

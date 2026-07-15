@@ -21,7 +21,8 @@ uses
   MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas' {/,},
   InputFilterUtils in '..\Utils\InputFilterUtils.pas',
   TestFieldGrid in 'TestFieldGrid.pas' {Form2},
-  Unit5 in 'Unit5.pas' {Form5};
+  Unit5 in 'Unit5.pas' {Form5},
+  CalcBase in 'CalcBase.pas' {CalcBaseForm};
 
 {$R *.res}
 

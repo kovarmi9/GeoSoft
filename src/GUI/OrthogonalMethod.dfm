@@ -199,6 +199,9 @@ object OrthogonalMethodForm: TOrthogonalMethodForm
     TabOrder = 3
     ExplicitTop = 610
     ExplicitWidth = 791
+    DesignSize = (
+      793
+      54)
     object StatusBar1: TStatusBar
       Left = 1
       Top = 34
@@ -215,6 +218,7 @@ object OrthogonalMethodForm: TOrthogonalMethodForm
       Top = 3
       Width = 75
       Height = 25
+      Anchors = [akRight, akBottom]
       Caption = 'Ulo'#382'it'
       TabOrder = 1
     end
@@ -301,11 +305,15 @@ object OrthogonalMethodForm: TOrthogonalMethodForm
     Align = alTop
     TabOrder = 1
     ExplicitWidth = 791
+    DesignSize = (
+      793
+      40)
     object Button1: TButton
       Left = 698
       Top = 9
       Width = 75
       Height = 25
+      Anchors = [akRight, akBottom]
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = Button1Click

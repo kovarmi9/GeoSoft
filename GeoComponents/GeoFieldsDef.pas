@@ -5,34 +5,10 @@
 interface
 
 uses
-  GeoColumnValidation;
+  GeoColumnValidation,
+  GeoRow;
 
 type
-  /// <summary>
-  /// Geodetic field identifier.
-  /// </summary>
-  TGeoField = (
-    Uloha,
-    CB,
-    X, Y, Z,
-    Xm, Ym, Zm,
-    TypS,
-    SH,
-    SS,
-    VS,
-    VC,
-    HZ,
-    Zuhel,
-    PolarD,
-    PolarK,
-    Poznamka
-  );
-
-  /// <summary>
-  /// Set of active geodetic fields.
-  /// </summary>
-  TGeoFields = set of TGeoField;
-
   /// <summary>
   /// Plain filter definition for one column.
   /// </summary>

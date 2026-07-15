@@ -3200,6 +3200,15 @@ object Form1: TForm1
     TabOrder = 1
     OnClick = Button1Click
   end
+  object Button2: TButton
+    Left = 792
+    Top = 280
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 2
+    OnClick = Button2Click
+  end
   object MainMenu1: TMainMenu
     Left = 584
     Top = 192
@@ -3216,7 +3225,7 @@ object Form1: TForm1
     object Vypocty: TMenuItem
       Caption = 'V'#253'po'#269'ty'
       object Polrnmetodanov1: TMenuItem
-        Caption = 'Pol'#225'rn'#237' metoda nov'#225
+        Caption = 'Pol'#225'rn'#237' metoda'
         OnClick = Polrnmetodanov1Click
       end
       object Ortogonlnmetoda1: TMenuItem

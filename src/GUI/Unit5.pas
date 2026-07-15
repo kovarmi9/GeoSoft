@@ -79,7 +79,8 @@ uses
   Vcl.Grids, Vcl.CheckLst, Vcl.ExtCtrls, Vcl.StdCtrls,
   GeoGrid,
   GeoFieldsGrid,
-  GeoFieldsDef;
+  GeoFieldsDef,
+  GeoRow;
 
 type
   TForm5 = class(TForm)

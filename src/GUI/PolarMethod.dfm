@@ -2,8 +2,8 @@ object PolarMethodForm: TPolarMethodForm
   Left = 0
   Top = 0
   Caption = 'Pol'#225'rn'#237' metoda'
-  ClientHeight = 614
-  ClientWidth = 666
+  ClientHeight = 664
+  ClientWidth = 675
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,18 +16,18 @@ object PolarMethodForm: TPolarMethodForm
   object ToolBar1: TToolBar
     Left = 0
     Top = 0
-    Width = 666
+    Width = 675
     Height = 29
     ButtonHeight = 29
     Caption = 'ToolBar1'
-    TabOrder = 0
+    TabOrder = 2
     ExplicitWidth = 664
   end
   object ToolBar2: TToolBar
     AlignWithMargins = True
     Left = 3
     Top = 32
-    Width = 660
+    Width = 669
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
@@ -45,7 +45,6 @@ object PolarMethodForm: TPolarMethodForm
       OnClick = CheckBox1Click
     end
     object ComboBoxKU: TComboBox
-      Tag = 6
       AlignWithMargins = True
       Left = 121
       Top = 0
@@ -54,10 +53,9 @@ object PolarMethodForm: TPolarMethodForm
       Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
       ItemIndex = 0
       MaxLength = 6
-      TabOrder = 4
+      TabOrder = 1
       Text = '000000'
       OnExit = PrefixComboExit
-      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '000000'
         '000001'
@@ -72,7 +70,6 @@ object PolarMethodForm: TPolarMethodForm
       Style = tbsSeparator
     end
     object ComboBoxZPMZ: TComboBox
-      Tag = 5
       Left = 228
       Top = 0
       Width = 94
@@ -80,10 +77,9 @@ object PolarMethodForm: TPolarMethodForm
       Hint = 'Popis bodu'
       ItemIndex = 0
       MaxLength = 5
-      TabOrder = 3
+      TabOrder = 2
       Text = '00000'
       OnExit = PrefixComboExit
-      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '00000'
         '00001'
@@ -106,9 +102,8 @@ object PolarMethodForm: TPolarMethodForm
       Hint = 'K'#243'd kvality'
       Align = alRight
       Style = csDropDownList
-      TabOrder = 2
+      TabOrder = 3
       OnExit = PrefixComboExit
-      OnKeyDown = NumericComboKeyDown
       Items.Strings = (
         '0'
         '1'
@@ -133,25 +128,24 @@ object PolarMethodForm: TPolarMethodForm
       Top = 0
       Width = 145
       Height = 23
-      TabOrder = 1
+      TabOrder = 4
       OnExit = PrefixComboExit
-      OnKeyDown = NumericComboKeyDown
     end
   end
   object Panel1: TPanel
     Left = 0
     Top = 64
-    Width = 666
-    Height = 550
+    Width = 675
+    Height = 600
     Align = alClient
     BevelOuter = bvNone
-    TabOrder = 2
+    TabOrder = 0
     ExplicitWidth = 664
-    ExplicitHeight = 542
+    ExplicitHeight = 554
     object Splitter1: TSplitter
       Left = 0
       Top = 52
-      Width = 666
+      Width = 675
       Height = 5
       Cursor = crVSplit
       Align = alTop
@@ -160,18 +154,36 @@ object PolarMethodForm: TPolarMethodForm
     end
     object Splitter2: TSplitter
       Left = 0
-      Top = 274
-      Width = 666
+      Top = 289
+      Width = 675
       Height = 35
       Cursor = crVSplit
       Align = alTop
       ExplicitTop = 326
       ExplicitWidth = 634
     end
+    object Label1: TLabel
+      Left = 0
+      Top = 57
+      Width = 675
+      Height = 15
+      Align = alTop
+      Caption = 'Orientace'
+      ExplicitWidth = 51
+    end
+    object Label2: TLabel
+      Left = 0
+      Top = 354
+      Width = 675
+      Height = 15
+      Align = alTop
+      Caption = 'Podrobn'#233' body'
+      ExplicitWidth = 82
+    end
     object PanelStation: TPanel
       Left = 0
       Top = 0
-      Width = 666
+      Width = 675
       Height = 52
       Align = alTop
       BevelOuter = bvNone
@@ -194,25 +206,27 @@ object PolarMethodForm: TPolarMethodForm
         Top = 22
         Width = 80
         Height = 23
+        TabStop = False
         Color = clBtnFace
         EditLabel.Width = 7
         EditLabel.Height = 15
         EditLabel.Caption = 'Y'
         ReadOnly = True
-        TabOrder = 1
+        TabOrder = 2
         Text = ''
       end
       object EditStationX: TLabeledEdit
-        Left = 204
-        Top = 22
+        Left = 206
+        Top = 23
         Width = 80
         Height = 23
+        TabStop = False
         Color = clBtnFace
         EditLabel.Width = 7
         EditLabel.Height = 15
         EditLabel.Caption = 'X'
         ReadOnly = True
-        TabOrder = 2
+        TabOrder = 3
         Text = ''
       end
       object EditStationZ: TLabeledEdit
@@ -220,12 +234,13 @@ object PolarMethodForm: TPolarMethodForm
         Top = 22
         Width = 70
         Height = 23
+        TabStop = False
         Color = clBtnFace
         EditLabel.Width = 7
         EditLabel.Height = 15
         EditLabel.Caption = 'Z'
         ReadOnly = True
-        TabOrder = 3
+        TabOrder = 4
         Text = ''
       end
       object EditStationVS: TLabeledEdit
@@ -236,7 +251,7 @@ object PolarMethodForm: TPolarMethodForm
         EditLabel.Width = 62
         EditLabel.Height = 15
         EditLabel.Caption = 'V'#253#353'ka stroje'
-        TabOrder = 4
+        TabOrder = 1
         Text = ''
         OnKeyDown = EditStationVSKeyDown
       end
@@ -245,6 +260,7 @@ object PolarMethodForm: TPolarMethodForm
         Top = 22
         Width = 40
         Height = 23
+        TabStop = False
         Color = clBtnFace
         EditLabel.Width = 35
         EditLabel.Height = 15
@@ -258,6 +274,7 @@ object PolarMethodForm: TPolarMethodForm
         Top = 22
         Width = 130
         Height = 23
+        TabStop = False
         Color = clBtnFace
         EditLabel.Width = 29
         EditLabel.Height = 15
@@ -267,172 +284,141 @@ object PolarMethodForm: TPolarMethodForm
         Text = ''
       end
     end
-    object MyPointsStringGrid1Orientation: TGeoPointsGrid
+    object GridOrientation: TGeoFieldsGrid
       Left = 0
-      Top = 57
-      Width = 666
+      Top = 72
+      Width = 675
       Height = 128
-      Cursor = crVSplit
       Align = alTop
-      ColCount = 9
+      ColCount = 8
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
-      OnKeyDown = MyPointsStringGrid1OrientationKeyDown
+      OnKeyDown = GridOrientationKeyDown
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
         ''
-        #268#237'slo bodu'
-        'Vodorovn'#225' vzd'#225'lenost'
-        'Vodorovn'#253' '#250'hel'
-        'Y'
+        'Cislo bodu'
         'X'
+        'Y'
         'Z'
-        'Kvalita'
-        'Popis')
-      ColumnFilters = <
-        item
-          DataType = cdtInteger
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtInteger
-          MaxLength = 1
-          HasMaxValue = True
-          MaxValue = 8.000000000000000000
-        end
-        item
-        end>
+        'Sikma delka'
+        'HZ uhel [g]'
+        'Poznamka')
+      GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
       ExplicitWidth = 664
       ColWidths = (
         64
-        68
-        68
-        68
-        67
-        67
-        67
-        67
-        67)
+        64
+        64
+        64
+        64
+        64
+        64
+        64)
     end
-    object MyPointsStringGrid2Detail: TGeoPointsGrid
+    object GridDetail: TGeoFieldsGrid
       Left = 0
-      Top = 309
-      Width = 666
+      Top = 369
+      Width = 675
       Height = 161
       Align = alTop
-      ColCount = 9
+      ColCount = 8
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
-      TabOrder = 2
-      OnKeyDown = MyPointsStringGrid2DetailKeyDown
-      OnSelectCell = MyPointsStringGrid2DetailSelectCell
+      TabOrder = 4
+      OnKeyDown = GridDetailKeyDown
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
         ''
-        #268#237'slo bodu'
-        'Vodorovn'#225' vzd'#225'lenost'
-        'Vodorovn'#253' '#250'hel'
-        'Y'
+        'Cislo bodu'
         'X'
+        'Y'
         'Z'
-        'Kvalita'
-        'Popis')
-      ColumnFilters = <
-        item
-          DataType = cdtInteger
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtExpression
-        end
-        item
-          DataType = cdtInteger
-          MaxLength = 1
-          HasMaxValue = True
-          MaxValue = 8.000000000000000000
-        end
-        item
-        end>
+        'Sikma delka'
+        'HZ uhel [g]'
+        'Poznamka')
+      GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
       ExplicitWidth = 664
       ColWidths = (
         64
-        68
-        68
-        68
-        67
-        67
-        67
-        67
-        67)
-      RowHeights = (
-        24
-        25)
+        64
+        64
+        64
+        64
+        64
+        64
+        64)
     end
     object StatusBar1: TStatusBar
       Left = 0
-      Top = 531
-      Width = 666
+      Top = 581
+      Width = 675
       Height = 19
       Panels = <
         item
           Width = 50
         end>
-      ExplicitTop = 523
+      ExplicitTop = 535
       ExplicitWidth = 664
     end
-    object Calculate: TButton
-      Left = 559
-      Top = 274
-      Width = 75
-      Height = 25
-      Caption = 'V'#253'po'#269'et'
-      TabOrder = 4
-      OnClick = CalculateClick
+    object PanelCalculate: TPanel
+      Left = 0
+      Top = 324
+      Width = 675
+      Height = 30
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 3
+      ExplicitWidth = 664
+      DesignSize = (
+        675
+        30)
+      object Calculate: TButton
+        Left = 588
+        Top = 6
+        Width = 75
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = 'V'#253'po'#269'et'
+        TabOrder = 0
+        OnClick = CalculateClick
+        ExplicitLeft = 577
+      end
     end
-    object Save: TButton
-      Left = 559
-      Top = 468
-      Width = 75
-      Height = 25
-      Caption = 'Ulo'#382'it'
+    object PanelSave: TPanel
+      Left = 0
+      Top = 530
+      Width = 675
+      Height = 30
+      Align = alTop
+      BevelOuter = bvNone
       TabOrder = 5
-      OnClick = CalculateClick
+      ExplicitWidth = 664
+      DesignSize = (
+        675
+        30)
+      object Save: TButton
+        Left = 588
+        Top = 2
+        Width = 75
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = 'Ulo'#382'it'
+        TabOrder = 0
+        OnClick = CalculateClick
+        ExplicitLeft = 577
+      end
     end
     object Memo1: TMemo
       Left = 0
-      Top = 185
-      Width = 666
+      Top = 200
+      Width = 675
       Height = 89
       Align = alTop
       Lines.Strings = (
         'Protokol')
-      TabOrder = 6
+      TabOrder = 2
       ExplicitWidth = 664
     end
   end

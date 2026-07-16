@@ -22,7 +22,7 @@ uses
   GeoPointsGrid,
   GeoColumnValidation,
   CalcBase,
-  PointPrefixState;
+  PointPrefixState, Vcl.Menus;
 
 type
   TOrthogonalMethodForm = class(TCalcBaseForm)

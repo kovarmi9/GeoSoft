@@ -1,4 +1,4 @@
-﻿object CalcBaseForm: TCalcBaseForm
+object CalcBaseForm: TCalcBaseForm
   Left = 0
   Top = 0
   Caption = 'CalcBaseForm'
@@ -14,7 +14,6 @@
   Font.Style = []
   Menu = MainMenu1
   Position = poScreenCenter
-  Scaled = True
   OnActivate = FormActivate
   OnDeactivate = FormDeactivate
   TextHeight = 15

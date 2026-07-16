@@ -1,6 +1,22 @@
-﻿inherited OrthogonalMethodForm: TOrthogonalMethodForm
+inherited OrthogonalMethodForm: TOrthogonalMethodForm
   Caption = 'Ortogon'#225'ln'#237' metoda'
+  StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
+  inherited ToolBarPrefix: TToolBar
+    ExplicitWidth = 792
+    inherited ComboBoxKU: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxZPMZ: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxKK: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxPopis: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+  end
   object Panel2: TPanel [1]
     Left = 0
     Top = 35
@@ -8,11 +24,12 @@
     Height = 40
     Align = alTop
     TabOrder = 1
+    ExplicitWidth = 798
     DesignSize = (
       800
       40)
     object Button1: TButton
-      Left = 696
+      Left = 694
       Top = 9
       Width = 75
       Height = 25
@@ -20,6 +37,7 @@
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = Button1Click
+      ExplicitLeft = 692
     end
   end
   object StringGrid1: TGeoPointsGrid [2]
@@ -67,6 +85,7 @@
       end
       item
       end>
+    ExplicitWidth = 798
     ColWidths = (
       64
       88
@@ -89,17 +108,18 @@
     Height = 208
     Align = alTop
     Lines.Strings = (
-
+      
         '  == 0   Ortogon'#225'ln'#237' metoda  ===================================' +
         '==================')
     ReadOnly = True
     TabOrder = 3
+    ExplicitWidth = 798
   end
   object MyPointsStringGrid1: TGeoPointsGrid [4]
     Left = 0
     Top = 364
     Width = 800
-    Height = 225
+    Height = 187
     Align = alClient
     ColCount = 9
     FixedColor = clRed
@@ -138,6 +158,8 @@
       end
       item
       end>
+    ExplicitWidth = 798
+    ExplicitHeight = 179
     ColWidths = (
       64
       88
@@ -154,23 +176,29 @@
   end
   object PanelSave: TPanel [5]
     Left = 0
-    Top = 589
+    Top = 570
     Width = 800
     Height = 30
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
+    ExplicitTop = 562
+    ExplicitWidth = 798
     DesignSize = (
       800
       30)
     object Save: TButton
-      Left = 696
+      Left = 694
       Top = 2
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Ulo'#382'it'
       TabOrder = 0
+      ExplicitLeft = 692
     end
+  end
+  inherited StatusBar1: TStatusBar
+    Top = 551
   end
 end

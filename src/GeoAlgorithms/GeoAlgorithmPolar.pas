@@ -1,8 +1,4 @@
-unit GeoAlgorithmPolar;
-
-// Polar survey method (single station).
-// The orientation correction (delta) is derived from one or more known orientation
-// points and then applied to each measured direction to compute global coordinates.
+﻿unit GeoAlgorithmPolar;
 
 interface
 
@@ -10,35 +6,44 @@ uses
   System.SysUtils, Math, GeoAlgorithmBase, Point;
 
 type
-  // One orientation reference: a known point B and the measured direction to it [gon]
   TOrientation = record
     B: TPoint;
-    psi_B: Double; // measured direction to point B [gon]
+    psi_B: Double;
+    dist_B: Double;
   end;
 
   TOrientations = array of TOrientation;
 
-  // Computes global coordinates from polar measurements (distance + direction)
   TPolarMethodAlgorithm = class(TAlgorithm)
   private
-    FStation: TPoint;          // instrument station with known coordinates
-    FOrientations: TOrientations; // orientation references used to compute delta
+    FStation: TPoint;
+    FOrientations: TOrientations;
+    FOrientationShift: Double;
+    FStredniChybaOrPos: Double;
   public
     constructor Create; overload;
     constructor Create(const AStation: TPoint; const AOrientations: TOrientations); overload;
 
     property Station: TPoint read FStation write FStation;
     property Orientations: TOrientations read FOrientations write FOrientations;
+    property OrientationShift: Double read FOrientationShift;
+    property StredniChybaOrPos: Double read FStredniChybaOrPos;
 
-    // Each input point: X = measured direction [gon], Y = measured distance [m]
     function Calculate(const Body: GeoAlgorithmBase.TPointsArray): GeoAlgorithmBase.TPointsArray; override;
   end;
 
 implementation
 
+const
+  GON_TO_RAD = Pi / 200;
+  RAD_TO_GON = 200 / Pi;
+  MEZNI_DFI  = 0.08;
+
 constructor TPolarMethodAlgorithm.Create;
 begin
   inherited Create;
+  FOrientationShift := 0;
+  FStredniChybaOrPos := 0;
 end;
 
 constructor TPolarMethodAlgorithm.Create(const AStation: TPoint; const AOrientations: TOrientations);
@@ -46,45 +51,91 @@ begin
   inherited Create;
   FStation := AStation;
   FOrientations := AOrientations;
+  FOrientationShift := 0;
+  FStredniChybaOrPos := 0;
 end;
 
 function TPolarMethodAlgorithm.Calculate(const Body: GeoAlgorithmBase.TPointsArray): GeoAlgorithmBase.TPointsArray;
 var
-  i, j: Integer;
-  d, psi, sigma_AP, sigma_AB, delta, psi_B_rad, sum_delta: Double;
-  X, Y: Double;
-  n: Integer;
+  i, j, n: Integer;
+  sigma_AB, psi_B_rad, delta_i, delta: Double;
+  sumSin, sumCos: Double;
+  deltas: array of Double;
+  dfi, ds, dist_computed: Double;
+  sumDfiSqr: Double;
+  maxDist: Double;
+  d, psi, sigma_AP: Double;
 begin
+  ClearWarnings;
+
   n := Length(FOrientations);
   if n = 0 then
     raise Exception.Create('Nebyly zadány žádné orientační body.');
 
-  // Compute average orientation correction delta [rad] from all orientation points
-  sum_delta := 0;
+  SetLength(deltas, n);
+  sumSin := 0;
+  sumCos := 0;
+
   for i := 0 to n - 1 do
   begin
-    sigma_AB := arctan2(FOrientations[i].B.Y - FStation.Y,
+    sigma_AB := ArcTan2(FOrientations[i].B.Y - FStation.Y,
                         FOrientations[i].B.X - FStation.X);
-    psi_B_rad := FOrientations[i].psi_B * Pi / 200; // gon -> rad
-    sum_delta := sum_delta + (sigma_AB - psi_B_rad);
+    psi_B_rad := FOrientations[i].psi_B * GON_TO_RAD;
+    delta_i := sigma_AB - psi_B_rad;
+    deltas[i] := delta_i;
+    sumCos := sumCos + Cos(delta_i);
+    sumSin := sumSin + Sin(delta_i);
   end;
 
-  delta := sum_delta / n;
+  delta := ArcTan2(sumSin, sumCos);
+  FOrientationShift := delta * RAD_TO_GON;
 
-  // Apply orientation correction to each measured point
+  sumDfiSqr := 0;
+  maxDist := 0;
+
+  for i := 0 to n - 1 do
+  begin
+    dfi := ArcTan2(Sin(deltas[i] - delta), Cos(deltas[i] - delta)) * RAD_TO_GON;
+    sumDfiSqr := sumDfiSqr + Sqr(dfi);
+
+    if Abs(dfi) > MEZNI_DFI then
+      AddWarning(Format('Orientace %d: odchylka or. posunu dfi = %.4f g překračuje mezní hodnotu %.2f g',
+        [FOrientations[i].B.PointNumber, dfi, MEZNI_DFI]));
+
+    if FOrientations[i].dist_B > 0 then
+    begin
+      dist_computed := Sqrt(Sqr(FOrientations[i].B.X - FStation.X) +
+                           Sqr(FOrientations[i].B.Y - FStation.Y));
+      ds := FOrientations[i].dist_B - dist_computed;
+
+      if dist_computed > maxDist then
+        maxDist := dist_computed;
+
+      if Abs(ds) > (0.012 * Sqrt(dist_computed) + 0.10) then
+        AddWarning(Format('Orientace %d: odchylka délky ds = %.3f m překračuje mezní hodnotu %.3f m',
+          [FOrientations[i].B.PointNumber, ds, 0.012 * Sqrt(dist_computed) + 0.10]));
+    end;
+  end;
+
+  if n > 1 then
+    FStredniChybaOrPos := Sqrt(sumDfiSqr / (n * (n - 1)))
+  else
+    FStredniChybaOrPos := 0;
+
   SetLength(Result, Length(Body));
   for j := 0 to High(Body) do
   begin
-    d := Body[j].Y;           // measured distance [m]
-    psi := Body[j].X * Pi / 200; // measured direction gon -> rad
-    sigma_AP := delta + psi;  // true azimuth [rad]
-
-    X := FStation.X + d * cos(sigma_AP);
-    Y := FStation.Y + d * sin(sigma_AP);
+    d := Body[j].Y;
+    psi := Body[j].X * GON_TO_RAD;
+    sigma_AP := delta + psi;
 
     Result[j] := Body[j];
-    Result[j].X := X;
-    Result[j].Y := Y;
+    Result[j].X := FStation.X + d * Cos(sigma_AP);
+    Result[j].Y := FStation.Y + d * Sin(sigma_AP);
+
+    if (maxDist > 0) and (d > maxDist) then
+      AddWarning(Format('Bod %d: délka %.1f m překračuje nejvzdálenější orientaci %.1f m',
+        [Body[j].PointNumber, d, maxDist]));
   end;
 end;
 

@@ -14,11 +14,15 @@ uses
   Vcl.ComCtrls,
   Vcl.ExtCtrls,
   Vcl.StdCtrls,
+  Math,
   CalcBase,
   GeoFieldsGrid,
   Point,
   GeoRow,
   GeoDataFrame,
+  GeoAlgorithmBase,
+  GeoAlgorithmPolar,
+  PointsUtilsSingleton,
   PointPrefixState, GeoGrid, Vcl.Mask, Vcl.Menus;
 
 type
@@ -222,41 +226,154 @@ end;
 
 procedure TPolarMethodForm.CalculateClick(Sender: TObject);
 var
-  BasePath, S: string;
+  num, r, i, nOrt, nDet: Integer;
+  P, OrPt: Point.TPoint;
+  Orts: TOrientations;
+  InPts, OutPts: TPointsArray;
   Row: TGeoRow;
+  sigma_AB, psi_rad, delta_rad, dfi, ds, dg: Double;
+  AlreadyExists: Boolean;
+  W, PozText: string;
 begin
-  BasePath := IncludeTrailingPathDelimiter(GetCurrentDir);
-
-  FStationDF.ClearData;
-  S := Trim(EditStationNo.Text);
-  if S <> '' then
+  num := StrToIntDef(Trim(EditStationNo.Text), 0);
+  if num <= 0 then
   begin
-    ClearGeoRow(Row);
-    if CheckBox1.Checked then
-      Row.Uloha := 101
-    else
-      Row.Uloha := 102;
-    Row.CB := ShortString(S);
-    Row.VS := StrToFloatDef(Trim(EditStationVS.Text), 0, FS);
-    Row.X  := StrToFloatDef(Trim(EditStationX.Text), 0, FS);
-    Row.Y  := StrToFloatDef(Trim(EditStationY.Text), 0, FS);
-    Row.Z  := StrToFloatDef(Trim(EditStationZ.Text), 0, FS);
-    FStationDF.AddRow(Row);
+    ShowMessage('Zadejte číslo stanoviska.');
+    Exit;
+  end;
+  if not LookupPoint(num, P) then Exit;
+
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+
+  nOrt := 0;
+  SetLength(Orts, GridOrientation.RowCount);
+  for r := GridOrientation.FixedRows to GridOrientation.RowCount - 1 do
+  begin
+    GridOrientation.GetGeoRow(r, Row);
+    num := StrToIntDef(Trim(string(Row.CB)), 0);
+    if num <= 0 then Continue;
+    if Trim(GridOrientation.Cells[GridOrientation.FieldToCol(HZ), r]) = '' then Continue;
+    if not LookupPoint(num, OrPt) then Continue;
+
+    Orts[nOrt].B := OrPt;
+    Orts[nOrt].psi_B := Row.HZ;
+    Orts[nOrt].dist_B := Row.SS;
+    Inc(nOrt);
+  end;
+  SetLength(Orts, nOrt);
+
+  if nOrt = 0 then
+  begin
+    ShowMessage('Zadejte alespoň jednu orientaci s měřeným směrem.');
+    Exit;
   end;
 
-  CollectGridRows(GridOrientation, FOrientDF);
-  CollectGridRows(GridDetail, FDetailDF);
+  nDet := 0;
+  SetLength(InPts, GridDetail.RowCount);
+  for r := GridDetail.FixedRows to GridDetail.RowCount - 1 do
+  begin
+    GridDetail.GetGeoRow(r, Row);
+    num := StrToIntDef(Trim(string(Row.CB)), 0);
+    if num <= 0 then Continue;
+    if Trim(GridDetail.Cells[GridDetail.FieldToCol(SS), r]) = '' then Continue;
 
-  FStationDF.SaveToFile(BasePath + 'Polar_Station.bin');
-  FStationDF.ToCSV(BasePath + 'Polar_Station.csv');
-  FOrientDF.SaveToFile(BasePath + 'Polar_Orient.bin');
-  FOrientDF.ToCSV(BasePath + 'Polar_Orient.csv');
-  FDetailDF.SaveToFile(BasePath + 'Polar_Detail.bin');
-  FDetailDF.ToCSV(BasePath + 'Polar_Detail.csv');
+    InPts[nDet].PointNumber := num;
+    InPts[nDet].X := Row.HZ;
+    InPts[nDet].Y := Row.SS;
+    InPts[nDet].Z := 0;
+    PozText := Trim(string(Row.Poznamka));
+    if PozText = '' then
+      PozText := Trim(GPointPrefix.Popis);
+    InPts[nDet].Quality := StrToIntDef(Trim(GPointPrefix.KK), 0);
+    InPts[nDet].Description := PozText;
+    Inc(nDet);
+  end;
+  SetLength(InPts, nDet);
 
-  ShowMessage('Uloženo: stanovisko=' + IntToStr(FStationDF.Count)
-    + ', orientace=' + IntToStr(FOrientDF.Count)
-    + ', podrobné=' + IntToStr(FDetailDF.Count));
+  num := StrToIntDef(Trim(EditStationNo.Text), 0);
+  TPolarMethodAlgorithm.A := P;
+  TPolarMethodAlgorithm.B := Orts;
+  OutPts := TPolarMethodAlgorithm.Calculate(InPts);
+
+  Memo1.Lines.BeginUpdate;
+  try
+    Memo1.Lines.Clear;
+    Memo1.Lines.Add(' == Polární metoda — pevné stanovisko ==========================================');
+    Memo1.Lines.Add(Format(' Stanovisko: %-15d  Y = %12.2f  X = %12.2f',
+      [num, P.X, P.Y]));
+    Memo1.Lines.Add(' -------------------------------------------------------------------------------');
+    Memo1.Lines.Add(' ORIENTACE:');
+    Memo1.Lines.Add(Format('   %-15s  %10s  %10s  %8s  %8s',
+      ['Číslo bodu', 'Směr [g]', 'Délka [m]', 'dfi [g]', 'ds [m]']));
+
+    delta_rad := TPolarMethodAlgorithm.OrientationShift * Pi / 200;
+    for i := 0 to nOrt - 1 do
+    begin
+      sigma_AB := ArcTan2(Orts[i].B.Y - P.Y, Orts[i].B.X - P.X);
+      psi_rad := Orts[i].psi_B * Pi / 200;
+      dfi := ArcTan2(Sin(sigma_AB - psi_rad - delta_rad),
+                     Cos(sigma_AB - psi_rad - delta_rad)) * 200 / Pi;
+
+      if Orts[i].dist_B > 0 then
+      begin
+        dg := Sqrt(Sqr(Orts[i].B.X - P.X) + Sqr(Orts[i].B.Y - P.Y));
+        ds := Orts[i].dist_B - dg;
+        Memo1.Lines.Add(Format('   %-15d  %10.4f  %10.3f  %8.4f  %8.3f',
+          [Orts[i].B.PointNumber, Orts[i].psi_B, Orts[i].dist_B, dfi, ds]));
+      end
+      else
+        Memo1.Lines.Add(Format('   %-15d  %10.4f  %10s  %8.4f',
+          [Orts[i].B.PointNumber, Orts[i].psi_B, '', dfi]));
+    end;
+
+    Memo1.Lines.Add(' -------------------------------------------------------------------------------');
+    Memo1.Lines.Add(Format(' Or. posun = %.4f g   Střední chyba or. pos. = %.4f g   Mezní = %.2f g',
+      [TPolarMethodAlgorithm.OrientationShift,
+       TPolarMethodAlgorithm.StredniChybaOrPos, 0.08]));
+
+    for W in TPolarMethodAlgorithm.Warnings do
+      Memo1.Lines.Add(' CHYBA: ' + W);
+
+    if nDet > 0 then
+    begin
+      Memo1.Lines.Add('');
+      Memo1.Lines.Add(' PODROBNÉ BODY:');
+      Memo1.Lines.Add(Format('   %-15s  %10s  %10s  %12s  %12s',
+        ['Číslo bodu', 'Směr [g]', 'Délka [m]', 'Y', 'X']));
+
+      i := 0;
+      for r := GridDetail.FixedRows to GridDetail.RowCount - 1 do
+      begin
+        GridDetail.GetGeoRow(r, Row);
+        num := StrToIntDef(Trim(string(Row.CB)), 0);
+        if num <= 0 then Continue;
+        if Trim(GridDetail.Cells[GridDetail.FieldToCol(SS), r]) = '' then Continue;
+        if i >= Length(OutPts) then Break;
+
+        GridDetail.Cells[GridDetail.FieldToCol(Y), r] :=
+          FloatToStr(OutPts[i].X, FS);
+        GridDetail.Cells[GridDetail.FieldToCol(X), r] :=
+          FloatToStr(OutPts[i].Y, FS);
+
+        AlreadyExists := TPointDictionary.GetInstance.PointExists(
+          OutPts[i].PointNumber);
+        TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[i]);
+
+        Memo1.Lines.Add(Format('   %-15d  %10.4f  %10.3f  %12.2f  %12.2f',
+          [OutPts[i].PointNumber, InPts[i].X, InPts[i].Y,
+           OutPts[i].X, OutPts[i].Y]));
+
+        if AlreadyExists then
+          Memo1.Lines.Add('   *** BOD AKTUALIZOVÁN V SEZNAMU ***');
+
+        Inc(i);
+      end;
+    end;
+
+    Memo1.Lines.Add(' ==============================================================================');
+  finally
+    Memo1.Lines.EndUpdate;
+  end;
 end;
 
 end.

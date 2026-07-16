@@ -1,180 +1,104 @@
-object PolarMethodForm: TPolarMethodForm
-  Left = 0
-  Top = 0
+inherited PolarMethodForm: TPolarMethodForm
   Caption = 'Pol'#225'rn'#237' metoda'
-  ClientHeight = 664
-  ClientWidth = 675
-  Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -12
-  Font.Name = 'Segoe UI'
-  Font.Style = []
-  OnActivate = FormActivate
-  OnDeactivate = FormDeactivate
+  StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
-  object ToolBar1: TToolBar
-    Left = 0
-    Top = 0
-    Width = 675
-    Height = 29
-    ButtonHeight = 29
-    Caption = 'ToolBar1'
-    TabOrder = 2
-    ExplicitWidth = 664
-  end
-  object ToolBar2: TToolBar
-    AlignWithMargins = True
-    Left = 3
-    Top = 32
-    Width = 669
-    Height = 29
-    ButtonHeight = 23
-    Caption = 'ToolBar2'
-    List = True
-    AllowTextButtons = True
-    TabOrder = 1
-    ExplicitWidth = 658
-    object CheckBox1: TCheckBox
+  inherited ToolBarPrefix: TToolBar
+    ExplicitWidth = 792
+    object CheckBox1: TCheckBox [0]
       Left = 0
       Top = 0
       Width = 121
       Height = 23
       Caption = 'Voln'#233' stanovisko'
-      TabOrder = 0
+      TabOrder = 4
       OnClick = CheckBox1Click
     end
-    object ComboBoxKU: TComboBox
-      AlignWithMargins = True
+    object ToolButton4: TToolButton [1]
       Left = 121
       Top = 0
-      Width = 99
-      Height = 23
-      Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
-      ItemIndex = 0
-      MaxLength = 6
-      TabOrder = 1
-      Text = '000000'
-      OnExit = PrefixComboExit
-      Items.Strings = (
-        '000000'
-        '000001'
-        '000002')
-    end
-    object ToolButton3: TToolButton
-      Left = 220
-      Top = 0
       Width = 8
-      Caption = 'ToolButton3'
-      ImageIndex = 1
+      Caption = 'ToolButton4'
+      ImageIndex = 0
       Style = tbsSeparator
     end
-    object ComboBoxZPMZ: TComboBox
+    inherited ComboBoxKU: TComboBox
+      Left = 129
+      StyleElements = [seFont, seClient, seBorder]
+      ExplicitLeft = 129
+    end
+    inherited ToolButton1: TToolButton
       Left = 228
-      Top = 0
-      Width = 94
-      Height = 23
-      Hint = 'Popis bodu'
-      ItemIndex = 0
-      MaxLength = 5
-      TabOrder = 2
-      Text = '00000'
-      OnExit = PrefixComboExit
-      Items.Strings = (
-        '00000'
-        '00001'
-        '00002')
+      ExplicitLeft = 228
     end
-    object ToolButton1: TToolButton
-      Left = 322
-      Top = 0
-      Width = 8
-      Caption = 'ToolButton1'
-      ImageIndex = 3
-      Style = tbsSeparator
+    inherited ComboBoxZPMZ: TComboBox
+      Left = 236
+      StyleElements = [seFont, seClient, seBorder]
+      ExplicitLeft = 236
     end
-    object ComboBoxKK: TComboBox
-      AlignWithMargins = True
+    inherited ToolButton2: TToolButton
       Left = 330
-      Top = 0
-      Width = 40
-      Height = 23
-      Hint = 'K'#243'd kvality'
-      Align = alRight
-      Style = csDropDownList
-      TabOrder = 3
-      OnExit = PrefixComboExit
-      Items.Strings = (
-        '0'
-        '1'
-        '2'
-        '3'
-        '4'
-        '5'
-        '6'
-        '7'
-        '8')
+      ExplicitLeft = 330
     end
-    object ToolButton2: TToolButton
-      Left = 370
-      Top = 0
-      Width = 8
-      Caption = 'ToolButton2'
-      ImageIndex = 2
-      Style = tbsSeparator
+    inherited ComboBoxKK: TComboBox
+      Left = 338
+      StyleElements = [seFont, seClient, seBorder]
+      ExplicitLeft = 338
     end
-    object ComboBoxPopis: TComboBox
+    inherited ToolButton3: TToolButton
       Left = 378
-      Top = 0
-      Width = 145
-      Height = 23
-      TabOrder = 4
-      OnExit = PrefixComboExit
+      ExplicitLeft = 378
+    end
+    inherited ComboBoxPopis: TComboBox
+      Left = 386
+      StyleElements = [seFont, seClient, seBorder]
+      ExplicitLeft = 386
     end
   end
-  object Panel1: TPanel
+  inherited StatusBar1: TStatusBar
+    ExplicitTop = 573
+    ExplicitWidth = 798
+  end
+  object Panel1: TPanel [2]
     Left = 0
-    Top = 64
-    Width = 675
-    Height = 600
+    Top = 35
+    Width = 800
+    Height = 546
     Align = alClient
     BevelOuter = bvNone
-    TabOrder = 0
-    ExplicitWidth = 664
-    ExplicitHeight = 554
+    TabOrder = 2
+    ExplicitWidth = 798
+    ExplicitHeight = 538
     object Splitter1: TSplitter
       Left = 0
       Top = 52
-      Width = 675
+      Width = 800
       Height = 5
       Cursor = crVSplit
       Align = alTop
-      ExplicitTop = 73
-      ExplicitWidth = 624
-    end
-    object Splitter2: TSplitter
-      Left = 0
-      Top = 289
-      Width = 675
-      Height = 35
-      Cursor = crVSplit
-      Align = alTop
-      ExplicitTop = 326
-      ExplicitWidth = 634
+      ExplicitWidth = 675
     end
     object Label1: TLabel
       Left = 0
       Top = 57
-      Width = 675
+      Width = 800
       Height = 15
       Align = alTop
       Caption = 'Orientace'
       ExplicitWidth = 51
     end
+    object Splitter2: TSplitter
+      Left = 0
+      Top = 319
+      Width = 800
+      Height = 5
+      Cursor = crVSplit
+      Align = alTop
+      ExplicitWidth = 675
+    end
     object Label2: TLabel
       Left = 0
-      Top = 354
-      Width = 675
+      Top = 324
+      Width = 800
       Height = 15
       Align = alTop
       Caption = 'Podrobn'#233' body'
@@ -183,12 +107,12 @@ object PolarMethodForm: TPolarMethodForm
     object PanelStation: TPanel
       Left = 0
       Top = 0
-      Width = 675
+      Width = 800
       Height = 52
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitWidth = 664
+      ExplicitWidth = 798
       object EditStationNo: TLabeledEdit
         Left = 8
         Top = 22
@@ -287,7 +211,7 @@ object PolarMethodForm: TPolarMethodForm
     object GridOrientation: TGeoFieldsGrid
       Left = 0
       Top = 72
-      Width = 675
+      Width = 800
       Height = 128
       Align = alTop
       ColCount = 8
@@ -306,7 +230,7 @@ object PolarMethodForm: TPolarMethodForm
         'HZ uhel [g]'
         'Poznamka')
       GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
-      ExplicitWidth = 664
+      ExplicitWidth = 798
       ColWidths = (
         64
         64
@@ -317,10 +241,45 @@ object PolarMethodForm: TPolarMethodForm
         64
         64)
     end
+    object Memo1: TMemo
+      Left = 0
+      Top = 200
+      Width = 800
+      Height = 89
+      Align = alTop
+      Lines.Strings = (
+        'Protokol')
+      TabOrder = 2
+      ExplicitWidth = 798
+    end
+    object PanelCalculate: TPanel
+      Left = 0
+      Top = 289
+      Width = 800
+      Height = 30
+      Align = alTop
+      BevelOuter = bvNone
+      TabOrder = 3
+      ExplicitWidth = 798
+      DesignSize = (
+        800
+        30)
+      object Calculate: TButton
+        Left = 584
+        Top = 2
+        Width = 75
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = 'V'#253'po'#269'et'
+        TabOrder = 0
+        OnClick = CalculateClick
+        ExplicitLeft = 582
+      end
+    end
     object GridDetail: TGeoFieldsGrid
       Left = 0
-      Top = 369
-      Width = 675
+      Top = 339
+      Width = 800
       Height = 161
       Align = alTop
       ColCount = 8
@@ -339,7 +298,7 @@ object PolarMethodForm: TPolarMethodForm
         'HZ uhel [g]'
         'Poznamka')
       GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
-      ExplicitWidth = 664
+      ExplicitWidth = 798
       ColWidths = (
         64
         64
@@ -350,56 +309,20 @@ object PolarMethodForm: TPolarMethodForm
         64
         64)
     end
-    object StatusBar1: TStatusBar
-      Left = 0
-      Top = 581
-      Width = 675
-      Height = 19
-      Panels = <
-        item
-          Width = 50
-        end>
-      ExplicitTop = 535
-      ExplicitWidth = 664
-    end
-    object PanelCalculate: TPanel
-      Left = 0
-      Top = 324
-      Width = 675
-      Height = 30
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 3
-      ExplicitWidth = 664
-      DesignSize = (
-        675
-        30)
-      object Calculate: TButton
-        Left = 588
-        Top = 6
-        Width = 75
-        Height = 25
-        Anchors = [akTop, akRight]
-        Caption = 'V'#253'po'#269'et'
-        TabOrder = 0
-        OnClick = CalculateClick
-        ExplicitLeft = 577
-      end
-    end
     object PanelSave: TPanel
       Left = 0
-      Top = 530
-      Width = 675
+      Top = 500
+      Width = 800
       Height = 30
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 5
-      ExplicitWidth = 664
+      ExplicitWidth = 798
       DesignSize = (
-        675
+        800
         30)
       object Save: TButton
-        Left = 588
+        Left = 584
         Top = 2
         Width = 75
         Height = 25
@@ -407,19 +330,8 @@ object PolarMethodForm: TPolarMethodForm
         Caption = 'Ulo'#382'it'
         TabOrder = 0
         OnClick = CalculateClick
-        ExplicitLeft = 577
+        ExplicitLeft = 582
       end
-    end
-    object Memo1: TMemo
-      Left = 0
-      Top = 200
-      Width = 675
-      Height = 89
-      Align = alTop
-      Lines.Strings = (
-        'Protokol')
-      TabOrder = 2
-      ExplicitWidth = 664
     end
   end
 end

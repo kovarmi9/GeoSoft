@@ -26,8 +26,8 @@ uses
 
 type
   TOrthogonalMethodForm = class(TCalcBaseForm)
-    StringGrid1: TGeoPointsGrid;
-    MyPointsStringGrid1: TGeoPointsGrid;
+    GridBaseline: TGeoPointsGrid;
+    GridDetail: TGeoPointsGrid;
     Panel2: TPanel;
     PanelSave: TPanel;
     Memo1: TMemo;
@@ -62,26 +62,26 @@ begin
 
   SetupValidations;
 
-  StringGrid1.OnCellCommitted         := BasePointCommitted;
-  MyPointsStringGrid1.OnCellCommitted := DetailPointCommitted;
-  MyPointsStringGrid1.OnSelectCell    := DetailGridSelectCell;
-  MyPointsStringGrid1.Enabled         := False;
+  GridBaseline.OnCellCommitted         := BasePointCommitted;
+  GridDetail.OnCellCommitted := DetailPointCommitted;
+  GridDetail.OnSelectCell    := DetailGridSelectCell;
+  GridDetail.Enabled         := False;
 end;
 
 procedure TOrthogonalMethodForm.SetupValidations;
 begin
-  StringGrid1.ColumnFilters[0].DataType := cdtInteger;
-  StringGrid1.ColumnFilters[1].DataType := cdtExpression;
-  StringGrid1.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
-  StringGrid1.ColumnFilters[2].DataType := cdtExpression;
-  StringGrid1.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
+  GridBaseline.ColumnFilters[0].DataType := cdtInteger;
+  GridBaseline.ColumnFilters[1].DataType := cdtExpression;
+  GridBaseline.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
+  GridBaseline.ColumnFilters[2].DataType := cdtExpression;
+  GridBaseline.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
 
-  MyPointsStringGrid1.ColumnFilters[0].DataType := cdtInteger;
-  MyPointsStringGrid1.ColumnFilters[1].DataType := cdtExpression;
-  MyPointsStringGrid1.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
-  MyPointsStringGrid1.ColumnFilters[2].DataType := cdtExpression;
-  MyPointsStringGrid1.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
-  with MyPointsStringGrid1.ColumnFilters[6] do
+  GridDetail.ColumnFilters[0].DataType := cdtInteger;
+  GridDetail.ColumnFilters[1].DataType := cdtExpression;
+  GridDetail.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
+  GridDetail.ColumnFilters[2].DataType := cdtExpression;
+  GridDetail.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
+  with GridDetail.ColumnFilters[6] do
   begin
     DataType := cdtInteger;  OnInvalidCommit := ciaBeepAndClear;
     HasMinValue := True;  MinValue := 0;
@@ -104,7 +104,7 @@ var
   PNum: Integer;
   P: Point.TPoint;
 begin
-  G := MyPointsStringGrid1;
+  G := GridDetail;
   if ARow < G.FixedRows then Exit;
 
   case ACol of
@@ -134,8 +134,8 @@ end;
 
 procedure TOrthogonalMethodForm.DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
-  if ARow >= MyPointsStringGrid1.FixedRows then
-    MyPointsStringGrid1.Cells[0, ARow] := IntToStr(ARow);
+  if ARow >= GridDetail.FixedRows then
+    GridDetail.Cells[0, ARow] := IntToStr(ARow);
 end;
 
 function TOrthogonalMethodForm.ReadFloat(Grid: TGeoPointsGrid; Col, Row: Integer; out V: Double): Boolean;
@@ -158,14 +158,14 @@ var
   num: Integer;
 begin
   Result := False;
-  num := StrToIntDef(StringGrid1.Cells[1, R], -1);
+  num := StrToIntDef(GridBaseline.Cells[1, R], -1);
   if num <= 0 then
   begin
-    ShowMessage(Format('Zadejte '#269#237'slo bodu v '#345#225'dku %s.', [StringGrid1.Cells[0, R]]));
+    ShowMessage(Format('Zadejte '#269#237'slo bodu v '#345#225'dku %s.', [GridBaseline.Cells[0, R]]));
     Exit;
   end;
   if not LookupPoint(num, P) then Exit;
-  FillRowFromPoint(StringGrid1, R, P);
+  FillRowFromPoint(GridBaseline, R, P);
   Result := True;
 end;
 
@@ -178,30 +178,30 @@ var
   W: string;
 begin
   Result := False;
-  if not ReadFloat(MyPointsStringGrid1, 2, R, s) then Exit;
-  if not ReadFloat(MyPointsStringGrid1, 3, R, q) then Exit;
+  if not ReadFloat(GridDetail, 2, R, s) then Exit;
+  if not ReadFloat(GridDetail, 3, R, q) then Exit;
 
   Alg := TOrthogonalMethodAlgorithm.Create;
   try
     Alg.Scale        := TOrthogonalMethodAlgorithm.Scale;
     SetLength(InPts, 1);
-    InPts[0].PointNumber := StrToIntDef(MyPointsStringGrid1.Cells[1, R], 0);
+    InPts[0].PointNumber := StrToIntDef(GridDetail.Cells[1, R], 0);
     InPts[0].X           := s;
     InPts[0].Y           := q;
     InPts[0].Z           := 0;
-    InPts[0].Quality     := StrToIntDef(MyPointsStringGrid1.Cells[7, R], 0);
-    InPts[0].Description := MyPointsStringGrid1.Cells[8, R];
+    InPts[0].Quality     := StrToIntDef(GridDetail.Cells[7, R], 0);
+    InPts[0].Description := GridDetail.Cells[8, R];
     OutPts := Alg.Calculate(InPts);
     if Length(OutPts) > 0 then
     begin
       AlreadyExists := TPointDictionary.GetInstance.PointExists(OutPts[0].PointNumber);
-      MyPointsStringGrid1.Cells[4, R] := FloatToStr(OutPts[0].X, FS);
-      MyPointsStringGrid1.Cells[5, R] := FloatToStr(OutPts[0].Y, FS);
+      GridDetail.Cells[4, R] := FloatToStr(OutPts[0].X, FS);
+      GridDetail.Cells[5, R] := FloatToStr(OutPts[0].Y, FS);
       TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
       Memo1.Lines.Add(Format('     %-17s  %12.2f  %12.2f',
-        [FormatPointId(MyPointsStringGrid1.Cells[1, R]), InPts[0].X, InPts[0].Y]));
+        [FormatPointId(GridDetail.Cells[1, R]), InPts[0].X, InPts[0].Y]));
       if AlreadyExists then
-        Memo1.Lines.Add(' *** BOD >' + FormatPointId(MyPointsStringGrid1.Cells[1, R]) + '< V SEZNAMU AKTUALIZOV'#193'N ***');
+        Memo1.Lines.Add(' *** BOD >' + FormatPointId(GridDetail.Cells[1, R]) + '< V SEZNAMU AKTUALIZOV'#193'N ***');
       for W in Alg.Warnings do
         Memo1.Lines.Add(' CHYBA: ' + W);
       Result := True;
@@ -214,13 +214,13 @@ end;
 procedure TOrthogonalMethodForm.AnchorGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = VK_DELETE then
-    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
+    GridBaseline.Cells[GridBaseline.Col, GridBaseline.Row] := '';
 end;
 
 procedure TOrthogonalMethodForm.DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if Key = VK_DELETE then
-    MyPointsStringGrid1.Cells[MyPointsStringGrid1.Col, MyPointsStringGrid1.Row] := '';
+    GridDetail.Cells[GridDetail.Col, GridDetail.Row] := '';
 end;
 
 procedure TOrthogonalMethodForm.Button1Click(Sender: TObject);
@@ -232,10 +232,10 @@ begin
   if not LoadBasePoint(1, P0) then Exit;
   if not LoadBasePoint(2, K0) then Exit;
 
-  if not ReadFloat(StringGrid1, 2, 1, sP) then sP := 0;
-  if not ReadFloat(StringGrid1, 3, 1, qP) then qP := 0;
-  if not ReadFloat(StringGrid1, 2, 2, sK) then sK := 0;
-  if not ReadFloat(StringGrid1, 3, 2, qK) then qK := 0;
+  if not ReadFloat(GridBaseline, 2, 1, sP) then sP := 0;
+  if not ReadFloat(GridBaseline, 3, 1, qP) then qP := 0;
+  if not ReadFloat(GridBaseline, 2, 2, sK) then sK := 0;
+  if not ReadFloat(GridBaseline, 3, 2, qK) then qK := 0;
 
   TOrthogonalMethodAlgorithm.StartPoint := P0;
   TOrthogonalMethodAlgorithm.EndPoint   := K0;
@@ -253,8 +253,8 @@ begin
   Memo1.Lines.Clear;
   Memo1.Lines.Add(' == 0   Ortogon'#225'ln'#237' metoda  =====================================================');
   Memo1.Lines.Add('             '#268#205'SLO BODU   STANI'#268'EN'#205'     KOLMICE');
-  Memo1.Lines.Add(Format('   P:  %-17s  %12.2f  %12.2f', [FormatPointId(StringGrid1.Cells[1, 1]), sP, qP]));
-  Memo1.Lines.Add(Format('   K:  %-17s  %12.2f  %12.2f', [FormatPointId(StringGrid1.Cells[1, 2]), sK, qK]));
+  Memo1.Lines.Add(Format('   P:  %-17s  %12.2f  %12.2f', [FormatPointId(GridBaseline.Cells[1, 1]), sP, qP]));
+  Memo1.Lines.Add(Format('   K:  %-17s  %12.2f  %12.2f', [FormatPointId(GridBaseline.Cells[1, 2]), sK, qK]));
   Memo1.Lines.Add(' -------------------------------------------------------------------------------');
   Memo1.Lines.Add(Format('  Odch   = %7.3f  Mezn'#237' KK[3]  = %7.3f', [Odch, MezniOdch]));
   if Odch > MezniOdch then
@@ -262,11 +262,11 @@ begin
   Memo1.Lines.Add('');
   Memo1.Lines.Add(' -- PODROBN'#201' BODY -------------------------------------------------------------');
 
-  MyPointsStringGrid1.Enabled := True;
-  MyPointsStringGrid1.SetFocus;
-  MyPointsStringGrid1.Row := MyPointsStringGrid1.FixedRows;
-  MyPointsStringGrid1.Col := 1;
-  MyPointsStringGrid1.EditorMode := True;
+  GridDetail.Enabled := True;
+  GridDetail.SetFocus;
+  GridDetail.Row := GridDetail.FixedRows;
+  GridDetail.Col := 1;
+  GridDetail.EditorMode := True;
 end;
 
 end.

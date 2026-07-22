@@ -37,13 +37,6 @@ requires
   xmlrtl;
 
 contains
-  ColumnValidation in '..\Components\ColumnValidation.pas',
-  MyStringGrid in '..\Components\MyStringGrid.pas',
-  MyStringGridReg in '..\Components\MyStringGridReg.pas',
-  MyPointsStringGrid in '..\Components\MyPointsStringGrid.pas',
-  MyFieldsStringGrid in '..\Components\MyFieldsStringGrid.pas',
-  GeoFieldColumn in '..\Components\GeoFieldColumn.pas',
   GeoRow in '..\DataStructures\GeoRow.pas';
 
 end.
-

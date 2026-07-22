@@ -16,9 +16,6 @@ object Form2: TForm2
     Left = 180
     Top = 0
     Height = 500
-    ExplicitLeft = 185
-    ExplicitTop = 192
-    ExplicitHeight = 100
   end
   object PanelLeft: TPanel
     Left = 0
@@ -28,7 +25,6 @@ object Form2: TForm2
     Align = alLeft
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitHeight = 492
     object LabelFields: TLabel
       Left = 8
       Top = 8
@@ -45,33 +41,17 @@ object Form2: TForm2
       ItemHeight = 17
       TabOrder = 0
       OnClickCheck = CheckListFieldsClickCheck
-      ExplicitTop = 20
     end
   end
-  object MyFieldsStringGrid1: TMyFieldsStringGrid
+  object GeoFieldsGrid1: TGeoFieldsGrid
     Left = 183
     Top = 0
     Width = 617
     Height = 500
     Align = alClient
-    ColCount = 3
-    FixedCols = 2
-    FixedRows = 2
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    ColCount = 2
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs]
     TabOrder = 1
-    ColumnFilters = <
-      item
-      end
-      item
-      end
-      item
-      end>
     GeoFields = []
-    ExplicitWidth = 615
-    ExplicitHeight = 492
-    ColWidths = (
-      118
-      118
-      0)
   end
 end

@@ -40,7 +40,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       ExplicitLeft = 692
     end
   end
-  object StringGrid1: TGeoPointsGrid [2]
+  object GridBaseline: TGeoPointsGrid [2]
     Left = 0
     Top = 75
     Width = 800
@@ -115,7 +115,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     TabOrder = 3
     ExplicitWidth = 798
   end
-  object MyPointsStringGrid1: TGeoPointsGrid [4]
+  object GridDetail: TGeoPointsGrid [4]
     Left = 0
     Top = 364
     Width = 800

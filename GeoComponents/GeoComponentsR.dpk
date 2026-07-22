@@ -29,7 +29,8 @@ package GeoComponentsR;
 
 requires
   rtl,
-  vcl;
+  vcl,
+  GeoSoftComponentsR;
 
 contains
   GeoGrid in 'GeoGrid.pas',

@@ -74,7 +74,6 @@ GeoSoft/
 │   │
 │   ├── Components/         ⚠ DEPRECATED — bude nahrazeno GeoComponents
 │   │   ├── MyStringGrid.pas
-│   │   ├── MyPointsStringGrid.pas
 │   │   ├── MyFieldsStringGrid.pas
 │   │   ├── ColumnValidation.pas
 │   │   ├── GeoFieldColumn.pas
@@ -317,7 +316,7 @@ Uživatel zadá číslo bodu → LookupOrPromptPoint()
 - Ukládá do CSV + BIN souborů: `Polar_Station`, `Polar_Orient`, `Polar_Detail`
 - ⚠ Výsledky výpočtu se **NEUKLÁDAJÍ** automaticky do slovníku bodů
 
-**Závislosti:** `TGeoDataFrame`, `TGeoRow`, `MyStringGrid`, `MyPointsStringGrid`, `PointsUtilsSingleton`, `PointPrefixState`
+**Závislosti:** `TGeoDataFrame`, `TGeoRow`, `MyStringGrid`, `PointsUtilsSingleton`, `PointPrefixState`
 
 ### `OrthogonalMethod.pas` — ortogonální metoda
 Grid s kotevními body (ř. 1-2) a podrobnými body (ř. 3+).
@@ -331,7 +330,7 @@ Grid s kotevními body (ř. 1-2) a podrobnými body (ř. 3+).
 - Zapíše X, Y do cols 4-5
 - **Po výpočtu uloží výsledný bod do slovníku:** `TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0])`
 
-**Závislosti:** `GeoAlgorithmBase`, `GeoAlgorithmOrthogonal` (Utils v1), `MyPointsStringGrid`, `PointsUtilsSingleton`
+**Závislosti:** `GeoAlgorithmBase`, `GeoAlgorithmOrthogonal` (Utils v1), `GeoPointsGrid`, `PointsUtilsSingleton`
 
 ### `ParcelArea.pas` — polární metoda (stará)
 Podobná OrthogonalMethod — stanovisko A (ř.1), orientace B (ř.2), podrobné body (ř.3+).
@@ -454,7 +453,6 @@ Označeno soubory `Bude_smazano_zatim_zusva_kvuli_funkcnosti.txt` a `taky_bude_s
 ### src/Components/
 Starší komponentová větev — stále používaná GUI formuláři.
 - `MyStringGrid` — dual validace (callback + ColumnFilters), `EnterEndBehavior`
-- `MyPointsStringGrid` — specializace pro body (`ebAddRow`)
 - `MyFieldsStringGrid` — field-driven grid s `SetGeoRow`/`GetGeoRow`; závisí na `GeoRow`
 - `ColumnValidation` — validační engine s **COM/VBScript** (`MSScriptControl`)
 - `GeoFieldColumn` — mapování `TGeoField` → display name + `TColumnFilter`; závisí na `GeoRow`

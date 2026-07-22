@@ -3,29 +3,24 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  Point, AddPoint, Vcl.Grids, MyStringGrid, GeoRow,
-  MyFieldsStringGrid;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Grids,
+  Point, AddPoint, GeoRow,
+  GeoGrid, GeoFieldsGrid, GeoFieldsDef;
 
 type
   TCheckMeasurementForm = class(TForm)
-    Button1: TButton;
+    GridMeasurement: TGeoFieldsGrid;
     Edit1: TEdit;
-    Button2: TButton;
-    MyFieldsStringGrid1: TMyFieldsStringGrid;
+    Button1: TButton;
     procedure FormCreate(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
   private
-    { Private declarations }
   public
-    { Public declarations }
   end;
 
 var
   CheckMeasurementForm: TCheckMeasurementForm;
-  NewPoint: Point.TPoint;
 
 implementation
 
@@ -33,8 +28,7 @@ implementation
 
 procedure TCheckMeasurementForm.FormCreate(Sender: TObject);
 begin
-  // Vyber sloupce které chceš zobrazit:
-  MyFieldsStringGrid1.GeoFields := [CB, X, Y, Z, HZ, SS, Poznamka];
+  GridMeasurement.GeoFields := [CB, X, Y, Z, HZ, SS, Poznamka];
 end;
 
 procedure TCheckMeasurementForm.Button1Click(Sender: TObject);
@@ -45,28 +39,18 @@ var
 begin
   if not TryStrToInt(Edit1.Text, PointNumber) then
   begin
-    ShowMessage('Enter a valid point number!');
+    ShowMessage('Zadejte platné číslo bodu.');
     Exit;
   end;
   F := TAddPointForm.Create(Self);
   try
     if F.Execute(PointNumber, NewPoint) then
-    begin
-      ShowMessage(Format('Point %d added successfully!', [NewPoint.PointNumber]));
-      // You can use NewPoint here or pass it elsewhere.
-    end
+      ShowMessage(Format('Bod %d úspěšně přidán.', [NewPoint.PointNumber]))
     else
-    begin
-      ShowMessage('Point entry cancelled.');
-    end;
+      ShowMessage('Přidání bodu zrušeno.');
   finally
     F.Free;
   end;
-end;
-
-procedure TCheckMeasurementForm.Button2Click(Sender: TObject);
-begin
-  // TestFieldGrid (Form2) odpojen — byl testovací formulář
 end;
 
 end.

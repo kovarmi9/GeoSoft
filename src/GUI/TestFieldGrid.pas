@@ -1,11 +1,12 @@
-﻿unit TestFieldGrid;
+unit TestFieldGrid;
 
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.CheckLst, Vcl.ExtCtrls, Vcl.StdCtrls,
-  MyStringGrid, MyFieldsStringGrid, GeoFieldColumn, GeoRow;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.CheckLst,
+  Vcl.ExtCtrls, Vcl.StdCtrls,
+  GeoGrid, GeoFieldsGrid, GeoFieldsDef, GeoRow;
 
 type
   TForm2 = class(TForm)
@@ -13,7 +14,7 @@ type
     LabelFields: TLabel;
     CheckListFields: TCheckListBox;
     SplitterLeft: TSplitter;
-    MyFieldsStringGrid1: TMyFieldsStringGrid;
+    GeoFieldsGrid1: TGeoFieldsGrid;
     procedure FormCreate(Sender: TObject);
     procedure CheckListFieldsClickCheck(Sender: TObject);
   private
@@ -33,11 +34,11 @@ var
   F: TGeoField;
 begin
   for F := Low(TGeoField) to High(TGeoField) do
-    CheckListFields.Items.Add(GeoFieldColumnData[F].DisplayName);
+    CheckListFields.Items.Add(GeoFieldColumns[F].DisplayName);
 
-  MyFieldsStringGrid1.RowCount := 10;
-  MyFieldsStringGrid1.EnterEndBehavior := ebAddRow;
-  MyFieldsStringGrid1.GeoFields := [];
+  GeoFieldsGrid1.RowCount := 10;
+  GeoFieldsGrid1.EnterEndBehavior := ebAddRow;
+  GeoFieldsGrid1.GeoFields := [];
 end;
 
 function TForm2.BuildGeoFields: TGeoFields;
@@ -52,7 +53,7 @@ end;
 
 procedure TForm2.CheckListFieldsClickCheck(Sender: TObject);
 begin
-  MyFieldsStringGrid1.GeoFields := BuildGeoFields;
+  GeoFieldsGrid1.GeoFields := BuildGeoFields;
 end;
 
 end.

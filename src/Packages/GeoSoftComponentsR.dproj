@@ -108,12 +108,6 @@
         <DCCReference Include="vclactnband.dcp"/>
         <DCCReference Include="vclx.dcp"/>
         <DCCReference Include="xmlrtl.dcp"/>
-        <DCCReference Include="..\Components\ColumnValidation.pas"/>
-        <DCCReference Include="..\Components\MyStringGrid.pas"/>
-        <DCCReference Include="..\Components\MyStringGridReg.pas"/>
-        <DCCReference Include="..\Components\MyPointsStringGrid.pas"/>
-        <DCCReference Include="MyFieldsStringGrid.pas"/>
-        <DCCReference Include="GeoFieldColumn.pas"/>
         <DCCReference Include="..\Test_gdf\GeoRow.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

@@ -151,18 +151,12 @@
         <DCCReference Include="PolarMethod.pas">
             <Form>PolarMethodForm</Form>
         </DCCReference>
-        <DCCReference Include="..\Utils\StringGridValidationUtils.pas"/>
         <DCCReference Include="..\Utils\GeoAlgorithmBase.pas"/>
         <DCCReference Include="..\Utils\GeoAlgorithmOrthogonal.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformBase.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas"/>
-        <DCCReference Include="..\Components\MyStringGrid.pas"/>
-        <DCCReference Include="..\Components\MyPointsStringGrid.pas">
-            <Form>/,</Form>
-        </DCCReference>
-        <DCCReference Include="..\Utils\InputFilterUtils.pas"/>
         <DCCReference Include="TestFieldGrid.pas">
             <Form>Form2</Form>
             <FormType>dfm</FormType>

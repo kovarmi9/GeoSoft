@@ -86,6 +86,7 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
+        <DCCReference Include="GeoSoftComponentsR.dcp"/>
         <DCCReference Include="GeoGrid.pas"/>
         <DCCReference Include="GeoColumnValidation.pas"/>
         <DCCReference Include="GeoFieldsDef.pas"/>

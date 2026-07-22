@@ -45,7 +45,6 @@ type
     procedure FillRowFromPoint(Grid: TGeoPointsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
     function  TryComputeDetailRow(R: Integer): Boolean;
-    function  FormatPointId(const S: string): string;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -268,14 +267,6 @@ begin
   MyPointsStringGrid1.Row := MyPointsStringGrid1.FixedRows;
   MyPointsStringGrid1.Col := 1;
   MyPointsStringGrid1.EditorMode := True;
-end;
-
-function TOrthogonalMethodForm.FormatPointId(const S: string): string;
-var
-  N: string;
-begin
-  N := Format('%015d', [StrToInt64Def(Trim(S), 0)]);
-  Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
 end;
 
 end.

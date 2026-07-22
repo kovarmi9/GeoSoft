@@ -1,4 +1,4 @@
-object CalcBaseForm: TCalcBaseForm
+﻿object CalcBaseForm: TCalcBaseForm
   Left = 0
   Top = 0
   Caption = 'CalcBaseForm'
@@ -127,6 +127,10 @@ object CalcBaseForm: TCalcBaseForm
     Top = 152
     object MenuUloha: TMenuItem
       Caption = #218'loha'
+      object MenuUlozitProtokol: TMenuItem
+        Caption = 'Ulo'#382'it protokol...'
+        OnClick = MenuUlozitProtokolClick
+      end
     end
     object MenuNastaveni: TMenuItem
       Caption = 'Nastaven'#237
@@ -134,5 +138,12 @@ object CalcBaseForm: TCalcBaseForm
     object MenuNapoveda: TMenuItem
       Caption = 'N'#225'pov'#283'da'
     end
+  end
+  object SaveDialogProtokol: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = 'Textov'#253' soubor (*.txt)|*.txt|V'#353'echny soubory (*.*)|*.*'
+    Title = 'Ulo'#382'it protokol'
+    Left = 704
+    Top = 200
   end
 end

@@ -4,15 +4,17 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms,
-  Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus,
+  Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
   PointPrefixState, PointsUtilsSingleton, Point, AddPoint;
 
 type
   TCalcBaseForm = class(TForm)
     MainMenu1: TMainMenu;
     MenuUloha: TMenuItem;
+    MenuUlozitProtokol: TMenuItem;
     MenuNastaveni: TMenuItem;
     MenuNapoveda: TMenuItem;
+    SaveDialogProtokol: TSaveDialog;
     ToolBarPrefix: TToolBar;
     ToolButton1: TToolButton;
     ToolButton2: TToolButton;
@@ -25,9 +27,11 @@ type
     procedure PrefixComboExit(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
+    procedure MenuUlozitProtokolClick(Sender: TObject);
   protected
     FS: TFormatSettings;
     function LookupPoint(PointNo: Integer; out pt: Point.TPoint): Boolean;
+    function FormatPointId(const S: string): string;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -102,6 +106,37 @@ begin
 
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+function TCalcBaseForm.FormatPointId(const S: string): string;
+var
+  N: string;
+begin
+  N := Format('%015d', [StrToInt64Def(Trim(S), 0)]);
+  Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
+end;
+
+procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);
+var
+  i: Integer;
+  Memo: TMemo;
+begin
+  Memo := nil;
+  for i := 0 to ComponentCount - 1 do
+    if Components[i] is TMemo then
+    begin
+      Memo := TMemo(Components[i]);
+      Break;
+    end;
+
+  if (Memo = nil) or (Memo.Lines.Count = 0) then
+  begin
+    ShowMessage('Protokol je prázdný.');
+    Exit;
+  end;
+
+  if SaveDialogProtokol.Execute then
+    Memo.Lines.SaveToFile(SaveDialogProtokol.FileName);
 end;
 
 procedure TCalcBaseForm.FormActivate(Sender: TObject);

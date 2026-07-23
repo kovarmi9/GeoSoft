@@ -1,49 +1,38 @@
-object CheckMeasurementForm: TCheckMeasurementForm
-  Left = 0
-  Top = 0
+inherited CheckMeasurementForm: TCheckMeasurementForm
   Caption = 'CheckMeasurementForm'
-  ClientHeight = 441
-  ClientWidth = 624
-  Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -12
-  Font.Name = 'Segoe UI'
-  Font.Style = []
+  StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate
   TextHeight = 15
-  object GridMeasurement: TGeoFieldsGrid
+  inherited ToolBarPrefix: TToolBar
+    ExplicitWidth = 792
+    inherited ComboBoxKU: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxZPMZ: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxKK: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxPopis: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+  end
+  object GridMeasurement: TGeoFieldsGrid [2]
     Left = 0
-    Top = 0
-    Width = 624
-    Height = 441
+    Top = 35
+    Width = 800
+    Height = 546
     Align = alClient
     ColCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs]
-    TabOrder = 0
+    TabOrder = 2
     ColumnHeaders.Strings = (
       '')
     GeoFields = []
-    ExplicitLeft = 8
-    ExplicitTop = 72
+    ExplicitHeight = 438
     ColWidths = (
       64
       0)
-  end
-  object Edit1: TEdit
-    Left = 8
-    Top = 8
-    Width = 121
-    Height = 23
-    TabOrder = 1
-  end
-  object Button1: TButton
-    Left = 135
-    Top = 8
-    Width = 100
-    Height = 25
-    Caption = 'P'#345'idat bod'
-    TabOrder = 2
-    OnClick = Button1Click
   end
 end

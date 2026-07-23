@@ -29,7 +29,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       800
       40)
     object Button1: TButton
-      Left = 694
+      Left = 692
       Top = 9
       Width = 75
       Height = 25
@@ -37,7 +37,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = Button1Click
-      ExplicitLeft = 692
+      ExplicitLeft = 690
     end
   end
   object GridBaseline: TGeoPointsGrid [2]
@@ -112,8 +112,8 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
         '  == 0   Ortogon'#225'ln'#237' metoda  ===================================' +
         '==================')
     ReadOnly = True
+    ScrollBars = ssVertical
     TabOrder = 3
-    ExplicitWidth = 798
   end
   object GridDetail: TGeoPointsGrid [4]
     Left = 0
@@ -188,17 +188,19 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       800
       30)
     object Save: TButton
-      Left = 694
+      Left = 692
       Top = 2
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Ulo'#382'it'
       TabOrder = 0
-      ExplicitLeft = 692
+      ExplicitLeft = 690
     end
   end
   inherited StatusBar1: TStatusBar
     Top = 551
+    ExplicitTop = 543
+    ExplicitWidth = 798
   end
 end

@@ -2,6 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'GeoSoft'
+  Position = poScreenCenter
   ClientHeight = 691
   ClientWidth = 966
   Color = clBtnFace

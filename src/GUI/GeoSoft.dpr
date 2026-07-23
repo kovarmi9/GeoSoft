@@ -1,24 +1,25 @@
-﻿program GeoSoft;
+program GeoSoft;
 
 uses
   Vcl.Forms,
   MainForm in 'MainForm.pas' {Form1},
   PointsManagement in 'PointsManagement.pas' {PointsManagementForm},
-  ParcelArea in 'ParcelArea.pas' {Form3},
-  OrthogonalMethod in 'OrthogonalMethod.pas' {Form4},
-  Transformation in 'Transformation.pas' {TransformationForm},
   AddPoint in 'AddPoint.pas' {AddPointForm},
+  CalcBase in 'CalcBase.pas' {CalcBaseForm},
+  ParcelArea in 'ParcelArea.pas' {ParcelAreaForm},
+  OrthogonalMethod in 'OrthogonalMethod.pas' {OrthogonalMethodForm},
+  Transformation in 'Transformation.pas' {TransformationForm},
   CheckMeasurement in 'CheckMeasurement.pas' {CheckMeasurementForm},
   PolarMethod in 'PolarMethod.pas' {PolarMethodForm},
   GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
   GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas',
+  GeoAlgorithmLHuilier in '..\Utils\GeoAlgorithmLHuilier.pas',
   GeoAlgorithmTransformBase in '..\GeoAlgorithms\GeoAlgorithmTransformBase.pas',
   GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
   TestFieldGrid in 'TestFieldGrid.pas' {Form2},
-  Unit5 in 'Unit5.pas' {Form5},
-  CalcBase in 'CalcBase.pas' {CalcBaseForm};
+  Unit5 in 'Unit5.pas' {Form5};
 
 {$R *.res}
 
@@ -27,10 +28,10 @@ begin
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TPointsManagementForm, PointsManagementForm);
+  Application.CreateForm(TAddPointForm, AddPointForm);
   Application.CreateForm(TParcelAreaForm, ParcelAreaForm);
   Application.CreateForm(TOrthogonalMethodForm, OrthogonalMethodForm);
   Application.CreateForm(TTransformationForm, TransformationForm);
-  Application.CreateForm(TAddPointForm, AddPointForm);
   Application.CreateForm(TCheckMeasurementForm, CheckMeasurementForm);
   Application.CreateForm(TPolarMethodForm, PolarMethodForm);
   Application.CreateForm(TForm2, Form2);

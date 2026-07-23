@@ -4,8 +4,20 @@ inherited PolarMethodForm: TPolarMethodForm
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
     ExplicitWidth = 792
-    object CheckBox1: TCheckBox [0]
-      Left = 0
+    inherited ComboBoxKU: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxZPMZ: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxKK: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    inherited ComboBoxPopis: TComboBox
+      StyleElements = [seFont, seClient, seBorder]
+    end
+    object CheckBox1: TCheckBox
+      Left = 402
       Top = 0
       Width = 121
       Height = 23
@@ -13,45 +25,13 @@ inherited PolarMethodForm: TPolarMethodForm
       TabOrder = 4
       OnClick = CheckBox1Click
     end
-    object ToolButton4: TToolButton [1]
-      Left = 121
+    object ToolButton4: TToolButton
+      Left = 523
       Top = 0
       Width = 8
       Caption = 'ToolButton4'
       ImageIndex = 0
       Style = tbsSeparator
-    end
-    inherited ComboBoxKU: TComboBox
-      Left = 129
-      StyleElements = [seFont, seClient, seBorder]
-      ExplicitLeft = 129
-    end
-    inherited ToolButton1: TToolButton
-      Left = 228
-      ExplicitLeft = 228
-    end
-    inherited ComboBoxZPMZ: TComboBox
-      Left = 236
-      StyleElements = [seFont, seClient, seBorder]
-      ExplicitLeft = 236
-    end
-    inherited ToolButton2: TToolButton
-      Left = 330
-      ExplicitLeft = 330
-    end
-    inherited ComboBoxKK: TComboBox
-      Left = 338
-      StyleElements = [seFont, seClient, seBorder]
-      ExplicitLeft = 338
-    end
-    inherited ToolButton3: TToolButton
-      Left = 378
-      ExplicitLeft = 378
-    end
-    inherited ComboBoxPopis: TComboBox
-      Left = 386
-      StyleElements = [seFont, seClient, seBorder]
-      ExplicitLeft = 386
     end
   end
   inherited StatusBar1: TStatusBar
@@ -249,8 +229,8 @@ inherited PolarMethodForm: TPolarMethodForm
       Align = alTop
       Lines.Strings = (
         'Protokol')
+      ScrollBars = ssVertical
       TabOrder = 2
-      ExplicitWidth = 798
     end
     object PanelCalculate: TPanel
       Left = 0
@@ -260,12 +240,13 @@ inherited PolarMethodForm: TPolarMethodForm
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 3
-      ExplicitWidth = 798
+      ExplicitLeft = 3
+      ExplicitTop = 288
       DesignSize = (
         800
         30)
       object Calculate: TButton
-        Left = 584
+        Left = 582
         Top = 2
         Width = 75
         Height = 25
@@ -273,7 +254,7 @@ inherited PolarMethodForm: TPolarMethodForm
         Caption = 'V'#253'po'#269'et'
         TabOrder = 0
         OnClick = CalculateClick
-        ExplicitLeft = 582
+        ExplicitLeft = 580
       end
     end
     object GridDetail: TGeoFieldsGrid
@@ -322,7 +303,7 @@ inherited PolarMethodForm: TPolarMethodForm
         800
         30)
       object Save: TButton
-        Left = 584
+        Left = 582
         Top = 2
         Width = 75
         Height = 25
@@ -330,7 +311,7 @@ inherited PolarMethodForm: TPolarMethodForm
         Caption = 'Ulo'#382'it'
         TabOrder = 0
         OnClick = CalculateClick
-        ExplicitLeft = 582
+        ExplicitLeft = 580
       end
     end
   end

@@ -531,7 +531,6 @@ end;
 function TExpressionParser.Parse(out Value: Double): Boolean;
 begin
   Value := 0;
-  Result := False;
   try
     Value := ParseExpression;
     SkipSpaces;

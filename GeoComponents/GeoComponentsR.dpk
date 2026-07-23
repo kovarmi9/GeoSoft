@@ -29,8 +29,7 @@ package GeoComponentsR;
 
 requires
   rtl,
-  vcl,
-  GeoSoftComponentsR;
+  vcl;
 
 contains
   GeoGrid in 'GeoGrid.pas',
@@ -38,6 +37,7 @@ contains
   GeoFieldsDef in 'GeoFieldsDef.pas',
   GeoFieldsGrid in 'GeoFieldsGrid.pas',
   GeoPointsGrid in 'GeoPointsGrid.pas',
-  GeoGridReg in 'GeoGridReg.pas';
+  GeoGridReg in 'GeoGridReg.pas',
+  GeoRow in '..\src\DataStructures\GeoRow.pas';
 
 end.

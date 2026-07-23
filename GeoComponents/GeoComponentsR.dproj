@@ -86,13 +86,13 @@
         </DelphiCompile>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
-        <DCCReference Include="GeoSoftComponentsR.dcp"/>
         <DCCReference Include="GeoGrid.pas"/>
         <DCCReference Include="GeoColumnValidation.pas"/>
         <DCCReference Include="GeoFieldsDef.pas"/>
         <DCCReference Include="GeoFieldsGrid.pas"/>
         <DCCReference Include="GeoPointsGrid.pas"/>
         <DCCReference Include="GeoGridReg.pas"/>
+        <DCCReference Include="..\src\DataStructures\GeoRow.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

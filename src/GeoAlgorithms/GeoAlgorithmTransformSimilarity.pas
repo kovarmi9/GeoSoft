@@ -1,4 +1,4 @@
-unit GeoAlgorithmTransformSimilarity;
+﻿unit GeoAlgorithmTransformSimilarity;
 
 // Similarity transformation (4-parameter, variable scale).
 // Model:  X' = X0 + lambda1*x - lambda2*y

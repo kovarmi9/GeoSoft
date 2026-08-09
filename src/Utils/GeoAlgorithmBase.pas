@@ -1,4 +1,4 @@
-unit GeoAlgorithmBase;
+﻿unit GeoAlgorithmBase;
 
 // Class-based (static) variant of the algorithm base — uses class vars and class methods.
 // This is a legacy alternative to the instance-based version in src/GeoAlgorithms/.

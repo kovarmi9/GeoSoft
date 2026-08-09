@@ -1,4 +1,4 @@
-unit GeoAlgorithmTransformCongruent;
+﻿unit GeoAlgorithmTransformCongruent;
 
 // Congruent transformation (4-parameter, fixed scale Q = 1).
 // Model:  X' = X0 + cos(omega)*x - sin(omega)*y

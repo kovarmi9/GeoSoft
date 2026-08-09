@@ -1,4 +1,4 @@
-unit GeoAlgorithmTransformBase;
+﻿unit GeoAlgorithmTransformBase;
 
 // Abstract base for coordinate transformation algorithms.
 // A transformation is a two-step process:

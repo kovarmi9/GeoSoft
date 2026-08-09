@@ -14,6 +14,7 @@ uses
   GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
   GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas',
   GeoAlgorithmLHuilier in '..\Utils\GeoAlgorithmLHuilier.pas',
+  GeoAlgorithmRectangularMeasurements in '..\Utils\GeoAlgorithmRectangularMeasurements.pas',
   GeoAlgorithmTransformBase in '..\GeoAlgorithms\GeoAlgorithmTransformBase.pas',
   GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',

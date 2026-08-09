@@ -1,4 +1,4 @@
-unit GeoRow;
+﻿unit GeoRow;
 
 interface
 

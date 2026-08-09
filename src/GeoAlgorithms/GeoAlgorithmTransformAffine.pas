@@ -1,4 +1,4 @@
-unit GeoAlgorithmTransformAffine;
+﻿unit GeoAlgorithmTransformAffine;
 
 // Affine transformation (6-parameter).
 // Model:  X' = a1*x + a2*y + a3

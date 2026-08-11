@@ -9,7 +9,8 @@ uses
   ParcelArea in 'ParcelArea.pas' {ParcelAreaForm},
   OrthogonalMethod in 'OrthogonalMethod.pas' {OrthogonalMethodForm},
   Transformation in 'Transformation.pas' {TransformationForm},
-  CheckMeasurement in 'CheckMeasurement.pas' {CheckMeasurementForm},
+  RectangularMeasurements in 'RectangularMeasurements.pas' {RectangularMeasurementsForm},
+  CheckMeasurements in 'CheckMeasurements.pas' {CheckMeasurementsForm},
   PolarMethod in 'PolarMethod.pas' {PolarMethodForm},
   GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
   GeoAlgorithmOrthogonal in '..\Utils\GeoAlgorithmOrthogonal.pas',
@@ -18,9 +19,7 @@ uses
   GeoAlgorithmTransformBase in '..\GeoAlgorithms\GeoAlgorithmTransformBase.pas',
   GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
-  GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
-  TestFieldGrid in 'TestFieldGrid.pas' {Form2},
-  Unit5 in 'Unit5.pas' {Form5};
+  GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas';
 
 {$R *.res}
 
@@ -33,9 +32,8 @@ begin
   Application.CreateForm(TParcelAreaForm, ParcelAreaForm);
   Application.CreateForm(TOrthogonalMethodForm, OrthogonalMethodForm);
   Application.CreateForm(TTransformationForm, TransformationForm);
-  Application.CreateForm(TCheckMeasurementForm, CheckMeasurementForm);
+  Application.CreateForm(TRectangularMeasurementsForm, RectangularMeasurementsForm);
+  Application.CreateForm(TCheckMeasurementsForm, CheckMeasurementsForm);
   Application.CreateForm(TPolarMethodForm, PolarMethodForm);
-  Application.CreateForm(TForm2, Form2);
-  Application.CreateForm(TForm5, Form5);
   Application.Run;
 end.

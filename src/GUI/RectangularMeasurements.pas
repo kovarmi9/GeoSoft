@@ -1,4 +1,4 @@
-﻿unit CheckMeasurement;
+﻿unit RectangularMeasurements;
 
 interface
 
@@ -13,7 +13,7 @@ uses
   CalcBase;
 
 type
-  TCheckMeasurementForm = class(TCalcBaseForm)
+  TRectangularMeasurementsForm = class(TCalcBaseForm)
     StringGrid1: TStringGrid;
     Memo1: TMemo;
     PanelCalculate: TPanel;
@@ -30,13 +30,13 @@ type
   end;
 
 var
-  CheckMeasurementForm: TCheckMeasurementForm;
+  RectangularMeasurementsForm: TRectangularMeasurementsForm;
 
 implementation
 
 {$R *.dfm}
 
-procedure TCheckMeasurementForm.FormCreate(Sender: TObject);
+procedure TRectangularMeasurementsForm.FormCreate(Sender: TObject);
 begin
   StringGrid1.ColCount := 5;
   StringGrid1.RowCount := 5;
@@ -66,7 +66,7 @@ begin
   Memo1.Lines.Clear;
 end;
 
-procedure TCheckMeasurementForm.MoveToNextCell;
+procedure TRectangularMeasurementsForm.MoveToNextCell;
 begin
   if StringGrid1.Col < StringGrid1.ColCount - 1 then
     StringGrid1.Col := StringGrid1.Col + 1
@@ -80,7 +80,7 @@ begin
   end;
 end;
 
-procedure TCheckMeasurementForm.FillFromDict(const R: Integer);
+procedure TRectangularMeasurementsForm.FillFromDict(const R: Integer);
 var
   Num: Integer;
   P: Point.TPoint;
@@ -95,7 +95,7 @@ begin
   end;
 end;
 
-procedure TCheckMeasurementForm.StringGrid1DrawCell(Sender: TObject;
+procedure TRectangularMeasurementsForm.StringGrid1DrawCell(Sender: TObject;
   ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
   Text: string;
@@ -125,7 +125,7 @@ begin
   end;
 end;
 
-procedure TCheckMeasurementForm.StringGrid1KeyDown(Sender: TObject;
+procedure TRectangularMeasurementsForm.StringGrid1KeyDown(Sender: TObject;
   var Key: Word; Shift: TShiftState);
 begin
   if Key <> VK_RETURN then Exit;
@@ -137,7 +137,7 @@ begin
   MoveToNextCell;
 end;
 
-procedure TCheckMeasurementForm.ButtonCalculateClick(Sender: TObject);
+procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
 var
   I, J, N, IdCount, FirstId, LastId: Integer;
   Chain, Identical, ResultPts, LocalPts: TPointsArray;

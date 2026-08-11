@@ -20,16 +20,14 @@ type
     ransformace1: TMenuItem;
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
-    Button1: TButton;
-    Button2: TButton;
+    Konstruknomrn1: TMenuItem;
     procedure Open2Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);
     procedure TransformationClick(Sender: TObject);
-    procedure CheckMeasurementClick(Sender: TObject);
+    procedure RectangularMeasurementsClick(Sender: TObject);
+    procedure CheckMeasurementsClick(Sender: TObject);
     procedure Polrnmetodanov1Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -43,8 +41,8 @@ implementation
 
 {$R *.dfm}
 
-uses ParcelArea, OrthogonalMethod, Transformation, CheckMeasurement, PolarMethod, TestFieldGrid, Unit5,
-  PointsManagement, CalcBase;
+uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
+  CheckMeasurements, PolarMethod, PointsManagement;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
@@ -71,22 +69,14 @@ begin
 TransformationForm.Show;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.RectangularMeasurementsClick(Sender: TObject);
 begin
-Form5.Show;
+  RectangularMeasurementsForm.Show;
 end;
 
-procedure TForm1.Button2Click(Sender: TObject);
-var
-  F: TCalcBaseForm;
+procedure TForm1.CheckMeasurementsClick(Sender: TObject);
 begin
-  F := TCalcBaseForm.Create(Self);
-  F.Show;
-end;
-
-procedure TForm1.CheckMeasurementClick(Sender: TObject);
-begin
-  CheckMeasurementForm.Show;
+  CheckMeasurementsForm.Show;
 end;
 
 end.

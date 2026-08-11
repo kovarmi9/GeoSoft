@@ -159,6 +159,8 @@ begin
       try
         Delimiter := #9;  // Tab character
         DelimitedText := Line;
+        if Count < 6 then
+          Continue;
         Point.PointNumber := StrToInt(Strings[0]);
         Point.X := StrToFloat(Strings[1]);
         Point.Y := StrToFloat(Strings[2]);
@@ -210,6 +212,8 @@ begin
       try
         Delimiter := ';'; // Semicolon delimiter
         DelimitedText := Line;
+        if Count < 6 then
+          Continue;
         Point.PointNumber := StrToInt(Strings[0]);
         Point.X := StrToFloat(Strings[1]);
         Point.Y := StrToFloat(Strings[2]);

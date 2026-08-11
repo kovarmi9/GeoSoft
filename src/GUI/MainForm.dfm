@@ -2,7 +2,6 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'GeoSoft'
-  Position = poScreenCenter
   ClientHeight = 691
   ClientWidth = 966
   Color = clBtnFace
@@ -3182,6 +3181,7 @@ object Form1: TForm1
     0001000000000000000000000000000000000000000000000001000080010000
     80030000C0070000E00F0000}
   Menu = MainMenu1
+  Position = poScreenCenter
   TextHeight = 15
   object ToolBar1: TToolBar
     Left = 0
@@ -3190,25 +3190,6 @@ object Form1: TForm1
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 0
-    ExplicitWidth = 964
-  end
-  object Button1: TButton
-    Left = 792
-    Top = 200
-    Width = 75
-    Height = 25
-    Caption = 'Button1'
-    TabOrder = 1
-    OnClick = Button1Click
-  end
-  object Button2: TButton
-    Left = 792
-    Top = 280
-    Width = 75
-    Height = 25
-    Caption = 'Button2'
-    TabOrder = 2
-    OnClick = Button2Click
   end
   object MainMenu1: TMainMenu
     Left = 584
@@ -3237,9 +3218,13 @@ object Form1: TForm1
         Caption = 'Transformace'
         OnClick = TransformationClick
       end
+      object Konstruknomrn1: TMenuItem
+        Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233
+        OnClick = RectangularMeasurementsClick
+      end
       object Pokus1: TMenuItem
         Caption = 'Kontroln'#237' om'#283'rn'#233
-        OnClick = CheckMeasurementClick
+        OnClick = CheckMeasurementsClick
       end
       object Polrnmetoda1: TMenuItem
         Caption = 'V'#253'po'#269'et v'#253'm'#283'r'

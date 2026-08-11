@@ -1,4 +1,4 @@
-inherited CheckMeasurementForm: TCheckMeasurementForm
+inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233
   StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate

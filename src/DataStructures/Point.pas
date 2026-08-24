@@ -13,7 +13,7 @@ type
     Y: Double;             // Y coordinate
     Z: Double;             // Z coordinate
     Quality: Integer;      // Point quality
-    Description: string;   // Point description
+    Description: string[32];
     // Constructor to initialize the point with Z coordinate
     constructor Create(PointNumber: Integer; X, Y, Z: Double; Quality: Integer; const Description: string); overload;
     // Constructor to initialize the point without Z coordinate
@@ -29,7 +29,9 @@ begin
   Self.Y := TValidationUtils.ValidateCoordinate(Y);
   Self.Z := TValidationUtils.ValidateCoordinate(Z);
   Self.Quality := TValidationUtils.ValidateQuality(Quality);
+  {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
   Self.Description := TValidationUtils.ValidateDescription(Description);
+  {$WARN IMPLICIT_STRING_CAST_LOSS ON}
 end;
 
 constructor TPoint.Create(PointNumber: Integer; X, Y: Double; Quality: Integer; const Description: string);
@@ -39,7 +41,9 @@ begin
   Self.Y := TValidationUtils.ValidateCoordinate(Y);
   Self.Z := 0.0;  // Default value for Z
   Self.Quality := TValidationUtils.ValidateQuality(Quality);
+  {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
   Self.Description := TValidationUtils.ValidateDescription(Description);
+  {$WARN IMPLICIT_STRING_CAST_LOSS ON}
 end;
 
 end.

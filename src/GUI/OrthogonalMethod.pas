@@ -81,6 +81,7 @@ begin
   GridDetail.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
   GridDetail.ColumnFilters[2].DataType := cdtExpression;
   GridDetail.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
+  GridDetail.ColumnFilters[7].MaxLength := 32;
   with GridDetail.ColumnFilters[6] do
   begin
     DataType := cdtInteger;  OnInvalidCommit := ciaBeepAndClear;
@@ -150,7 +151,7 @@ begin
   Grid.Cells[5, R] := FloatToStr(P.Y, FS);
   Grid.Cells[6, R] := FloatToStr(P.Z, FS);
   Grid.Cells[7, R] := IntToStr(P.Quality);
-  Grid.Cells[8, R] := P.Description;
+  Grid.Cells[8, R] := string(P.Description);
 end;
 
 function TOrthogonalMethodForm.LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
@@ -190,7 +191,9 @@ begin
     InPts[0].Y           := q;
     InPts[0].Z           := 0;
     InPts[0].Quality     := StrToIntDef(GridDetail.Cells[7, R], 0);
+    {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
     InPts[0].Description := GridDetail.Cells[8, R];
+    {$WARN IMPLICIT_STRING_CAST_LOSS ON}
     OutPts := Alg.Calculate(InPts);
     if Length(OutPts) > 0 then
     begin

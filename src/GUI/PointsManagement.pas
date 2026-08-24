@@ -104,6 +104,7 @@ begin
   StringGrid1.ColumnFilters[4].OnInvalidCommit   := ciaBlock;
   StringGrid1.ColumnFilters[4].OnGetDefaultText  := GetQualityDefault;
   StringGrid1.ColumnFilters[5].DataType      := cdtNone;        // Popis
+  StringGrid1.ColumnFilters[5].MaxLength     := 32;
 
   FLastRow := 0;
   FLastCol := 0;
@@ -157,7 +158,7 @@ begin
       StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
       StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
       StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
-      StringGrid1.Cells[5, i] := pt.Description;
+      StringGrid1.Cells[5, i] := string(pt.Description);
       Inc(i);
     end;
   finally

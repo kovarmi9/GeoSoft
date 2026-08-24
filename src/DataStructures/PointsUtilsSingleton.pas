@@ -166,7 +166,9 @@ begin
         Point.Y := StrToFloat(Strings[2]);
         Point.Z := StrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
+        {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
         Point.Description := Strings[5];
+        {$WARN IMPLICIT_STRING_CAST_LOSS ON}
         AddPoint(Point);
       finally
         Free;
@@ -219,7 +221,9 @@ begin
         Point.Y := StrToFloat(Strings[2]);
         Point.Z := StrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
+        {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
         Point.Description := Strings[5];
+        {$WARN IMPLICIT_STRING_CAST_LOSS ON}
         AddPoint(Point);
       finally
         Free;

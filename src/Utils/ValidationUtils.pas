@@ -19,7 +19,7 @@ type
     class function ValidateCoordinate(const ACoordinate: Double): Double; static;
     // Validates the quality, returns 0 if invalid
     class function ValidateQuality(const AQuality: Integer): Integer; static;
-    // Validates the description, returns the original description
+    // Validates the description, truncates to 32 characters
     class function ValidateDescription(const ADescription: string): string; static;
   end;
 
@@ -51,7 +51,7 @@ end;
 
 class function TValidationUtils.ValidateDescription(const ADescription: string): string;
 begin
-  Result := ADescription;
+  Result := Copy(ADescription, 1, 32);
 end;
 
 end.

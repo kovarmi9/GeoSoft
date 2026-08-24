@@ -159,7 +159,7 @@ begin
   EditStationX.Text := FloatToStr(pt.Y, FS);
   EditStationZ.Text := FloatToStr(pt.Z, FS);
   EditStationKK.Text := IntToStr(pt.Quality);
-  EditStationPopis.Text := pt.Description;
+  EditStationPopis.Text := string(pt.Description);
   EditStationVS.SetFocus;
 end;
 
@@ -285,7 +285,9 @@ begin
     if PozText = '' then
       PozText := Trim(GPointPrefix.Popis);
     InPts[nDet].Quality := StrToIntDef(Trim(GPointPrefix.KK), 0);
+    {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
     InPts[nDet].Description := PozText;
+    {$WARN IMPLICIT_STRING_CAST_LOSS ON}
     Inc(nDet);
   end;
   SetLength(InPts, nDet);

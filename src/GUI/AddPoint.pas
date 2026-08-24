@@ -78,6 +78,7 @@ begin
   StringGrid.ColumnFilters[COL_QUALITY].OnGetDefaultText  := GetQualityDefault;
 
   StringGrid.ColumnFilters[COL_DESC].DataType := cdtNone;
+  StringGrid.ColumnFilters[COL_DESC].MaxLength := 32;
 end;
 
 function ReadDefaultQuality: Integer;

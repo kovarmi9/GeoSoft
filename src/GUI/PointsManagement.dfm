@@ -3,7 +3,7 @@ object PointsManagementForm: TPointsManagementForm
   Top = 0
   Caption = 'Seznam sou'#345'adnic'
   ClientHeight = 393
-  ClientWidth = 420
+  ClientWidth = 494
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -19,7 +19,7 @@ object PointsManagementForm: TPointsManagementForm
   object StringGrid1: TGeoPointsGrid
     Left = 0
     Top = 85
-    Width = 420
+    Width = 494
     Height = 289
     Align = alClient
     ColCount = 6
@@ -51,10 +51,9 @@ object PointsManagementForm: TPointsManagementForm
       end
       item
       end>
-    ExplicitWidth = 418
-    ExplicitHeight = 281
+    ExplicitWidth = 420
     ColWidths = (
-      66
+      133
       65
       65
       65
@@ -64,7 +63,7 @@ object PointsManagementForm: TPointsManagementForm
   object StatusBar1: TStatusBar
     Left = 0
     Top = 374
-    Width = 420
+    Width = 494
     Height = 19
     Panels = <
       item
@@ -76,7 +75,7 @@ object PointsManagementForm: TPointsManagementForm
   object ControlBar1: TControlBar
     Left = 0
     Top = 0
-    Width = 420
+    Width = 494
     Height = 50
     Align = alTop
     TabOrder = 2
@@ -86,7 +85,7 @@ object PointsManagementForm: TPointsManagementForm
     AlignWithMargins = True
     Left = 3
     Top = 53
-    Width = 414
+    Width = 488
     Height = 29
     ButtonHeight = 23
     Caption = 'ToolBar2'
@@ -199,14 +198,25 @@ object PointsManagementForm: TPointsManagementForm
     Top = 24
     object File1: TMenuItem
       Caption = 'Soubor'
-      object File2: TMenuItem
-        Caption = 'Ulo'#382'it'
-      end
-      object SaveAs1: TMenuItem
-        Caption = 'Ulo'#382'it jako'
+      object FileNew: TMenuItem
+        Caption = 'Nov'#253
+        ShortCut = 16462
+        OnClick = FileNewClick
       end
       object SaveAs2: TMenuItem
         Caption = 'Otev'#345#237't'
+        ShortCut = 16463
+        OnClick = FileOpenClick
+      end
+      object File2: TMenuItem
+        Caption = 'Ulo'#382'it'
+        ShortCut = 16467
+        OnClick = FileSaveClick
+      end
+      object SaveAs1: TMenuItem
+        Caption = 'Ulo'#382'it jako'
+        ShortCut = 24659
+        OnClick = FileSaveAsClick
       end
     end
     object Import1: TMenuItem

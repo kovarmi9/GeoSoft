@@ -30,7 +30,7 @@ type
     procedure MenuUlozitProtokolClick(Sender: TObject);
   protected
     FS: TFormatSettings;
-    function LookupPoint(PointNo: Integer; out pt: Point.TPoint): Boolean;
+    function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
     function FormatPointId(const S: string): string;
   public
     constructor Create(AOwner: TComponent); override;
@@ -69,7 +69,7 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-function TCalcBaseForm.LookupPoint(PointNo: Integer; out pt: Point.TPoint): Boolean;
+function TCalcBaseForm.LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
 var
   dlg: TAddPointForm;
 begin
@@ -81,6 +81,8 @@ begin
     Result := True;
     Exit;
   end;
+
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 
   dlg := TAddPointForm.Create(Self);
   try

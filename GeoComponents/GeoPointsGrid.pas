@@ -239,7 +239,11 @@ begin
   end;
 
   if TryCommitText(Filter, Text) then
-    Cells[Col, Row] := Text
+  begin
+    Cells[Col, Row] := Text;
+    if Assigned(OnCellCommitted) then
+      OnCellCommitted(Self, Col, Row);
+  end
   else
   begin
     case Filter.OnInvalidCommit of

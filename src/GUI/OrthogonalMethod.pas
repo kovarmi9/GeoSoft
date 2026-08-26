@@ -102,7 +102,7 @@ procedure TOrthogonalMethodForm.DetailPointCommitted(Sender: TObject; ACol, ARow
 var
   G: TGeoPointsGrid;
   PointIdText: string;
-  PNum: Integer;
+  PNum: Int64;
   P: Point.TPoint;
 begin
   G := GridDetail;
@@ -113,7 +113,7 @@ begin
     begin
       SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
       PointIdText := BuildPointIdFromPrefixState(G.Cells[1, ARow]);
-      if TryStrToInt(PointIdText, PNum) then
+      if TryStrToInt64(PointIdText, PNum) then
         G.Cells[1, ARow] := IntToStr(PNum);
       if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
       begin
@@ -156,10 +156,10 @@ end;
 
 function TOrthogonalMethodForm.LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
 var
-  num: Integer;
+  num: Int64;
 begin
   Result := False;
-  num := StrToIntDef(GridBaseline.Cells[1, R], -1);
+  num := StrToInt64Def(GridBaseline.Cells[1, R], -1);
   if num <= 0 then
   begin
     ShowMessage(Format('Zadejte '#269#237'slo bodu v '#345#225'dku %s.', [GridBaseline.Cells[0, R]]));
@@ -186,11 +186,11 @@ begin
   try
     Alg.Scale        := TOrthogonalMethodAlgorithm.Scale;
     SetLength(InPts, 1);
-    InPts[0].PointNumber := StrToIntDef(GridDetail.Cells[1, R], 0);
+    InPts[0].PointNumber := StrToInt64Def(GridDetail.Cells[1, R], 0);
     InPts[0].X           := s;
     InPts[0].Y           := q;
     InPts[0].Z           := 0;
-    InPts[0].Quality     := StrToIntDef(GridDetail.Cells[7, R], 0);
+    InPts[0].Quality     := StrToIntDef(Trim(GridDetail.Cells[7, R]), 0);
     {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
     InPts[0].Description := GridDetail.Cells[8, R];
     {$WARN IMPLICIT_STRING_CAST_LOSS ON}

@@ -18,6 +18,7 @@ type
     StringGrid1: TGeoPointsGrid;
     MainMenu1: TMainMenu;
     File1: TMenuItem;
+    FileNew: TMenuItem;
     File2: TMenuItem;
     SaveAs1: TMenuItem;
     SaveAs2: TMenuItem;
@@ -57,9 +58,15 @@ type
     procedure NumericComboKeyPress(Sender: TObject; var Key: Char);
     procedure NumericComboChange(Sender: TObject);
     procedure NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure FileSaveClick(Sender: TObject);
+    procedure FileSaveAsClick(Sender: TObject);
+    procedure FileOpenClick(Sender: TObject);
+    procedure FileNewClick(Sender: TObject);
   private
-    FLastRow: Integer;  // tracks the row the user is leaving
-    FLastCol: Integer;  // tracks the column the user is leaving
+    FLastRow:     Integer;
+    FLastCol:     Integer;
+    FCurrentFile: string;
+    FFileFlag:    Boolean;
     function  CurrentQuality: Integer;
     function  IsValidQualityStr(const S: string): Boolean;
     function  PadZeros(const S: string; PadLen: Integer): string;
@@ -67,10 +74,15 @@ type
     procedure EnsureQualityOnRow(const ARow: Integer);
     procedure ApplyDescriptionToRow(const ARow: Integer);
     procedure TrySaveRow(ARow: Integer);
+    procedure PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure UpdateStatusBar;
     procedure DoImport(AFormat: TFileFormat);
     procedure DoExport(AFormat: TFileFormat);
+    function  AskSaveChanges: Boolean;
+    procedure DoSave;
   public
+    function CreateNewList: Boolean;
+    function HasActiveList: Boolean;
   end;
 
 var
@@ -106,8 +118,12 @@ begin
   StringGrid1.ColumnFilters[5].DataType      := cdtNone;        // Popis
   StringGrid1.ColumnFilters[5].MaxLength     := 32;
 
-  FLastRow := 0;
-  FLastCol := 0;
+  StringGrid1.OnCellCommitted := PointNumberCommitted;
+
+  FLastRow     := 0;
+  FLastCol     := 0;
+  FCurrentFile := '';
+  FFileFlag    := False;
   UpdateCurrentDirectoryPath;
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
@@ -137,11 +153,11 @@ end;
 procedure TPointsManagementForm.RefreshGrid;
 var
   pt:   TPoint;
-  Keys: TList<Integer>;
-  Key:  Integer;
+  Keys: TList<Int64>;
+  Key:  Int64;
   i:    Integer;
 begin
-  Keys := TList<Integer>.Create;
+  Keys := TList<Int64>.Create;
   try
     for pt in TPointDictionary.GetInstance.Values do
       Keys.Add(pt.PointNumber);
@@ -153,7 +169,7 @@ begin
     for Key in Keys do
     begin
       pt := TPointDictionary.GetInstance.GetPoint(Key);
-      StringGrid1.Cells[0, i] := IntToStr(pt.PointNumber);
+      StringGrid1.Cells[0, i] := Format('%015d', [pt.PointNumber]);
       StringGrid1.Cells[1, i] := FloatToStr(pt.X);
       StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
       StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
@@ -207,6 +223,8 @@ begin
       Font.Style  := [];
       FillRect(Rect);
       Text := StringGrid1.Cells[ACol, ARow];
+      if (ACol = 0) and (Trim(Text) <> '') and (Length(Trim(Text)) < 15) then
+        Text := Format('%015d', [StrToInt64Def(Text, 0)]);
       TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
     end;
   end;
@@ -237,10 +255,11 @@ end;
 
 procedure TPointsManagementForm.TrySaveRow(ARow: Integer);
 var
-  PointNumber: Integer;
+  PointNumber: Int64;
   X, Y, Z:    Double;
   Quality:    Integer;
   Description: string;
+  Existing, NewPoint: Point.TPoint;
 begin
   // Commit případně otevřeného editoru
   if StringGrid1.EditorMode then
@@ -255,7 +274,7 @@ begin
   EnsureQualityOnRow(ARow);
   ApplyDescriptionToRow(ARow);
 
-  PointNumber := StrToIntDef(StringGrid1.Cells[0, ARow], -1);
+  PointNumber := StrToInt64Def(StringGrid1.Cells[0, ARow], -1);
   X           := StrToFloatDef(StringGrid1.Cells[1, ARow], NaN);
   Y           := StrToFloatDef(StringGrid1.Cells[2, ARow], NaN);
   Z           := StrToFloatDef(StringGrid1.Cells[3, ARow], NaN);
@@ -268,17 +287,34 @@ begin
 
   if TPointDictionary.GetInstance.PointExists(PointNumber) then
   begin
+    Existing := TPointDictionary.GetInstance.GetPoint(PointNumber);
+    NewPoint := TPoint.Create(PointNumber, X, Y, Z, Quality, Description);
+    if (Existing.X = NewPoint.X) and (Existing.Y = NewPoint.Y) and
+       (Existing.Z = NewPoint.Z) and (Existing.Quality = NewPoint.Quality) and
+       (Existing.Description = NewPoint.Description) then
+      Exit;
     if MessageDlg(Format('Bod %d již existuje. Chcete ho přepsat?', [PointNumber]),
                   mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
       Exit;
-    TPointDictionary.GetInstance.AddOrUpdatePoint(
-      TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
+    TPointDictionary.GetInstance.AddOrUpdatePoint(NewPoint);
   end
   else
     TPointDictionary.GetInstance.AddPoint(
       TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
 
+  FFileFlag := True;
   UpdateStatusBar;
+end;
+
+procedure TPointsManagementForm.PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
+begin
+  if (ACol <> 0) or (ARow < StringGrid1.FixedRows) then
+    Exit;
+  if Trim(StringGrid1.Cells[0, ARow]) = '' then
+    Exit;
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  StringGrid1.Cells[0, ARow] :=
+    BuildPointIdFromPrefixState(StringGrid1.Cells[0, ARow]);
 end;
 
 procedure TPointsManagementForm.UpdateStatusBar;
@@ -295,7 +331,117 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-// ---- Import / Export ------------------------------------------------------
+// ---- Správa souborů -------------------------------------------------------
+
+function TPointsManagementForm.AskSaveChanges: Boolean;
+begin
+  Result := True;
+  if not FFileFlag then Exit;
+  case MessageDlg('Uložit změny?', mtConfirmation,
+                  [mbYes, mbNo, mbCancel], 0) of
+    mrYes:    DoSave;
+    mrNo:     ;
+    mrCancel: Result := False;
+  end;
+end;
+
+procedure TPointsManagementForm.DoSave;
+begin
+  if FCurrentFile = '' then
+  begin
+    SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
+    SaveDialog1.DefaultExt := 'bin';
+    if not SaveDialog1.Execute then Exit;
+    FCurrentFile := SaveDialog1.FileName;
+  end;
+  try
+    TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
+    FFileFlag := False;
+  except
+    on E: Exception do
+      ShowMessage('Chyba při ukládání: ' + E.Message);
+  end;
+end;
+
+procedure TPointsManagementForm.FileSaveClick(Sender: TObject);
+begin
+  DoSave;
+end;
+
+procedure TPointsManagementForm.FileSaveAsClick(Sender: TObject);
+begin
+  SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
+  SaveDialog1.DefaultExt := 'bin';
+  if not SaveDialog1.Execute then Exit;
+  FCurrentFile := SaveDialog1.FileName;
+  try
+    TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
+    FFileFlag := False;
+  except
+    on E: Exception do
+      ShowMessage('Chyba při ukládání: ' + E.Message);
+  end;
+end;
+
+procedure TPointsManagementForm.FileOpenClick(Sender: TObject);
+begin
+  if not AskSaveChanges then Exit;
+
+  OpenDialog1.Filter := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
+  if not OpenDialog1.Execute then Exit;
+
+  TPointDictionary.GetInstance.Clear;
+  try
+    TPointDictionary.GetInstance.ImportFromBinary(OpenDialog1.FileName);
+  except
+    on E: Exception do
+    begin
+      ShowMessage('Chyba při načítání: ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  FCurrentFile := OpenDialog1.FileName;
+  FFileFlag    := False;
+  RefreshGrid;
+  UpdateStatusBar;
+end;
+
+procedure TPointsManagementForm.FileNewClick(Sender: TObject);
+begin
+  if not AskSaveChanges then Exit;
+
+  TPointDictionary.GetInstance.Clear;
+  FCurrentFile := '';
+  FFileFlag    := False;
+  RefreshGrid;
+  UpdateStatusBar;
+end;
+
+function TPointsManagementForm.CreateNewList: Boolean;
+begin
+  Result := False;
+  if not AskSaveChanges then Exit;
+
+  SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
+  SaveDialog1.DefaultExt := 'bin';
+  SaveDialog1.InitialDir := ExtractFilePath(Application.ExeName);
+  SaveDialog1.FileName   := 'ss.bin';
+  if not SaveDialog1.Execute then Exit;
+
+  TPointDictionary.GetInstance.Clear;
+  FCurrentFile := SaveDialog1.FileName;
+  FFileFlag    := False;
+  TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
+  RefreshGrid;
+  UpdateStatusBar;
+  Result := True;
+end;
+
+function TPointsManagementForm.HasActiveList: Boolean;
+begin
+  Result := (FCurrentFile <> '') or (TPointDictionary.GetInstance.GetPointCount > 0);
+end;
 
 procedure TPointsManagementForm.DoImport(AFormat: TFileFormat);
 begin
@@ -322,6 +468,7 @@ begin
     end;
   end;
 
+  FFileFlag := True;
   RefreshGrid;
 end;
 

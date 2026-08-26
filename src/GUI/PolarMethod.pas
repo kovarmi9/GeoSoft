@@ -144,13 +144,13 @@ end;
 
 procedure TPolarMethodForm.EditStationNoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
-  num: Integer;
+  num: Int64;
   pt: Point.TPoint;
 begin
   if Key <> VK_RETURN then Exit;
   Key := 0;
 
-  num := StrToIntDef(Trim(EditStationNo.Text), 0);
+  num := StrToInt64Def(Trim(EditStationNo.Text), 0);
   if num <= 0 then Exit;
 
   if not LookupPoint(num, pt) then Exit;
@@ -178,7 +178,8 @@ end;
 procedure TPolarMethodForm.GridOrientationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   G: TGeoFieldsGrid;
-  CBCol, num, r: Integer;
+  CBCol, r: Integer;
+  num: Int64;
   pt: Point.TPoint;
 begin
   if Key <> VK_RETURN then Exit;
@@ -188,7 +189,7 @@ begin
   if (G.Col <> CBCol) or (G.Row < G.FixedRows) then Exit;
 
   r := G.Row;
-  num := StrToIntDef(G.Cells[CBCol, r], 0);
+  num := StrToInt64Def(G.Cells[CBCol, r], 0);
   if num <= 0 then Exit;
 
   if not LookupPoint(num, pt) then Exit;
@@ -226,7 +227,8 @@ end;
 
 procedure TPolarMethodForm.CalculateClick(Sender: TObject);
 var
-  num, r, i, nOrt, nDet: Integer;
+  r, i, nOrt, nDet: Integer;
+  num: Int64;
   P, OrPt: Point.TPoint;
   Orts: TOrientations;
   InPts, OutPts: TPointsArray;
@@ -235,7 +237,7 @@ var
   AlreadyExists: Boolean;
   W, PozText: string;
 begin
-  num := StrToIntDef(Trim(EditStationNo.Text), 0);
+  num := StrToInt64Def(Trim(EditStationNo.Text), 0);
   if num <= 0 then
   begin
     ShowMessage('Zadejte číslo stanoviska.');
@@ -250,7 +252,7 @@ begin
   for r := GridOrientation.FixedRows to GridOrientation.RowCount - 1 do
   begin
     GridOrientation.GetGeoRow(r, Row);
-    num := StrToIntDef(Trim(string(Row.CB)), 0);
+    num := StrToInt64Def(Trim(string(Row.CB)), 0);
     if num <= 0 then Continue;
     if Trim(GridOrientation.Cells[GridOrientation.FieldToCol(HZ), r]) = '' then Continue;
     if not LookupPoint(num, OrPt) then Continue;
@@ -273,7 +275,7 @@ begin
   for r := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
     GridDetail.GetGeoRow(r, Row);
-    num := StrToIntDef(Trim(string(Row.CB)), 0);
+    num := StrToInt64Def(Trim(string(Row.CB)), 0);
     if num <= 0 then Continue;
     if Trim(GridDetail.Cells[GridDetail.FieldToCol(SS), r]) = '' then Continue;
 
@@ -292,7 +294,7 @@ begin
   end;
   SetLength(InPts, nDet);
 
-  num := StrToIntDef(Trim(EditStationNo.Text), 0);
+  num := StrToInt64Def(Trim(EditStationNo.Text), 0);
   TPolarMethodAlgorithm.A := P;
   TPolarMethodAlgorithm.B := Orts;
   OutPts := TPolarMethodAlgorithm.Calculate(InPts);
@@ -347,7 +349,7 @@ begin
       for r := GridDetail.FixedRows to GridDetail.RowCount - 1 do
       begin
         GridDetail.GetGeoRow(r, Row);
-        num := StrToIntDef(Trim(string(Row.CB)), 0);
+        num := StrToInt64Def(Trim(string(Row.CB)), 0);
         if num <= 0 then Continue;
         if Trim(GridDetail.Cells[GridDetail.FieldToCol(SS), r]) = '' then Continue;
         if i >= Length(OutPts) then Break;

@@ -3,13 +3,13 @@
 interface
 
 uses
-  System.Generics.Collections, SysUtils, Classes, Point;
+  System.Generics.Collections, SysUtils, Classes, System.UITypes, Vcl.Dialogs, Point;
 
 type
   TPointDictionary = class
   private
     class var FInstance: TPointDictionary;  // Statická instance
-    FPointDict: TDictionary<Integer, TPoint>;  // Slovník pro body
+    FPointDict: TDictionary<Int64, TPoint>;  // Slovník pro body
     procedure CheckFileError(const FileName: string);
 
     function GetValues: TEnumerable<TPoint>;
@@ -23,14 +23,15 @@ type
 
     // Metody pro manipulaci s body
     procedure AddPoint(const APoint: TPoint); overload;
-    procedure AddPoint(PointNumber: Integer; X, Y, Z: Double; Quality: Integer; const Description: string); overload;
-    procedure AddPoint(PointNumber: Integer; X, Y: Double; Quality: Integer; const Description: string); overload;
+    procedure AddPoint(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string); overload;
+    procedure AddPoint(PointNumber: Int64; X, Y: Double; Quality: Integer; const Description: string); overload;
     procedure AddOrUpdatePoint(const APoint: TPoint);
     procedure UpdatePoint(const APoint: TPoint);
-    function GetPoint(const PointNumber: Integer): TPoint;
-    procedure RemovePoint(const PointNumber: Integer);
+    function GetPoint(const PointNumber: Int64): TPoint;
+    procedure RemovePoint(const PointNumber: Int64);
     function GetPointCount: Integer;
-    function PointExists(const PointNumber: Integer): Boolean;
+    function PointExists(const PointNumber: Int64): Boolean;
+    procedure Clear;
 
     // Exportní a importní metody pro soubory
     procedure ExportToTXT(const FileName: string);
@@ -49,7 +50,7 @@ implementation
 constructor TPointDictionary.Create;
 begin
   inherited Create;
-  FPointDict := TDictionary<Integer, TPoint>.Create;  // Inicializace slovníku
+  FPointDict := TDictionary<Int64, TPoint>.Create;  // Inicializace slovníku
 end;
 
 destructor TPointDictionary.Destroy;
@@ -68,45 +69,40 @@ end;
 
 procedure TPointDictionary.AddPoint(const APoint: TPoint);
 begin
-  if not PointExists(APoint.PointNumber) then
-    FPointDict.Add(APoint.PointNumber, APoint)
-  else
+  if PointExists(APoint.PointNumber) then
     raise Exception.CreateFmt('Point with number %d already exists.', [APoint.PointNumber]);
+  AddOrUpdatePoint(APoint);
 end;
 
-procedure TPointDictionary.AddPoint(PointNumber: Integer; X, Y, Z: Double; Quality: Integer; const Description: string);
+procedure TPointDictionary.AddPoint(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string);
 begin
   AddPoint(TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
 end;
 
-procedure TPointDictionary.AddPoint(PointNumber: Integer; X, Y: Double; Quality: Integer; const Description: string);
+procedure TPointDictionary.AddPoint(PointNumber: Int64; X, Y: Double; Quality: Integer; const Description: string);
 begin
   AddPoint(TPoint.Create(PointNumber, X, Y, 0.0, Quality, Description));  // Přidání 2D bodu
 end;
 
 procedure TPointDictionary.AddOrUpdatePoint(const APoint: TPoint);
 begin
-  if PointExists(APoint.PointNumber) then
-    FPointDict[APoint.PointNumber] := APoint
-  else
-    FPointDict.Add(APoint.PointNumber, APoint);
+  FPointDict.AddOrSetValue(APoint.PointNumber, APoint);
 end;
 
 procedure TPointDictionary.UpdatePoint(const APoint: TPoint);
 begin
-  if FPointDict.ContainsKey(APoint.PointNumber) then
-    FPointDict[APoint.PointNumber] := APoint
-  else
+  if not PointExists(APoint.PointNumber) then
     raise Exception.CreateFmt('Point with number %d not found for update.', [APoint.PointNumber]);
+  AddOrUpdatePoint(APoint);
 end;
 
-function TPointDictionary.GetPoint(const PointNumber: Integer): TPoint;
+function TPointDictionary.GetPoint(const PointNumber: Int64): TPoint;
 begin
   if not FPointDict.TryGetValue(PointNumber, Result) then
     raise Exception.CreateFmt('Point with number %d not found.', [PointNumber]);
 end;
 
-procedure TPointDictionary.RemovePoint(const PointNumber: Integer);
+procedure TPointDictionary.RemovePoint(const PointNumber: Int64);
 begin
   if FPointDict.ContainsKey(PointNumber) then
     FPointDict.Remove(PointNumber)
@@ -119,9 +115,14 @@ begin
   Result := FPointDict.Count;
 end;
 
-function TPointDictionary.PointExists(const PointNumber: Integer): Boolean;
+function TPointDictionary.PointExists(const PointNumber: Int64): Boolean;
 begin
   Result := FPointDict.ContainsKey(PointNumber);
+end;
+
+procedure TPointDictionary.Clear;
+begin
+  FPointDict.Clear;
 end;
 
 // Exportní metody pro soubory (TXT, CSV, Binary atd.)
@@ -135,7 +136,7 @@ begin
   try
     for Point in FPointDict.Values do
     begin
-      WriteLn(TXTFile, Format('%d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, Point.X, Point.Y, Point.Z, Point.Quality, Point.Description]));
+      WriteLn(TXTFile, Format('%015d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, Point.X, Point.Y, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(TXTFile);
@@ -147,21 +148,24 @@ var
   TXTFile: TextFile;
   Line: string;
   Point: TPoint;
+  Imported, Updated: Integer;
 begin
-  CheckFileError(FileName); // Check file validity before reading
+  CheckFileError(FileName);
   AssignFile(TXTFile, FileName);
   Reset(TXTFile);
+  Imported := 0;
+  Updated := 0;
   try
     while not Eof(TXTFile) do
     begin
       ReadLn(TXTFile, Line);
       with TStringList.Create do
       try
-        Delimiter := #9;  // Tab character
+        Delimiter := #9;
         DelimitedText := Line;
         if Count < 6 then
           Continue;
-        Point.PointNumber := StrToInt(Strings[0]);
+        Point.PointNumber := StrToInt64(Trim(Strings[0]));
         Point.X := StrToFloat(Strings[1]);
         Point.Y := StrToFloat(Strings[2]);
         Point.Z := StrToFloat(Strings[3]);
@@ -169,7 +173,10 @@ begin
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
         Point.Description := Strings[5];
         {$WARN IMPLICIT_STRING_CAST_LOSS ON}
-        AddPoint(Point);
+        if PointExists(Point.PointNumber) then
+          Inc(Updated);
+        AddOrUpdatePoint(Point);
+        Inc(Imported);
       finally
         Free;
       end;
@@ -177,6 +184,12 @@ begin
   finally
     CloseFile(TXTFile);
   end;
+  if Updated > 0 then
+    MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [Imported, Updated]),
+      mtInformation, [mbOK], 0)
+  else
+    MessageDlg(Format('Importováno %d bodů.', [Imported]),
+      mtInformation, [mbOK], 0);
 end;
 
 procedure TPointDictionary.ExportToCSV(const FileName: string);
@@ -190,7 +203,7 @@ begin
   try
     for Point in FPointDict.Values do
     begin
-      WriteLn(CSVFile, Format('%d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, Point.X, Point.Y, Point.Z, Point.Quality, Point.Description]));
+      WriteLn(CSVFile, Format('%015d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, Point.X, Point.Y, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(CSVFile);
@@ -202,21 +215,24 @@ var
   CSVFile: TextFile;
   Line: string;
   Point: TPoint;
+  Imported, Updated: Integer;
 begin
-  CheckFileError(FileName); // Check file validity before reading
+  CheckFileError(FileName);
   AssignFile(CSVFile, FileName);
   Reset(CSVFile);
+  Imported := 0;
+  Updated := 0;
   try
     while not Eof(CSVFile) do
     begin
       ReadLn(CSVFile, Line);
       with TStringList.Create do
       try
-        Delimiter := ';'; // Semicolon delimiter
+        Delimiter := ';';
         DelimitedText := Line;
         if Count < 6 then
           Continue;
-        Point.PointNumber := StrToInt(Strings[0]);
+        Point.PointNumber := StrToInt64(Trim(Strings[0]));
         Point.X := StrToFloat(Strings[1]);
         Point.Y := StrToFloat(Strings[2]);
         Point.Z := StrToFloat(Strings[3]);
@@ -224,7 +240,10 @@ begin
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
         Point.Description := Strings[5];
         {$WARN IMPLICIT_STRING_CAST_LOSS ON}
-        AddPoint(Point);
+        if PointExists(Point.PointNumber) then
+          Inc(Updated);
+        AddOrUpdatePoint(Point);
+        Inc(Imported);
       finally
         Free;
       end;
@@ -232,6 +251,12 @@ begin
   finally
     CloseFile(CSVFile);
   end;
+  if Updated > 0 then
+    MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [Imported, Updated]),
+      mtInformation, [mbOK], 0)
+  else
+    MessageDlg(Format('Importováno %d bodů.', [Imported]),
+      mtInformation, [mbOK], 0);
 end;
 
 procedure TPointDictionary.ExportToBinary(const FileName: string);
@@ -255,18 +280,30 @@ procedure TPointDictionary.ImportFromBinary(const FileName: string);
 var
   BinaryFile: TFileStream;
   Point: TPoint;
+  Imported, Updated: Integer;
 begin
-  CheckFileError(FileName); // Check file validity before reading
+  CheckFileError(FileName);
   BinaryFile := TFileStream.Create(FileName, fmOpenRead);
+  Imported := 0;
+  Updated := 0;
   try
     while BinaryFile.Position < BinaryFile.Size do
     begin
       BinaryFile.Read(Point, SizeOf(Point));
-      AddPoint(Point);
+      if PointExists(Point.PointNumber) then
+        Inc(Updated);
+      AddOrUpdatePoint(Point);
+      Inc(Imported);
     end;
   finally
     BinaryFile.Free;
   end;
+  if Updated > 0 then
+    MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [Imported, Updated]),
+      mtInformation, [mbOK], 0)
+  else
+    MessageDlg(Format('Importováno %d bodů.', [Imported]),
+      mtInformation, [mbOK], 0);
 end;
 
 // Additional helper to check file errors

@@ -27,13 +27,14 @@ type
   private
     procedure FocusInputCell;
     procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
+    procedure PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
   public
     /// <summary>
     ///  Shows the Add Point dialog for a single point entry.
     ///  Returns True if the user confirms with OK.
     ///  ANewPoint is validated by constructor TPoint.Create.
     /// </summary>
-    function Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
+    function Execute(PointNumber: Int64; out NewP: TPoint): Boolean;
   end;
 
 var
@@ -79,6 +80,8 @@ begin
 
   StringGrid.ColumnFilters[COL_DESC].DataType := cdtNone;
   StringGrid.ColumnFilters[COL_DESC].MaxLength := 32;
+
+  StringGrid.OnCellCommitted := PointNumberCommitted;
 end;
 
 function ReadDefaultQuality: Integer;
@@ -94,16 +97,30 @@ begin
   AHandled := True;
 end;
 
-function TAddPointForm.Execute(PointNumber: Integer; out NewP: TPoint): Boolean;
+procedure TAddPointForm.PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
 var
-  StoredPointNumber: Integer;
+  PointIdText: string;
+  PNum: Int64;
+begin
+  if (ACol <> COL_POINTNO) or (ARow < DATA_ROW) then Exit;
+  if Trim(StringGrid.Cells[COL_POINTNO, ARow]) = '' then Exit;
+  PointIdText := BuildPointIdFromPrefixState(StringGrid.Cells[COL_POINTNO, ARow]);
+  if TryStrToInt64(PointIdText, PNum) then
+    StringGrid.Cells[COL_POINTNO, ARow] := IntToStr(PNum);
+end;
+
+function TAddPointForm.Execute(PointNumber: Int64; out NewP: TPoint): Boolean;
+var
+  StoredPointNumber: Int64;
   QStr: string;
   DStr: string;
   Q: Integer;
   Dummy: Double;
 begin
-  StringGrid.Cells[COL_POINTNO, DATA_ROW] := IntToStr(PointNumber);
-  lblWarning.Caption := Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [PointNumber]);
+  StringGrid.Cells[COL_POINTNO, DATA_ROW] :=
+    BuildPointIdFromPrefixState(IntToStr(PointNumber));
+  StoredPointNumber := StrToInt64Def(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
+  lblWarning.Caption := Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [StoredPointNumber]);
 
   repeat
     Result := (ShowModal = mrOk);
@@ -133,7 +150,7 @@ begin
     Break; // vše OK
   until False;
 
-  StoredPointNumber := StrToIntDef(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
+  StoredPointNumber := StrToInt64Def(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
 
   // Dafaults from global prefix... quality/description just when user let it blanc
   QStr := Trim(StringGrid.Cells[COL_QUALITY, DATA_ROW]);

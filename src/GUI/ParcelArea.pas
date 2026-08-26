@@ -77,10 +77,10 @@ end;
 
 procedure TParcelAreaForm.FillFromDict(const R: Integer);
 var
-  num: Integer;
+  num: Int64;
   P: Point.TPoint;
 begin
-  num := StrToIntDef(StringGrid1.Cells[1, R], -1);
+  num := StrToInt64Def(StringGrid1.Cells[1, R], -1);
   if num <= 0 then Exit;
 
   if LookupPoint(num, P) then

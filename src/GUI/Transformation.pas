@@ -175,7 +175,7 @@ end;
 
 procedure TTransformationForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
-  PointNumber: Integer;
+  PointNumber: Int64;
   P: Point.TPoint;
   OldCount: Integer;
 begin
@@ -185,7 +185,7 @@ begin
 
     if StringGrid1.Col = 2 then
     begin
-      PointNumber := StrToIntDef(StringGrid1.Cells[2, StringGrid1.Row], -1);
+      PointNumber := StrToInt64Def(StringGrid1.Cells[2, StringGrid1.Row], -1);
       if PointNumber < 0 then
         ShowMessage('Neplatné číslo bodu.')
       else if not TPointDictionary.GetInstance.PointExists(PointNumber) then
@@ -199,7 +199,7 @@ begin
     end
     else if StringGrid1.Col = 5 then
     begin
-      PointNumber := StrToIntDef(StringGrid1.Cells[5, StringGrid1.Row], -1);
+      PointNumber := StrToInt64Def(StringGrid1.Cells[5, StringGrid1.Row], -1);
       if PointNumber < 0 then
         ShowMessage('Neplatné číslo bodu.')
       else if not TPointDictionary.GetInstance.PointExists(PointNumber) then

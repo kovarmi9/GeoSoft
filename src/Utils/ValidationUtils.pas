@@ -14,7 +14,7 @@ type
       MaxQuality = 8;
   public
     // Validates the point number, returns 0 if invalid
-    class function ValidatePointNumber(const APointNumber: Integer): Integer; static;
+    class function ValidatePointNumber(const APointNumber: Int64): Int64; static;
     // Validates the coordinate, returns 0.0 if invalid
     class function ValidateCoordinate(const ACoordinate: Double): Double; static;
     // Validates the quality, returns 0 if invalid
@@ -25,7 +25,7 @@ type
 
 implementation
 
-class function TValidationUtils.ValidatePointNumber(const APointNumber: Integer): Integer;
+class function TValidationUtils.ValidatePointNumber(const APointNumber: Int64): Int64;
 begin
   if (APointNumber > 0) and (APointNumber <= MaxPointNumber) then
     Result := APointNumber

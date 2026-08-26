@@ -8,21 +8,21 @@ uses
 type
   PPoint = ^TPoint; // Pointer to TPoint
   TPoint = record
-    PointNumber: Integer;  // Point number
+    PointNumber: Int64;  // Point number
     X: Double;             // X coordinate
     Y: Double;             // Y coordinate
     Z: Double;             // Z coordinate
     Quality: Integer;      // Point quality
     Description: string[32];
     // Constructor to initialize the point with Z coordinate
-    constructor Create(PointNumber: Integer; X, Y, Z: Double; Quality: Integer; const Description: string); overload;
+    constructor Create(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string); overload;
     // Constructor to initialize the point without Z coordinate
-    constructor Create(PointNumber: Integer; X, Y: Double; Quality: Integer; const Description: string); overload;
+    constructor Create(PointNumber: Int64; X, Y: Double; Quality: Integer; const Description: string); overload;
   end;
 
 implementation
 
-constructor TPoint.Create(PointNumber: Integer; X, Y, Z: Double; Quality: Integer; const Description: string);
+constructor TPoint.Create(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string);
 begin
   Self.PointNumber := TValidationUtils.ValidatePointNumber(PointNumber);
   Self.X := TValidationUtils.ValidateCoordinate(X);
@@ -34,7 +34,7 @@ begin
   {$WARN IMPLICIT_STRING_CAST_LOSS ON}
 end;
 
-constructor TPoint.Create(PointNumber: Integer; X, Y: Double; Quality: Integer; const Description: string);
+constructor TPoint.Create(PointNumber: Int64; X, Y: Double; Quality: Integer; const Description: string);
 begin
   Self.PointNumber := TValidationUtils.ValidatePointNumber(PointNumber);
   Self.X := TValidationUtils.ValidateCoordinate(X);

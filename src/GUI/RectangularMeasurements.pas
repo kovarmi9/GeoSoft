@@ -82,10 +82,10 @@ end;
 
 procedure TRectangularMeasurementsForm.FillFromDict(const R: Integer);
 var
-  Num: Integer;
+  Num: Int64;
   P: Point.TPoint;
 begin
-  Num := StrToIntDef(StringGrid1.Cells[1, R], -1);
+  Num := StrToInt64Def(StringGrid1.Cells[1, R], -1);
   if Num <= 0 then Exit;
 
   if LookupPoint(Num, P) then
@@ -154,7 +154,7 @@ begin
     Inc(N);
     SetLength(Chain, N);
     SetLength(IsKnown, N);
-    Chain[N - 1].PointNumber := StrToIntDef(StringGrid1.Cells[1, I], 0);
+    Chain[N - 1].PointNumber := StrToInt64Def(StringGrid1.Cells[1, I], 0);
     Chain[N - 1].X := StrToFloatDef(StringGrid1.Cells[2, I], 0);
     IsKnown[N - 1] := False;
 

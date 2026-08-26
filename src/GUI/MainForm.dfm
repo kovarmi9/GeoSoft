@@ -3202,6 +3202,7 @@ object Form1: TForm1
       end
       object Vytvoitseznam1: TMenuItem
         Caption = 'Vytvo'#345'it seznam'
+        OnClick = Vytvoitseznam1Click
       end
     end
     object Vypocty: TMenuItem

@@ -3,7 +3,8 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  System.UITypes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls;
 
@@ -22,6 +23,7 @@ type
     Polrnmetodanov1: TMenuItem;
     Konstruknomrn1: TMenuItem;
     procedure Open2Click(Sender: TObject);
+    procedure Vytvoitseznam1Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);
     procedure TransformationClick(Sender: TObject);
@@ -46,7 +48,23 @@ uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
-PointsManagementForm.Show;
+  if not PointsManagementForm.HasActiveList then
+  begin
+    if Application.MessageBox(
+      'Seznam souřadnic neexistuje. Chcete vytvořit nový?',
+      'GeoSoft',
+      MB_YESNO or MB_ICONQUESTION) <> IDYES then
+      Exit;
+    if not PointsManagementForm.CreateNewList then
+      Exit;
+  end;
+  PointsManagementForm.Show;
+end;
+
+procedure TForm1.Vytvoitseznam1Click(Sender: TObject);
+begin
+  if PointsManagementForm.CreateNewList then
+    PointsManagementForm.Show;
 end;
 
 procedure TForm1.Polrnmetoda1Click(Sender: TObject);

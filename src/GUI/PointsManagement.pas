@@ -409,13 +409,7 @@ end;
 
 procedure TPointsManagementForm.FileNewClick(Sender: TObject);
 begin
-  if not AskSaveChanges then Exit;
-
-  TPointDictionary.GetInstance.Clear;
-  FCurrentFile := '';
-  FFileFlag    := False;
-  RefreshGrid;
-  UpdateStatusBar;
+  CreateNewList;
 end;
 
 function TPointsManagementForm.CreateNewList: Boolean;

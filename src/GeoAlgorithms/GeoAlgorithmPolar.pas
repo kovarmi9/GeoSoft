@@ -1,4 +1,4 @@
-﻿unit GeoAlgorithmPolar;
+unit GeoAlgorithmPolar;
 
 interface
 
@@ -16,20 +16,17 @@ type
 
   TPolarMethodAlgorithm = class(TAlgorithm)
   private
-    FStation: TPoint;
-    FOrientations: TOrientations;
-    FOrientationShift: Double;
-    FStredniChybaOrPos: Double;
+    class var FStation: TPoint;
+    class var FOrientations: TOrientations;
+    class var FOrientationShift: Double;
+    class var FStredniChybaOrPos: Double;
   public
-    constructor Create; overload;
-    constructor Create(const AStation: TPoint; const AOrientations: TOrientations); overload;
+    class property Station: TPoint read FStation write FStation;
+    class property Orientations: TOrientations read FOrientations write FOrientations;
+    class property OrientationShift: Double read FOrientationShift;
+    class property StredniChybaOrPos: Double read FStredniChybaOrPos;
 
-    property Station: TPoint read FStation write FStation;
-    property Orientations: TOrientations read FOrientations write FOrientations;
-    property OrientationShift: Double read FOrientationShift;
-    property StredniChybaOrPos: Double read FStredniChybaOrPos;
-
-    function Calculate(const Body: GeoAlgorithmBase.TPointsArray): GeoAlgorithmBase.TPointsArray; override;
+    class function Calculate(const Body: TPointsArray): TPointsArray; override;
   end;
 
 implementation
@@ -39,38 +36,21 @@ const
   RAD_TO_GON = 200 / Pi;
   MEZNI_DFI  = 0.08;
 
-constructor TPolarMethodAlgorithm.Create;
-begin
-  inherited Create;
-  FOrientationShift := 0;
-  FStredniChybaOrPos := 0;
-end;
-
-constructor TPolarMethodAlgorithm.Create(const AStation: TPoint; const AOrientations: TOrientations);
-begin
-  inherited Create;
-  FStation := AStation;
-  FOrientations := AOrientations;
-  FOrientationShift := 0;
-  FStredniChybaOrPos := 0;
-end;
-
-function TPolarMethodAlgorithm.Calculate(const Body: GeoAlgorithmBase.TPointsArray): GeoAlgorithmBase.TPointsArray;
+class function TPolarMethodAlgorithm.Calculate(const Body: TPointsArray): TPointsArray;
 var
   i, j, n: Integer;
   sigma_AB, psi_B_rad, delta_i, delta: Double;
   sumSin, sumCos: Double;
   deltas: array of Double;
   dfi, ds, dist_computed: Double;
-  sumDfiSqr: Double;
-  maxDist: Double;
+  sumDfiSqr, maxDist: Double;
   d, psi, sigma_AP: Double;
 begin
   ClearWarnings;
 
   n := Length(FOrientations);
   if n = 0 then
-    raise Exception.Create('Nebyly zadány žádné orientační body.');
+    raise Exception.Create('Nejsou zadány orientační body.');
 
   SetLength(deltas, n);
   sumSin := 0;
@@ -78,8 +58,7 @@ begin
 
   for i := 0 to n - 1 do
   begin
-    sigma_AB := ArcTan2(FOrientations[i].B.Y - FStation.Y,
-                        FOrientations[i].B.X - FStation.X);
+    sigma_AB := ArcTan2(FOrientations[i].B.Y - FStation.Y, FOrientations[i].B.X - FStation.X);
     psi_B_rad := FOrientations[i].psi_B * GON_TO_RAD;
     delta_i := sigma_AB - psi_B_rad;
     deltas[i] := delta_i;
@@ -99,13 +78,13 @@ begin
     sumDfiSqr := sumDfiSqr + Sqr(dfi);
 
     if Abs(dfi) > MEZNI_DFI then
-      AddWarning(Format('Orientace %d: odchylka or. posunu dfi = %.4f g překračuje mezní hodnotu %.2f g',
+      AddWarning(Format('Orientace %d: odchylka or. posunu dfi = %.4f g překračuje mezní hodnotu %.2f g ' +
+        '- bod 10.2 vyhlášky 31/1995 Sb. v platném znění',
         [FOrientations[i].B.PointNumber, dfi, MEZNI_DFI]));
 
     if FOrientations[i].dist_B > 0 then
     begin
-      dist_computed := Sqrt(Sqr(FOrientations[i].B.X - FStation.X) +
-                           Sqr(FOrientations[i].B.Y - FStation.Y));
+      dist_computed := Sqrt(Sqr(FOrientations[i].B.X - FStation.X) + Sqr(FOrientations[i].B.Y - FStation.Y));
       ds := FOrientations[i].dist_B - dist_computed;
 
       if dist_computed > maxDist then
@@ -134,9 +113,14 @@ begin
     Result[j].Y := FStation.Y + d * Sin(sigma_AP);
 
     if (maxDist > 0) and (d > maxDist) then
-      AddWarning(Format('Bod %d: délka %.1f m překračuje nejvzdálenější orientaci %.1f m',
+      AddWarning(Format('Bod %d: délka rajónu %.1f m je větší než nejvzdálenější orientace %.1f m ' +
+        '- bod 4.3.2.2.2 Návodu pro obnovu katastrálního operátu',
         [Body[j].PointNumber, d, maxDist]));
   end;
 end;
+
+initialization
+  TPolarMethodAlgorithm.FOrientationShift := 0;
+  TPolarMethodAlgorithm.FStredniChybaOrPos := 0;
 
 end.

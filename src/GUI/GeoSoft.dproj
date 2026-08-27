@@ -152,7 +152,8 @@
             <Form>PolarMethodForm</Form>
         </DCCReference>
         <DCCReference Include="..\Utils\GeoAlgorithmBase.pas"/>
-        <DCCReference Include="..\Utils\GeoAlgorithmOrthogonal.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmOrthogonal.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmPolar.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformBase.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas"/>

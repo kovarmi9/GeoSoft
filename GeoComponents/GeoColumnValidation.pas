@@ -628,6 +628,7 @@ end;
 
 function ValidateFloatText(const AText: string): Boolean;
 var
+  I: Integer;
   Ch: Char;
   HasDecimal, HasDigit: Boolean;
   Sep: Char;
@@ -640,9 +641,12 @@ begin
   HasDecimal := False;
   HasDigit := False;
 
-  for Ch in AText do
+  for I := 1 to Length(AText) do
   begin
-    if Ch = Sep then
+    Ch := AText[I];
+    if (Ch = '-') and (I = 1) then
+      Continue
+    else if Ch = Sep then
     begin
       if HasDecimal then Exit;
       HasDecimal := True;
@@ -684,6 +688,9 @@ begin
     Exit;
 
   if (Key = Sep) and (Pos(Sep, AText) = 0) then
+    Exit;
+
+  if (Key = '-') and (AText = '') then
     Exit;
 
   Key := #0;

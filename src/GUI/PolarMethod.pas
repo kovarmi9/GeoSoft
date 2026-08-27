@@ -295,8 +295,8 @@ begin
   SetLength(InPts, nDet);
 
   num := StrToInt64Def(Trim(EditStationNo.Text), 0);
-  TPolarMethodAlgorithm.A := P;
-  TPolarMethodAlgorithm.B := Orts;
+  TPolarMethodAlgorithm.Station := P;
+  TPolarMethodAlgorithm.Orientations := Orts;
   OutPts := TPolarMethodAlgorithm.Calculate(InPts);
 
   Memo1.Lines.BeginUpdate;

@@ -96,8 +96,7 @@ end;
 // Overload that prints all fields — delegates to the field-mask overload
 function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList;
 begin
-  Result := TStringList.Create;
-  Result.AddStrings(PrintGeoRow(ARow, [Low(TGeoField)..High(TGeoField)], ARowIndex));
+  Result := PrintGeoRow(ARow, [Low(TGeoField)..High(TGeoField)], ARowIndex);
 end;
 
 function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList;

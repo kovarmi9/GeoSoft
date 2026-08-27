@@ -162,6 +162,7 @@ begin
       with TStringList.Create do
       try
         Delimiter := #9;
+        StrictDelimiter := True;
         DelimitedText := Line;
         if Count < 6 then
           Continue;
@@ -229,6 +230,7 @@ begin
       with TStringList.Create do
       try
         Delimiter := ';';
+        StrictDelimiter := True;
         DelimitedText := Line;
         if Count < 6 then
           Continue;

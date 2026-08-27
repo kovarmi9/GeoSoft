@@ -5,7 +5,7 @@
 uses
   SysUtils,
   GeoAlgorithmBase,
-  GeoAlgorithmPolar in '..\..\src\Utils\GeoAlgorithmPolar.pas',
+  GeoAlgorithmPolar in '..\..\src\GeoAlgorithms\GeoAlgorithmPolar.pas',
   Point;
 
 var
@@ -37,8 +37,8 @@ begin
     Orientace[0].psi_B := 50.0; // ψ_B v gonech
 
     // Nastavení parametrů pro výpočet
-    TPolarMethodAlgorithm.A := A;
-    TPolarMethodAlgorithm.B := Orientace;
+    TPolarMethodAlgorithm.Station := A;
+    TPolarMethodAlgorithm.Orientations := Orientace;
 
     // Měřená data
     SetLength(M, 2);

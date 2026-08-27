@@ -180,9 +180,14 @@ begin
   // Saves point to the dictionary — ask if already exists
   if TPointDictionary.GetInstance.PointExists(NewP.PointNumber) then
   begin
-    if MessageDlg(Format('Bod %d již existuje. Chcete ho přepsat?', [NewP.PointNumber]),
-                  mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
+    if Application.MessageBox(
+      PChar(Format('Bod %d již existuje. Chcete ho přepsat?', [NewP.PointNumber])),
+      'GeoSoft',
+      MB_YESNO or MB_ICONQUESTION) <> IDYES then
+    begin
+      Result := False;
       Exit;
+    end;
     TPointDictionary.GetInstance.AddOrUpdatePoint(NewP);
   end
   else

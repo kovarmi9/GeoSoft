@@ -12,7 +12,7 @@ uses
   RectangularMeasurements in 'RectangularMeasurements.pas' {RectangularMeasurementsForm},
   CheckMeasurements in 'CheckMeasurements.pas' {CheckMeasurementsForm},
   PolarMethod in 'PolarMethod.pas' {PolarMethodForm},
-  GeoAlgorithmBase in '..\Utils\GeoAlgorithmBase.pas',
+  GeoAlgorithmBase in '..\GeoAlgorithms\GeoAlgorithmBase.pas',
   GeoAlgorithmOrthogonal in '..\GeoAlgorithms\GeoAlgorithmOrthogonal.pas',
   GeoAlgorithmPolar in '..\GeoAlgorithms\GeoAlgorithmPolar.pas',
   GeoAlgorithmLHuilier in '..\GeoAlgorithms\GeoAlgorithmLHuilier.pas',

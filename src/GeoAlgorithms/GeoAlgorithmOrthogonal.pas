@@ -1,4 +1,4 @@
-unit GeoAlgorithmOrthogonal;
+﻿unit GeoAlgorithmOrthogonal;
 
 // Orthogonal (rectangular) survey method.
 // Each input point carries a measured stationing s (along the tape) and
@@ -18,36 +18,54 @@ uses
 type
   TOrthogonalMethodAlgorithm = class(TAlgorithm)
   private
-    class var FStartPoint: TPoint; // P — first baseline point (known coords)
-    class var FEndPoint:   TPoint; // K — second baseline point (known coords)
-    class var FSP: Double;         // s_P — stationing of P on the tape (default 0)
-    class var FQP: Double;         // q_P — perpendicular offset of P from tape (default 0)
-    class var FSK: Double;         // s_K — stationing of K on the tape (default 0)
-    class var FQK: Double;         // q_K — perpendicular offset of K from tape (default 0)
+    FStartPoint: TPoint; // P — first baseline point (known coords)
+    FEndPoint:   TPoint; // K — second baseline point (known coords)
+    FSP: Double;         // s_P — stationing of P on the tape (default 0)
+    FQP: Double;         // q_P — perpendicular offset of P from tape (default 0)
+    FSK: Double;         // s_K — stationing of K on the tape (default 0)
+    FQK: Double;         // q_K — perpendicular offset of K from tape (default 0)
   public
-    class property StartPoint: TPoint read FStartPoint write FStartPoint;
-    class property EndPoint:   TPoint read FEndPoint   write FEndPoint;
+    constructor Create; overload;
+    constructor Create(const AStartPoint, AEndPoint: TPoint); overload;
+
+    property StartPoint: TPoint read FStartPoint write FStartPoint;
+    property EndPoint:   TPoint read FEndPoint   write FEndPoint;
 
     // Measured stationings and offsets of baseline anchors on the tape.
     // Leave at zero to skip stretching correction.
-    class property SP: Double read FSP write FSP;
-    class property QP: Double read FQP write FQP;
-    class property SK: Double read FSK write FSK;
-    class property QK: Double read FQK write FQK;
+    property SP: Double read FSP write FSP;
+    property QP: Double read FQP write FQP;
+    property SK: Double read FSK write FSK;
+    property QK: Double read FQK write FQK;
 
     // InputPoint.X = s (stationing), InputPoint.Y = q (perpendicular offset)
-    class function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
+    function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
   end;
 
 implementation
 
-class function TOrthogonalMethodAlgorithm.Calculate(const InputPoints: TPointsArray): TPointsArray;
 const
   MAX_OFFSET_ABS   = 30.0;  // absolute max perpendicular offset [m]
   MAX_OFFSET_RATIO = 0.75;  // max offset as fraction of baseline length
   WARN_RATIO       = 0.50;  // soft warning threshold for offset/L ratio
   MAX_STRETCH_WARN = 0.005; // 0.5 % — tape stretching warning
   MAX_STRETCH_ERR  = 0.020; // 2.0 % — tape stretching suspected blunder
+
+constructor TOrthogonalMethodAlgorithm.Create;
+begin
+  inherited Create;
+  FSP := 0;  FQP := 0;
+  FSK := 0;  FQK := 0;
+end;
+
+constructor TOrthogonalMethodAlgorithm.Create(const AStartPoint, AEndPoint: TPoint);
+begin
+  Create;
+  FStartPoint := AStartPoint;
+  FEndPoint   := AEndPoint;
+end;
+
+function TOrthogonalMethodAlgorithm.Calculate(const InputPoints: TPointsArray): TPointsArray;
 var
   dx, dy: Double;       // S-JTSK vector P→K
   dS, dQ: Double;       // tape vector P→K scaled to S-JTSK
@@ -135,11 +153,5 @@ begin
     Result[i].Description := InputPoints[i].Description;
   end;
 end;
-
-initialization
-  TOrthogonalMethodAlgorithm.FSP := 0;
-  TOrthogonalMethodAlgorithm.FQP := 0;
-  TOrthogonalMethodAlgorithm.FSK := 0;
-  TOrthogonalMethodAlgorithm.FQK := 0;
 
 end.

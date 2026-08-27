@@ -9,6 +9,8 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Types,
   PointsUtilsSingleton,
   Point,
+  GeoAlgorithmBase,
+  GeoAlgorithmLHuilier,
   CalcBase, Vcl.Menus;
 
 type
@@ -134,9 +136,11 @@ end;
 procedure TParcelAreaForm.CalculateClick(Sender: TObject);
 var
   i, n: Integer;
-  sum: Double;
   Xs, Ys: array of Double;
   nums: array of string;
+  Pts: TPointsArray;
+  Alg: TLHuilierAlgorithm;
+  W: string;
 begin
   n := 0;
   for i := 1 to StringGrid1.RowCount - 1 do
@@ -167,13 +171,24 @@ begin
   for i := 0 to n - 1 do
     Memo1.Lines.Add(Format(' %-4d  %-12s  %15.2f  %15.2f', [i + 1, nums[i], Ys[i], Xs[i]]));
 
-  sum := 0;
+  SetLength(Pts, n);
   for i := 0 to n - 1 do
-    sum := sum + (Ys[i] * Xs[(i + 1) mod n] - Ys[(i + 1) mod n] * Xs[i]);
-  sum := Abs(sum) / 2;
+  begin
+    Pts[i].X := Xs[i];
+    Pts[i].Y := Ys[i];
+  end;
 
-  Memo1.Lines.Add('');
-  Memo1.Lines.Add(Format(' Plocha = %.2f m²', [sum]));
+  Alg := TLHuilierAlgorithm.Create;
+  try
+    Alg.Calculate(Pts);
+
+    Memo1.Lines.Add('');
+    Memo1.Lines.Add(Format(' Plocha = %.2f m²', [Alg.Area]));
+    for W in Alg.Warnings do
+      Memo1.Lines.Add(' CHYBA: ' + W);
+  finally
+    Alg.Free;
+  end;
   Memo1.Lines.Add(' ' + StringOfChar('=', 55));
 end;
 

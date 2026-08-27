@@ -37,6 +37,7 @@ type
     procedure DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);
   private
+    FOrthoAlg: TOrthogonalMethodAlgorithm;
     procedure SetupValidations;
     procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -47,6 +48,7 @@ type
     function  TryComputeDetailRow(R: Integer): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   end;
 
 var
@@ -66,6 +68,12 @@ begin
   GridDetail.OnCellCommitted := DetailPointCommitted;
   GridDetail.OnSelectCell    := DetailGridSelectCell;
   GridDetail.Enabled         := False;
+end;
+
+destructor TOrthogonalMethodForm.Destroy;
+begin
+  FOrthoAlg.Free;
+  inherited Destroy;
 end;
 
 procedure TOrthogonalMethodForm.SetupValidations;
@@ -162,7 +170,7 @@ begin
   num := StrToInt64Def(GridBaseline.Cells[1, R], -1);
   if num <= 0 then
   begin
-    ShowMessage(Format('Zadejte '#269#237'slo bodu v '#345#225'dku %s.', [GridBaseline.Cells[0, R]]));
+    ShowMessage(Format('Zadejte číslo bodu v řádku %s.', [GridBaseline.Cells[0, R]]));
     Exit;
   end;
   if not LookupPoint(num, P) then Exit;
@@ -173,7 +181,6 @@ end;
 function TOrthogonalMethodForm.TryComputeDetailRow(R: Integer): Boolean;
 var
   s, q: Double;
-  Alg: TOrthogonalMethodAlgorithm;
   InPts, OutPts: TPointsArray;
   AlreadyExists: Boolean;
   W: string;
@@ -181,36 +188,31 @@ begin
   Result := False;
   if not ReadFloat(GridDetail, 2, R, s) then Exit;
   if not ReadFloat(GridDetail, 3, R, q) then Exit;
+  if FOrthoAlg = nil then Exit;
 
-  Alg := TOrthogonalMethodAlgorithm.Create;
-  try
-    Alg.Scale        := TOrthogonalMethodAlgorithm.Scale;
-    SetLength(InPts, 1);
-    InPts[0].PointNumber := StrToInt64Def(GridDetail.Cells[1, R], 0);
-    InPts[0].X           := s;
-    InPts[0].Y           := q;
-    InPts[0].Z           := 0;
-    InPts[0].Quality     := StrToIntDef(Trim(GridDetail.Cells[7, R]), 0);
-    {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
-    InPts[0].Description := GridDetail.Cells[8, R];
-    {$WARN IMPLICIT_STRING_CAST_LOSS ON}
-    OutPts := Alg.Calculate(InPts);
-    if Length(OutPts) > 0 then
-    begin
-      AlreadyExists := TPointDictionary.GetInstance.PointExists(OutPts[0].PointNumber);
-      GridDetail.Cells[4, R] := FloatToStr(OutPts[0].X, FS);
-      GridDetail.Cells[5, R] := FloatToStr(OutPts[0].Y, FS);
-      TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
-      Memo1.Lines.Add(Format('     %-17s  %12.2f  %12.2f',
-        [FormatPointId(GridDetail.Cells[1, R]), InPts[0].X, InPts[0].Y]));
-      if AlreadyExists then
-        Memo1.Lines.Add(' *** BOD >' + FormatPointId(GridDetail.Cells[1, R]) + '< V SEZNAMU AKTUALIZOV'#193'N ***');
-      for W in Alg.Warnings do
-        Memo1.Lines.Add(' CHYBA: ' + W);
-      Result := True;
-    end;
-  finally
-    Alg.Free;
+  SetLength(InPts, 1);
+  InPts[0].PointNumber := StrToInt64Def(GridDetail.Cells[1, R], 0);
+  InPts[0].X           := s;
+  InPts[0].Y           := q;
+  InPts[0].Z           := 0;
+  InPts[0].Quality     := StrToIntDef(Trim(GridDetail.Cells[7, R]), 0);
+  {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
+  InPts[0].Description := GridDetail.Cells[8, R];
+  {$WARN IMPLICIT_STRING_CAST_LOSS ON}
+  OutPts := FOrthoAlg.Calculate(InPts);
+  if Length(OutPts) > 0 then
+  begin
+    AlreadyExists := TPointDictionary.GetInstance.PointExists(OutPts[0].PointNumber);
+    GridDetail.Cells[4, R] := FloatToStr(OutPts[0].X, FS);
+    GridDetail.Cells[5, R] := FloatToStr(OutPts[0].Y, FS);
+    TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
+    Memo1.Lines.Add(Format('     %-17s  %12.2f  %12.2f',
+      [FormatPointId(GridDetail.Cells[1, R]), InPts[0].X, InPts[0].Y]));
+    if AlreadyExists then
+      Memo1.Lines.Add(' *** BOD >' + FormatPointId(GridDetail.Cells[1, R]) + '< V SEZNAMU AKTUALIZOVÁN ***');
+    for W in FOrthoAlg.Warnings do
+      Memo1.Lines.Add(' CHYBA: ' + W);
+    Result := True;
   end;
 end;
 
@@ -240,13 +242,13 @@ begin
   if not ReadFloat(GridBaseline, 2, 2, sK) then sK := 0;
   if not ReadFloat(GridBaseline, 3, 2, qK) then qK := 0;
 
-  TOrthogonalMethodAlgorithm.StartPoint := P0;
-  TOrthogonalMethodAlgorithm.EndPoint   := K0;
-  TOrthogonalMethodAlgorithm.SP := sP;  TOrthogonalMethodAlgorithm.QP := qP;
-  TOrthogonalMethodAlgorithm.SK := sK;  TOrthogonalMethodAlgorithm.QK := qK;
+  FreeAndNil(FOrthoAlg);
+  FOrthoAlg := TOrthogonalMethodAlgorithm.Create(P0, K0);
+  FOrthoAlg.SP := sP;  FOrthoAlg.QP := qP;
+  FOrthoAlg.SK := sK;  FOrthoAlg.QK := qK;
 
-  dS := (sK - sP) * TOrthogonalMethodAlgorithm.Scale;
-  dQ := (qK - qP) * TOrthogonalMethodAlgorithm.Scale;
+  dS := (sK - sP) * FOrthoAlg.Scale;
+  dQ := (qK - qP) * FOrthoAlg.Scale;
   L  := Sqrt(Sqr(dS) + Sqr(dQ));
   dX := K0.X - P0.X;  dY := K0.Y - P0.Y;
   dg := Sqrt(Sqr(dX) + Sqr(dY));
@@ -254,16 +256,16 @@ begin
   MezniOdch := 0.012 * Sqrt(L) + 0.10;
 
   Memo1.Lines.Clear;
-  Memo1.Lines.Add(' == 0   Ortogon'#225'ln'#237' metoda  =====================================================');
-  Memo1.Lines.Add('             '#268#205'SLO BODU   STANI'#268'EN'#205'     KOLMICE');
+  Memo1.Lines.Add(' == 0   Ortogonální metoda  =====================================================');
+  Memo1.Lines.Add('             ČÍSLO BODU   STANIČENÍ     KOLMICE');
   Memo1.Lines.Add(Format('   P:  %-17s  %12.2f  %12.2f', [FormatPointId(GridBaseline.Cells[1, 1]), sP, qP]));
   Memo1.Lines.Add(Format('   K:  %-17s  %12.2f  %12.2f', [FormatPointId(GridBaseline.Cells[1, 2]), sK, qK]));
   Memo1.Lines.Add(' -------------------------------------------------------------------------------');
-  Memo1.Lines.Add(Format('  Odch   = %7.3f  Mezn'#237' KK[3]  = %7.3f', [Odch, MezniOdch]));
+  Memo1.Lines.Add(Format('  Odch   = %7.3f  Mezní KK[3]  = %7.3f', [Odch, MezniOdch]));
   if Odch > MezniOdch then
-    Memo1.Lines.Add(' CHYBA: Odchylka d'#233'lky p'#225'sky p'#345'ekra'#269'uje mezn'#237' hodnotu!');
+    Memo1.Lines.Add(' CHYBA: Odchylka délky pásky překračuje mezní hodnotu!');
   Memo1.Lines.Add('');
-  Memo1.Lines.Add(' -- PODROBN'#201' BODY -------------------------------------------------------------');
+  Memo1.Lines.Add(' -- PODROBNÉ BODY -------------------------------------------------------------');
 
   GridDetail.Enabled := True;
   GridDetail.SetFocus;

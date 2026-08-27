@@ -198,7 +198,6 @@ inherited PolarMethodForm: TPolarMethodForm
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
-      OnKeyDown = GridOrientationKeyDown
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
         ''
@@ -267,7 +266,6 @@ inherited PolarMethodForm: TPolarMethodForm
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 4
-      OnKeyDown = GridDetailKeyDown
       EnterEndBehavior = ebAddRow
       ColumnHeaders.Strings = (
         ''

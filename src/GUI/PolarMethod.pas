@@ -52,14 +52,14 @@ type
     procedure CalculateClick(Sender: TObject);
     procedure EditStationNoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditStationVSKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure GridOrientationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure GridDetailKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CheckBox1Click(Sender: TObject);
   private
     FStationDF: TGeoDataFrame;
     FOrientDF:  TGeoDataFrame;
     FDetailDF:  TGeoDataFrame;
     procedure CollectGridRows(Grid: TGeoFieldsGrid; DataFrame: TGeoDataFrame);
+    procedure OrientationCellCommitted(Sender: TObject; ACol, ARow: Integer);
+    procedure DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
   protected
     procedure Loaded; override;
   public
@@ -85,6 +85,9 @@ begin
   GridDetail.SetColumnDisplayName(SS, 'Vodorovná vzdálenost');
   GridDetail.SetColumnDisplayName(HZ, 'Vodorovný úhel');
   GridDetail.SetColumnDisplayName(Poznamka, 'Popis');
+
+  GridOrientation.OnCellCommitted := OrientationCellCommitted;
+  GridDetail.OnCellCommitted      := DetailCellCommitted;
 end;
 
 procedure TPolarMethodForm.Loaded;
@@ -174,55 +177,46 @@ begin
   GridOrientation.EditorMode := True;
 end;
 
+// Doplní souřadnice orientace ze seznamu bodů po potvrzení čísla bodu.
+// Neznámý bod nabídne k zadání přes AddPoint (v LookupPoint).
 // JTSK: pt.X = geodetic Y, pt.Y = geodetic X
-procedure TPolarMethodForm.GridOrientationKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TPolarMethodForm.OrientationCellCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   G: TGeoFieldsGrid;
-  CBCol, r: Integer;
+  CBCol: Integer;
   num: Int64;
   pt: Point.TPoint;
 begin
-  if Key <> VK_RETURN then Exit;
-
   G := GridOrientation;
   CBCol := G.FieldToCol(CB);
-  if (G.Col <> CBCol) or (G.Row < G.FixedRows) then Exit;
+  if (ACol <> CBCol) or (ARow < G.FixedRows) then Exit;
 
-  r := G.Row;
-  num := StrToInt64Def(G.Cells[CBCol, r], 0);
+  num := StrToInt64Def(Trim(G.Cells[CBCol, ARow]), 0);
   if num <= 0 then Exit;
 
   if not LookupPoint(num, pt) then Exit;
 
-  G.Cells[G.FieldToCol(Y), r] := FloatToStr(pt.X, FS);
-  G.Cells[G.FieldToCol(X), r] := FloatToStr(pt.Y, FS);
-  G.Cells[G.FieldToCol(Z), r] := FloatToStr(pt.Z, FS);
+  G.Cells[G.FieldToCol(Y), ARow] := FloatToStr(pt.X, FS);
+  G.Cells[G.FieldToCol(X), ARow] := FloatToStr(pt.Y, FS);
+  G.Cells[G.FieldToCol(Z), ARow] := FloatToStr(pt.Z, FS);
 end;
 
-procedure TPolarMethodForm.GridDetailKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TPolarMethodForm.DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   G: TGeoFieldsGrid;
-  CBCol, PozCol, r: Integer;
+  CBCol, PozCol: Integer;
 begin
-  if Key <> VK_RETURN then Exit;
-
   G := GridDetail;
-  r := G.Row;
-  if r < G.FixedRows then Exit;
+  if ARow < G.FixedRows then Exit;
 
-  if G.EditorMode then
-    G.EditorMode := False;
-
-  CBCol := G.FieldToCol(CB);
+  CBCol  := G.FieldToCol(CB);
   PozCol := G.FieldToCol(Poznamka);
 
-  if G.Col = CBCol then
-    G.Cells[CBCol, r] := BuildPointIdFromPrefixState(G.Cells[CBCol, r]);
+  if ACol = CBCol then
+    G.Cells[CBCol, ARow] := BuildPointIdFromPrefixState(G.Cells[CBCol, ARow]);
 
-  if (G.Col = PozCol) and (Trim(G.Cells[PozCol, r]) = '') then
-    G.Cells[PozCol, r] := Trim(GPointPrefix.Popis);
-
-  Key := 0;
+  if (ACol = PozCol) and (Trim(G.Cells[PozCol, ARow]) = '') then
+    G.Cells[PozCol, ARow] := Trim(GPointPrefix.Popis);
 end;
 
 procedure TPolarMethodForm.CalculateClick(Sender: TObject);
@@ -236,6 +230,7 @@ var
   sigma_AB, psi_rad, delta_rad, dfi, ds, dg: Double;
   AlreadyExists: Boolean;
   W, PozText: string;
+  Alg: TPolarMethodAlgorithm;
 begin
   num := StrToInt64Def(Trim(EditStationNo.Text), 0);
   if num <= 0 then
@@ -295,12 +290,11 @@ begin
   SetLength(InPts, nDet);
 
   num := StrToInt64Def(Trim(EditStationNo.Text), 0);
-  TPolarMethodAlgorithm.Station := P;
-  TPolarMethodAlgorithm.Orientations := Orts;
-  OutPts := TPolarMethodAlgorithm.Calculate(InPts);
-
+  Alg := TPolarMethodAlgorithm.Create(P, Orts);
   Memo1.Lines.BeginUpdate;
   try
+    OutPts := Alg.Calculate(InPts);
+
     Memo1.Lines.Clear;
     Memo1.Lines.Add(' == Polární metoda — pevné stanovisko ==========================================');
     Memo1.Lines.Add(Format(' Stanovisko: %-15d  Y = %12.2f  X = %12.2f',
@@ -310,7 +304,7 @@ begin
     Memo1.Lines.Add(Format('   %-15s  %10s  %10s  %8s  %8s',
       ['Číslo bodu', 'Směr [g]', 'Délka [m]', 'dfi [g]', 'ds [m]']));
 
-    delta_rad := TPolarMethodAlgorithm.OrientationShift * Pi / 200;
+    delta_rad := Alg.OrientationShift * Pi / 200;
     for i := 0 to nOrt - 1 do
     begin
       sigma_AB := ArcTan2(Orts[i].B.Y - P.Y, Orts[i].B.X - P.X);
@@ -332,10 +326,10 @@ begin
 
     Memo1.Lines.Add(' -------------------------------------------------------------------------------');
     Memo1.Lines.Add(Format(' Or. posun = %.4f g   Střední chyba or. pos. = %.4f g   Mezní = %.2f g',
-      [TPolarMethodAlgorithm.OrientationShift,
-       TPolarMethodAlgorithm.StredniChybaOrPos, 0.08]));
+      [Alg.OrientationShift,
+       Alg.StredniChybaOrPos, 0.08]));
 
-    for W in TPolarMethodAlgorithm.Warnings do
+    for W in Alg.Warnings do
       Memo1.Lines.Add(' CHYBA: ' + W);
 
     if nDet > 0 then
@@ -377,6 +371,7 @@ begin
     Memo1.Lines.Add(' ==============================================================================');
   finally
     Memo1.Lines.EndUpdate;
+    Alg.Free;
   end;
 end;
 

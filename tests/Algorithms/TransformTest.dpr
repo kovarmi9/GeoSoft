@@ -1,4 +1,4 @@
-program TransformTest;
+Ôªøprogram TransformTest;
 
 {$APPTYPE CONSOLE}
 
@@ -19,7 +19,7 @@ begin
     SetLength(LocalPoints, 10);
     SetLength(GlobalPoints, 10);
 
-    // mÌstnÌ
+    // m√≠stn√≠
     LocalPoints[0] := TPoint.Create(1, 109.73193, 35.709, 0, 0, '');
     LocalPoints[1] := TPoint.Create(2, 186.36054, 29.012, 0, 0, '');
     LocalPoints[2] := TPoint.Create(3, 259.80355, 76.883, 0, 0, '');
@@ -43,7 +43,7 @@ begin
     GlobalPoints[8] := TPoint.Create(9, 1040766.64, 744566.08, 0, 0, '');
     GlobalPoints[9] := TPoint.Create(10, 1040897.85, 744396.73, 0, 0, '');
 
-    // PodrobnÈ body
+    // Podrobn√© body
     SetLength(DetailPoints, 7);
     DetailPoints[0] := TPoint.Create(100, 38.84350, 11.663, 0, 0, '100');
     DetailPoints[1] := TPoint.Create(101, 27.52856, 11.016, 0, 0, '101');
@@ -53,13 +53,13 @@ begin
     DetailPoints[5] := TPoint.Create(105, 26.65925, 72.975, 0, 0, '105');
     DetailPoints[6] := TPoint.Create(106, 28.06989, 44.885, 0, 0, '106');
 
-    // V˝poËet transformace
+    // V√Ωpoƒçet transformace
     Transform := TSimilarityTransformation.Create;
     try
       Transform.ComputeParametersFromPoints(LocalPoints, GlobalPoints);
       ResultPoints := Transform.Calculate(DetailPoints);
 
-      Writeln('TransformovanÈ body:');
+      Writeln('Transformovan√© body:');
       for i := 0 to High(ResultPoints) do
       begin
         Writeln(Format('Bod %d: X = %.3f, Y = %.3f, Popis: %s',

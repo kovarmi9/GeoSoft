@@ -1,4 +1,4 @@
-unit GeoAlgorithmPolar;
+﻿unit GeoAlgorithmPolar;
 
 interface
 
@@ -16,17 +16,20 @@ type
 
   TPolarMethodAlgorithm = class(TAlgorithm)
   private
-    class var FStation: TPoint;
-    class var FOrientations: TOrientations;
-    class var FOrientationShift: Double;
-    class var FStredniChybaOrPos: Double;
+    FStation: TPoint;
+    FOrientations: TOrientations;
+    FOrientationShift: Double;
+    FStredniChybaOrPos: Double;
   public
-    class property Station: TPoint read FStation write FStation;
-    class property Orientations: TOrientations read FOrientations write FOrientations;
-    class property OrientationShift: Double read FOrientationShift;
-    class property StredniChybaOrPos: Double read FStredniChybaOrPos;
+    constructor Create; overload;
+    constructor Create(const AStation: TPoint; const AOrientations: TOrientations); overload;
 
-    class function Calculate(const Body: TPointsArray): TPointsArray; override;
+    property Station: TPoint read FStation write FStation;
+    property Orientations: TOrientations read FOrientations write FOrientations;
+    property OrientationShift: Double read FOrientationShift;
+    property StredniChybaOrPos: Double read FStredniChybaOrPos;
+
+    function Calculate(const Body: TPointsArray): TPointsArray; override;
   end;
 
 implementation
@@ -36,7 +39,21 @@ const
   RAD_TO_GON = 200 / Pi;
   MEZNI_DFI  = 0.08;
 
-class function TPolarMethodAlgorithm.Calculate(const Body: TPointsArray): TPointsArray;
+constructor TPolarMethodAlgorithm.Create;
+begin
+  inherited Create;
+  FOrientationShift := 0;
+  FStredniChybaOrPos := 0;
+end;
+
+constructor TPolarMethodAlgorithm.Create(const AStation: TPoint; const AOrientations: TOrientations);
+begin
+  Create;
+  FStation := AStation;
+  FOrientations := AOrientations;
+end;
+
+function TPolarMethodAlgorithm.Calculate(const Body: TPointsArray): TPointsArray;
 var
   i, j, n: Integer;
   sigma_AB, psi_B_rad, delta_i, delta: Double;
@@ -118,9 +135,5 @@ begin
         [Body[j].PointNumber, d, maxDist]));
   end;
 end;
-
-initialization
-  TPolarMethodAlgorithm.FOrientationShift := 0;
-  TPolarMethodAlgorithm.FStredniChybaOrPos := 0;
 
 end.

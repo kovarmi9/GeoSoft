@@ -13,6 +13,7 @@ var
   A, B: TPoint;
   Orientace: TOrientations;
   i: Integer;
+  Alg: TPolarMethodAlgorithm;
 begin
   try
     // Stanovisko A
@@ -36,10 +37,6 @@ begin
     Orientace[0].B := B;
     Orientace[0].psi_B := 50.0; // ψ_B v gonech
 
-    // Nastavení parametrů pro výpočet
-    TPolarMethodAlgorithm.Station := A;
-    TPolarMethodAlgorithm.Orientations := Orientace;
-
     // Měřená data
     SetLength(M, 2);
 
@@ -59,8 +56,13 @@ begin
     M[1].Description := 'bod 2';
     M[1].Quality := 0;
 
-    // Výpočet
-    R := TPolarMethodAlgorithm.Calculate(M);
+    // Nastavení parametrů a výpočet
+    Alg := TPolarMethodAlgorithm.Create(A, Orientace);
+    try
+      R := Alg.Calculate(M);
+    finally
+      Alg.Free;
+    end;
 
     // Výpis výsledků
     Writeln('Výsledné souřadnice podrobných bodů:');

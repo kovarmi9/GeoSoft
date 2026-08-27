@@ -3,7 +3,7 @@ unit GeoAlgorithmBase;
 interface
 
 uses
-  System.SysUtils, System.Classes, Point, GeoDataFrame;
+  System.SysUtils, System.Classes, Point;
 
 type
   // Dynamic array of points used as input/output for all algorithms

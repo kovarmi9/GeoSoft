@@ -143,6 +143,7 @@ var
   Chain, Identical, ResultPts, LocalPts: TPointsArray;
   IsKnown: array of Boolean;
   MeasDist, CalcDist: Double;
+  Alg: TRectangularMeasurementsAlgorithm;
 begin
   N := 0;
   IdCount := 0;
@@ -181,104 +182,109 @@ begin
     Exit;
   end;
 
-  TRectangularMeasurementsAlgorithm.IdenticalPoints := Identical;
+  Alg := TRectangularMeasurementsAlgorithm.Create;
   try
-    ResultPts := TRectangularMeasurementsAlgorithm.Calculate(Chain);
-  except
-    on E: Exception do
-    begin
-      ShowMessage(E.Message);
-      Exit;
-    end;
-  end;
-
-  LocalPts := TRectangularMeasurementsAlgorithm.LocalPoints;
-
-  N := 0;
-  for I := 1 to StringGrid1.RowCount - 1 do
-  begin
-    if StringGrid1.Cells[1, I] = '' then Continue;
-    if N >= Length(ResultPts) then Break;
-    StringGrid1.Cells[3, I] := Format('%.2f', [ResultPts[N].Y]);
-    StringGrid1.Cells[4, I] := Format('%.2f', [ResultPts[N].X]);
-    Inc(N);
-  end;
-
-  // Find first and last identical point indices for distance comparison
-  FirstId := -1;
-  LastId := -1;
-  for I := 0 to High(IsKnown) do
-    if IsKnown[I] then
-    begin
-      if FirstId < 0 then FirstId := I;
-      LastId := I;
-    end;
-
-  Memo1.Lines.BeginUpdate;
-  try
-    Memo1.Lines.Clear;
-    Memo1.Lines.Add(' == Konstrukční oměrné =====================================================');
-    Memo1.Lines.Add(Format(' %-15s  %8s', ['ČÍSLO BODU', 'Délka']));
-
-    for I := 0 to High(ResultPts) do
-    begin
-      if Chain[I].X <> 0 then
-        Memo1.Lines.Add(Format(' %d: %d  %.2f',
-          [I + 1, ResultPts[I].PointNumber, Chain[I].X]))
-      else
-        Memo1.Lines.Add(Format(' %d: %d',
-          [I + 1, ResultPts[I].PointNumber]));
-
-      if IsKnown[I] then
+    Alg.IdenticalPoints := Identical;
+    try
+      ResultPts := Alg.Calculate(Chain);
+    except
+      on E: Exception do
       begin
-        J := 0;
-        while J <= High(Identical) do
-        begin
-          if Identical[J].PointNumber = ResultPts[I].PointNumber then
-          begin
-            Memo1.Lines.Add(Format('     YX:  %.2f  %.2f',
-              [Identical[J].Y, Identical[J].X]));
-            Break;
-          end;
-          Inc(J);
-        end;
+        ShowMessage(E.Message);
+        Exit;
       end;
     end;
 
-    Memo1.Lines.Add(' ' + StringOfChar('-', 68));
+    LocalPts := Alg.LocalPoints;
 
-    // Distance comparison between first and last identical points
-    if (FirstId >= 0) and (LastId >= 0) and (FirstId <> LastId) then
+    N := 0;
+    for I := 1 to StringGrid1.RowCount - 1 do
     begin
-      MeasDist := Sqrt(
-        Sqr(LocalPts[LastId].X - LocalPts[FirstId].X) +
-        Sqr(LocalPts[LastId].Y - LocalPts[FirstId].Y));
-      CalcDist := Sqrt(
-        Sqr(Identical[High(Identical)].X - Identical[0].X) +
-        Sqr(Identical[High(Identical)].Y - Identical[0].Y));
-
-      Memo1.Lines.Add(Format(' Měřená délka = %.2f  Vypočtená délka = %.2f',
-        [MeasDist, CalcDist]));
-      Memo1.Lines.Add(Format(' Odch = %.2f', [Abs(CalcDist - MeasDist)]));
-      Memo1.Lines.Add(' ' + StringOfChar('-', 68));
+      if StringGrid1.Cells[1, I] = '' then Continue;
+      if N >= Length(ResultPts) then Break;
+      StringGrid1.Cells[3, I] := Format('%.2f', [ResultPts[N].Y]);
+      StringGrid1.Cells[4, I] := Format('%.2f', [ResultPts[N].X]);
+      Inc(N);
     end;
 
-    Memo1.Lines.Add(Format(' Uzávěr = %.3f m',
-      [TRectangularMeasurementsAlgorithm.Closure]));
-    Memo1.Lines.Add(' ' + StringOfChar('-', 68));
+    // Find first and last identical point indices for distance comparison
+    FirstId := -1;
+    LastId := -1;
+    for I := 0 to High(IsKnown) do
+      if IsKnown[I] then
+      begin
+        if FirstId < 0 then FirstId := I;
+        LastId := I;
+      end;
 
-    for I := 0 to High(ResultPts) do
-      if not IsKnown[I] then
-        Memo1.Lines.Add(Format(' %d  %.2f  %.2f',
-          [ResultPts[I].PointNumber, ResultPts[I].Y, ResultPts[I].X]));
+    Memo1.Lines.BeginUpdate;
+    try
+      Memo1.Lines.Clear;
+      Memo1.Lines.Add(' == Konstrukční oměrné =====================================================');
+      Memo1.Lines.Add(Format(' %-15s  %8s', ['ČÍSLO BODU', 'Délka']));
 
-    if TRectangularMeasurementsAlgorithm.Warnings.Count > 0 then
-      for I := 0 to TRectangularMeasurementsAlgorithm.Warnings.Count - 1 do
-        Memo1.Lines.Add(' WARNING: ' + TRectangularMeasurementsAlgorithm.Warnings[I]);
+      for I := 0 to High(ResultPts) do
+      begin
+        if Chain[I].X <> 0 then
+          Memo1.Lines.Add(Format(' %d: %d  %.2f',
+            [I + 1, ResultPts[I].PointNumber, Chain[I].X]))
+        else
+          Memo1.Lines.Add(Format(' %d: %d',
+            [I + 1, ResultPts[I].PointNumber]));
 
-    Memo1.Lines.Add(' ' + StringOfChar('=', 68));
+        if IsKnown[I] then
+        begin
+          J := 0;
+          while J <= High(Identical) do
+          begin
+            if Identical[J].PointNumber = ResultPts[I].PointNumber then
+            begin
+              Memo1.Lines.Add(Format('     YX:  %.2f  %.2f',
+                [Identical[J].Y, Identical[J].X]));
+              Break;
+            end;
+            Inc(J);
+          end;
+        end;
+      end;
+
+      Memo1.Lines.Add(' ' + StringOfChar('-', 68));
+
+      // Distance comparison between first and last identical points
+      if (FirstId >= 0) and (LastId >= 0) and (FirstId <> LastId) then
+      begin
+        MeasDist := Sqrt(
+          Sqr(LocalPts[LastId].X - LocalPts[FirstId].X) +
+          Sqr(LocalPts[LastId].Y - LocalPts[FirstId].Y));
+        CalcDist := Sqrt(
+          Sqr(Identical[High(Identical)].X - Identical[0].X) +
+          Sqr(Identical[High(Identical)].Y - Identical[0].Y));
+
+        Memo1.Lines.Add(Format(' Měřená délka = %.2f  Vypočtená délka = %.2f',
+          [MeasDist, CalcDist]));
+        Memo1.Lines.Add(Format(' Odch = %.2f', [Abs(CalcDist - MeasDist)]));
+        Memo1.Lines.Add(' ' + StringOfChar('-', 68));
+      end;
+
+      Memo1.Lines.Add(Format(' Uzávěr = %.3f m',
+        [Alg.Closure]));
+      Memo1.Lines.Add(' ' + StringOfChar('-', 68));
+
+      for I := 0 to High(ResultPts) do
+        if not IsKnown[I] then
+          Memo1.Lines.Add(Format(' %d  %.2f  %.2f',
+            [ResultPts[I].PointNumber, ResultPts[I].Y, ResultPts[I].X]));
+
+      if Alg.Warnings.Count > 0 then
+        for I := 0 to Alg.Warnings.Count - 1 do
+          Memo1.Lines.Add(' WARNING: ' + Alg.Warnings[I]);
+
+      Memo1.Lines.Add(' ' + StringOfChar('=', 68));
+    finally
+      Memo1.Lines.EndUpdate;
+    end;
   finally
-    Memo1.Lines.EndUpdate;
+    Alg.Free;
   end;
 end;
 

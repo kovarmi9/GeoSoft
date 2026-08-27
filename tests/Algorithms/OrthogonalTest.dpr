@@ -1,4 +1,4 @@
-program OrthogonalTest;
+ï»¿program OrthogonalTest;
 
 {$APPTYPE CONSOLE}
 
@@ -12,9 +12,10 @@ var
   DetailPoints, ResultPoints: TPointsArray;
   i: Integer;
   P, K: TPoint;
+  Alg: TOrthogonalMethodAlgorithm;
 begin
   try
-    // P - poèáteèní bod mìøické pøímky
+    // P - poÄÃ¡teÄnÃ­ bod mÄ›Å™ickÃ© pÅ™Ã­mky
     P.PointNumber := 5210;
     P.X := 0;
     P.Y := 0;
@@ -22,7 +23,7 @@ begin
     P.Quality := 1;
     P.Description := 'P';
 
-    // K – koncovı bod mìøické pøímky
+    // K â€“ koncovÃ½ bod mÄ›Å™ickÃ© pÅ™Ã­mky
     K.PointNumber := 5200;
     K.X := 6;
     K.Y := 6;
@@ -30,16 +31,10 @@ begin
     K.Quality := 1;
     K.Description := 'K';
 
-    // Nastavení základních bodù u algoritmu
-    TOrthogonalMethodAlgorithm.StartPoint := P;
-    TOrthogonalMethodAlgorithm.EndPoint := K;
-    // Mìøítko zkreslení
-    TAlgorithm.Scale := 1.0;
-
     SetLength(DetailPoints, 2);
 
     DetailPoints[0].PointNumber := 1;
-    DetailPoints[0].X := 4.242640687;  // stanièení
+    DetailPoints[0].X := 4.242640687;  // staniÄenÃ­
     DetailPoints[0].Y := 0;   // kolmice
     DetailPoints[0].Z := 0.0;
     DetailPoints[0].Quality := 0;
@@ -52,9 +47,18 @@ begin
     DetailPoints[1].Quality := 0;
     DetailPoints[1].Description := 'bod 2';
 
-    ResultPoints := TOrthogonalMethodAlgorithm.Calculate(DetailPoints);
+    // NastavenÃ­ zÃ¡kladnÃ­ch bodÅ¯ u algoritmu
+    Alg := TOrthogonalMethodAlgorithm.Create(P, K);
+    try
+      // MÄ›Å™Ã­tko zkreslenÃ­
+      Alg.Scale := 1.0;
 
-    Writeln('Vısledné souøadnice podrobnıch bodù:');
+      ResultPoints := Alg.Calculate(DetailPoints);
+    finally
+      Alg.Free;
+    end;
+
+    Writeln('VÃ½slednÃ© souÅ™adnice podrobnÃ½ch bodÅ¯:');
     for i := 0 to High(ResultPoints) do
     begin
       Writeln(Format('Bod %d: X = %.3f, Y = %.3f, Z = %.3f, Popis: %s',

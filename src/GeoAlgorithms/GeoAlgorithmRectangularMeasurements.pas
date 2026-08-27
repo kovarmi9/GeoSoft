@@ -15,28 +15,36 @@ uses
 type
   TRectangularMeasurementsAlgorithm = class(TAlgorithm)
   private
-    class var FIdenticalPoints: TPointsArray;
-    class var FLocalPoints: TPointsArray;
-    class var FClosure: Double;
+    FIdenticalPoints: TPointsArray;
+    FLocalPoints: TPointsArray;
+    FClosure: Double;
   public
-    class property IdenticalPoints: TPointsArray
+    constructor Create;
+
+    property IdenticalPoints: TPointsArray
       read FIdenticalPoints write FIdenticalPoints;
 
     // Local coordinates built from the chain (before transformation)
-    class property LocalPoints: TPointsArray read FLocalPoints;
+    property LocalPoints: TPointsArray read FLocalPoints;
 
-    class property Closure: Double read FClosure;
+    property Closure: Double read FClosure;
 
     // InputPoints — measurement chain:
     //   PointNumber = point ID
     //   X = signed distance FROM previous point TO this point
     //       (sign = turn direction: + right, - left; first point = 0)
-    class function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
+    function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
   end;
 
 implementation
 
-class function TRectangularMeasurementsAlgorithm.Calculate(
+constructor TRectangularMeasurementsAlgorithm.Create;
+begin
+  inherited Create;
+  FClosure := 0;
+end;
+
+function TRectangularMeasurementsAlgorithm.Calculate(
   const InputPoints: TPointsArray): TPointsArray;
 var
   I, J, N, IdCount: Integer;
@@ -115,8 +123,5 @@ begin
         Break;
       end;
 end;
-
-initialization
-  TRectangularMeasurementsAlgorithm.FClosure := 0;
 
 end.

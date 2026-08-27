@@ -17,6 +17,7 @@ uses
   GeoAlgorithmPolar in '..\GeoAlgorithms\GeoAlgorithmPolar.pas',
   GeoAlgorithmLHuilier in '..\GeoAlgorithms\GeoAlgorithmLHuilier.pas',
   GeoAlgorithmRectangularMeasurements in '..\GeoAlgorithms\GeoAlgorithmRectangularMeasurements.pas',
+  GeoAlgorithmCheckMeasurements in '..\GeoAlgorithms\GeoAlgorithmCheckMeasurements.pas',
   GeoAlgorithmTransformBase in '..\GeoAlgorithms\GeoAlgorithmTransformBase.pas',
   GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',

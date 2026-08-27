@@ -1,13 +1,9 @@
-unit GeoAlgorithmCheckMeasurements;
+﻿unit GeoAlgorithmCheckMeasurements;
 
-// Kontrolní oměrné míry (bod 8 § 81 katastrální vyhlášky).
-// Porovnává délku změřenou v terénu s délkou vypočtenou ze souřadnic
-// a testuje rozdíl proti mezní odchylce.
-//
-// Řádek bez měřené délky není chyba: podle bodu 17.11 přílohy katastrální
-// vyhlášky se u bodů určených 2x nezávisle oměrná míra měřit nemusí, ale
-// hodnota vypočtená ze souřadnic se uvádí v kulatých závorkách. Takový
-// řádek se tedy jen spočítá a netestuje.
+// Check measurements (kontrolni omerne) — KatV § 81 point 8.
+// Compares a distance measured in the field with the distance from coordinates.
+// A row with no measured length is valid, not an error: KatV annex 17.11 allows
+// it and the computed value is then reported in round brackets.
 
 interface
 
@@ -15,30 +11,26 @@ uses
   System.SysUtils, System.Classes, Math, Point;
 
 const
-  // Mezní odchylka délky: 0,012 * sqrt(d) + 0,10  [m] — kód kvality 3.
-  // Shodný vzorec používá GeoAlgorithmPolar i OrthogonalMethod.
+  // Distance tolerance for quality code 3: 0.012 * sqrt(d) + 0.10 [m]
   TOL_COEF = 0.012;
   TOL_BASE = 0.10;
 
-  // Pod touto délkou považujeme body za splývající
-  MIN_DIST = 0.001;
+  MIN_DIST = 0.001;  // below this the points are treated as identical
 
 type
-  // Jedna kontrolní oměrná mezi dvěma body
   TCheckPair = record
-    // --- vstup ---
+    // input
     PointNo1, PointNo2: Int64;
-    P1, P2:      Point.TPoint;  // souřadnice dohledané volajícím
-    Found:       Boolean;       // oba body se podařilo dohledat v seznamu
-    Measured:    Double;        // měřená délka [m]
-    HasMeasured: Boolean;       // False = neměřeno, jen dopočet ze souřadnic
+    P1, P2:      Point.TPoint;
+    Found:       Boolean;      // both points found in the coordinate list
+    Measured:    Double;
+    HasMeasured: Boolean;      // False = not measured, only computed
     Note:        string;
-
-    // --- výstup ---
-    Computed:    Double;        // délka ze souřadnic [m]
-    Diff:        Double;        // Measured - Computed [m]
-    Tolerance:   Double;        // mezní odchylka [m]
-    Passed:      Boolean;       // |Diff| <= Tolerance
+    // output
+    Computed:    Double;
+    Diff:        Double;       // Measured - Computed
+    Tolerance:   Double;
+    Passed:      Boolean;
   end;
 
   TCheckPairs = array of TCheckPair;
@@ -57,22 +49,15 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    // Vstupní i výstupní data — Calculate dopočítá výstupní pole záznamů
+    // Calculate fills the output fields of every pair
     property Pairs: TCheckPairs read FPairs write FPairs;
-
-    // Hlášení z posledního volání Calculate
     property Warnings: TStringList read FWarnings;
 
-    // Počet oměrných, které byly změřeny a otestovány
     property MeasuredCount: Integer read FMeasuredCount;
-    // Počet oměrných jen dopočtených ze souřadnic (uvádějí se v závorkách)
     property ComputedOnlyCount: Integer read FComputedOnlyCount;
-    // Počet oměrných, které překročily mezní odchylku
     property FailedCount: Integer read FFailedCount;
-    // Počet řádků, u nichž se nepodařilo dohledat oba body
     property SkippedCount: Integer read FSkippedCount;
-    // Rozdíl s největší absolutní hodnotou, se znaménkem [m]
-    property MaxDiff: Double read FMaxDiff;
+    property MaxDiff: Double read FMaxDiff;  // largest difference, with sign
 
     procedure Calculate;
   end;
@@ -81,14 +66,14 @@ implementation
 
 constructor TCheckMeasurementsAlgorithm.Create;
 begin
-  inherited Create;
+  inherited;
   FWarnings := TStringList.Create;
 end;
 
 destructor TCheckMeasurementsAlgorithm.Destroy;
 begin
   FWarnings.Free;
-  inherited Destroy;
+  inherited;
 end;
 
 procedure TCheckMeasurementsAlgorithm.AddWarning(const AMsg: string);
@@ -109,7 +94,6 @@ begin
 
   for i := 0 to High(FPairs) do
   begin
-    // Reset výstupních polí
     FPairs[i].Computed  := 0;
     FPairs[i].Diff      := 0;
     FPairs[i].Tolerance := 0;
@@ -121,7 +105,7 @@ begin
       Continue;
     end;
 
-    // Délka ze souřadnic (vodorovná, 2D)
+    // Horizontal distance (2D)
     FPairs[i].Computed := Sqrt(Sqr(FPairs[i].P2.X - FPairs[i].P1.X) +
                                Sqr(FPairs[i].P2.Y - FPairs[i].P1.Y));
 
@@ -129,7 +113,6 @@ begin
       AddWarning(Format('Oměrná %d (body %d - %d): body mají shodné souřadnice.',
         [i + 1, FPairs[i].PointNo1, FPairs[i].PointNo2]));
 
-    // Neměřená oměrná — hodnota se jen uvede, netestuje se
     if not FPairs[i].HasMeasured then
     begin
       Inc(FComputedOnlyCount);

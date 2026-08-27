@@ -145,8 +145,8 @@
         <DCCReference Include="AddPoint.pas">
             <Form>AddPointForm</Form>
         </DCCReference>
-        <DCCReference Include="CheckMeasurement.pas">
-            <Form>CheckMeasurementForm</Form>
+        <DCCReference Include="CheckMeasurements.pas">
+            <Form>CheckMeasurementsForm</Form>
         </DCCReference>
         <DCCReference Include="PolarMethod.pas">
             <Form>PolarMethodForm</Form>
@@ -156,6 +156,7 @@
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmPolar.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmLHuilier.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmRectangularMeasurements.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmCheckMeasurements.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformBase.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas"/>

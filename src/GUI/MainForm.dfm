@@ -3200,6 +3200,7 @@ object Form1: TForm1
     DoubleBuffered = False
     ParentDoubleBuffered = False
     TabOrder = 1
+    OnClick = YX2XYClick
   end
   object MainMenu1: TMainMenu
     Left = 584

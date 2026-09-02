@@ -31,6 +31,7 @@ type
     procedure RectangularMeasurementsClick(Sender: TObject);
     procedure CheckMeasurementsClick(Sender: TObject);
     procedure Polrnmetodanov1Click(Sender: TObject);
+    procedure YX2XYClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -45,7 +46,7 @@ implementation
 {$R *.dfm}
 
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
-  CheckMeasurements, PolarMethod, PointsManagement;
+  CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState;
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
@@ -96,6 +97,16 @@ end;
 procedure TForm1.CheckMeasurementsClick(Sender: TObject);
 begin
   CheckMeasurementsForm.Show;
+end;
+
+// Switch off = Y, X (cadastre order, the default). Switch on = X, Y.
+// Grids pick the new order up in their FormActivate.
+procedure TForm1.YX2XYClick(Sender: TObject);
+begin
+  if YX2XY.State = tssOn then
+    GCoordOrder := coXY
+  else
+    GCoordOrder := coYX;
 end;
 
 end.

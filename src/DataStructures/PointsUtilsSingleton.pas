@@ -3,7 +3,8 @@
 interface
 
 uses
-  System.Generics.Collections, SysUtils, Classes, System.UITypes, Vcl.Dialogs, Point;
+  System.Generics.Collections, SysUtils, Classes, System.UITypes, Vcl.Dialogs, Point,
+  CoordOrderState;
 
 type
   TPointDictionary = class
@@ -127,14 +128,15 @@ procedure TPointDictionary.ExportToTXT(const FileName: string);
 var
   TXTFile: TextFile;
   Point: TPoint;
+  C1, C2: Double;
 begin
   AssignFile(TXTFile, FileName);
   Rewrite(TXTFile);
   try
     for Point in FPointDict.Values do
     begin
-      // Cadastre column order is Y, X
-      WriteLn(TXTFile, Format('%015d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, Point.Y, Point.X, Point.Z, Point.Quality, string(Point.Description)]));
+      CoordRead(Point, C1, C2);
+      WriteLn(TXTFile, Format('%015d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(TXTFile);
@@ -165,9 +167,7 @@ begin
         if Count < 6 then
           Continue;
         Point.PointNumber := StrToInt64(Trim(Strings[0]));
-        // Cadastre column order is Y, X
-        Point.Y := StrToFloat(Strings[1]);
-        Point.X := StrToFloat(Strings[2]);
+        CoordWrite(Point, StrToFloat(Strings[1]), StrToFloat(Strings[2]));
         Point.Z := StrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
@@ -196,6 +196,7 @@ procedure TPointDictionary.ExportToCSV(const FileName: string);
 var
   CSVFile: TextFile;
   Point: TPoint;
+  C1, C2: Double;
 begin
   //CheckFileError(FileName); // Check file validity before writing
   AssignFile(CSVFile, FileName);
@@ -203,8 +204,8 @@ begin
   try
     for Point in FPointDict.Values do
     begin
-      // Cadastre column order is Y, X
-      WriteLn(CSVFile, Format('%015d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, Point.Y, Point.X, Point.Z, Point.Quality, string(Point.Description)]));
+      CoordRead(Point, C1, C2);
+      WriteLn(CSVFile, Format('%015d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(CSVFile);
@@ -235,9 +236,7 @@ begin
         if Count < 6 then
           Continue;
         Point.PointNumber := StrToInt64(Trim(Strings[0]));
-        // Cadastre column order is Y, X
-        Point.Y := StrToFloat(Strings[1]);
-        Point.X := StrToFloat(Strings[2]);
+        CoordWrite(Point, StrToFloat(Strings[1]), StrToFloat(Strings[2]));
         Point.Z := StrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
@@ -266,13 +265,17 @@ procedure TPointDictionary.ExportToBinary(const FileName: string);
 var
   BinaryFile: TFileStream;
   Point: TPoint;
+  Rec: TPoint;
 begin
   //CheckFileError(FileName); // Check file validity before writing
   BinaryFile := TFileStream.Create(FileName, fmCreate);
   try
     for Point in FPointDict.Values do
     begin
-      BinaryFile.Write(Point, SizeOf(Point));
+      Rec := Point;
+      if GCoordOrder = coYX then
+        SwapXY(Rec);   // the first slot in the file carries the first coordinate
+      BinaryFile.Write(Rec, SizeOf(Rec));
     end;
   finally
     BinaryFile.Free;
@@ -293,6 +296,8 @@ begin
     while BinaryFile.Position < BinaryFile.Size do
     begin
       BinaryFile.Read(Point, SizeOf(Point));
+      if GCoordOrder = coYX then
+        SwapXY(Point);
       if PointExists(Point.PointNumber) then
         Inc(Updated);
       AddOrUpdatePoint(Point);

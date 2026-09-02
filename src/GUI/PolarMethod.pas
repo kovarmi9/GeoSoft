@@ -23,7 +23,7 @@ uses
   GeoAlgorithmBase,
   GeoAlgorithmPolar,
   PointsUtilsSingleton,
-  PointPrefixState, GeoGrid, Vcl.Mask, Vcl.Menus;
+  PointPrefixState, CoordOrderState, GeoGrid, Vcl.Mask, Vcl.Menus;
 
 type
   TPolarMethodForm = class(TCalcBaseForm)
@@ -62,6 +62,7 @@ type
     procedure DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
   protected
     procedure Loaded; override;
+    procedure ApplyCoordOrderToGrids; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -88,6 +89,12 @@ begin
 
   GridOrientation.OnCellCommitted := OrientationCellCommitted;
   GridDetail.OnCellCommitted      := DetailCellCommitted;
+end;
+
+procedure TPolarMethodForm.ApplyCoordOrderToGrids;
+begin
+  ApplyCoordOrder(GridOrientation);
+  ApplyCoordOrder(GridDetail);
 end;
 
 procedure TPolarMethodForm.Loaded;

@@ -6,7 +6,7 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, System.Math,
   Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin,
   Vcl.ExtCtrls, Vcl.Grids, Vcl.Menus, Vcl.Dialogs,
-  Point, PointsUtilsSingleton, GeoRow,
+  Point, PointsUtilsSingleton, GeoRow, CoordOrderState,
   GeoGrid, GeoFieldsGrid,
   GeoAlgorithmCheckMeasurements,
   CalcBase;
@@ -36,6 +36,8 @@ type
     function  BuildPairs(const AChain: TChainNodes): TCheckPairs;
     procedure WriteProtocol(Alg: TCheckMeasurementsAlgorithm;
       const AChain: TChainNodes);
+  protected
+    procedure ApplyCoordOrderToGrids; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -57,6 +59,11 @@ begin
 
   // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
   GridOrientation.OnCellCommitted := PointCommitted;
+end;
+
+procedure TCheckMeasurementsForm.ApplyCoordOrderToGrids;
+begin
+  ApplyCoordOrder(GridOrientation);
 end;
 
 // Fills coordinates from the list; a missing point is offered via AddPoint.

@@ -32,6 +32,11 @@ type
     FS: TFormatSettings;
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
     function FormatPointId(const S: string): string;
+    /// <summary>
+    /// Descendants override this to set the column order of their grids.
+    /// The base form only decides when it happens.
+    /// </summary>
+    procedure ApplyCoordOrderToGrids; virtual;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -141,9 +146,15 @@ begin
     Memo.Lines.SaveToFile(SaveDialogProtokol.FileName);
 end;
 
+procedure TCalcBaseForm.ApplyCoordOrderToGrids;
+begin
+  // nothing here; see the descendants
+end;
+
 procedure TCalcBaseForm.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  ApplyCoordOrderToGrids;
 end;
 
 procedure TCalcBaseForm.FormDeactivate(Sender: TObject);

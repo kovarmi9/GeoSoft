@@ -158,8 +158,8 @@ begin
 
   if not LookupPoint(num, pt) then Exit;
 
-  EditStationY.Text := FloatToStr(pt.X, FS);
-  EditStationX.Text := FloatToStr(pt.Y, FS);
+  EditStationY.Text := FloatToStr(pt.Y, FS);
+  EditStationX.Text := FloatToStr(pt.X, FS);
   EditStationZ.Text := FloatToStr(pt.Z, FS);
   EditStationKK.Text := IntToStr(pt.Quality);
   EditStationPopis.Text := string(pt.Description);
@@ -177,9 +177,8 @@ begin
   GridOrientation.EditorMode := True;
 end;
 
-// Doplní souřadnice orientace ze seznamu bodů po potvrzení čísla bodu.
-// Neznámý bod nabídne k zadání přes AddPoint (v LookupPoint).
-// JTSK: pt.X = geodetic Y, pt.Y = geodetic X
+// Fills the orientation coordinates from the point list.
+// LookupPoint offers AddPoint when the point is unknown.
 procedure TPolarMethodForm.OrientationCellCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   G: TGeoFieldsGrid;
@@ -196,8 +195,8 @@ begin
 
   if not LookupPoint(num, pt) then Exit;
 
-  G.Cells[G.FieldToCol(Y), ARow] := FloatToStr(pt.X, FS);
-  G.Cells[G.FieldToCol(X), ARow] := FloatToStr(pt.Y, FS);
+  G.Cells[G.FieldToCol(Y), ARow] := FloatToStr(pt.Y, FS);
+  G.Cells[G.FieldToCol(X), ARow] := FloatToStr(pt.X, FS);
   G.Cells[G.FieldToCol(Z), ARow] := FloatToStr(pt.Z, FS);
 end;
 
@@ -298,7 +297,7 @@ begin
     Memo1.Lines.Clear;
     Memo1.Lines.Add(' == Polární metoda — pevné stanovisko ==========================================');
     Memo1.Lines.Add(Format(' Stanovisko: %-15d  Y = %12.2f  X = %12.2f',
-      [num, P.X, P.Y]));
+      [num, P.Y, P.X]));
     Memo1.Lines.Add(' -------------------------------------------------------------------------------');
     Memo1.Lines.Add(' ORIENTACE:');
     Memo1.Lines.Add(Format('   %-15s  %10s  %10s  %8s  %8s',
@@ -349,17 +348,18 @@ begin
         if i >= Length(OutPts) then Break;
 
         GridDetail.Cells[GridDetail.FieldToCol(Y), r] :=
-          FloatToStr(OutPts[i].X, FS);
-        GridDetail.Cells[GridDetail.FieldToCol(X), r] :=
           FloatToStr(OutPts[i].Y, FS);
+        GridDetail.Cells[GridDetail.FieldToCol(X), r] :=
+          FloatToStr(OutPts[i].X, FS);
 
         AlreadyExists := TPointDictionary.GetInstance.PointExists(
           OutPts[i].PointNumber);
         TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[i]);
 
+        // InPts carries the measurement (direction, distance) — not coordinates
         Memo1.Lines.Add(Format('   %-15d  %10.4f  %10.3f  %12.2f  %12.2f',
           [OutPts[i].PointNumber, InPts[i].X, InPts[i].Y,
-           OutPts[i].X, OutPts[i].Y]));
+           OutPts[i].Y, OutPts[i].X]));
 
         if AlreadyExists then
           Memo1.Lines.Add('   *** BOD AKTUALIZOVÁN V SEZNAMU ***');

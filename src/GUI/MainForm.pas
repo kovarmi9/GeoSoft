@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   System.UITypes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls;
+  Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls, Vcl.WinXCtrls;
 
 type
   TForm1 = class(TForm)
@@ -22,6 +22,7 @@ type
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
     Konstruknomrn1: TMenuItem;
+    YX2XY: TToggleSwitch;
     procedure Open2Click(Sender: TObject);
     procedure Vytvoitseznam1Click(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);

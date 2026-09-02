@@ -92,22 +92,22 @@ implementation
 
 {$R *.dfm}
 
-// ---- Inicializace formuláře -----------------------------------------------
+// ---- Form setup -----------------------------------------------------------
 
 procedure TPointsManagementForm.FormCreate(Sender: TObject);
 begin
-  // Konfigurace validačních filtrů sloupců
-  StringGrid1.ColumnFilters[0].DataType      := cdtNone;        // Číslo bodu
-  StringGrid1.ColumnFilters[1].DataType        := cdtExpression;  // X
+  // Column validation filters
+  StringGrid1.ColumnFilters[0].DataType      := cdtNone;        // point number
+  StringGrid1.ColumnFilters[1].DataType        := cdtExpression;  // Y
   StringGrid1.ColumnFilters[1].DecimalPlaces   := 3;
   StringGrid1.ColumnFilters[1].OnInvalidCommit := ciaBlock;
-  StringGrid1.ColumnFilters[2].DataType        := cdtExpression;  // Y
+  StringGrid1.ColumnFilters[2].DataType        := cdtExpression;  // X
   StringGrid1.ColumnFilters[2].DecimalPlaces   := 3;
   StringGrid1.ColumnFilters[2].OnInvalidCommit := ciaBlock;
   StringGrid1.ColumnFilters[3].DataType        := cdtExpression;  // Z
   StringGrid1.ColumnFilters[3].DecimalPlaces   := 3;
   StringGrid1.ColumnFilters[3].OnInvalidCommit := ciaBlock;
-  StringGrid1.ColumnFilters[4].DataType          := cdtInteger;     // Kvalita 0–8
+  StringGrid1.ColumnFilters[4].DataType          := cdtInteger;     // quality 0-8
   StringGrid1.ColumnFilters[4].MaxLength         := 1;
   StringGrid1.ColumnFilters[4].HasMinValue       := True;
   StringGrid1.ColumnFilters[4].MinValue          := 0;
@@ -115,7 +115,7 @@ begin
   StringGrid1.ColumnFilters[4].MaxValue          := 8;
   StringGrid1.ColumnFilters[4].OnInvalidCommit   := ciaBlock;
   StringGrid1.ColumnFilters[4].OnGetDefaultText  := GetQualityDefault;
-  StringGrid1.ColumnFilters[5].DataType      := cdtNone;        // Popis
+  StringGrid1.ColumnFilters[5].DataType      := cdtNone;        // description
   StringGrid1.ColumnFilters[5].MaxLength     := 32;
 
   StringGrid1.OnCellCommitted := PointNumberCommitted;
@@ -163,15 +163,16 @@ begin
       Keys.Add(pt.PointNumber);
     Keys.Sort;
 
-    StringGrid1.RowCount := Keys.Count + 2;  // hlavička + data + prázdný řádek
+    StringGrid1.RowCount := Keys.Count + 2;  // header + data + one empty row
 
     i := 1;
     for Key in Keys do
     begin
       pt := TPointDictionary.GetInstance.GetPoint(Key);
       StringGrid1.Cells[0, i] := Format('%015d', [pt.PointNumber]);
-      StringGrid1.Cells[1, i] := FloatToStr(pt.X);
-      StringGrid1.Cells[2, i] := FloatToStr(pt.Y);
+      // Columns are in the cadastre order Y, X
+      StringGrid1.Cells[1, i] := FloatToStr(pt.Y);
+      StringGrid1.Cells[2, i] := FloatToStr(pt.X);
       StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
       StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
       StringGrid1.Cells[5, i] := string(pt.Description);
@@ -195,8 +196,8 @@ begin
   if not ((Key = VK_RETURN) or (Key = VK_TAB)) then
     Exit;
 
-  // Commit a validaci řeší MoveToNextCell → CommitCell (ciaBlock blokování)
-  // Prefix pro sloupec 0 se sestaví v TrySaveRow při uložení řádku
+  // MoveToNextCell -> CommitCell does the commit and validation.
+  // Column 0 gets its full point number later, in TrySaveRow.
 end;
 
 procedure TPointsManagementForm.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
@@ -261,11 +262,11 @@ var
   Description: string;
   Existing, NewPoint: Point.TPoint;
 begin
-  // Commit případně otevřeného editoru
+  // Commit an open editor
   if StringGrid1.EditorMode then
     StringGrid1.EditorMode := False;
 
-  // Sestaví plné číslo bodu (KÚ + ZPMZ + vlastní číslo) před uložením
+  // Build the full point number (KU + ZPMZ + own number)
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   if Trim(StringGrid1.Cells[0, ARow]) <> '' then
     StringGrid1.Cells[0, ARow] :=
@@ -275,13 +276,14 @@ begin
   ApplyDescriptionToRow(ARow);
 
   PointNumber := StrToInt64Def(StringGrid1.Cells[0, ARow], -1);
-  X           := StrToFloatDef(StringGrid1.Cells[1, ARow], NaN);
-  Y           := StrToFloatDef(StringGrid1.Cells[2, ARow], NaN);
+  // Columns are in the cadastre order Y, X
+  Y           := StrToFloatDef(StringGrid1.Cells[1, ARow], NaN);
+  X           := StrToFloatDef(StringGrid1.Cells[2, ARow], NaN);
   Z           := StrToFloatDef(StringGrid1.Cells[3, ARow], NaN);
   Quality     := StrToIntDef(StringGrid1.Cells[4, ARow], -1);
   Description := StringGrid1.Cells[5, ARow];
 
-  // Neúplný řádek — tiše přeskočit
+  // Incomplete row, skip silently
   if (PointNumber <= 0) or IsNan(X) or IsNan(Y) or IsNan(Z) then
     Exit;
 
@@ -331,7 +333,7 @@ begin
     StatusBar1.Panels[0].Text := GetCurrentDir;
 end;
 
-// ---- Správa souborů -------------------------------------------------------
+// ---- File handling --------------------------------------------------------
 
 function TPointsManagementForm.AskSaveChanges: Boolean;
 begin
@@ -439,7 +441,7 @@ end;
 
 procedure TPointsManagementForm.DoImport(AFormat: TFileFormat);
 begin
-  // Nastav filtr dialogu podle formátu
+  // Dialog filter by format
   case AFormat of
     ffTXT:    OpenDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
     ffCSV:    OpenDialog1.Filter := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
@@ -470,7 +472,7 @@ procedure TPointsManagementForm.DoExport(AFormat: TFileFormat);
 var
   Dir: string;
 begin
-  // Nastav filtr a příponu podle formátu
+  // Dialog filter and extension by format
   case AFormat of
     ffTXT:
     begin
@@ -530,7 +532,7 @@ begin DoExport(ffCSV); end;
 procedure TPointsManagementForm.SaveAsBinaryClick(Sender: TObject);
 begin DoExport(ffBinary); end;
 
-// ---- Helpery pro kvalitu --------------------------------------------------
+// ---- Quality helpers ------------------------------------------------------
 
 function TPointsManagementForm.CurrentQuality: Integer;
 begin
@@ -545,8 +547,7 @@ begin
   Result := (Length(S) = 1) and CharInSet(S[1], ['0'..'8']);
 end;
 
-// Callback pro komponentu — vrátí defaultní kvalitu z toolbaru.
-// Spustí se automaticky při opuštění prázdné buňky Kvality.
+// Gives the grid a default quality from the toolbar when the cell is left empty.
 procedure TPointsManagementForm.GetQualityDefault(var AText: string; var AHandled: Boolean);
 begin
   if ComboBoxKK.ItemIndex >= 0 then
@@ -554,11 +555,10 @@ begin
     AText    := IntToStr(CurrentQuality);
     AHandled := True;
   end;
-  // Pokud není vybraná hodnota (ItemIndex = -1), AHandled zůstane False
-  // → komponenta zablokuje navigaci a kurzor zůstane v buňce
+  // Nothing selected: AHandled stays False, so the grid blocks navigation
 end;
 
-// Záchrana při uložení bodu (pokud uživatel přeskočil sloupec Kvality myší)
+// Fallback for when the user skipped the Quality column with the mouse
 procedure TPointsManagementForm.EnsureQualityOnRow(const ARow: Integer);
 begin
   if ARow < StringGrid1.FixedRows then Exit;

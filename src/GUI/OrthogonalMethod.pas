@@ -155,8 +155,9 @@ end;
 procedure TOrthogonalMethodForm.FillRowFromPoint(Grid: TGeoPointsGrid; R: Integer; const P: Point.TPoint);
 begin
   Grid.Cells[1, R] := IntToStr(P.PointNumber);
-  Grid.Cells[4, R] := FloatToStr(P.X, FS);
-  Grid.Cells[5, R] := FloatToStr(P.Y, FS);
+  // Columns 4 and 5 are in the cadastre order Y, X
+  Grid.Cells[4, R] := FloatToStr(P.Y, FS);
+  Grid.Cells[5, R] := FloatToStr(P.X, FS);
   Grid.Cells[6, R] := FloatToStr(P.Z, FS);
   Grid.Cells[7, R] := IntToStr(P.Quality);
   Grid.Cells[8, R] := string(P.Description);
@@ -203,8 +204,8 @@ begin
   if Length(OutPts) > 0 then
   begin
     AlreadyExists := TPointDictionary.GetInstance.PointExists(OutPts[0].PointNumber);
-    GridDetail.Cells[4, R] := FloatToStr(OutPts[0].X, FS);
-    GridDetail.Cells[5, R] := FloatToStr(OutPts[0].Y, FS);
+    GridDetail.Cells[4, R] := FloatToStr(OutPts[0].Y, FS);
+    GridDetail.Cells[5, R] := FloatToStr(OutPts[0].X, FS);
     TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
     Memo1.Lines.Add(Format('     %-17s  %12.2f  %12.2f',
       [FormatPointId(GridDetail.Cells[1, R]), InPts[0].X, InPts[0].Y]));

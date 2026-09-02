@@ -60,9 +60,6 @@ begin
 end;
 
 // Fills coordinates from the list; a missing point is offered via AddPoint.
-// JTSK: pt.X is geodetic Y and pt.Y is geodetic X.
-// Tady je rozhodně chyba moc jsem věřil AI ale tohle je nesmysl... musím mít slazené x a y a ne si je přehazovat
-
 procedure TCheckMeasurementsForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   G: TGeoFieldsGrid;
@@ -79,8 +76,8 @@ begin
 
   if not LookupPoint(num, pt) then Exit;
 
-  G.Cells[G.FieldToCol(Y), ARow] := FloatToStr(pt.X, FS);
-  G.Cells[G.FieldToCol(X), ARow] := FloatToStr(pt.Y, FS);
+  G.Cells[G.FieldToCol(Y), ARow] := FloatToStr(pt.Y, FS);
+  G.Cells[G.FieldToCol(X), ARow] := FloatToStr(pt.X, FS);
   G.Cells[G.FieldToCol(Z), ARow] := FloatToStr(pt.Z, FS);
 end;
 
@@ -160,7 +157,7 @@ begin
       if AChain[i].Found then
         Memo1.Lines.Add(Format('  %3d  %-17s  %14.2f  %14.2f  %10.2f',
           [i + 1, FormatPointId(IntToStr(AChain[i].Num)),
-           AChain[i].Pt.X, AChain[i].Pt.Y, AChain[i].Pt.Z]))
+           AChain[i].Pt.Y, AChain[i].Pt.X, AChain[i].Pt.Z]))
       else
         Memo1.Lines.Add(Format('  %3d  %-17s  *** bod není v seznamu souřadnic ***',
           [i + 1, FormatPointId(IntToStr(AChain[i].Num))]));

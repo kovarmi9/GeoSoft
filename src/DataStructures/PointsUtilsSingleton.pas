@@ -8,20 +8,18 @@ uses
 type
   TPointDictionary = class
   private
-    class var FInstance: TPointDictionary;  // Statická instance
-    FPointDict: TDictionary<Int64, TPoint>;  // Slovník pro body
+    class var FInstance: TPointDictionary;
+    FPointDict: TDictionary<Int64, TPoint>;
     procedure CheckFileError(const FileName: string);
 
     function GetValues: TEnumerable<TPoint>;
   public
-    // Konstruktor a destruktor
     constructor Create;
     destructor Destroy; override;
 
-    // Statická metoda pro získání jediné instance
     class function GetInstance: TPointDictionary;
 
-    // Metody pro manipulaci s body
+    // Point access
     procedure AddPoint(const APoint: TPoint); overload;
     procedure AddPoint(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string); overload;
     procedure AddPoint(PointNumber: Int64; X, Y: Double; Quality: Integer; const Description: string); overload;
@@ -33,7 +31,7 @@ type
     function PointExists(const PointNumber: Int64): Boolean;
     procedure Clear;
 
-    // Exportní a importní metody pro soubory
+    // File import and export
     procedure ExportToTXT(const FileName: string);
     procedure ExportToCSV(const FileName: string);
     procedure ImportFromTXT(const FileName: string);
@@ -41,7 +39,7 @@ type
     procedure ExportToBinary(const FileName: string);
     procedure ImportFromBinary(const FileName: string);
 
-    /// <summary>Iterátor přes všechny body ve slovníku</summary>
+    /// <summary>Iterates all points.</summary>
      property Values: TEnumerable<TPoint> read GetValues;
   end;
 
@@ -50,7 +48,7 @@ implementation
 constructor TPointDictionary.Create;
 begin
   inherited Create;
-  FPointDict := TDictionary<Int64, TPoint>.Create;  // Inicializace slovníku
+  FPointDict := TDictionary<Int64, TPoint>.Create;
 end;
 
 destructor TPointDictionary.Destroy;
@@ -59,7 +57,6 @@ begin
   inherited Destroy;
 end;
 
-// Singleton - získání jediné instance
 class function TPointDictionary.GetInstance: TPointDictionary;
 begin
   if not Assigned(FInstance) then
@@ -81,7 +78,7 @@ end;
 
 procedure TPointDictionary.AddPoint(PointNumber: Int64; X, Y: Double; Quality: Integer; const Description: string);
 begin
-  AddPoint(TPoint.Create(PointNumber, X, Y, 0.0, Quality, Description));  // Přidání 2D bodu
+  AddPoint(TPoint.Create(PointNumber, X, Y, 0.0, Quality, Description));  // 2D point, Z = 0
 end;
 
 procedure TPointDictionary.AddOrUpdatePoint(const APoint: TPoint);
@@ -125,7 +122,7 @@ begin
   FPointDict.Clear;
 end;
 
-// Exportní metody pro soubory (TXT, CSV, Binary atd.)
+// File export
 procedure TPointDictionary.ExportToTXT(const FileName: string);
 var
   TXTFile: TextFile;
@@ -136,7 +133,8 @@ begin
   try
     for Point in FPointDict.Values do
     begin
-      WriteLn(TXTFile, Format('%015d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, Point.X, Point.Y, Point.Z, Point.Quality, string(Point.Description)]));
+      // Cadastre column order is Y, X
+      WriteLn(TXTFile, Format('%015d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, Point.Y, Point.X, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(TXTFile);
@@ -167,8 +165,9 @@ begin
         if Count < 6 then
           Continue;
         Point.PointNumber := StrToInt64(Trim(Strings[0]));
-        Point.X := StrToFloat(Strings[1]);
-        Point.Y := StrToFloat(Strings[2]);
+        // Cadastre column order is Y, X
+        Point.Y := StrToFloat(Strings[1]);
+        Point.X := StrToFloat(Strings[2]);
         Point.Z := StrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
@@ -204,7 +203,8 @@ begin
   try
     for Point in FPointDict.Values do
     begin
-      WriteLn(CSVFile, Format('%015d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, Point.X, Point.Y, Point.Z, Point.Quality, string(Point.Description)]));
+      // Cadastre column order is Y, X
+      WriteLn(CSVFile, Format('%015d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, Point.Y, Point.X, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(CSVFile);
@@ -235,8 +235,9 @@ begin
         if Count < 6 then
           Continue;
         Point.PointNumber := StrToInt64(Trim(Strings[0]));
-        Point.X := StrToFloat(Strings[1]);
-        Point.Y := StrToFloat(Strings[2]);
+        // Cadastre column order is Y, X
+        Point.Y := StrToFloat(Strings[1]);
+        Point.X := StrToFloat(Strings[2]);
         Point.Z := StrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}

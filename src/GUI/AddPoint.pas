@@ -46,12 +46,15 @@ implementation
 
 const
   COL_POINTNO = 0;
-  COL_X       = 1;
-  COL_Y       = 2;
+  // Grid shows the cadastre order Y, X
+  COL_Y       = 1;
+  COL_X       = 2;
   COL_Z       = 3;
   COL_QUALITY = 4;
   COL_DESC    = 5;
   DATA_ROW    = 1;
+  // First editable coordinate column, whatever the order is
+  COL_FIRST_COORD = 1;
 
 procedure TAddPointForm.FormCreate(Sender: TObject);
 begin
@@ -127,18 +130,11 @@ begin
     if not Result then
       Exit;
 
-    // Commit případně otevřeného editoru
+    // Commit an open editor
     if StringGrid.EditorMode then
       StringGrid.EditorMode := False;
 
-    // Validace — X a Y jsou povinné, Z je volitelné (default 0)
-    if not TryStrToFloat(StringGrid.Cells[COL_X, DATA_ROW], Dummy) then
-    begin
-      MessageDlg('Pole X musí obsahovat platné číslo.', mtError, [mbOK], 0);
-      StringGrid.Col        := COL_X;
-      StringGrid.EditorMode := True;
-      Continue;
-    end;
+    // Y and X are required, Z defaults to 0. Checked in column order, Y first.
     if not TryStrToFloat(StringGrid.Cells[COL_Y, DATA_ROW], Dummy) then
     begin
       MessageDlg('Pole Y musí obsahovat platné číslo.', mtError, [mbOK], 0);
@@ -146,8 +142,15 @@ begin
       StringGrid.EditorMode := True;
       Continue;
     end;
+    if not TryStrToFloat(StringGrid.Cells[COL_X, DATA_ROW], Dummy) then
+    begin
+      MessageDlg('Pole X musí obsahovat platné číslo.', mtError, [mbOK], 0);
+      StringGrid.Col        := COL_X;
+      StringGrid.EditorMode := True;
+      Continue;
+    end;
 
-    Break; // vše OK
+    Break; // all valid
   until False;
 
   StoredPointNumber := StrToInt64Def(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
@@ -197,7 +200,7 @@ end;
 procedure TAddPointForm.StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
   CanSelect := True;
-  // Validace a výchozí hodnoty řeší TGeoPointsGrid přes ColumnFilters a CommitCell
+  // TGeoPointsGrid handles validation and defaults through ColumnFilters
 end;
 
 procedure TAddPointForm.FormShow(Sender: TObject);
@@ -205,7 +208,7 @@ var
   c: Integer;
 begin
   // delete columns 1..n, column 0 (PointNumber) leaves
-  for c := COL_X to StringGrid.ColCount - 1 do
+  for c := COL_FIRST_COORD to StringGrid.ColCount - 1 do
     StringGrid.Cells[c, DATA_ROW] := '';
 
   FocusInputCell;
@@ -213,7 +216,7 @@ end;
 
 procedure TAddPointForm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  // Enter na posledním sloupci → fokus na OK
+  // Enter on the last column moves focus to OK
   if Key <> VK_RETURN then
     Exit;
 
@@ -236,7 +239,7 @@ begin
   if StringGrid.CanFocus then
     StringGrid.SetFocus;
   StringGrid.Row := DATA_ROW;
-  StringGrid.Col := COL_X;
+  StringGrid.Col := COL_FIRST_COORD;
   StringGrid.EditorMode := True;
 end;
 
@@ -248,7 +251,7 @@ end;
 
 procedure TAddPointForm.StringGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
-  // Enter na posledním sloupci → fokus na OK
+  // Enter on the last column moves focus to OK
   if Key <> VK_RETURN then
     Exit;
 

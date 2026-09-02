@@ -40,7 +40,7 @@ type
     VC:            Double;      // target height
     HZ:            Double;      // horizontal angle [gon]
     Zuhel:         Double;      // zenith angle [gon] — named Zuhel to avoid collision with Z coordinate
-    PolarD:        Double;      // polar offset (doměrek)
+    PolarD:        Double;      // polar offset (domerek)
     PolarK:        Double;      // polar perpendicular (kolmice)
     Poznamka:      string[128]; // note
   end;

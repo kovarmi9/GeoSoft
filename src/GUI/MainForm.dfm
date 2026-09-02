@@ -3190,6 +3190,7 @@ object Form1: TForm1
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 0
+    ExplicitWidth = 964
   end
   object MainMenu1: TMainMenu
     Left = 584

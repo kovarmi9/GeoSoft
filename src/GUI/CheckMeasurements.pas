@@ -61,6 +61,8 @@ end;
 
 // Fills coordinates from the list; a missing point is offered via AddPoint.
 // JTSK: pt.X is geodetic Y and pt.Y is geodetic X.
+// Tady je rozhodně chyba moc jsem věřil AI ale tohle je nesmysl... musím mít slazené x a y a ne si je přehazovat
+
 procedure TCheckMeasurementsForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   G: TGeoFieldsGrid;

@@ -18,6 +18,9 @@ uses
   GeoRow;
 
 type
+  /// <summary>Which of the two planar axes comes first in the grid.</summary>
+  TGridCoordOrder = (gcoXY, gcoYX);
+
   /// <summary>
   /// Custom inplace editor that delegates KeyPress filtering to the grid.
   /// </summary>
@@ -35,8 +38,11 @@ type
     FColumnData: array[TGeoField] of TGeoFieldColumn;  // per-instance field definitions
     FColToField: array of TGeoField;                   // data-column index -> TGeoField
     FColumnFilters: TColumnFilters;                    // one per data column
+    FCoordOrder: TGridCoordOrder;
 
     procedure SetGeoFields(const Value: TGeoFields);
+    procedure SetCoordOrder(const Value: TGridCoordOrder);
+    procedure SwapColumns(FA, FB: TGeoField);
     procedure RebuildColumns;
     procedure RefreshHeaders;
     procedure RefreshFilters;
@@ -107,6 +113,10 @@ type
     /// </summary>
     property GeoFields: TGeoFields
       read FGeoFields write SetGeoFields;
+
+    /// <summary>Order of the X/Y column pair.</summary>
+    property CoordOrder: TGridCoordOrder
+      read FCoordOrder write SetCoordOrder default gcoXY;
   end;
 
 implementation
@@ -157,6 +167,26 @@ begin
   RebuildColumns;
 end;
 
+procedure TGeoFieldsGrid.SetCoordOrder(const Value: TGridCoordOrder);
+begin
+  if FCoordOrder = Value then
+    Exit;
+  FCoordOrder := Value;
+  RebuildColumns;
+end;
+
+procedure TGeoFieldsGrid.SwapColumns(FA, FB: TGeoField);
+var
+  iA, iB: Integer;
+begin
+  iA := FieldToCol(FA) - FixedCols;
+  iB := FieldToCol(FB) - FixedCols;
+  if (iA < 0) or (iB < 0) then
+    Exit;                      // one of the two is not shown
+  FColToField[iA] := FB;
+  FColToField[iB] := FA;
+end;
+
 function TGeoFieldsGrid.CountActiveFields: Integer;
 var
   F: TGeoField;
@@ -184,6 +214,9 @@ begin
       FColToField[I] := F;
       Inc(I);
     end;
+
+  if FCoordOrder = gcoYX then
+    SwapColumns(X, Y);
 
   // 2) Grid must always have at least one data column
   if DataCount = 0 then

@@ -18,9 +18,6 @@ uses
   GeoRow;
 
 type
-  /// <summary>Which of the two planar axes comes first in the grid.</summary>
-  TGridCoordOrder = (gcoXY, gcoYX);
-
   /// <summary>
   /// Custom inplace editor that delegates KeyPress filtering to the grid.
   /// </summary>
@@ -38,11 +35,11 @@ type
     FColumnData: array[TGeoField] of TGeoFieldColumn;  // per-instance field definitions
     FColToField: array of TGeoField;                   // data-column index -> TGeoField
     FColumnFilters: TColumnFilters;                    // one per data column
-    FCoordOrder: TGridCoordOrder;
+    FFieldOrder: TArray<TGeoField>;                    // wanted order; empty = TGeoField order
 
     procedure SetGeoFields(const Value: TGeoFields);
-    procedure SetCoordOrder(const Value: TGridCoordOrder);
-    procedure SwapColumns(FA, FB: TGeoField);
+    function FieldIsOrdered(F: TGeoField): Boolean;
+    procedure ApplyFieldOrder;
     procedure RebuildColumns;
     procedure RefreshHeaders;
     procedure RefreshFilters;
@@ -68,6 +65,13 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+
+    /// <summary>
+    /// Sets the column order. The listed fields go into the columns they
+    /// already use, in the order given. Other fields never move.
+    /// An empty list restores the TGeoField order.
+    /// </summary>
+    procedure SetFieldOrder(const AOrder: array of TGeoField);
 
     /// <summary>
     /// Return grid column index for a field (or -1 if inactive).
@@ -113,10 +117,6 @@ type
     /// </summary>
     property GeoFields: TGeoFields
       read FGeoFields write SetGeoFields;
-
-    /// <summary>Order of the X/Y column pair.</summary>
-    property CoordOrder: TGridCoordOrder
-      read FCoordOrder write SetCoordOrder default gcoXY;
   end;
 
 implementation
@@ -167,24 +167,14 @@ begin
   RebuildColumns;
 end;
 
-procedure TGeoFieldsGrid.SetCoordOrder(const Value: TGridCoordOrder);
-begin
-  if FCoordOrder = Value then
-    Exit;
-  FCoordOrder := Value;
-  RebuildColumns;
-end;
-
-procedure TGeoFieldsGrid.SwapColumns(FA, FB: TGeoField);
+procedure TGeoFieldsGrid.SetFieldOrder(const AOrder: array of TGeoField);
 var
-  iA, iB: Integer;
+  I: Integer;
 begin
-  iA := FieldToCol(FA) - FixedCols;
-  iB := FieldToCol(FB) - FixedCols;
-  if (iA < 0) or (iB < 0) then
-    Exit;                      // one of the two is not shown
-  FColToField[iA] := FB;
-  FColToField[iB] := FA;
+  SetLength(FFieldOrder, Length(AOrder));
+  for I := 0 to High(AOrder) do
+    FFieldOrder[I] := AOrder[I];
+  RebuildColumns;
 end;
 
 function TGeoFieldsGrid.CountActiveFields: Integer;
@@ -195,6 +185,38 @@ begin
   for F := Low(TGeoField) to High(TGeoField) do
     if F in FGeoFields then
       Inc(Result);
+end;
+
+function TGeoFieldsGrid.FieldIsOrdered(F: TGeoField): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to High(FFieldOrder) do
+    if FFieldOrder[I] = F then
+    begin
+      Result := True;
+      Exit;
+    end;
+end;
+
+// Refills the columns used by the ordered fields, left to right,
+// with those fields in the order the caller gave.
+procedure TGeoFieldsGrid.ApplyFieldOrder;
+var
+  I, K: Integer;
+begin
+  K := 0;
+  for I := 0 to High(FColToField) do
+    if FieldIsOrdered(FColToField[I]) then
+    begin
+      while (K <= High(FFieldOrder)) and not (FFieldOrder[K] in FGeoFields) do
+        Inc(K);                  // skip ordered fields this grid does not show
+      if K > High(FFieldOrder) then
+        Exit;
+      FColToField[I] := FFieldOrder[K];
+      Inc(K);
+    end;
 end;
 
 procedure TGeoFieldsGrid.RebuildColumns;
@@ -215,8 +237,7 @@ begin
       Inc(I);
     end;
 
-  if FCoordOrder = gcoYX then
-    SwapColumns(X, Y);
+  ApplyFieldOrder;
 
   // 2) Grid must always have at least one data column
   if DataCount = 0 then

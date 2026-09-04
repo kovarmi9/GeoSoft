@@ -96,6 +96,7 @@ procedure TPolarMethodForm.ApplyCoordOrderToGrids;
 begin
   ApplyCoordOrder(GridOrientation);
   ApplyCoordOrder(GridDetail);
+  ApplyCoordOrder(EditStationY, EditStationX);
 end;
 
 procedure TPolarMethodForm.Loaded;

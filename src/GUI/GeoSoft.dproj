@@ -133,17 +133,23 @@
         <DCCReference Include="PointsManagement.pas">
             <Form>PointsManagementForm</Form>
         </DCCReference>
+        <DCCReference Include="AddPoint.pas">
+            <Form>AddPointForm</Form>
+        </DCCReference>
+        <DCCReference Include="CalcBase.pas">
+            <Form>CalcBaseForm</Form>
+        </DCCReference>
         <DCCReference Include="ParcelArea.pas">
-            <Form>Form3</Form>
+            <Form>ParcelAreaForm</Form>
         </DCCReference>
         <DCCReference Include="OrthogonalMethod.pas">
-            <Form>Form4</Form>
+            <Form>OrthogonalMethodForm</Form>
         </DCCReference>
         <DCCReference Include="Transformation.pas">
             <Form>TransformationForm</Form>
         </DCCReference>
-        <DCCReference Include="AddPoint.pas">
-            <Form>AddPointForm</Form>
+        <DCCReference Include="RectangularMeasurements.pas">
+            <Form>RectangularMeasurementsForm</Form>
         </DCCReference>
         <DCCReference Include="CheckMeasurements.pas">
             <Form>CheckMeasurementsForm</Form>
@@ -161,18 +167,6 @@
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas"/>
-        <DCCReference Include="TestFieldGrid.pas">
-            <Form>Form2</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="Unit5.pas">
-            <Form>Form5</Form>
-            <FormType>dfm</FormType>
-        </DCCReference>
-        <DCCReference Include="CalcBase.pas">
-            <ModuleName>CalcBaseForm</ModuleName>
-            <Form>CalcBase</Form>
-        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

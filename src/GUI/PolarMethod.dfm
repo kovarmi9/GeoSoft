@@ -3,7 +3,6 @@ inherited PolarMethodForm: TPolarMethodForm
   StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
-    ExplicitWidth = 792
     inherited ComboBoxKU: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
@@ -16,8 +15,16 @@ inherited PolarMethodForm: TPolarMethodForm
     inherited ComboBoxPopis: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
-    object CheckBox1: TCheckBox
+    object ToolButton4: TToolButton
       Left = 402
+      Top = 0
+      Width = 8
+      Caption = 'ToolButton4'
+      ImageIndex = 0
+      Style = tbsSeparator
+    end
+    object CheckBox1: TCheckBox
+      Left = 410
       Top = 0
       Width = 121
       Height = 23
@@ -25,18 +32,6 @@ inherited PolarMethodForm: TPolarMethodForm
       TabOrder = 4
       OnClick = CheckBox1Click
     end
-    object ToolButton4: TToolButton
-      Left = 523
-      Top = 0
-      Width = 8
-      Caption = 'ToolButton4'
-      ImageIndex = 0
-      Style = tbsSeparator
-    end
-  end
-  inherited StatusBar1: TStatusBar
-    ExplicitTop = 573
-    ExplicitWidth = 798
   end
   object Panel1: TPanel [2]
     Left = 0
@@ -46,8 +41,6 @@ inherited PolarMethodForm: TPolarMethodForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    ExplicitWidth = 798
-    ExplicitHeight = 538
     object Splitter1: TSplitter
       Left = 0
       Top = 52
@@ -92,7 +85,6 @@ inherited PolarMethodForm: TPolarMethodForm
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 0
-      ExplicitWidth = 798
       object EditStationNo: TLabeledEdit
         Left = 8
         Top = 22
@@ -209,7 +201,6 @@ inherited PolarMethodForm: TPolarMethodForm
         'HZ uhel [g]'
         'Poznamka')
       GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
-      ExplicitWidth = 798
       ColWidths = (
         64
         64
@@ -239,8 +230,6 @@ inherited PolarMethodForm: TPolarMethodForm
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 3
-      ExplicitLeft = 3
-      ExplicitTop = 288
       DesignSize = (
         800
         30)
@@ -253,7 +242,6 @@ inherited PolarMethodForm: TPolarMethodForm
         Caption = 'V'#253'po'#269'et'
         TabOrder = 0
         OnClick = CalculateClick
-        ExplicitLeft = 580
       end
     end
     object GridDetail: TGeoFieldsGrid
@@ -277,7 +265,6 @@ inherited PolarMethodForm: TPolarMethodForm
         'HZ uhel [g]'
         'Poznamka')
       GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
-      ExplicitWidth = 798
       ColWidths = (
         64
         64
@@ -296,7 +283,6 @@ inherited PolarMethodForm: TPolarMethodForm
       Align = alTop
       BevelOuter = bvNone
       TabOrder = 5
-      ExplicitWidth = 798
       DesignSize = (
         800
         30)
@@ -309,7 +295,6 @@ inherited PolarMethodForm: TPolarMethodForm
         Caption = 'Ulo'#382'it'
         TabOrder = 0
         OnClick = CalculateClick
-        ExplicitLeft = 580
       end
     end
   end

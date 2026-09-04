@@ -9,8 +9,8 @@ uses
 type
   TPointDictionary = class
   private
-    class var FInstance: TPointDictionary;
     FPointDict: TDictionary<Int64, TPoint>;
+    class var FInstance: TPointDictionary;
     procedure CheckFileError(const FileName: string);
 
     function GetValues: TEnumerable<TPoint>;
@@ -48,12 +48,16 @@ implementation
 
 constructor TPointDictionary.Create;
 begin
+  if Assigned(FInstance) then
+    raise Exception.Create('Singleton, use GetInstance.');
   inherited Create;
   FPointDict := TDictionary<Int64, TPoint>.Create;
 end;
 
 destructor TPointDictionary.Destroy;
 begin
+  if FInstance = Self then
+    FInstance := nil;
   FPointDict.Free;
   inherited Destroy;
 end;
@@ -326,6 +330,11 @@ function TPointDictionary.GetValues: TEnumerable<TPoint>;
 begin
   Result := FPointDict.Values;
 end;
+
+initialization
+
+finalization
+  FreeAndNil(TPointDictionary.FInstance);
 
 end.
 

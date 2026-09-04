@@ -57,12 +57,13 @@ type
     FStationDF: TGeoDataFrame;
     FOrientDF:  TGeoDataFrame;
     FDetailDF:  TGeoDataFrame;
-    procedure CollectGridRows(Grid: TGeoFieldsGrid; DataFrame: TGeoDataFrame);
     procedure OrientationCellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
   protected
     procedure Loaded; override;
     procedure ApplyCoordOrderToGrids; override;
+    // planned: grid -> data frame -> algorithm
+    procedure CollectGridRows(Grid: TGeoFieldsGrid; DataFrame: TGeoDataFrame);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

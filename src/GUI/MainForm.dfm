@@ -3190,7 +3190,6 @@ object Form1: TForm1
     Height = 29
     Caption = 'ToolBar1'
     TabOrder = 0
-    ExplicitWidth = 964
   end
   object YX2XY: TToggleSwitch
     Left = 736

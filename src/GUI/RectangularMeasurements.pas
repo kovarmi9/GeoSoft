@@ -8,24 +8,24 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Menus,
   Types, Math, Point, PointsUtilsSingleton,
+  GeoRow, GeoGrid, GeoFieldsGrid, CoordOrderState,
   GeoAlgorithmBase,
   GeoAlgorithmRectangularMeasurements,
   CalcBase;
 
 type
   TRectangularMeasurementsForm = class(TCalcBaseForm)
-    StringGrid1: TStringGrid;
+    StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
     PanelCalculate: TPanel;
     ButtonCalculate: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-      Rect: TRect; State: TGridDrawState);
     procedure ButtonCalculateClick(Sender: TObject);
   private
-    procedure MoveToNextCell;
+    procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure FillFromDict(const R: Integer);
+  protected
+    procedure ApplyCoordOrderToGrids; override;
   public
   end;
 
@@ -38,46 +38,19 @@ implementation
 
 procedure TRectangularMeasurementsForm.FormCreate(Sender: TObject);
 begin
-  StringGrid1.ColCount := 5;
-  StringGrid1.RowCount := 5;
-  StringGrid1.FixedRows := 1;
-  StringGrid1.FixedCols := 1;
+  StringGrid1.SetColumnDisplayName(CB, 'Číslo bodu');
+  StringGrid1.SetColumnDisplayName(SH, 'Délka');
+  StringGrid1.SetColumnDisplayName(Poznamka, 'Poznámka');
 
-  StringGrid1.Cells[0, 0] := 'Č.';
-  StringGrid1.Cells[1, 0] := 'Číslo bodu';
-  StringGrid1.Cells[2, 0] := 'Délka';
-  StringGrid1.Cells[3, 0] := 'Y';
-  StringGrid1.Cells[4, 0] := 'X';
-
-  StringGrid1.Cells[0, 1] := '1';
-  StringGrid1.Cells[0, 2] := '2';
-  StringGrid1.Cells[0, 3] := '3';
-  StringGrid1.Cells[0, 4] := '4';
-
-  StringGrid1.ColWidths[0] := 30;
-  StringGrid1.ColWidths[1] := 90;
-  StringGrid1.ColWidths[2] := 90;
-  StringGrid1.ColWidths[3] := 120;
-  StringGrid1.ColWidths[4] := 120;
-
-  StringGrid1.OnKeyDown := StringGrid1KeyDown;
-  StringGrid1.OnDrawCell := StringGrid1DrawCell;
+  // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
+  StringGrid1.OnCellCommitted := PointCommitted;
 
   Memo1.Lines.Clear;
 end;
 
-procedure TRectangularMeasurementsForm.MoveToNextCell;
+procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
 begin
-  if StringGrid1.Col < StringGrid1.ColCount - 1 then
-    StringGrid1.Col := StringGrid1.Col + 1
-  else
-  begin
-    if StringGrid1.Row = StringGrid1.RowCount - 1 then
-      StringGrid1.RowCount := StringGrid1.RowCount + 1;
-    StringGrid1.Row := StringGrid1.Row + 1;
-    StringGrid1.Col := 1;
-    StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row);
-  end;
+  ApplyCoordOrder(StringGrid1);
 end;
 
 procedure TRectangularMeasurementsForm.FillFromDict(const R: Integer);
@@ -85,56 +58,22 @@ var
   Num: Int64;
   P: Point.TPoint;
 begin
-  Num := StrToInt64Def(StringGrid1.Cells[1, R], -1);
+  Num := StrToInt64Def(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], -1);
   if Num <= 0 then Exit;
 
   if LookupPoint(Num, P) then
   begin
-    StringGrid1.Cells[3, R] := FloatToStr(P.Y);
-    StringGrid1.Cells[4, R] := FloatToStr(P.X);
+    StringGrid1.Cells[StringGrid1.FieldToCol(Y), R] := FloatToStr(P.Y);
+    StringGrid1.Cells[StringGrid1.FieldToCol(X), R] := FloatToStr(P.X);
   end;
 end;
 
-procedure TRectangularMeasurementsForm.StringGrid1DrawCell(Sender: TObject;
-  ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-var
-  Text: string;
-  TextW, X, Y: Integer;
+// Fills coordinates from the list; a missing point is offered via AddPoint.
+procedure TRectangularMeasurementsForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
-  with StringGrid1.Canvas do
-  begin
-    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-    begin
-      Brush.Color := clBtnFace;
-      Font.Style := [fsBold];
-      FillRect(Rect);
-      Text := StringGrid1.Cells[ACol, ARow];
-      TextW := TextWidth(Text);
-      X := Rect.Left + (Rect.Width - TextW) div 2;
-      Y := Rect.Top + (Rect.Height - TextHeight(Text)) div 2;
-      TextRect(Rect, X, Y, Text);
-    end
-    else
-    begin
-      Brush.Color := clWindow;
-      Font.Style := [];
-      FillRect(Rect);
-      Text := StringGrid1.Cells[ACol, ARow];
-      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
-    end;
-  end;
-end;
-
-procedure TRectangularMeasurementsForm.StringGrid1KeyDown(Sender: TObject;
-  var Key: Word; Shift: TShiftState);
-begin
-  if Key <> VK_RETURN then Exit;
-  Key := 0;
-
-  if StringGrid1.Col = 1 then
-    FillFromDict(StringGrid1.Row);
-
-  MoveToNextCell;
+  if (ACol <> StringGrid1.FieldToCol(CB)) or (ARow < StringGrid1.FixedRows) then
+    Exit;
+  FillFromDict(ARow);
 end;
 
 procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
@@ -144,29 +83,35 @@ var
   IsKnown: array of Boolean;
   MeasDist, CalcDist: Double;
   Alg: TRectangularMeasurementsAlgorithm;
+  cCB, cSH, cY, cX: Integer;
 begin
+  cCB := StringGrid1.FieldToCol(CB);
+  cSH := StringGrid1.FieldToCol(SH);
+  cY  := StringGrid1.FieldToCol(Y);
+  cX  := StringGrid1.FieldToCol(X);
+
   N := 0;
   IdCount := 0;
 
   for I := 1 to StringGrid1.RowCount - 1 do
   begin
-    if StringGrid1.Cells[1, I] = '' then Continue;
+    if StringGrid1.Cells[cCB, I] = '' then Continue;
 
     Inc(N);
     SetLength(Chain, N);
     SetLength(IsKnown, N);
-    Chain[N - 1].PointNumber := StrToInt64Def(StringGrid1.Cells[1, I], 0);
-    Chain[N - 1].X := StrToFloatDef(StringGrid1.Cells[2, I], 0);
+    Chain[N - 1].PointNumber := StrToInt64Def(StringGrid1.Cells[cCB, I], 0);
+    Chain[N - 1].X := StrToFloatDef(StringGrid1.Cells[cSH, I], 0);
     IsKnown[N - 1] := False;
 
-    if (StringGrid1.Cells[3, I] <> '') and (StringGrid1.Cells[4, I] <> '') then
+    if (StringGrid1.Cells[cY, I] <> '') and (StringGrid1.Cells[cX, I] <> '') then
     begin
       IsKnown[N - 1] := True;
       Inc(IdCount);
       SetLength(Identical, IdCount);
       Identical[IdCount - 1].PointNumber := Chain[N - 1].PointNumber;
-      Identical[IdCount - 1].Y := StrToFloatDef(StringGrid1.Cells[3, I], 0);
-      Identical[IdCount - 1].X := StrToFloatDef(StringGrid1.Cells[4, I], 0);
+      Identical[IdCount - 1].Y := StrToFloatDef(StringGrid1.Cells[cY, I], 0);
+      Identical[IdCount - 1].X := StrToFloatDef(StringGrid1.Cells[cX, I], 0);
     end;
   end;
 
@@ -200,10 +145,10 @@ begin
     N := 0;
     for I := 1 to StringGrid1.RowCount - 1 do
     begin
-      if StringGrid1.Cells[1, I] = '' then Continue;
+      if StringGrid1.Cells[cCB, I] = '' then Continue;
       if N >= Length(ResultPts) then Break;
-      StringGrid1.Cells[3, I] := Format('%.2f', [ResultPts[N].Y]);
-      StringGrid1.Cells[4, I] := Format('%.2f', [ResultPts[N].X]);
+      StringGrid1.Cells[cY, I] := Format('%.2f', [ResultPts[N].Y]);
+      StringGrid1.Cells[cX, I] := Format('%.2f', [ResultPts[N].X]);
       Inc(N);
     end;
 

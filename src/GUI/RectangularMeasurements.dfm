@@ -21,22 +21,34 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   inherited StatusBar1: TStatusBar
     ExplicitLeft = 24
   end
-  object StringGrid1: TStringGrid [2]
+  object StringGrid1: TGeoFieldsGrid [2]
     Left = 0
     Top = 35
     Width = 800
     Height = 87
     Align = alClient
+    ColCount = 6
+    RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
     ExplicitWidth = 798
     ExplicitHeight = 79
-    RowHeights = (
-      24
-      24
-      24
-      24
-      24)
+    EnterEndBehavior = ebAddRow
+    ColumnHeaders.Strings = (
+      ''
+      'Cislo bodu'
+      'X'
+      'Y'
+      'Delka'
+      'Poznamka')
+    GeoFields = [CB, X, Y, SH, Poznamka]
+    ColWidths = (
+      40
+      90
+      120
+      120
+      90
+      120)
   end
   object Memo1: TMemo [3]
     Left = 0

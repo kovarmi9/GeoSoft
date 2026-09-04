@@ -8,7 +8,7 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, Math, Point;
+  System.SysUtils, System.Classes, Math, Point, GeoAlgorithmBase;
 
 const
   // Distance tolerance for quality code 3: 0.012 * sqrt(d) + 0.10 [m]
@@ -35,23 +35,17 @@ type
 
   TCheckPairs = array of TCheckPair;
 
-  TCheckMeasurementsAlgorithm = class
+  TCheckMeasurementsAlgorithm = class(TAlgorithmBase)
   private
     FPairs: TCheckPairs;
-    FWarnings: TStringList;
     FMeasuredCount: Integer;
     FComputedOnlyCount: Integer;
     FFailedCount: Integer;
     FSkippedCount: Integer;
     FMaxDiff: Double;
-    procedure AddWarning(const AMsg: string);
   public
-    constructor Create;
-    destructor Destroy; override;
-
     // Calculate fills the output fields of every pair
     property Pairs: TCheckPairs read FPairs write FPairs;
-    property Warnings: TStringList read FWarnings;
 
     property MeasuredCount: Integer read FMeasuredCount;
     property ComputedOnlyCount: Integer read FComputedOnlyCount;
@@ -64,28 +58,11 @@ type
 
 implementation
 
-constructor TCheckMeasurementsAlgorithm.Create;
-begin
-  inherited;
-  FWarnings := TStringList.Create;
-end;
-
-destructor TCheckMeasurementsAlgorithm.Destroy;
-begin
-  FWarnings.Free;
-  inherited;
-end;
-
-procedure TCheckMeasurementsAlgorithm.AddWarning(const AMsg: string);
-begin
-  FWarnings.Add(AMsg);
-end;
-
 procedure TCheckMeasurementsAlgorithm.Calculate;
 var
   i: Integer;
 begin
-  FWarnings.Clear;
+  ClearWarnings;
   FMeasuredCount     := 0;
   FComputedOnlyCount := 0;
   FFailedCount       := 0;

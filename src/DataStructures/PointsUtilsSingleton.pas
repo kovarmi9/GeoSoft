@@ -140,7 +140,7 @@ begin
     for Point in FPointDict.Values do
     begin
       CoordRead(Point, C1, C2);
-      WriteLn(TXTFile, Format('%015d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
+      WriteLn(TXTFile, Format('%.15d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(TXTFile);
@@ -209,7 +209,7 @@ begin
     for Point in FPointDict.Values do
     begin
       CoordRead(Point, C1, C2);
-      WriteLn(CSVFile, Format('%015d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
+      WriteLn(CSVFile, Format('%.15d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
     end;
   finally
     CloseFile(CSVFile);

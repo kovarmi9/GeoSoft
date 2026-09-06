@@ -11,7 +11,7 @@ unit CoordOrderState;
 interface
 
 uses
-  Vcl.Controls, Point, GeoRow, GeoFieldsGrid;
+  System.SysUtils, Vcl.Controls, Point, GeoRow, GeoFieldsGrid, ProtocolTable;
 
 type
   TCoordOrder = (coYX, coXY);
@@ -30,6 +30,14 @@ procedure SwapXY(var P: Point.TPoint);
 // Column captions in the current order
 function FirstCoordName: string;
 function SecondCoordName: string;
+
+// The coordinate pair as one protocol column: both captions, in the current
+// order. Width of the column is 2 * AWidth + 2.
+function ColCoordPair(AWidth: Integer): TProtCol;
+
+// The two coordinates in the same order and the same width.
+function CoordPair(const P: Point.TPoint; AWidth: Integer;
+  ADecimals: Integer = 2): string;
 
 // Column order of a field grid
 procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid); overload;
@@ -91,6 +99,30 @@ begin
     Result := 'X'
   else
     Result := 'Y';
+end;
+
+function ColCoordPair(AWidth: Integer): TProtCol;
+var
+  Fmt, Caption: string;
+begin
+  Fmt := ColFormat(ColText('', AWidth));
+  if GCoordOrder = coYX then
+    Caption := Format(Fmt, ['Y']) + '  ' + Format(Fmt, ['X'])
+  else
+    Caption := Format(Fmt, ['X']) + '  ' + Format(Fmt, ['Y']);
+  Result := ColText(Caption, -(2 * AWidth + 2));
+end;
+
+function CoordPair(const P: Point.TPoint; AWidth: Integer;
+  ADecimals: Integer): string;
+var
+  Fmt: string;
+begin
+  Fmt := ColFormat(ColFloat('', AWidth, ADecimals));
+  if GCoordOrder = coYX then
+    Result := Format(Fmt, [P.Y], ProtFormat) + '  ' + Format(Fmt, [P.X], ProtFormat)
+  else
+    Result := Format(Fmt, [P.X], ProtFormat) + '  ' + Format(Fmt, [P.Y], ProtFormat);
 end;
 
 type

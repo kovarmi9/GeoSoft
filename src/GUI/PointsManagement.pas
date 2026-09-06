@@ -169,7 +169,7 @@ begin
     for Key in Keys do
     begin
       pt := TPointDictionary.GetInstance.GetPoint(Key);
-      StringGrid1.Cells[0, i] := Format('%015d', [pt.PointNumber]);
+      StringGrid1.Cells[0, i] := Format('%.15d', [pt.PointNumber]);
       // Columns are in the cadastre order Y, X
       StringGrid1.Cells[1, i] := FloatToStr(pt.Y);
       StringGrid1.Cells[2, i] := FloatToStr(pt.X);
@@ -225,7 +225,7 @@ begin
       FillRect(Rect);
       Text := StringGrid1.Cells[ACol, ARow];
       if (ACol = 0) and (Trim(Text) <> '') and (Length(Trim(Text)) < 15) then
-        Text := Format('%015d', [StrToInt64Def(Text, 0)]);
+        Text := Format('%.15d', [StrToInt64Def(Text, 0)]);
       TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
     end;
   end;

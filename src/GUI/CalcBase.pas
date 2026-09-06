@@ -37,6 +37,11 @@ type
     /// The base form only decides when it happens.
     /// </summary>
     procedure ApplyCoordOrderToGrids; virtual;
+
+    /// <summary>
+    /// Writes the whole protocol. Every calculation form overrides it.
+    /// </summary>
+    procedure WriteProtocol(ALines: TStrings); virtual;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -119,7 +124,8 @@ function TCalcBaseForm.FormatPointId(const S: string): string;
 var
   N: string;
 begin
-  N := Format('%015d', [StrToInt64Def(Trim(S), 0)]);
+  // %.15d pads with zeros; %015d would pad with spaces in Delphi
+  N := Format('%.15d', [StrToInt64Def(Trim(S), 0)]);
   Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
 end;
 
@@ -147,6 +153,11 @@ begin
 end;
 
 procedure TCalcBaseForm.ApplyCoordOrderToGrids;
+begin
+  // nothing here; see the descendants
+end;
+
+procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);
 begin
   // nothing here; see the descendants
 end;

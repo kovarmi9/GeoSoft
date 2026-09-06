@@ -39,34 +39,55 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
     TabOrder = 2
     WordWrap = False
   end
-  object GridOrientation: TGeoFieldsGrid [3]
+  object GridPairs: TGeoPointsGrid [3]
     Left = 0
     Top = 35
     Width = 800
     Height = 128
     Align = alTop
-    ColCount = 7
+    ColCount = 9
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 3
+    OnSelectCell = GridPairsSelectCell
     EnterEndBehavior = ebAddRow
     ColumnHeaders.Strings = (
       ''
-      'Cislo bodu'
-      'X'
-      'Y'
-      'Z'
-      'Vodorovna delka'
-      'Poznamka')
-    GeoFields = [CB, X, Y, Z, SH, Poznamka]
+      'Z bodu'
+      'Na bod'
+      'M'#283#345'en'#225
+      'Ze sou'#345'adnic'
+      'Rozd'#237'l'
+      'Mezn'#237
+      'Vyhovuje'
+      'Pozn'#225'mka')
+    ColumnFilters = <
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end
+      item
+      end>
     ColWidths = (
       40
-      64
-      64
-      64
-      64
-      64
-      64)
+      110
+      110
+      80
+      90
+      70
+      70
+      70
+      150)
   end
   object PanelCalculate: TPanel [4]
     Left = 0

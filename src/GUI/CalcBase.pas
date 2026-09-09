@@ -30,7 +30,13 @@ type
     procedure MenuUlozitProtokolClick(Sender: TObject);
   protected
     FS: TFormatSettings;
+
+    /// <summary>
+    /// Finds a point. An unknown one is offered through the AddPoint dialog.
+    /// Use pt only when the result is True.
+    /// </summary>
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
+
     function FormatPointId(const S: string): string;
     /// <summary>
     /// Descendants override this to set the column order of their grids.
@@ -84,8 +90,6 @@ function TCalcBaseForm.LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolea
 var
   dlg: TAddPointForm;
 begin
-  Result := False;
-
   if TPointDictionary.GetInstance.PointExists(PointNo) then
   begin
     pt := TPointDictionary.GetInstance.GetPoint(PointNo);
@@ -97,6 +101,7 @@ begin
 
   dlg := TAddPointForm.Create(Self);
   try
+    // The dialog decides the result: True after OK, False after Cancel
     Result := dlg.Execute(PointNo, pt);
   finally
     dlg.Free;

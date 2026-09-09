@@ -32,7 +32,7 @@ function FirstCoordName: string;
 function SecondCoordName: string;
 
 // The coordinate pair as one protocol column: both captions, in the current
-// order. Width of the column is 2 * AWidth + 2.
+// order. The column is two AWidth columns plus one ColGap wide.
 function ColCoordPair(AWidth: Integer): TProtCol;
 
 // The two coordinates in the same order and the same width.
@@ -105,12 +105,12 @@ function ColCoordPair(AWidth: Integer): TProtCol;
 var
   Fmt, Caption: string;
 begin
-  Fmt := ColFormat(ColText('', AWidth));
+  Fmt := TextFormat(AWidth);
   if GCoordOrder = coYX then
-    Caption := Format(Fmt, ['Y']) + '  ' + Format(Fmt, ['X'])
+    Caption := Format(Fmt, ['Y']) + ColGap + Format(Fmt, ['X'])
   else
-    Caption := Format(Fmt, ['X']) + '  ' + Format(Fmt, ['Y']);
-  Result := ColText(Caption, -(2 * AWidth + 2));
+    Caption := Format(Fmt, ['X']) + ColGap + Format(Fmt, ['Y']);
+  Result := ColText(Caption, -(2 * AWidth + Length(ColGap)));
 end;
 
 function CoordPair(const P: Point.TPoint; AWidth: Integer;
@@ -118,11 +118,11 @@ function CoordPair(const P: Point.TPoint; AWidth: Integer;
 var
   Fmt: string;
 begin
-  Fmt := ColFormat(ColFloat('', AWidth, ADecimals));
+  Fmt := FloatFormat(AWidth, ADecimals);
   if GCoordOrder = coYX then
-    Result := Format(Fmt, [P.Y], ProtFormat) + '  ' + Format(Fmt, [P.X], ProtFormat)
+    Result := Format(Fmt, [P.Y], ProtFormat) + ColGap + Format(Fmt, [P.X], ProtFormat)
   else
-    Result := Format(Fmt, [P.X], ProtFormat) + '  ' + Format(Fmt, [P.Y], ProtFormat);
+    Result := Format(Fmt, [P.X], ProtFormat) + ColGap + Format(Fmt, [P.Y], ProtFormat);
 end;
 
 type

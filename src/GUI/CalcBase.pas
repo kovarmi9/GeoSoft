@@ -69,9 +69,10 @@ begin
   ClientWidth := W;
   ClientHeight := H;
 
-  FS := TFormatSettings.Create;
-  FS.DecimalSeparator  := ',';
-  FS.ThousandSeparator := #0;
+  // Grids and edits speak the same language as the grid component, which
+  // takes the decimal separator from Windows. The protocol does not - it
+  // always uses a comma, see ProtFormat in ProtocolTable.
+  FS := FormatSettings;
 
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 

@@ -123,7 +123,9 @@ begin
       LookupPoint(num, pt);
   end;
 
-  if (ACol = COL_FROM) or (ACol = COL_TO) or (ACol = COL_MEAS) then
+  // Enter through a computed column stamps the editor text into it, so the
+  // row is recomputed after every commit but the note.
+  if ACol <> COL_NOTE then
     TryComputeRow(ARow);
 
   GridPairs.Cells[0, ARow] := IntToStr(ARow);
@@ -221,7 +223,6 @@ end;
 
 procedure TCheckMeasurementsForm.WriteProtocol(ALines: TStrings);
 const
-  SEP_MEAS = ' ----------------------------------------------------------------------------------------------';
   CW = 14;   // width of one coordinate column
 var
   Prot: TProtocol;
@@ -229,7 +230,7 @@ var
   P: TCheckPair;
   Pt: Point.TPoint;
   Dict: TPointDictionary;
-  Nums: TArray<Int64>;
+  Nums: array of Int64;
   Verdict, ComputedTxt: string;
 
   // Every point of the job, in order of first use
@@ -255,15 +256,15 @@ begin
   end;
 
   ALines.BeginUpdate;
+  Prot := TProtocol.Create(ALines);
   try
     ALines.Clear;
-    Prot.Init(ALines);
     Prot.Title('Kontrolní oměrné');
     Prot.Blank;
 
-    Prot.Text(' POUŽITÉ BODY');
+    Prot.Text('POUŽITÉ BODY');
     Prot.Table([ColInt('Č.', 3), ColText('Číslo bodu', -17),
-                ColCoordPair(CW), ColFloat('Z', 10, 2)], '  ');
+                ColCoordPair(CW), ColFloat('Z', 10, 2)]);
     for i := 0 to n - 1 do
       if Dict.PointExists(Nums[i]) then
       begin
@@ -275,11 +276,12 @@ begin
         Prot.RowTail([i + 1, FormatPointId(IntToStr(Nums[i]))],
                      '*** bod není v seznamu souřadnic ***');
 
-    ALines.Add('');
-    ALines.Add(' OMĚRNÉ MÍRY');
-    ALines.Add(Format('  %3s  %-17s  %-17s  %10s  %13s  %9s  %8s  %s',
-      ['Č.', 'Z bodu', 'Na bod', 'Měřená', 'Ze souřadnic', 'Rozdíl', 'Mezní', '']));
-    ALines.Add(SEP_MEAS);
+    Prot.Blank;
+    Prot.Text('OMĚRNÉ MÍRY');
+    Prot.Table([ColInt('Č.', 3), ColText('Z bodu', -17), ColText('Na bod', -17),
+                ColFloat('Měřená', 10, 3), ColFloat('Ze souřadnic', 13, 3),
+                ColFloat('Rozdíl', 11, 3), ColFloat('Mezní', 9, 3),
+                ColText('Vyhov.', -8)]);
 
     for i := 0 to High(FAlg.Pairs) do
     begin
@@ -287,51 +289,50 @@ begin
 
       if not P.Found then
       begin
-        ALines.Add(Format('  %3d  %-17s  %-17s  *** nelze spočítat, chybí bod ***',
-          [i + 1, FormatPointId(IntToStr(P.PointNo1)),
-           FormatPointId(IntToStr(P.PointNo2))]));
+        Prot.RowTail([i + 1, FormatPointId(IntToStr(P.PointNo1)),
+                      FormatPointId(IntToStr(P.PointNo2))],
+                     '*** nelze spočítat, chybí bod ***');
         Continue;
       end;
 
       if P.HasMeasured then
       begin
         if P.Passed then Verdict := 'ANO' else Verdict := 'NE';
-        ALines.Add(Format('  %3d  %-17s  %-17s  %10.3f  %13.3f  %9.3f  %8.3f  %s',
-          [i + 1,
-           FormatPointId(IntToStr(P.PointNo1)),
-           FormatPointId(IntToStr(P.PointNo2)),
-           P.Measured, P.Computed, P.Diff, P.Tolerance, Verdict]));
+        Prot.Row([i + 1,
+                  FormatPointId(IntToStr(P.PointNo1)),
+                  FormatPointId(IntToStr(P.PointNo2)),
+                  P.Measured, P.Computed, P.Diff, P.Tolerance, Verdict]);
       end
       else
       begin
         // KatV annex 17.11 — a value that was not measured goes in brackets
-        ComputedTxt := Format('(%.3f)', [P.Computed]);
-        ALines.Add(Format('  %3d  %-17s  %-17s  %10s  %13s  %9s  %8s  %s',
-          [i + 1,
-           FormatPointId(IntToStr(P.PointNo1)),
-           FormatPointId(IntToStr(P.PointNo2)),
-           '-', ComputedTxt, '-', '-', 'neměřeno']));
+        ComputedTxt := Format('(%.3f)', [P.Computed], ProtFormat);
+        Prot.Row([i + 1,
+                  FormatPointId(IntToStr(P.PointNo1)),
+                  FormatPointId(IntToStr(P.PointNo2)),
+                  '-', ComputedTxt, '-', '-', 'neměřeno']);
       end;
 
       if P.Note <> '' then
-        ALines.Add('       Poznámka: ' + P.Note);
+        Prot.Text('      Poznámka: ' + P.Note);
     end;
 
-    ALines.Add(SEP_MEAS);
-    ALines.Add(Format(' Měřených oměrných: %d    Nevyhovuje: %d    Největší rozdíl: %.3f m',
-      [FAlg.MeasuredCount, FAlg.FailedCount, FAlg.MaxDiff]));
+    Prot.TableLine;
+    Prot.Text(Format('Měřených oměrných: %d    Nevyhovuje: %d    Největší rozdíl: %.3f m',
+      [FAlg.MeasuredCount, FAlg.FailedCount, FAlg.MaxDiff], ProtFormat));
 
     if FAlg.ComputedOnlyCount > 0 then
-      ALines.Add(Format(' Neměřených, uvedených ze souřadnic v závorkách: %d',
+      Prot.Text(Format('Neměřených, uvedených ze souřadnic v závorkách: %d',
         [FAlg.ComputedOnlyCount]));
 
     if FAlg.SkippedCount > 0 then
-      ALines.Add(Format(' Nespočítaných oměrných (chybí bod v seznamu): %d',
+      Prot.Text(Format('Nespočítaných oměrných (chybí bod v seznamu): %d',
         [FAlg.SkippedCount]));
 
     Prot.Warnings(FAlg.Warnings);
-    Prot.Rule;
+    Prot.EndLine;
   finally
+    Prot.Free;
     ALines.EndUpdate;
   end;
 end;

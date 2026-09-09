@@ -16,7 +16,9 @@ uses
   System.SysUtils, System.Classes;
 
 const
-  ProtWidth  = 78;     // width of the title and of the end line
+  // Width of the title and of the end line. Keep it at least as wide as the
+  // widest table in the program - today the check measurements, 104 + indent.
+  ProtWidth  = 105;
   ProtIndent = ' ';    // every line starts with this
   ColGap     = '  ';   // space between two columns
 
@@ -44,6 +46,9 @@ type
     procedure Row(const AValues: array of string; const ATail: string = '');
     procedure Line;                            // as wide as the table
     procedure Finish(AWarnings: TStrings);     // warnings and the end line
+
+    // Where the protocol was written; nil before the first Title
+    property Lines: TStrings read FLines;
   end;
 
 function Pad(const AText: string; AWidth: Integer): string;
@@ -61,8 +66,15 @@ begin
 end;
 
 function Num(AValue: Double; ADecimals: Integer): string;
+var
+  Zero: string;
 begin
   Result := FloatToStrF(AValue, ffFixed, 18, ADecimals, ProtFormat);
+
+  // A value rounded away to -0,000 looks like an error in the protocol
+  Zero := FloatToStrF(0, ffFixed, 18, ADecimals, ProtFormat);
+  if Result = '-' + Zero then
+    Result := Zero;
 end;
 
 { TProtocol }

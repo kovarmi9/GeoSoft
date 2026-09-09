@@ -158,26 +158,15 @@ begin
 end;
 
 procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);
-var
-  i: Integer;
-  Memo: TMemo;
 begin
-  Memo := nil;
-  for i := 0 to ComponentCount - 1 do
-    if Components[i] is TMemo then
-    begin
-      Memo := TMemo(Components[i]);
-      Break;
-    end;
-
-  if (Memo = nil) or (Memo.Lines.Count = 0) then
+  if (Prot.Lines = nil) or (Prot.Lines.Count = 0) then
   begin
     ShowMessage('Protokol je prázdný.');
     Exit;
   end;
 
   if SaveDialogProtokol.Execute then
-    Memo.Lines.SaveToFile(SaveDialogProtokol.FileName);
+    Prot.Lines.SaveToFile(SaveDialogProtokol.FileName);
 end;
 
 procedure TCalcBaseForm.ApplyCoordOrderToGrids;

@@ -46,6 +46,20 @@ type
 
 implementation
 
+var
+  CommaFormat: TFormatSettings;   // files are always written with a comma
+  DotFormat: TFormatSettings;     // some files may have a dot
+
+// Reads a number from a file, written with a comma or with a dot
+function FileStrToFloat(const AText: string): Double;
+var
+  S: string;
+begin
+  S := Trim(AText);
+  if not TryStrToFloat(S, Result, CommaFormat) then
+    Result := StrToFloat(S, DotFormat);
+end;
+
 constructor TPointDictionary.Create;
 begin
   if Assigned(FInstance) then
@@ -140,7 +154,7 @@ begin
     for Point in FPointDict.Values do
     begin
       CoordRead(Point, C1, C2);
-      WriteLn(TXTFile, Format('%.15d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
+      WriteLn(TXTFile, Format('%.15d'#9'%.2f'#9'%.2f'#9'%.2f'#9'%d'#9'%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)], CommaFormat));
     end;
   finally
     CloseFile(TXTFile);
@@ -171,8 +185,8 @@ begin
         if Count < 6 then
           Continue;
         Point.PointNumber := StrToInt64(Trim(Strings[0]));
-        CoordWrite(Point, StrToFloat(Strings[1]), StrToFloat(Strings[2]));
-        Point.Z := StrToFloat(Strings[3]);
+        CoordWrite(Point, FileStrToFloat(Strings[1]), FileStrToFloat(Strings[2]));
+        Point.Z := FileStrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
         Point.Description := Strings[5];
@@ -209,7 +223,7 @@ begin
     for Point in FPointDict.Values do
     begin
       CoordRead(Point, C1, C2);
-      WriteLn(CSVFile, Format('%.15d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)]));
+      WriteLn(CSVFile, Format('%.15d;%.2f;%.2f;%.2f;%d;%s', [Point.PointNumber, C1, C2, Point.Z, Point.Quality, string(Point.Description)], CommaFormat));
     end;
   finally
     CloseFile(CSVFile);
@@ -240,8 +254,8 @@ begin
         if Count < 6 then
           Continue;
         Point.PointNumber := StrToInt64(Trim(Strings[0]));
-        CoordWrite(Point, StrToFloat(Strings[1]), StrToFloat(Strings[2]));
-        Point.Z := StrToFloat(Strings[3]);
+        CoordWrite(Point, FileStrToFloat(Strings[1]), FileStrToFloat(Strings[2]));
+        Point.Z := FileStrToFloat(Strings[3]);
         Point.Quality := StrToInt(Strings[4]);
         {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
         Point.Description := Strings[5];
@@ -332,6 +346,12 @@ begin
 end;
 
 initialization
+  CommaFormat := FormatSettings;
+  CommaFormat.DecimalSeparator  := ',';
+  CommaFormat.ThousandSeparator := #0;
+
+  DotFormat := CommaFormat;
+  DotFormat.DecimalSeparator := '.';
 
 finalization
   FreeAndNil(TPointDictionary.FInstance);

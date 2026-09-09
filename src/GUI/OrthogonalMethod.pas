@@ -21,10 +21,20 @@ uses
   GeoGrid,
   GeoPointsGrid,
   GeoColumnValidation,
+  CoordOrderState,
+  ProtocolTable,
   CalcBase,
   PointPrefixState, Vcl.Menus;
 
 type
+  // One detail point, as the protocol shows it
+  TOrthoRow = record
+    Valid:   Boolean;
+    Num:     string;    // formatted point id
+    S, Q:    Double;    // stationing and offset
+    Updated: Boolean;   // point was already in the list
+  end;
+
   TOrthogonalMethodForm = class(TCalcBaseForm)
     GridBaseline: TGeoPointsGrid;
     GridDetail: TGeoPointsGrid;
@@ -38,6 +48,12 @@ type
     procedure Button1Click(Sender: TObject);
   private
     FOrthoAlg: TOrthogonalMethodAlgorithm;
+    FWarn: TStringList;              // warnings of all detail rows
+    FRows: array of TOrthoRow;       // one item per detail grid row
+    FBaseValid: Boolean;
+    FPNum, FKNum: string;
+    FsP, FqP, FsK, FqK: Double;
+    FOdch, FMezni: Double;
     procedure SetupValidations;
     procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -46,6 +62,8 @@ type
     procedure FillRowFromPoint(Grid: TGeoPointsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
     function  TryComputeDetailRow(R: Integer): Boolean;
+  protected
+    procedure WriteProtocol(ALines: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -62,6 +80,7 @@ constructor TOrthogonalMethodForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
+  FWarn := TStringList.Create;
   SetupValidations;
 
   GridBaseline.OnCellCommitted         := BasePointCommitted;
@@ -73,6 +92,7 @@ end;
 destructor TOrthogonalMethodForm.Destroy;
 begin
   FOrthoAlg.Free;
+  FWarn.Free;
   inherited Destroy;
 end;
 
@@ -207,12 +227,21 @@ begin
     GridDetail.Cells[4, R] := FloatToStr(OutPts[0].Y, FS);
     GridDetail.Cells[5, R] := FloatToStr(OutPts[0].X, FS);
     TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
-    Memo1.Lines.Add(Format('     %-17s  %12.2f  %12.2f',
-      [FormatPointId(GridDetail.Cells[1, R]), InPts[0].X, InPts[0].Y]));
-    if AlreadyExists then
-      Memo1.Lines.Add(' *** BOD >' + FormatPointId(GridDetail.Cells[1, R]) + '< V SEZNAMU AKTUALIZOVÁN ***');
+
+    if R > High(FRows) then
+      SetLength(FRows, R + 1);
+    FRows[R].Valid   := True;
+    FRows[R].Num     := FormatPointId(GridDetail.Cells[1, R]);
+    FRows[R].S       := InPts[0].X;   // stationing, not a coordinate
+    FRows[R].Q       := InPts[0].Y;   // offset, not a coordinate
+    FRows[R].Updated := AlreadyExists;
+
+    // Calculate clears its warnings every run, so keep them here
     for W in FOrthoAlg.Warnings do
-      Memo1.Lines.Add(' CHYBA: ' + W);
+      if FWarn.IndexOf(W) < 0 then
+        FWarn.Add(W);
+
+    ShowProtocol(Memo1.Lines);
     Result := True;
   end;
 end;
@@ -256,23 +285,72 @@ begin
   Odch      := Abs(dg - L);
   MezniOdch := 0.012 * Sqrt(L) + 0.10;
 
-  Memo1.Lines.Clear;
-  Memo1.Lines.Add(' == 0   Ortogonální metoda  =====================================================');
-  Memo1.Lines.Add('             ČÍSLO BODU   STANIČENÍ     KOLMICE');
-  Memo1.Lines.Add(Format('   P:  %-17s  %12.2f  %12.2f', [FormatPointId(GridBaseline.Cells[1, 1]), sP, qP]));
-  Memo1.Lines.Add(Format('   K:  %-17s  %12.2f  %12.2f', [FormatPointId(GridBaseline.Cells[1, 2]), sK, qK]));
-  Memo1.Lines.Add(' -------------------------------------------------------------------------------');
-  Memo1.Lines.Add(Format('  Odch   = %7.3f  Mezní KK[3]  = %7.3f', [Odch, MezniOdch]));
-  if Odch > MezniOdch then
-    Memo1.Lines.Add(' CHYBA: Odchylka délky pásky překračuje mezní hodnotu!');
-  Memo1.Lines.Add('');
-  Memo1.Lines.Add(' -- PODROBNÉ BODY -------------------------------------------------------------');
+  FPNum  := FormatPointId(GridBaseline.Cells[1, 1]);
+  FKNum  := FormatPointId(GridBaseline.Cells[1, 2]);
+  FsP := sP;  FqP := qP;
+  FsK := sK;  FqK := qK;
+  FOdch  := Odch;
+  FMezni := MezniOdch;
+
+  // a new baseline starts a new protocol
+  FWarn.Clear;
+  SetLength(FRows, 0);
+  FBaseValid := True;
+  ShowProtocol(Memo1.Lines);
 
   GridDetail.Enabled := True;
   GridDetail.SetFocus;
   GridDetail.Row := GridDetail.FixedRows;
   GridDetail.Col := 1;
   GridDetail.EditorMode := True;
+end;
+
+// The whole protocol is rewritten after every computed row, so an edited
+// row replaces its old line instead of adding a second one.
+procedure TOrthogonalMethodForm.WriteProtocol(ALines: TStrings);
+var
+  i, n: Integer;
+  Tail: string;
+begin
+  if not FBaseValid then
+  begin
+    ALines.Clear;
+    Exit;
+  end;
+
+  Prot.Title(ALines, 'Ortogonální metoda');
+
+  Prot.Text('PŘIPOJOVACÍ BODY');
+  Prot.Table(['', 'Číslo bodu', 'Staničení', 'Kolmice'],
+             [-4, ColWPoint, ColWDist, ColWDist]);
+  Prot.Row(['P:', FPNum, Num(FsP), Num(FqP)]);
+  Prot.Row(['K:', FKNum, Num(FsK), Num(FqK)]);
+  Prot.Line;
+
+  Prot.Text('Odchylka = ' + Num(FOdch, 3) +
+            '    Mezní KK[3] = ' + Num(FMezni, 3));
+  if FOdch > FMezni then
+    Prot.Text('CHYBA: Odchylka délky pásky překračuje mezní hodnotu!');
+
+  Prot.Text('');
+  Prot.Text('PODROBNÉ BODY');
+  Prot.Table(['Č.', 'Číslo bodu', 'Staničení', 'Kolmice'],
+             [ColWNo, ColWPoint, ColWDist, ColWDist]);
+
+  n := 0;
+  for i := 0 to High(FRows) do
+    if FRows[i].Valid then
+    begin
+      Inc(n);
+      if FRows[i].Updated then
+        Tail := '*** bod v seznamu aktualizován ***'
+      else
+        Tail := '';
+      Prot.Row([IntToStr(n), FRows[i].Num,
+                Num(FRows[i].S), Num(FRows[i].Q)], Tail);
+    end;
+
+  Prot.Finish(FWarn);
 end;
 
 end.

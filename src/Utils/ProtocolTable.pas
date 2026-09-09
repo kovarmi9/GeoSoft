@@ -1,16 +1,14 @@
 ﻿unit ProtocolTable;
 
-// Text tables for calculation protocols. Declare the columns once with
-// Table; the header, the line under it and every Row use the same widths.
+// Text tables for calculation protocols. Title starts one, Finish ends it.
+// Table declares the captions and the widths once; the header, the line
+// under it and every Row then use them. Values are strings, use Num for a
+// number.
 //
-//   Prot := TProtocol.Create(Memo1.Lines);
-//   try
-//     Prot.Title('Kontrolni omerne');
-//     Prot.Table([ColInt('C.', 3), ColText('Cislo bodu', -17)]);
-//     Prot.Row([1, '000000 00000 0001']);
-//   finally
-//     Prot.Free;
-//   end;
+//   Prot.Title(Memo1.Lines, 'Vypocet plochy parcely');
+//   Prot.Table(['C.', 'Cislo bodu'], [ColWNo, ColWPoint]);
+//   Prot.Row([IntToStr(i), '000000 00000 0001']);
+//   Prot.Finish(FAlg.Warnings);
 
 interface
 
@@ -18,233 +16,134 @@ uses
   System.SysUtils, System.Classes;
 
 const
-  ProtWidth = 78;     // width of the title and of the end line
-  ColGap    = '  ';   // space between two columns
+  ProtWidth  = 78;     // width of the title and of the end line
+  ProtIndent = ' ';    // every line starts with this
+  ColGap     = '  ';   // space between two columns
 
-type
-  TProtKind = (pkText, pkInt, pkFloat);
-
-  TProtCol = record
-    Caption:  string;
-    Width:    Integer;    // minus means left aligned
-    Kind:     TProtKind;
-    Decimals: Integer;    // only for pkFloat
-  end;
-
-// Make a column
-function ColText (const ACaption: string; AWidth: Integer): TProtCol;
-function ColInt  (const ACaption: string; AWidth: Integer): TProtCol;
-function ColFloat(const ACaption: string; AWidth, ADecimals: Integer): TProtCol;
-
-// Format strings, like '%-17s' or '%10.3f'
-function TextFormat(AWidth: Integer): string;
-function FloatFormat(AWidth, ADecimals: Integer): string;
-function ColFormat(const ACol: TProtCol): string;
+  // Standard column widths. A minus width means left aligned.
+  ColWNo    = 3;      // row number
+  ColWPoint = -17;    // point id from FormatPointId
+  ColWCoord = 14;     // one coordinate
+  ColWPair  = -(2 * ColWCoord + Length(ColGap));   // both coordinates
+  ColWDist  = 10;     // a length or a height in metres
+  ColWFlag  = -10;    // a short word like 'dany'
 
 type
   TProtocol = class
   private
-    FLines:  TStrings;            // where the protocol is written
-    FCols:   array of TProtCol;   // columns of the current table
-    FWidth:  Integer;             // how wide the current table is
-    FIndent: string;              // every line starts with this
-    function RowFormat(const AValues: array of const): string;
-    procedure FullLine(AChar: Char);
+    FLines: TStrings;          // where the protocol is written
+    FCols:  array of Integer;  // widths of the current table
+    FWidth: Integer;           // how wide the current table is
+    function Cells(const AValues: array of string): string;
   public
-    constructor Create(ALines: TStrings);
-
-    procedure Title(const AText: string);
-    procedure Text(const AText: string);
-    procedure Blank;
-
-    // Sets the columns and writes the header with a line under it
-    procedure Table(const ACols: array of TProtCol);
-
-    // One row. Fewer values than columns fills only the first columns.
-    procedure Row(const AValues: array of const);
-    // The same plus free text behind the last column
-    procedure RowTail(const AValues: array of const; const ATail: string);
-
-    procedure TableLine;   // line as wide as the table
-    procedure EndLine;     // line across the whole protocol
-
-    // Writes the warnings. Writes nothing when the list is empty.
-    procedure Warnings(AList: TStrings; const APrefix: string = ' CHYBA: ');
-
-    property Indent: string read FIndent write FIndent;
+    procedure Title(ALines: TStrings; const AText: string);   // clears ALines
+    procedure Text(const AText: string);       // '' writes a blank line
+    procedure Table(const ACaptions: array of string;
+                    const AWidths: array of Integer);
+    // ATail is free text written behind the last column
+    procedure Row(const AValues: array of string; const ATail: string = '');
+    procedure Line;                            // as wide as the table
+    procedure Finish(AWarnings: TStrings);     // warnings and the end line
   end;
+
+function Pad(const AText: string; AWidth: Integer): string;
+function Num(AValue: Double; ADecimals: Integer = 2): string;
 
 var
   ProtFormat: TFormatSettings;   // decimal comma in every protocol
 
 implementation
 
-function ColText(const ACaption: string; AWidth: Integer): TProtCol;
+// Puts the text into a column AWidth wide, minus width means left aligned
+function Pad(const AText: string; AWidth: Integer): string;
 begin
-  Result.Caption  := ACaption;
-  Result.Width    := AWidth;
-  Result.Kind     := pkText;
-  Result.Decimals := 0;
+  Result := Format('%' + IntToStr(AWidth) + 's', [AText]);
 end;
 
-function ColInt(const ACaption: string; AWidth: Integer): TProtCol;
+function Num(AValue: Double; ADecimals: Integer): string;
 begin
-  Result.Caption  := ACaption;
-  Result.Width    := AWidth;
-  Result.Kind     := pkInt;
-  Result.Decimals := 0;
-end;
-
-function ColFloat(const ACaption: string; AWidth, ADecimals: Integer): TProtCol;
-begin
-  Result.Caption  := ACaption;
-  Result.Width    := AWidth;
-  Result.Kind     := pkFloat;
-  Result.Decimals := ADecimals;
-end;
-
-function TextFormat(AWidth: Integer): string;
-begin
-  Result := '%' + IntToStr(AWidth) + 's';
-end;
-
-function FloatFormat(AWidth, ADecimals: Integer): string;
-begin
-  Result := '%' + IntToStr(AWidth) + '.' + IntToStr(ADecimals) + 'f';
-end;
-
-function ColFormat(const ACol: TProtCol): string;
-begin
-  case ACol.Kind of
-    pkInt:   Result := '%' + IntToStr(ACol.Width) + 'd';
-    pkFloat: Result := FloatFormat(ACol.Width, ACol.Decimals);
-  else
-    Result := TextFormat(ACol.Width);
-  end;
-end;
-
-// True when the value is text, not a number. Then a number column can also
-// show '-' or '(1,234)'.
-function IsText(const AValue: TVarRec): Boolean;
-begin
-  Result := AValue.VType in [vtChar, vtString, vtPChar, vtAnsiString,
-                             vtWideChar, vtPWideChar, vtWideString,
-                             vtUnicodeString];
+  Result := FloatToStrF(AValue, ffFixed, 18, ADecimals, ProtFormat);
 end;
 
 { TProtocol }
 
-constructor TProtocol.Create(ALines: TStrings);
-begin
-  inherited Create;
-  FLines  := ALines;
-  FIndent := ' ';
-end;
-
-function TProtocol.RowFormat(const AValues: array of const): string;
+function TProtocol.Cells(const AValues: array of string): string;
 var
   i: Integer;
-  Col: TProtCol;
 begin
-  Result := FIndent;
+  Result := ProtIndent;
   for i := 0 to High(AValues) do
   begin
     if i > High(FCols) then
       Break;
     if i > 0 then
       Result := Result + ColGap;
-
-    Col := FCols[i];
-    if IsText(AValues[i]) then
-      Col.Kind := pkText;
-
-    Result := Result + ColFormat(Col);
+    Result := Result + Pad(AValues[i], FCols[i]);
   end;
 end;
 
-procedure TProtocol.FullLine(AChar: Char);
-begin
-  FLines.Add(FIndent + StringOfChar(AChar, ProtWidth - Length(FIndent)));
-end;
-
-procedure TProtocol.Title(const AText: string);
+procedure TProtocol.Title(ALines: TStrings; const AText: string);
 var
-  Line: string;
+  S: string;
 begin
-  Line := FIndent + '== ' + AText + ' ';
-  if Length(Line) < ProtWidth then
-    Line := Line + StringOfChar('=', ProtWidth - Length(Line));
-  FLines.Add(Line);
+  FLines := ALines;
+  FLines.Clear;
+  SetLength(FCols, 0);
+  FWidth := 0;
+  S := ProtIndent + '== ' + AText + ' ';
+  while Length(S) < ProtWidth do
+    S := S + '=';
+  FLines.Add(S);
+  FLines.Add('');
 end;
 
 procedure TProtocol.Text(const AText: string);
 begin
-  FLines.Add(FIndent + AText);
+  if AText = '' then
+    FLines.Add('')
+  else
+    FLines.Add(ProtIndent + AText);
 end;
 
-procedure TProtocol.Blank;
-begin
-  FLines.Add('');
-end;
-
-procedure TProtocol.Table(const ACols: array of TProtCol);
+procedure TProtocol.Table(const ACaptions: array of string;
+                          const AWidths: array of Integer);
 var
   i: Integer;
-  Line: string;
+  S: string;
 begin
-  SetLength(FCols, Length(ACols));
-  FWidth := 0;
-  Line   := FIndent;
+  SetLength(FCols, Length(AWidths));
+  for i := 0 to High(FCols) do
+    FCols[i] := AWidths[i];
+  S := Cells(ACaptions);
+  FWidth := Length(S) - Length(ProtIndent);
+  FLines.Add(S);
+  Line;
+end;
 
-  // one pass: keep the column, add its caption, count the width
-  for i := 0 to High(ACols) do
+procedure TProtocol.Row(const AValues: array of string; const ATail: string);
+begin
+  if ATail = '' then
+    FLines.Add(Cells(AValues))
+  else
+    FLines.Add(Cells(AValues) + ColGap + ATail);
+end;
+
+procedure TProtocol.Line;
+begin
+  FLines.Add(ProtIndent + StringOfChar('-', FWidth));
+end;
+
+procedure TProtocol.Finish(AWarnings: TStrings);
+var
+  i: Integer;
+begin
+  if (AWarnings <> nil) and (AWarnings.Count > 0) then
   begin
-    FCols[i] := ACols[i];
-
-    if i > 0 then
-    begin
-      Line   := Line + ColGap;
-      FWidth := FWidth + Length(ColGap);
-    end;
-
-    Line   := Line + Format(TextFormat(ACols[i].Width), [ACols[i].Caption]);
-    FWidth := FWidth + Abs(ACols[i].Width);
+    Line;
+    for i := 0 to AWarnings.Count - 1 do
+      FLines.Add(' CHYBA: ' + AWarnings[i]);
   end;
-
-  FLines.Add(Line);
-  TableLine;
-end;
-
-procedure TProtocol.TableLine;
-begin
-  FLines.Add(FIndent + StringOfChar('-', FWidth));
-end;
-
-procedure TProtocol.EndLine;
-begin
-  FullLine('=');
-end;
-
-procedure TProtocol.Warnings(AList: TStrings; const APrefix: string);
-var
-  i: Integer;
-begin
-  if (AList = nil) or (AList.Count = 0) then
-    Exit;
-
-  FullLine('-');
-  for i := 0 to AList.Count - 1 do
-    FLines.Add(APrefix + AList[i]);
-end;
-
-procedure TProtocol.Row(const AValues: array of const);
-begin
-  FLines.Add(Format(RowFormat(AValues), AValues, ProtFormat));
-end;
-
-procedure TProtocol.RowTail(const AValues: array of const; const ATail: string);
-begin
-  FLines.Add(Format(RowFormat(AValues), AValues, ProtFormat) + ColGap + ATail);
+  FLines.Add(ProtIndent + StringOfChar('=', ProtWidth - Length(ProtIndent)));
 end;
 
 initialization

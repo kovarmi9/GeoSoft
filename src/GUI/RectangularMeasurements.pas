@@ -8,12 +8,21 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Menus,
   Types, Math, Point, PointsUtilsSingleton,
-  GeoRow, GeoGrid, GeoFieldsGrid, CoordOrderState,
+  GeoRow, GeoGrid, GeoFieldsGrid, CoordOrderState, ProtocolTable,
   GeoAlgorithmBase,
   GeoAlgorithmRectangularMeasurements,
   CalcBase, Vcl.Mask;
 
 type
+  // One point of the chain, as the protocol shows it
+  TChainLine = record
+    Num:     Int64;
+    Dist:    Double;        // measured length to the next point
+    HasDist: Boolean;
+    Pt:      Point.TPoint;  // given coordinates, or computed ones
+    Known:   Boolean;       // True = given point
+  end;
+
   TRectangularMeasurementsForm = class(TCalcBaseForm)
     StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
@@ -30,11 +39,18 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ButtonCalculateClick(Sender: TObject);
   private
+    FAlg: TRectangularMeasurementsAlgorithm;
+    FLines: array of TChainLine;
+    FMeasDist, FCalcDist: Double;   // distance between the first and last given point
+    FHasDistCheck: Boolean;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure FillFromDict(const R: Integer);
   protected
     procedure ApplyCoordOrderToGrids; override;
+    procedure WriteProtocol(ALines: TStrings); override;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   end;
 
 var
@@ -43,6 +59,18 @@ var
 implementation
 
 {$R *.dfm}
+
+constructor TRectangularMeasurementsForm.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAlg := TRectangularMeasurementsAlgorithm.Create;
+end;
+
+destructor TRectangularMeasurementsForm.Destroy;
+begin
+  FAlg.Free;
+  inherited;
+end;
 
 procedure TRectangularMeasurementsForm.FormCreate(Sender: TObject);
 begin
@@ -90,8 +118,6 @@ var
   I, J, N, IdCount, FirstId, LastId: Integer;
   Chain, Identical, ResultPts, LocalPts: TPointsArray;
   IsKnown: array of Boolean;
-  MeasDist, CalcDist: Double;
-  Alg: TRectangularMeasurementsAlgorithm;
   cCB, cSH, cY, cX: Integer;
 begin
   cCB := StringGrid1.FieldToCol(CB);
@@ -136,110 +162,110 @@ begin
     Exit;
   end;
 
-  Alg := TRectangularMeasurementsAlgorithm.Create;
+  FAlg.IdenticalPoints := Identical;
   try
-    Alg.IdenticalPoints := Identical;
-    try
-      ResultPts := Alg.Calculate(Chain);
-    except
-      on E: Exception do
-      begin
-        ShowMessage(E.Message);
-        Exit;
-      end;
-    end;
-
-    LocalPts := Alg.LocalPoints;
-
-    N := 0;
-    for I := 1 to StringGrid1.RowCount - 1 do
+    ResultPts := FAlg.Calculate(Chain);
+  except
+    on E: Exception do
     begin
-      if StringGrid1.Cells[cCB, I] = '' then Continue;
-      if N >= Length(ResultPts) then Break;
-      StringGrid1.Cells[cY, I] := Format('%.2f', [ResultPts[N].Y]);
-      StringGrid1.Cells[cX, I] := Format('%.2f', [ResultPts[N].X]);
-      Inc(N);
+      ShowMessage(E.Message);
+      Exit;
     end;
-
-    // Find first and last identical point indices for distance comparison
-    FirstId := -1;
-    LastId := -1;
-    for I := 0 to High(IsKnown) do
-      if IsKnown[I] then
-      begin
-        if FirstId < 0 then FirstId := I;
-        LastId := I;
-      end;
-
-    Memo1.Lines.BeginUpdate;
-    try
-      Memo1.Lines.Clear;
-      Memo1.Lines.Add(' == Konstrukční oměrné =====================================================');
-      Memo1.Lines.Add(Format(' %-15s  %8s', ['ČÍSLO BODU', 'Délka']));
-
-      for I := 0 to High(ResultPts) do
-      begin
-        if Chain[I].X <> 0 then
-          Memo1.Lines.Add(Format(' %d: %d  %.2f',
-            [I + 1, ResultPts[I].PointNumber, Chain[I].X]))
-        else
-          Memo1.Lines.Add(Format(' %d: %d',
-            [I + 1, ResultPts[I].PointNumber]));
-
-        if IsKnown[I] then
-        begin
-          J := 0;
-          while J <= High(Identical) do
-          begin
-            if Identical[J].PointNumber = ResultPts[I].PointNumber then
-            begin
-              Memo1.Lines.Add(Format('     YX:  %.2f  %.2f',
-                [Identical[J].Y, Identical[J].X]));
-              Break;
-            end;
-            Inc(J);
-          end;
-        end;
-      end;
-
-      Memo1.Lines.Add(' ' + StringOfChar('-', 68));
-
-      // Distance comparison between first and last identical points
-      if (FirstId >= 0) and (LastId >= 0) and (FirstId <> LastId) then
-      begin
-        MeasDist := Sqrt(
-          Sqr(LocalPts[LastId].X - LocalPts[FirstId].X) +
-          Sqr(LocalPts[LastId].Y - LocalPts[FirstId].Y));
-        CalcDist := Sqrt(
-          Sqr(Identical[High(Identical)].X - Identical[0].X) +
-          Sqr(Identical[High(Identical)].Y - Identical[0].Y));
-
-        Memo1.Lines.Add(Format(' Měřená délka = %.2f  Vypočtená délka = %.2f',
-          [MeasDist, CalcDist]));
-        Memo1.Lines.Add(Format(' Odch = %.2f', [Abs(CalcDist - MeasDist)]));
-        Memo1.Lines.Add(' ' + StringOfChar('-', 68));
-      end;
-
-      Memo1.Lines.Add(Format(' Uzávěr = %.3f m',
-        [Alg.Closure]));
-      Memo1.Lines.Add(' ' + StringOfChar('-', 68));
-
-      for I := 0 to High(ResultPts) do
-        if not IsKnown[I] then
-          Memo1.Lines.Add(Format(' %d  %.2f  %.2f',
-            [ResultPts[I].PointNumber, ResultPts[I].Y, ResultPts[I].X]));
-
-      if Alg.Warnings.Count > 0 then
-        for I := 0 to Alg.Warnings.Count - 1 do
-          Memo1.Lines.Add(' WARNING: ' + Alg.Warnings[I]);
-
-      Memo1.Lines.Add(' ' + StringOfChar('=', 68));
-    finally
-      Memo1.Lines.EndUpdate;
-    end;
-  finally
-    Alg.Free;
   end;
+
+  LocalPts := FAlg.LocalPoints;
+
+  N := 0;
+  for I := 1 to StringGrid1.RowCount - 1 do
+  begin
+    if StringGrid1.Cells[cCB, I] = '' then Continue;
+    if N >= Length(ResultPts) then Break;
+    StringGrid1.Cells[cY, I] := FormatFloat('0.00', ResultPts[N].Y, FS);
+    StringGrid1.Cells[cX, I] := FormatFloat('0.00', ResultPts[N].X, FS);
+    Inc(N);
+  end;
+
+  // Find first and last identical point indices for distance comparison
+  FirstId := -1;
+  LastId := -1;
+  for I := 0 to High(IsKnown) do
+    if IsKnown[I] then
+    begin
+      if FirstId < 0 then FirstId := I;
+      LastId := I;
+    end;
+
+  FHasDistCheck := (FirstId >= 0) and (LastId >= 0) and (FirstId <> LastId);
+  if FHasDistCheck then
+  begin
+    FMeasDist := Sqrt(
+      Sqr(LocalPts[LastId].X - LocalPts[FirstId].X) +
+      Sqr(LocalPts[LastId].Y - LocalPts[FirstId].Y));
+    FCalcDist := Sqrt(
+      Sqr(Identical[High(Identical)].X - Identical[0].X) +
+      Sqr(Identical[High(Identical)].Y - Identical[0].Y));
+  end;
+
+  // One protocol line per point. A given point shows the coordinates that
+  // were entered, a computed one shows the result.
+  SetLength(FLines, Length(ResultPts));
+  for I := 0 to High(ResultPts) do
+  begin
+    FLines[I].Num     := ResultPts[I].PointNumber;
+    FLines[I].Dist    := Chain[I].X;        // SH is the measured length here
+    FLines[I].HasDist := Chain[I].X <> 0;
+    FLines[I].Known   := IsKnown[I];
+    FLines[I].Pt      := ResultPts[I];
+
+    if IsKnown[I] then
+      for J := 0 to High(Identical) do
+        if Identical[J].PointNumber = FLines[I].Num then
+        begin
+          FLines[I].Pt := Identical[J];
+          Break;
+        end;
+  end;
+
+  ShowProtocol(Memo1.Lines);
+end;
+
+procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);
+var
+  i: Integer;
+  Kind, Dist: string;
+begin
+  Prot.Title(ALines, 'Konstrukční oměrné');
+
+  Prot.Table(['Č.', 'Číslo bodu', 'Délka', CoordNames, 'Typ'],
+             [ColWNo, ColWPoint, ColWDist, ColWPair, ColWFlag]);
+
+  for i := 0 to High(FLines) do
+  begin
+    if FLines[i].Known then
+      Kind := 'daný'
+    else
+      Kind := 'vypočtený';
+
+    // the first point of the chain has no length in front of it
+    if FLines[i].HasDist then
+      Dist := Num(FLines[i].Dist)
+    else
+      Dist := '';
+
+    Prot.Row([IntToStr(i + 1), PointId(FLines[i].Num), Dist,
+              CoordPair(FLines[i].Pt), Kind]);
+  end;
+
+  Prot.Text('');
+  if FHasDistCheck then
+  begin
+    Prot.Text('Měřená délka = ' + Num(FMeasDist) +
+              '    Vypočtená délka = ' + Num(FCalcDist));
+    Prot.Text('Odchylka = ' + Num(Abs(FCalcDist - FMeasDist)));
+  end;
+  Prot.Text('Uzávěr = ' + Num(FAlg.Closure, 3) + ' m');
+
+  Prot.Finish(FAlg.Warnings);
 end;
 
 end.

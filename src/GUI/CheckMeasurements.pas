@@ -86,17 +86,11 @@ begin
   GridPairs.ColumnFilters[7].MaxLength := 32;          // Poznámka
 end;
 
-// Computed columns are shown but never edited. A new row continues the
-// chain, so its "from" repeats the "to" of the row above.
+// A new row continues the chain, so its "from" repeats the "to" of the row
+// above.
 procedure TCheckMeasurementsForm.GridPairsSelectCell(Sender: TObject;
   ACol, ARow: Integer; var CanSelect: Boolean);
 begin
-  if (ACol = COL_COMP) or (ACol = COL_DIFF) or
-     (ACol = COL_TOL) or (ACol = COL_PASS) then
-    GridPairs.Options := GridPairs.Options - [goEditing]
-  else
-    GridPairs.Options := GridPairs.Options + [goEditing];
-
   if (ACol = COL_FROM) and (ARow > GridPairs.FixedRows) and
      (Trim(GridPairs.Cells[COL_FROM, ARow]) = '') then
     GridPairs.Cells[COL_FROM, ARow] := GridPairs.Cells[COL_TO, ARow - 1];
@@ -123,8 +117,8 @@ begin
       LookupPoint(num, pt);
   end;
 
-  // Enter through a computed column stamps the editor text into it, so the
-  // row is recomputed after every commit but the note.
+  // The four computed columns are rewritten after every commit, so nothing
+  // the user types into them survives. That is why they need no lock.
   if ACol <> COL_NOTE then
     TryComputeRow(ARow);
 
@@ -222,16 +216,13 @@ begin
 end;
 
 procedure TCheckMeasurementsForm.WriteProtocol(ALines: TStrings);
-const
-  CW = 14;   // width of one coordinate column
 var
-  Prot: TProtocol;
   i, n: Integer;
   P: TCheckPair;
   Pt: Point.TPoint;
   Dict: TPointDictionary;
   Nums: array of Int64;
-  Verdict, ComputedTxt: string;
+  Verdict: string;
 
   // Every point of the job, in order of first use
   procedure AddNum(ANum: Int64);
@@ -255,86 +246,68 @@ begin
     AddNum(FAlg.Pairs[i].PointNo2);
   end;
 
-  ALines.BeginUpdate;
-  Prot := TProtocol.Create(ALines);
-  try
-    ALines.Clear;
-    Prot.Title('Kontrolní oměrné');
-    Prot.Blank;
+  Prot.Title(ALines, 'Kontrolní oměrné');
 
-    Prot.Text('POUŽITÉ BODY');
-    Prot.Table([ColInt('Č.', 3), ColText('Číslo bodu', -17),
-                ColCoordPair(CW), ColFloat('Z', 10, 2)]);
-    for i := 0 to n - 1 do
-      if Dict.PointExists(Nums[i]) then
-      begin
-        Pt := Dict.GetPoint(Nums[i]);
-        Prot.Row([i + 1, FormatPointId(IntToStr(Nums[i])),
-                  CoordPair(Pt, CW), Pt.Z]);
-      end
-      else
-        Prot.RowTail([i + 1, FormatPointId(IntToStr(Nums[i]))],
-                     '*** bod není v seznamu souřadnic ***');
-
-    Prot.Blank;
-    Prot.Text('OMĚRNÉ MÍRY');
-    Prot.Table([ColInt('Č.', 3), ColText('Z bodu', -17), ColText('Na bod', -17),
-                ColFloat('Měřená', 10, 3), ColFloat('Ze souřadnic', 13, 3),
-                ColFloat('Rozdíl', 11, 3), ColFloat('Mezní', 9, 3),
-                ColText('Vyhov.', -8)]);
-
-    for i := 0 to High(FAlg.Pairs) do
+  Prot.Text('POUŽITÉ BODY');
+  Prot.Table(['Č.', 'Číslo bodu', CoordNames, 'Z'],
+             [ColWNo, ColWPoint, ColWPair, ColWDist]);
+  for i := 0 to n - 1 do
+    if Dict.PointExists(Nums[i]) then
     begin
-      P := FAlg.Pairs[i];
+      Pt := Dict.GetPoint(Nums[i]);
+      Prot.Row([IntToStr(i + 1), PointId(Nums[i]), CoordPair(Pt), Num(Pt.Z)]);
+    end
+    else
+      Prot.Row([IntToStr(i + 1), PointId(Nums[i])],
+               '*** bod není v seznamu souřadnic ***');
 
-      if not P.Found then
-      begin
-        Prot.RowTail([i + 1, FormatPointId(IntToStr(P.PointNo1)),
-                      FormatPointId(IntToStr(P.PointNo2))],
-                     '*** nelze spočítat, chybí bod ***');
-        Continue;
-      end;
+  Prot.Text('');
+  Prot.Text('OMĚRNÉ MÍRY');
+  Prot.Table(['Č.', 'Z bodu', 'Na bod', 'Měřená', 'Ze souřadnic',
+              'Rozdíl', 'Mezní', 'Vyhov.'],
+             [ColWNo, ColWPoint, ColWPoint, ColWDist, 13, 11, 9, ColWFlag]);
 
-      if P.HasMeasured then
-      begin
-        if P.Passed then Verdict := 'ANO' else Verdict := 'NE';
-        Prot.Row([i + 1,
-                  FormatPointId(IntToStr(P.PointNo1)),
-                  FormatPointId(IntToStr(P.PointNo2)),
-                  P.Measured, P.Computed, P.Diff, P.Tolerance, Verdict]);
-      end
-      else
-      begin
-        // KatV annex 17.11 — a value that was not measured goes in brackets
-        ComputedTxt := Format('(%.3f)', [P.Computed], ProtFormat);
-        Prot.Row([i + 1,
-                  FormatPointId(IntToStr(P.PointNo1)),
-                  FormatPointId(IntToStr(P.PointNo2)),
-                  '-', ComputedTxt, '-', '-', 'neměřeno']);
-      end;
+  for i := 0 to High(FAlg.Pairs) do
+  begin
+    P := FAlg.Pairs[i];
 
-      if P.Note <> '' then
-        Prot.Text('      Poznámka: ' + P.Note);
+    if not P.Found then
+    begin
+      Prot.Row([IntToStr(i + 1), PointId(P.PointNo1), PointId(P.PointNo2)],
+               '*** nelze spočítat, chybí bod ***');
+      Continue;
     end;
 
-    Prot.TableLine;
-    Prot.Text(Format('Měřených oměrných: %d    Nevyhovuje: %d    Největší rozdíl: %.3f m',
-      [FAlg.MeasuredCount, FAlg.FailedCount, FAlg.MaxDiff], ProtFormat));
+    if P.HasMeasured then
+    begin
+      if P.Passed then Verdict := 'ANO' else Verdict := 'NE';
+      Prot.Row([IntToStr(i + 1), PointId(P.PointNo1), PointId(P.PointNo2),
+                Num(P.Measured, 3), Num(P.Computed, 3), Num(P.Diff, 3),
+                Num(P.Tolerance, 3), Verdict]);
+    end
+    else
+      // KatV annex 17.11 - a value that was not measured goes in brackets
+      Prot.Row([IntToStr(i + 1), PointId(P.PointNo1), PointId(P.PointNo2),
+                '-', '(' + Num(P.Computed, 3) + ')', '-', '-', 'neměřeno']);
 
-    if FAlg.ComputedOnlyCount > 0 then
-      Prot.Text(Format('Neměřených, uvedených ze souřadnic v závorkách: %d',
-        [FAlg.ComputedOnlyCount]));
-
-    if FAlg.SkippedCount > 0 then
-      Prot.Text(Format('Nespočítaných oměrných (chybí bod v seznamu): %d',
-        [FAlg.SkippedCount]));
-
-    Prot.Warnings(FAlg.Warnings);
-    Prot.EndLine;
-  finally
-    Prot.Free;
-    ALines.EndUpdate;
+    if P.Note <> '' then
+      Prot.Text('      Poznámka: ' + P.Note);
   end;
+
+  Prot.Line;
+  Prot.Text('Měřených oměrných: ' + IntToStr(FAlg.MeasuredCount) +
+            '    Nevyhovuje: ' + IntToStr(FAlg.FailedCount) +
+            '    Největší rozdíl: ' + Num(FAlg.MaxDiff, 3) + ' m');
+
+  if FAlg.ComputedOnlyCount > 0 then
+    Prot.Text('Neměřených, uvedených ze souřadnic v závorkách: ' +
+              IntToStr(FAlg.ComputedOnlyCount));
+
+  if FAlg.SkippedCount > 0 then
+    Prot.Text('Nespočítaných oměrných (chybí bod v seznamu): ' +
+              IntToStr(FAlg.SkippedCount));
+
+  Prot.Finish(FAlg.Warnings);
 end;
 
 procedure TCheckMeasurementsForm.CalculateClick(Sender: TObject);
@@ -353,7 +326,7 @@ begin
 
   FAlg.Pairs := Pairs;
   FAlg.Calculate;
-  WriteProtocol(Memo1.Lines);
+  ShowProtocol(Memo1.Lines);
 end;
 
 end.

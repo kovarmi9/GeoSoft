@@ -9,6 +9,7 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Types,
   PointsUtilsSingleton,
   Point,
+  CoordOrderState, ProtocolTable,
   GeoAlgorithmBase,
   GeoAlgorithmLHuilier,
   CalcBase, Vcl.Menus;
@@ -24,9 +25,16 @@ type
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure CalculateClick(Sender: TObject);
   private
+    FAlg: TLHuilierAlgorithm;
+    FPts: TPointsArray;          // polygon corners, in grid order
+    FNums: array of string;      // point number of every corner
     procedure MoveToNextCell;
     procedure FillFromDict(const R: Integer);
+  protected
+    procedure WriteProtocol(ALines: TStrings); override;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   end;
 
 var
@@ -35,6 +43,18 @@ var
 implementation
 
 {$R *.dfm}
+
+constructor TParcelAreaForm.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAlg := TLHuilierAlgorithm.Create;
+end;
+
+destructor TParcelAreaForm.Destroy;
+begin
+  FAlg.Free;
+  inherited;
+end;
 
 procedure TParcelAreaForm.FormCreate(Sender: TObject);
 begin
@@ -136,24 +156,21 @@ end;
 procedure TParcelAreaForm.CalculateClick(Sender: TObject);
 var
   i, n: Integer;
-  Xs, Ys: array of Double;
-  nums: array of string;
-  Pts: TPointsArray;
-  Alg: TLHuilierAlgorithm;
-  W: string;
 begin
   n := 0;
+  SetLength(FPts, 0);
+  SetLength(FNums, 0);
+
   for i := 1 to StringGrid1.RowCount - 1 do
   begin
     if (StringGrid1.Cells[2, i] = '') or (StringGrid1.Cells[3, i] = '') then
       Continue;
     Inc(n);
-    SetLength(Xs, n);
-    SetLength(Ys, n);
-    SetLength(nums, n);
-    Ys[n-1] := StrToFloatDef(StringGrid1.Cells[2, i], 0);
-    Xs[n-1] := StrToFloatDef(StringGrid1.Cells[3, i], 0);
-    nums[n-1] := StringGrid1.Cells[1, i];
+    SetLength(FPts, n);
+    SetLength(FNums, n);
+    FPts[n-1].Y := StrToFloatDef(StringGrid1.Cells[2, i], 0);
+    FPts[n-1].X := StrToFloatDef(StringGrid1.Cells[3, i], 0);
+    FNums[n-1] := StringGrid1.Cells[1, i];
   end;
 
   if n < 3 then
@@ -162,34 +179,24 @@ begin
     Exit;
   end;
 
-  Memo1.Lines.Clear;
-  Memo1.Lines.Add(' == Výpočet plochy parcely ==========================================');
-  Memo1.Lines.Add('');
-  Memo1.Lines.Add(Format(' %-4s  %-12s  %15s  %15s', ['Č.', 'Číslo bodu', 'Y', 'X']));
-  Memo1.Lines.Add(' ' + StringOfChar('-', 52));
+  FAlg.Calculate(FPts);
+  ShowProtocol(Memo1.Lines);
+end;
 
-  for i := 0 to n - 1 do
-    Memo1.Lines.Add(Format(' %-4d  %-12s  %15.2f  %15.2f', [i + 1, nums[i], Ys[i], Xs[i]]));
+procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);
+var
+  i: Integer;
+begin
+  Prot.Title(ALines, 'Výpočet plochy parcely');
 
-  SetLength(Pts, n);
-  for i := 0 to n - 1 do
-  begin
-    Pts[i].X := Xs[i];
-    Pts[i].Y := Ys[i];
-  end;
+  Prot.Table(['Č.', 'Číslo bodu', CoordNames],
+             [ColWNo, ColWPoint, ColWPair]);
+  for i := 0 to High(FPts) do
+    Prot.Row([IntToStr(i + 1), FormatPointId(FNums[i]), CoordPair(FPts[i])]);
 
-  Alg := TLHuilierAlgorithm.Create;
-  try
-    Alg.Calculate(Pts);
-
-    Memo1.Lines.Add('');
-    Memo1.Lines.Add(Format(' Plocha = %.2f m²', [Alg.Area]));
-    for W in Alg.Warnings do
-      Memo1.Lines.Add(' CHYBA: ' + W);
-  finally
-    Alg.Free;
-  end;
-  Memo1.Lines.Add(' ' + StringOfChar('=', 55));
+  Prot.Text('');
+  Prot.Text('Plocha = ' + Num(FAlg.Area) + ' m²');
+  Prot.Finish(FAlg.Warnings);
 end;
 
 end.

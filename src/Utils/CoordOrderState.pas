@@ -31,12 +31,12 @@ procedure SwapXY(var P: Point.TPoint);
 function FirstCoordName: string;
 function SecondCoordName: string;
 
-// The coordinate pair as one protocol column: both captions, in the current
-// order. The column is two AWidth columns plus one ColGap wide.
-function ColCoordPair(AWidth: Integer): TProtCol;
+// Both coordinate captions, in the current order. Use ColWPair as the
+// width of that protocol column.
+function CoordNames(AWidth: Integer = ColWCoord): string;
 
 // The two coordinates in the same order and the same width.
-function CoordPair(const P: Point.TPoint; AWidth: Integer;
+function CoordPair(const P: Point.TPoint; AWidth: Integer = ColWCoord;
   ADecimals: Integer = 2): string;
 
 // Column order of a field grid
@@ -101,28 +101,20 @@ begin
     Result := 'Y';
 end;
 
-function ColCoordPair(AWidth: Integer): TProtCol;
-var
-  Fmt, Caption: string;
+function CoordNames(AWidth: Integer): string;
 begin
-  Fmt := TextFormat(AWidth);
-  if GCoordOrder = coYX then
-    Caption := Format(Fmt, ['Y']) + ColGap + Format(Fmt, ['X'])
-  else
-    Caption := Format(Fmt, ['X']) + ColGap + Format(Fmt, ['Y']);
-  Result := ColText(Caption, -(2 * AWidth + Length(ColGap)));
+  Result := Pad(FirstCoordName, AWidth) + ColGap + Pad(SecondCoordName, AWidth);
 end;
 
 function CoordPair(const P: Point.TPoint; AWidth: Integer;
   ADecimals: Integer): string;
-var
-  Fmt: string;
 begin
-  Fmt := FloatFormat(AWidth, ADecimals);
   if GCoordOrder = coYX then
-    Result := Format(Fmt, [P.Y], ProtFormat) + ColGap + Format(Fmt, [P.X], ProtFormat)
+    Result := Pad(Num(P.Y, ADecimals), AWidth) + ColGap +
+              Pad(Num(P.X, ADecimals), AWidth)
   else
-    Result := Format(Fmt, [P.X], ProtFormat) + ColGap + Format(Fmt, [P.Y], ProtFormat);
+    Result := Pad(Num(P.X, ADecimals), AWidth) + ColGap +
+              Pad(Num(P.Y, ADecimals), AWidth);
 end;
 
 type

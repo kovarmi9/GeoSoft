@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms,
   Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
-  PointPrefixState, PointsUtilsSingleton, Point, AddPoint;
+  PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable;
 
 type
   TCalcBaseForm = class(TForm)
@@ -30,6 +30,7 @@ type
     procedure MenuUlozitProtokolClick(Sender: TObject);
   protected
     FS: TFormatSettings;
+    Prot: TProtocol;          // shared by every WriteProtocol
 
     /// <summary>
     /// Finds a point. An unknown one is offered through the AddPoint dialog.
@@ -38,6 +39,10 @@ type
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
 
     function FormatPointId(const S: string): string;
+
+    /// <summary>The same, but straight from a point number.</summary>
+    function PointId(ANum: Int64): string;
+
     /// <summary>
     /// Descendants override this to set the column order of their grids.
     /// The base form only decides when it happens.
@@ -45,11 +50,16 @@ type
     procedure ApplyCoordOrderToGrids; virtual;
 
     /// <summary>
-    /// Writes the whole protocol. Every calculation form overrides it.
+    /// Writes the whole protocol into ALines, starting with Prot.Title and
+    /// ending with Prot.Finish. Every calculation form overrides it.
     /// </summary>
     procedure WriteProtocol(ALines: TStrings); virtual;
+
+    /// <summary>Calls WriteProtocol without letting the memo flicker.</summary>
+    procedure ShowProtocol(ALines: TStrings);
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
   end;
 
 var
@@ -79,11 +89,18 @@ begin
   // takes the decimal separator from Windows. The protocol does not - it
   // always uses a comma, see ProtFormat in ProtocolTable.
   FS := FormatSettings;
+  Prot := TProtocol.Create;
 
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
+end;
+
+destructor TCalcBaseForm.Destroy;
+begin
+  Prot.Free;
+  inherited;
 end;
 
 function TCalcBaseForm.LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
@@ -135,6 +152,11 @@ begin
   Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
 end;
 
+function TCalcBaseForm.PointId(ANum: Int64): string;
+begin
+  Result := FormatPointId(IntToStr(ANum));
+end;
+
 procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);
 var
   i: Integer;
@@ -166,6 +188,16 @@ end;
 procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);
 begin
   // nothing here; see the descendants
+end;
+
+procedure TCalcBaseForm.ShowProtocol(ALines: TStrings);
+begin
+  ALines.BeginUpdate;
+  try
+    WriteProtocol(ALines);
+  finally
+    ALines.EndUpdate;
+  end;
 end;
 
 procedure TCalcBaseForm.FormActivate(Sender: TObject);

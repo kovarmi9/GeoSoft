@@ -142,7 +142,6 @@ begin
   case ACol of
     1:
     begin
-      SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
       NormalizePointCell(G, 1, ARow);
       PNum := StrToInt64Def(G.Cells[1, ARow], 0);
       if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
@@ -156,7 +155,6 @@ begin
     2, 3:
     begin
       TryComputeDetailRow(ARow);
-      SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
       if Trim(G.Cells[7, ARow]) = '' then G.Cells[7, ARow] := Trim(GPointPrefix.KK);
       if Trim(G.Cells[8, ARow]) = '' then G.Cells[8, ARow] := Trim(GPointPrefix.Popis);
     end;

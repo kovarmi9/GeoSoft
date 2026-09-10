@@ -272,8 +272,6 @@ begin
   end;
   if not LookupPoint(num, P) then Exit;
 
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-
   nOrt := 0;
   SetLength(Orts, GridOrientation.RowCount);
   for r := GridOrientation.FixedRows to GridOrientation.RowCount - 1 do

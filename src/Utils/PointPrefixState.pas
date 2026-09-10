@@ -32,6 +32,12 @@ procedure ResetPointPrefixState;
 
 implementation
 
+// True while LoadPrefixToCombos fills the combos. The combos fire OnChange
+// as they are written, and SavePrefixFromCombos must not answer that by
+// writing a half-filled set back into GPointPrefix.
+var
+  FLoading: Boolean = False;
+
 function DigitsOnly(const S: string): string;
 var
   I: Integer;
@@ -106,27 +112,35 @@ var
   S: string;
   Idx: Integer;
 begin
-  if Assigned(CbKU) then
-    CbKU.Text := NormalizeNumericPrefix(GPointPrefix.KU, 6);
-  if Assigned(CbZPMZ) then
-    CbZPMZ.Text := NormalizeNumericPrefix(GPointPrefix.ZPMZ, 5);
-  if Assigned(CbKK) then
-  begin
-    S := NormalizeKK(GPointPrefix.KK);
-    if CbKK.Style = csDropDownList then
+  FLoading := True;
+  try
+    if Assigned(CbKU) then
+      CbKU.Text := NormalizeNumericPrefix(GPointPrefix.KU, 6);
+    if Assigned(CbZPMZ) then
+      CbZPMZ.Text := NormalizeNumericPrefix(GPointPrefix.ZPMZ, 5);
+    if Assigned(CbKK) then
     begin
-      Idx := CbKK.Items.IndexOf(S);
-      CbKK.ItemIndex := Idx;
-    end
-    else
-      CbKK.Text := S;
+      S := NormalizeKK(GPointPrefix.KK);
+      if CbKK.Style = csDropDownList then
+      begin
+        Idx := CbKK.Items.IndexOf(S);
+        CbKK.ItemIndex := Idx;
+      end
+      else
+        CbKK.Text := S;
+    end;
+    if Assigned(CbPopis) then
+      CbPopis.Text := GPointPrefix.Popis;
+  finally
+    FLoading := False;
   end;
-  if Assigned(CbPopis) then
-    CbPopis.Text := GPointPrefix.Popis;
 end;
 
 procedure SavePrefixFromCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
 begin
+  if FLoading then
+    Exit;
+
   if Assigned(CbKU) then
     GPointPrefix.KU := NormalizeNumericPrefix(CbKU.Text, 6);
   if Assigned(CbZPMZ) then

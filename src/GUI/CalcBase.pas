@@ -25,6 +25,7 @@ type
     ComboBoxPopis: TComboBox;
     StatusBar1: TStatusBar;
     procedure PrefixComboExit(Sender: TObject);
+    procedure PrefixComboChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure MenuUlozitProtokolClick(Sender: TObject);
@@ -58,6 +59,10 @@ type
 
     /// <summary>Calls WriteProtocol without letting the memo flicker.</summary>
     procedure ShowProtocol(ALines: TStrings);
+
+    /// <summary>The four prefix combos on the toolbar, in one place.</summary>
+    procedure LoadPrefix;
+    procedure SavePrefix;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -92,7 +97,7 @@ begin
   FS := FormatSettings;
   Prot := TProtocol.Create;
 
-  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  LoadPrefix;
 
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text := GetCurrentDir;
@@ -115,8 +120,6 @@ begin
     Exit;
   end;
 
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-
   dlg := TAddPointForm.Create(Self);
   try
     // The dialog decides the result: True after OK, False after Cancel
@@ -124,6 +127,23 @@ begin
   finally
     dlg.Free;
   end;
+end;
+
+procedure TCalcBaseForm.LoadPrefix;
+begin
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+// Every keystroke in a prefix combo lands in GPointPrefix, so whoever reads
+// it never has to refresh it first.
+procedure TCalcBaseForm.SavePrefix;
+begin
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+procedure TCalcBaseForm.PrefixComboChange(Sender: TObject);
+begin
+  SavePrefix;
 end;
 
 procedure TCalcBaseForm.PrefixComboExit(Sender: TObject);
@@ -140,8 +160,8 @@ begin
   if ZPMZ > 99999 then ZPMZ := 99999;
   ComboBoxZPMZ.Text := Format('%.5d', [ZPMZ]);
 
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  SavePrefix;
+  LoadPrefix;
 end;
 
 function TCalcBaseForm.FormatPointId(const S: string): string;
@@ -192,13 +212,13 @@ end;
 
 procedure TCalcBaseForm.FormActivate(Sender: TObject);
 begin
-  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  LoadPrefix;
   ApplyCoordOrderToGrids;
 end;
 
 procedure TCalcBaseForm.FormDeactivate(Sender: TObject);
 begin
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  SavePrefix;
 end;
 
 end.

@@ -19,14 +19,13 @@ type
     btnCancel: TButton;
     lblWarning: TLabel;
     procedure FormCreate(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
     procedure StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure StringGridEnter(Sender: TObject);
-    procedure StringGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     procedure FocusInputCell;
     procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
+    procedure GetDescriptionDefault(var AText: string; var AHandled: Boolean);
     procedure PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
   public
     /// <summary>
@@ -81,8 +80,9 @@ begin
   StringGrid.ColumnFilters[COL_QUALITY].OnInvalidCommit   := ciaBlock;
   StringGrid.ColumnFilters[COL_QUALITY].OnGetDefaultText  := GetQualityDefault;
 
-  StringGrid.ColumnFilters[COL_DESC].DataType := cdtNone;
-  StringGrid.ColumnFilters[COL_DESC].MaxLength := 32;
+  StringGrid.ColumnFilters[COL_DESC].DataType         := cdtNone;
+  StringGrid.ColumnFilters[COL_DESC].MaxLength        := 32;
+  StringGrid.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
 
   StringGrid.OnCellCommitted := PointNumberCommitted;
 end;
@@ -97,6 +97,12 @@ end;
 procedure TAddPointForm.GetQualityDefault(var AText: string; var AHandled: Boolean);
 begin
   AText    := IntToStr(ReadDefaultQuality);
+  AHandled := True;
+end;
+
+procedure TAddPointForm.GetDescriptionDefault(var AText: string; var AHandled: Boolean);
+begin
+  AText    := Trim(GPointPrefix.Popis);
   AHandled := True;
 end;
 
@@ -208,25 +214,6 @@ begin
   FocusInputCell;
 end;
 
-procedure TAddPointForm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  // Enter on the last column moves focus to OK
-  if Key <> VK_RETURN then
-    Exit;
-
-  if ActiveControl <> StringGrid then
-    Exit;
-
-  if (StringGrid.Col = StringGrid.ColCount - 1) and
-     (StringGrid.Row = StringGrid.RowCount - 1) then
-  begin
-    if StringGrid.EditorMode then
-      StringGrid.EditorMode := False;
-    Key := 0;
-    btnOK.SetFocus;
-  end;
-end;
-
 procedure TAddPointForm.FocusInputCell;
 begin
   ActiveControl := StringGrid;
@@ -241,22 +228,6 @@ procedure TAddPointForm.StringGridEnter(Sender: TObject);
 begin
   // After focus always jump to
   FocusInputCell;
-end;
-
-procedure TAddPointForm.StringGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  // Enter on the last column moves focus to OK
-  if Key <> VK_RETURN then
-    Exit;
-
-  if (StringGrid.Col = StringGrid.ColCount - 1) and
-     (StringGrid.Row = StringGrid.RowCount - 1) then
-  begin
-    if StringGrid.EditorMode then
-      StringGrid.EditorMode := False;
-    Key := 0;
-    btnOK.SetFocus;
-  end;
 end;
 
 

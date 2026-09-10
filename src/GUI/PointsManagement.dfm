@@ -162,6 +162,7 @@ object PointsManagementForm: TPointsManagementForm
       ItemIndex = 3
       TabOrder = 2
       Text = '3'
+      OnChange = PrefixComboChange
       OnExit = PrefixComboExit
       OnKeyDown = NumericComboKeyDown
       Items.Strings = (
@@ -189,6 +190,7 @@ object PointsManagementForm: TPointsManagementForm
       Width = 145
       Height = 23
       TabOrder = 3
+      OnChange = PrefixComboChange
       OnExit = PrefixComboExit
       OnKeyDown = NumericComboKeyDown
     end

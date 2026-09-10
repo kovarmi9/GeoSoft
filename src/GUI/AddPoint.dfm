@@ -12,7 +12,6 @@ object AddPointForm: TAddPointForm
   Font.Style = []
   KeyPreview = True
   OnCreate = FormCreate
-  OnKeyDown = FormKeyDown
   OnShow = FormShow
   TextHeight = 15
   object lblWarning: TLabel
@@ -39,7 +38,6 @@ object AddPointForm: TAddPointForm
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs]
     TabOrder = 0
     OnEnter = StringGridEnter
-    OnKeyDown = StringGridKeyDown
     OnSelectCell = StringGridSelectCell
     EnterEndBehavior = ebMoveFocusNext
     ColumnHeaders.Strings = (

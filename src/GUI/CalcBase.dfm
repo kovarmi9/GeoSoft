@@ -39,6 +39,7 @@
       MaxLength = 6
       TabOrder = 0
       Text = '000000'
+      OnChange = PrefixComboChange
       OnExit = PrefixComboExit
       Items.Strings = (
         '000000'
@@ -62,6 +63,7 @@
       MaxLength = 5
       TabOrder = 1
       Text = '00000'
+      OnChange = PrefixComboChange
       OnExit = PrefixComboExit
       Items.Strings = (
         '00000'
@@ -84,6 +86,7 @@
       Hint = 'K'#243'd kvality'
       Style = csDropDownList
       TabOrder = 2
+      OnChange = PrefixComboChange
       OnExit = PrefixComboExit
       Items.Strings = (
         '0'
@@ -109,6 +112,7 @@
       Width = 145
       Height = 23
       TabOrder = 3
+      OnChange = PrefixComboChange
       OnExit = PrefixComboExit
     end
   end

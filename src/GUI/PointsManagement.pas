@@ -55,6 +55,7 @@ type
     procedure SaveAsCSVClick(Sender: TObject);
     procedure SaveAsBinaryClick(Sender: TObject);
     procedure PrefixComboExit(Sender: TObject);
+    procedure PrefixComboChange(Sender: TObject);
     procedure NumericComboKeyPress(Sender: TObject; var Key: Char);
     procedure NumericComboChange(Sender: TObject);
     procedure NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -69,6 +70,8 @@ type
     FFileFlag:    Boolean;
     FGridOrder:   TCoordOrder;   // order the columns are laid out in now
     procedure ApplyCoordOrderToGrid;
+    procedure LoadPrefix;
+    procedure SavePrefix;
     function  CurrentQuality: Integer;
     function  IsValidQualityStr(const S: string): Boolean;
     function  PadZeros(const S: string; PadLen: Integer): string;
@@ -129,7 +132,7 @@ begin
   FCurrentFile := '';
   FFileFlag    := False;
   UpdateCurrentDirectoryPath;
-  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  LoadPrefix;
 end;
 
 procedure TPointsManagementForm.FormShow(Sender: TObject);
@@ -142,6 +145,24 @@ end;
 
 // A plain grid cannot tell which order its columns are in, so the form
 // remembers what it already applied.
+// The four prefix combos on the toolbar, in one place.
+procedure TPointsManagementForm.LoadPrefix;
+begin
+  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+// Every keystroke in a prefix combo lands in GPointPrefix, so whoever reads
+// it never has to refresh it first.
+procedure TPointsManagementForm.SavePrefix;
+begin
+  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+end;
+
+procedure TPointsManagementForm.PrefixComboChange(Sender: TObject);
+begin
+  SavePrefix;
+end;
+
 procedure TPointsManagementForm.ApplyCoordOrderToGrid;
 begin
   if FGridOrder = GCoordOrder then Exit;
@@ -151,7 +172,7 @@ end;
 
 procedure TPointsManagementForm.FormActivate(Sender: TObject);
 begin
-  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  LoadPrefix;
   ApplyCoordOrderToGrid;
   RefreshGrid;
   UpdateStatusBar;
@@ -159,7 +180,7 @@ end;
 
 procedure TPointsManagementForm.FormDeactivate(Sender: TObject);
 begin
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  SavePrefix;
 end;
 
 // ---- Grid -----------------------------------------------------------------
@@ -254,7 +275,6 @@ begin
      (FLastRow >= StringGrid1.FixedRows) and
      (Trim(StringGrid1.Cells[0, FLastRow]) <> '') then
   begin
-    SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
     NormalizePointCell(StringGrid1, 0, FLastRow);
   end;
 
@@ -279,7 +299,6 @@ begin
     StringGrid1.EditorMode := False;
 
   // Build the full point number (KU + ZPMZ + own number)
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   NormalizePointCell(StringGrid1, 0, ARow);
 
   EnsureQualityOnRow(ARow);
@@ -323,7 +342,6 @@ begin
     Exit;
   if Trim(StringGrid1.Cells[0, ARow]) = '' then
     Exit;
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   NormalizePointCell(StringGrid1, 0, ARow);
 end;
 
@@ -625,6 +643,8 @@ begin
     CB.Text     := S;
     CB.SelStart := Length(S);
   end;
+
+  SavePrefix;
 end;
 
 procedure TPointsManagementForm.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -666,8 +686,8 @@ begin
     CB      := Sender as TComboBox;
     CB.Text := PadZeros(CB.Text, CB.Tag);
   end;
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-  LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+  SavePrefix;
+  LoadPrefix;
 end;
 
 procedure TPointsManagementForm.ApplyDescriptionToRow(const ARow: Integer);
@@ -677,7 +697,6 @@ begin
   if ARow < StringGrid1.FixedRows then Exit;
   if Trim(StringGrid1.Cells[5, ARow]) <> '' then Exit;
 
-  SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
   DefaultPopis := Trim(GPointPrefix.Popis);
   if DefaultPopis = '' then
     DefaultPopis := Trim(ComboBoxPopis.Text);

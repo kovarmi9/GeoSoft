@@ -80,6 +80,8 @@ begin
   begin
     DataType        := cdtExpression;
     DecimalPlaces   := 3;
+    // KatV annex 17.11 - a length that was not measured stays empty
+    AllowEmpty      := True;
     OnInvalidCommit := ciaBeepAndClear;
   end;
 

@@ -47,6 +47,7 @@ type
     FHasMaxValue: Boolean;
     FMaxValue: Double;
     FDecimalPlaces: Integer;
+    FAllowEmpty: Boolean;
     FOnInvalidCommit: TCommitInvalidAction;
     FOnGetDefaultText: TGetDefaultTextEvent;
 
@@ -58,6 +59,7 @@ type
     procedure SetHasMaxValue(const Value: Boolean);
     procedure SetMaxValue(const Value: Double);
     procedure SetDecimalPlaces(const Value: Integer);
+    procedure SetAllowEmpty(const Value: Boolean);
 
     function GetColumn: Integer;
     procedure SetOnInvalidCommit(const Value: TCommitInvalidAction);
@@ -113,6 +115,13 @@ type
     /// </summary>
     property DecimalPlaces: Integer
       read FDecimalPlaces write SetDecimalPlaces default -1;
+
+    /// <summary>
+    /// True  — an empty cell is a valid value and stays empty.
+    /// False — an empty cell in a numeric column becomes '0' on commit.
+    /// </summary>
+    property AllowEmpty: Boolean
+      read FAllowEmpty write SetAllowEmpty default False;
 
     /// <summary>
     /// Controls what happens when commit validation fails.
@@ -204,6 +213,7 @@ begin
   FHasMaxValue     := False;
   FMaxValue        := 0.0;
   FDecimalPlaces   := -1;
+  FAllowEmpty      := False;
   FOnInvalidCommit := ciaBlock;
 end;
 
@@ -222,6 +232,7 @@ begin
     FHasMaxValue     := Src.FHasMaxValue;
     FMaxValue        := Src.FMaxValue;
     FDecimalPlaces   := Src.FDecimalPlaces;
+    FAllowEmpty      := Src.FAllowEmpty;
     FOnInvalidCommit := Src.FOnInvalidCommit;
     // FOnGetDefaultText is not copied — it must be assigned in code, not in the form designer
     Changed(False);
@@ -288,6 +299,13 @@ procedure TColumnFilter.SetDecimalPlaces(const Value: Integer);
 begin
   if FDecimalPlaces = Value then Exit;
   FDecimalPlaces := Value;
+  Changed(False);
+end;
+
+procedure TColumnFilter.SetAllowEmpty(const Value: Boolean);
+begin
+  if FAllowEmpty = Value then Exit;
+  FAllowEmpty := Value;
   Changed(False);
 end;
 
@@ -792,9 +810,17 @@ function TryCommitText(AFilter: TColumnFilter;
 var
   V: Double;
 begin
-  if (AFilter <> nil) and (Trim(AText) = '') and
-     (AFilter.DataType in [cdtInteger, cdtFloat, cdtExpression]) then
-    AText := '0';
+  if (AFilter <> nil) and (Trim(AText) = '') then
+  begin
+    // An empty cell is either a value of its own, or it means zero
+    if AFilter.AllowEmpty then
+    begin
+      AText := '';          // drop stray spaces
+      Exit(True);
+    end;
+    if AFilter.DataType in [cdtInteger, cdtFloat, cdtExpression] then
+      AText := '0';
+  end;
 
   Result := ValidateText(AFilter, AText);
   if not Result then

@@ -1,1 +1,9 @@
+site_name: GeoSoft
+site_description: Vývojová dokumentace programu GeoSoft
 
+theme:
+  name: material
+  language: cs
+
+nav:
+  - Úvod: index.md

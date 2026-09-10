@@ -7,21 +7,23 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin, Vcl.ExtCtrls,
   Vcl.Grids, PointsUtilsSingleton, PointPrefixState, Point, System.Types,
+  CoordOrderState, GeoGrid, GeoPointsGrid, GeoColumnValidation,
   CalcBase, Vcl.Menus;
 
 type
   TTransformationForm = class(TCalcBaseForm)
-    StringGrid1: TStringGrid;
+    StringGrid1: TGeoPointsGrid;
     ComboBox1: TComboBox;
     StaticText2: TStaticText;
     procedure FormCreate(Sender: TObject);
-    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-    procedure StringGrid1MouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure AutoSizeColumns(const CustomWidths: array of Integer);
   private
-    FChecked: TArray<Boolean>;
+    FGridOrder: TCoordOrder;   // order the columns are laid out in now
+    procedure SetupValidations;
+    procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
+  protected
+    procedure ApplyCoordOrderToGrids; override;
   public
   end;
 
@@ -34,133 +36,73 @@ implementation
 
 procedure TTransformationForm.FormCreate(Sender: TObject);
 begin
-  StringGrid1.ColCount := 12;
-  StringGrid1.RowCount := 3;
-  StringGrid1.FixedRows := 1;
-  StringGrid1.FixedCols := 1;
-
   StringGrid1.Options := StringGrid1.Options - [goEditing];
 
-  StringGrid1.Cells[2,0] := 'ČB do které';
-  StringGrid1.Cells[3,0] := 'Y cíl';
-  StringGrid1.Cells[4,0] := 'X cíl';
-  StringGrid1.Cells[5,0] := 'ČB z které';
-  StringGrid1.Cells[6,0] := 'Y zdroj';
-  StringGrid1.Cells[7,0] := 'X zdroj';
-  StringGrid1.Cells[8,0] := 'dY';
-  StringGrid1.Cells[9,0] := 'dX';
-  StringGrid1.Cells[10,0] := 'uP';
-  StringGrid1.Cells[11,0] := 'Popis';
+  SetupValidations;
 
-  StringGrid1.Cells[0,1] := '1';
-  StringGrid1.Cells[0,2] := '2';
+  // The designer lays the coordinate columns out as Y, X - the cadastre order
+  FGridOrder := coYX;
 
-  SetLength(FChecked, StringGrid1.RowCount);
-  FChecked[0] := True;
-
-  StringGrid1.OnSelectCell := StringGrid1SelectCell;
-  StringGrid1.OnDrawCell  := StringGrid1DrawCell;
-  StringGrid1.OnMouseDown := StringGrid1MouseDown;
-  StringGrid1.OnKeyDown   := StringGrid1KeyDown;
-
-  StringGrid1.Repaint;
+  // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
+  StringGrid1.OnCellCommitted := PointCommitted;
 end;
 
-procedure TTransformationForm.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-  Rect: TRect; State: TGridDrawState);
-var
-  Text: string;
-  TextW, X, Y: Integer;
-  CR: TRect;
-  Flags: Integer;
-begin
-  with StringGrid1.Canvas do
+// Column filters. Filter index = grid column - FixedCols, and FixedCols is 2
+// here: column 0 is the row number and column 1 the check box.
+procedure TTransformationForm.SetupValidations;
+
+  procedure Coord(AFilter: Integer);
   begin
-    if (ACol = 1) and (ARow = 0) then
-    begin
-      Brush.Color := clBtnFace;
-      Font.Style := [fsBold];
-      FillRect(Rect);
-      CR := Rect;
-      InflateRect(CR, -4, -4);
-      Flags := DFCS_BUTTONCHECK or DFCS_CHECKED;
-      DrawFrameControl(Handle, CR, DFC_BUTTON, Flags);
-      Exit;
-    end;
-
-    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-    begin
-      Brush.Color := clBtnFace;
-      Font.Style := [fsBold];
-      FillRect(Rect);
-      Text := StringGrid1.Cells[ACol, ARow];
-      TextW := TextWidth(Text);
-      X := Rect.Left + (Rect.Width - TextW) div 2;
-      Y := Rect.Top + (Rect.Height - TextHeight(Text)) div 2;
-      TextRect(Rect, X, Y, Text);
-      Exit;
-    end;
-
-    Brush.Color := clWindow;
-    Font.Style := [];
-    FillRect(Rect);
-
-    if ACol = 1 then
-    begin
-      CR := Rect;
-      InflateRect(CR, -4, -4);
-      Flags := DFCS_BUTTONCHECK;
-      if (ARow < Length(FChecked)) and FChecked[ARow] then
-        Flags := Flags or DFCS_CHECKED;
-      DrawFrameControl(Handle, CR, DFC_BUTTON, Flags);
-      Exit;
-    end;
-
-    Text := StringGrid1.Cells[ACol, ARow];
-    TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
+    StringGrid1.ColumnFilters[AFilter].DataType      := cdtExpression;
+    StringGrid1.ColumnFilters[AFilter].DecimalPlaces := 3;
   end;
 
-  AutoSizeColumns([30, 90, 80, 80, 90, 80, 80, 80, 80, 80, 80, 80]);
+begin
+  Coord(1);  Coord(2);    // Y, X cil
+  Coord(4);  Coord(5);    // Y, X zdroj
+  StringGrid1.ColumnFilters[9].MaxLength := 32;    // Popis
 end;
 
-procedure TTransformationForm.AutoSizeColumns(const CustomWidths: array of Integer);
-var
-  i, w: Integer;
+procedure TTransformationForm.ApplyCoordOrderToGrids;
 begin
-  for i := 1 to StringGrid1.ColCount - 1 do
-  begin
-    if (i-1 < Length(CustomWidths)) and (CustomWidths[i-1] > 0) then
-      w := CustomWidths[i-1]
-    else
-      w := StringGrid1.Canvas.TextWidth(StringGrid1.Cells[i,0]) + 16;
-    StringGrid1.ColWidths[i] := w;
-  end;
+  if FGridOrder = GCoordOrder then Exit;   // a plain grid cannot tell by itself
+  FGridOrder := GCoordOrder;
+  SwapGridColumns(StringGrid1, 3, 4);      // Y cil   / X cil
+  SwapGridColumns(StringGrid1, 6, 7);      // Y zdroj / X zdroj
+  SwapGridColumns(StringGrid1, 8, 9);      // dY      / dX
 end;
 
-procedure TTransformationForm.StringGrid1MouseDown(Sender: TObject; Button: TMouseButton;
-  Shift: TShiftState; X, Y: Integer);
+// Fills the coordinates from the list; a missing point is offered via AddPoint.
+procedure TTransformationForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
-  ACol, ARow: Integer;
-  i: Integer;
-  newValue: Boolean;
+  Num: Int64;
+  P: Point.TPoint;
+  ColY, ColX: Integer;
 begin
-  StringGrid1.MouseToCell(X, Y, ACol, ARow);
+  if ARow < StringGrid1.FixedRows then Exit;
 
-  if (ACol = 1) and (ARow = 0) then
+  if ACol = 2 then                         // CB do ktere -> Y, X cil
   begin
-    newValue := not FChecked[0];
-    for i := 1 to StringGrid1.RowCount - 1 do
-      FChecked[i] := newValue;
-    FChecked[0] := newValue;
-    StringGrid1.Repaint;
+    ColY := 3;  ColX := 4;
+  end
+  else if ACol = 5 then                    // CB z ktere -> Y, X zdroj
+  begin
+    ColY := 6;  ColX := 7;
+  end
+  else
     Exit;
+
+  NormalizePointCell(StringGrid1, ACol, ARow);
+  Num := StrToInt64Def(Trim(StringGrid1.Cells[ACol, ARow]), -1);
+  if Num <= 0 then Exit;
+
+  if LookupPoint(Num, P) then
+  begin
+    StringGrid1.Cells[ColY, ARow] := FloatToStr(P.Y);
+    StringGrid1.Cells[ColX, ARow] := FloatToStr(P.X);
   end;
 
-  if (ACol = 1) and (ARow >= StringGrid1.FixedRows) then
-  begin
-    FChecked[ARow] := not FChecked[ARow];
-    StringGrid1.Repaint;
-  end;
+  StringGrid1.Cells[0, ARow] := IntToStr(ARow);
 end;
 
 procedure TTransformationForm.StringGrid1SelectCell(Sender: TObject;
@@ -173,64 +115,10 @@ begin
     StringGrid1.Options := StringGrid1.Options - [goEditing];
 end;
 
+// Enter is handled by TGeoGrid (EnterEndBehavior = ebAddRow).
 procedure TTransformationForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-var
-  PointNumber: Int64;
-  P: Point.TPoint;
-  OldCount: Integer;
 begin
-  if Key = VK_RETURN then
-  begin
-    Key := 0;
-
-    if StringGrid1.Col = 2 then
-    begin
-      NormalizePointCell(StringGrid1, 2, StringGrid1.Row);
-      PointNumber := StrToInt64Def(StringGrid1.Cells[2, StringGrid1.Row], -1);
-      if PointNumber < 0 then
-        ShowMessage('Neplatné číslo bodu.')
-      else if not TPointDictionary.GetInstance.PointExists(PointNumber) then
-        ShowMessage(Format('Bod %d nebyl nalezen.', [PointNumber]))
-      else
-      begin
-        P := TPointDictionary.GetInstance.GetPoint(PointNumber);
-        StringGrid1.Cells[3, StringGrid1.Row] := FloatToStr(P.Y);
-        StringGrid1.Cells[4, StringGrid1.Row] := FloatToStr(P.X);
-      end;
-    end
-    else if StringGrid1.Col = 5 then
-    begin
-      NormalizePointCell(StringGrid1, 5, StringGrid1.Row);
-      PointNumber := StrToInt64Def(StringGrid1.Cells[5, StringGrid1.Row], -1);
-      if PointNumber < 0 then
-        ShowMessage('Neplatné číslo bodu.')
-      else if not TPointDictionary.GetInstance.PointExists(PointNumber) then
-        ShowMessage(Format('Bod %d nebyl nalezen.', [PointNumber]))
-      else
-      begin
-        P := TPointDictionary.GetInstance.GetPoint(PointNumber);
-        StringGrid1.Cells[6, StringGrid1.Row] := FloatToStr(P.Y);
-        StringGrid1.Cells[7, StringGrid1.Row] := FloatToStr(P.X);
-      end;
-    end;
-
-    if StringGrid1.Col < StringGrid1.ColCount - 1 then
-      StringGrid1.Col := StringGrid1.Col + 1
-    else
-    begin
-      if StringGrid1.Row = StringGrid1.RowCount - 1 then
-      begin
-        OldCount := StringGrid1.RowCount;
-        StringGrid1.RowCount := OldCount + 1;
-        SetLength(FChecked, StringGrid1.RowCount);
-        FChecked[OldCount] := False;
-      end;
-      StringGrid1.Row := StringGrid1.Row + 1;
-      StringGrid1.Col := 1;
-      StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row);
-    end;
-  end
-  else if Key = VK_DELETE then
+  if Key = VK_DELETE then
     StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
 end;
 

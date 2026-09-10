@@ -26,6 +26,11 @@ uses
   CalcBase,
   PointPrefixState, Vcl.Menus;
 
+const
+  // Coordinate pair as the designer laid it out, the same in both grids.
+  // Which column holds Y and which X says CoordColY / CoordColX.
+  COL_COORD = 4;
+
 type
   // One detail point, as the protocol shows it
   TOrthoRow = record
@@ -51,6 +56,7 @@ type
     FWarn: TStringList;              // warnings of all detail rows
     FRows: array of TOrthoRow;       // one item per detail grid row
     FBaseValid: Boolean;
+    FGridOrder: TCoordOrder;   // order the columns are laid out in now
     FPNum, FKNum: string;
     FsP, FqP, FsK, FqK: Double;
     FOdch, FMezni: Double;
@@ -63,6 +69,7 @@ type
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
     function  TryComputeDetailRow(R: Integer): Boolean;
   protected
+    procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -83,6 +90,9 @@ begin
   FWarn := TStringList.Create;
   SetupValidations;
 
+  // The designer lays the coordinate columns out as Y, X - the cadastre order
+  FGridOrder := coYX;
+
   GridBaseline.OnCellCommitted         := BasePointCommitted;
   GridDetail.OnCellCommitted := DetailPointCommitted;
   GridDetail.OnSelectCell    := DetailGridSelectCell;
@@ -94,6 +104,16 @@ begin
   FOrthoAlg.Free;
   FWarn.Free;
   inherited Destroy;
+end;
+
+// A plain grid cannot tell which order its columns are in, so the form
+// remembers what it already applied.
+procedure TOrthogonalMethodForm.ApplyCoordOrderToGrids;
+begin
+  if FGridOrder = GCoordOrder then Exit;
+  FGridOrder := GCoordOrder;
+  SwapGridColumns(GridBaseline, COL_COORD, COL_COORD + 1);
+  SwapGridColumns(GridDetail,   COL_COORD, COL_COORD + 1);
 end;
 
 procedure TOrthogonalMethodForm.SetupValidations;
@@ -176,8 +196,8 @@ procedure TOrthogonalMethodForm.FillRowFromPoint(Grid: TGeoPointsGrid; R: Intege
 begin
   Grid.Cells[1, R] := IntToStr(P.PointNumber);
   // Columns 4 and 5 are in the cadastre order Y, X
-  Grid.Cells[4, R] := FloatToStr(P.Y, FS);
-  Grid.Cells[5, R] := FloatToStr(P.X, FS);
+  Grid.Cells[CoordColY(COL_COORD), R] := FloatToStr(P.Y, FS);
+  Grid.Cells[CoordColX(COL_COORD), R] := FloatToStr(P.X, FS);
   Grid.Cells[6, R] := FloatToStr(P.Z, FS);
   Grid.Cells[7, R] := IntToStr(P.Quality);
   Grid.Cells[8, R] := string(P.Description);
@@ -224,8 +244,8 @@ begin
   if Length(OutPts) > 0 then
   begin
     AlreadyExists := TPointDictionary.GetInstance.PointExists(OutPts[0].PointNumber);
-    GridDetail.Cells[4, R] := FloatToStr(OutPts[0].Y, FS);
-    GridDetail.Cells[5, R] := FloatToStr(OutPts[0].X, FS);
+    GridDetail.Cells[CoordColY(COL_COORD), R] := FloatToStr(OutPts[0].Y, FS);
+    GridDetail.Cells[CoordColX(COL_COORD), R] := FloatToStr(OutPts[0].X, FS);
     TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
 
     if R > High(FRows) then

@@ -9,7 +9,7 @@ uses
   System.UITypes,
   Vcl.Controls, Vcl.Forms, Vcl.Graphics, Vcl.Grids, Vcl.StdCtrls, Vcl.Dialogs,
   Point,
-  PointsUtilsSingleton, PointPrefixState,
+  PointsUtilsSingleton, PointPrefixState, CoordOrderState,
   GeoGrid, GeoPointsGrid, GeoColumnValidation;
 
 type
@@ -23,6 +23,8 @@ type
     procedure StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure StringGridEnter(Sender: TObject);
   private
+    FGridOrder: TCoordOrder;   // order the columns are laid out in now
+    procedure ApplyCoordOrderToGrid;
     procedure FocusInputCell;
     procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
     procedure GetDescriptionDefault(var AText: string; var AHandled: Boolean);
@@ -45,9 +47,9 @@ implementation
 
 const
   COL_POINTNO = 0;
-  // Grid shows the cadastre order Y, X
-  COL_Y       = 1;
-  COL_X       = 2;
+  // Column pair as the designer laid it out. Which one holds Y and which X
+  // right now says CoordColY / CoordColX - the user can swap them.
+  COL_COORD   = 1;
   COL_Z       = 3;
   COL_QUALITY = 4;
   COL_DESC    = 5;
@@ -59,13 +61,13 @@ procedure TAddPointForm.FormCreate(Sender: TObject);
 begin
   StringGrid.ColumnFilters[COL_POINTNO].DataType := cdtNone;
 
-  StringGrid.ColumnFilters[COL_X].DataType        := cdtExpression;
-  StringGrid.ColumnFilters[COL_X].DecimalPlaces   := 3;
-  StringGrid.ColumnFilters[COL_X].OnInvalidCommit := ciaBlock;
+  StringGrid.ColumnFilters[COL_COORD].DataType        := cdtExpression;
+  StringGrid.ColumnFilters[COL_COORD].DecimalPlaces   := 3;
+  StringGrid.ColumnFilters[COL_COORD].OnInvalidCommit := ciaBlock;
 
-  StringGrid.ColumnFilters[COL_Y].DataType        := cdtExpression;
-  StringGrid.ColumnFilters[COL_Y].DecimalPlaces   := 3;
-  StringGrid.ColumnFilters[COL_Y].OnInvalidCommit := ciaBlock;
+  StringGrid.ColumnFilters[COL_COORD + 1].DataType        := cdtExpression;
+  StringGrid.ColumnFilters[COL_COORD + 1].DecimalPlaces   := 3;
+  StringGrid.ColumnFilters[COL_COORD + 1].OnInvalidCommit := ciaBlock;
 
   StringGrid.ColumnFilters[COL_Z].DataType        := cdtExpression;
   StringGrid.ColumnFilters[COL_Z].DecimalPlaces   := 3;
@@ -85,6 +87,18 @@ begin
   StringGrid.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
 
   StringGrid.OnCellCommitted := PointNumberCommitted;
+
+  // The designer lays the coordinate columns out as Y, X - the cadastre order
+  FGridOrder := coYX;
+end;
+
+// A plain grid cannot tell which order its columns are in, so the form
+// remembers what it already applied.
+procedure TAddPointForm.ApplyCoordOrderToGrid;
+begin
+  if FGridOrder = GCoordOrder then Exit;
+  FGridOrder := GCoordOrder;
+  SwapGridColumns(StringGrid, COL_COORD, COL_COORD + 1);
 end;
 
 function ReadDefaultQuality: Integer;
@@ -135,17 +149,17 @@ begin
       StringGrid.EditorMode := False;
 
     // Y and X are required, Z defaults to 0. Checked in column order, Y first.
-    if not TryStrToFloat(StringGrid.Cells[COL_Y, DATA_ROW], Dummy) then
+    if not TryStrToFloat(StringGrid.Cells[CoordColY(COL_COORD), DATA_ROW], Dummy) then
     begin
       MessageDlg('Pole Y musí obsahovat platné číslo.', mtError, [mbOK], 0);
-      StringGrid.Col        := COL_Y;
+      StringGrid.Col        := CoordColY(COL_COORD);
       StringGrid.EditorMode := True;
       Continue;
     end;
-    if not TryStrToFloat(StringGrid.Cells[COL_X, DATA_ROW], Dummy) then
+    if not TryStrToFloat(StringGrid.Cells[CoordColX(COL_COORD), DATA_ROW], Dummy) then
     begin
       MessageDlg('Pole X musí obsahovat platné číslo.', mtError, [mbOK], 0);
-      StringGrid.Col        := COL_X;
+      StringGrid.Col        := CoordColX(COL_COORD);
       StringGrid.EditorMode := True;
       Continue;
     end;
@@ -173,8 +187,8 @@ begin
   // Creates point
   NewP := TPoint.Create(
     StoredPointNumber,
-    StrToFloatDef(StringGrid.Cells[COL_X, DATA_ROW], 0.0),
-    StrToFloatDef(StringGrid.Cells[COL_Y, DATA_ROW], 0.0),
+    StrToFloatDef(StringGrid.Cells[CoordColX(COL_COORD), DATA_ROW], 0.0),
+    StrToFloatDef(StringGrid.Cells[CoordColY(COL_COORD), DATA_ROW], 0.0),
     StrToFloatDef(StringGrid.Cells[COL_Z, DATA_ROW], 0.0),
     Q,
     DStr
@@ -207,6 +221,8 @@ procedure TAddPointForm.FormShow(Sender: TObject);
 var
   c: Integer;
 begin
+  ApplyCoordOrderToGrid;
+
   // delete columns 1..n, column 0 (PointNumber) leaves
   for c := COL_FIRST_COORD to StringGrid.ColCount - 1 do
     StringGrid.Cells[c, DATA_ROW] := '';

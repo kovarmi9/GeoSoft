@@ -53,17 +53,48 @@ inherited TransformationForm: TTransformationForm
     ExplicitLeft = 8
     ExplicitTop = 573
   end
-  object StringGrid1: TStringGrid [2]
+  object StringGrid1: TGeoPointsGrid [2]
     Left = 0
     Top = 35
     Width = 800
     Height = 546
     Align = alClient
     ColCount = 12
+    FixedCols = 2
     RowCount = 3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
+    OnKeyDown = StringGrid1KeyDown
+    OnSelectCell = StringGrid1SelectCell
+    EnterEndBehavior = ebAddRow
+    CheckColumn = 1
+    ColumnHeaders.Strings = (
+      ''
+      ''
+      #268'B do kter'#233
+      'Y c'#237'l'
+      'X c'#237'l'
+      #268'B z kter'#233
+      'Y zdroj'
+      'X zdroj'
+      'dY'
+      'dX'
+      'uP'
+      'Popis')
     ExplicitHeight = 494
+    ColWidths = (
+      30
+      90
+      80
+      80
+      90
+      80
+      80
+      80
+      80
+      80
+      80
+      80)
     RowHeights = (
       24
       24

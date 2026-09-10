@@ -140,22 +140,19 @@ begin
   StringGrid1.EditorMode := True;
 end;
 
-// Runs only after the order really changed, so it swaps without asking.
+// A plain grid cannot tell which order its columns are in, so the form
+// remembers what it already applied.
 procedure TPointsManagementForm.ApplyCoordOrderToGrid;
 begin
+  if FGridOrder = GCoordOrder then Exit;
+  FGridOrder := GCoordOrder;
   SwapGridColumns(StringGrid1, 1, 2);
 end;
 
 procedure TPointsManagementForm.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-
-  if FGridOrder <> GCoordOrder then
-  begin
-    FGridOrder := GCoordOrder;
-    ApplyCoordOrderToGrid;
-  end;
-
+  ApplyCoordOrderToGrid;
   RefreshGrid;
   UpdateStatusBar;
 end;
@@ -258,8 +255,7 @@ begin
      (Trim(StringGrid1.Cells[0, FLastRow]) <> '') then
   begin
     SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-    StringGrid1.Cells[0, FLastRow] :=
-      BuildPointIdFromPrefixState(StringGrid1.Cells[0, FLastRow]);
+    NormalizePointCell(StringGrid1, 0, FLastRow);
   end;
 
   // Save the previous row when moving to a different row
@@ -284,9 +280,7 @@ begin
 
   // Build the full point number (KU + ZPMZ + own number)
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-  if Trim(StringGrid1.Cells[0, ARow]) <> '' then
-    StringGrid1.Cells[0, ARow] :=
-      BuildPointIdFromPrefixState(StringGrid1.Cells[0, ARow]);
+  NormalizePointCell(StringGrid1, 0, ARow);
 
   EnsureQualityOnRow(ARow);
   ApplyDescriptionToRow(ARow);
@@ -330,8 +324,7 @@ begin
   if Trim(StringGrid1.Cells[0, ARow]) = '' then
     Exit;
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-  StringGrid1.Cells[0, ARow] :=
-    BuildPointIdFromPrefixState(StringGrid1.Cells[0, ARow]);
+  NormalizePointCell(StringGrid1, 0, ARow);
 end;
 
 procedure TPointsManagementForm.UpdateStatusBar;

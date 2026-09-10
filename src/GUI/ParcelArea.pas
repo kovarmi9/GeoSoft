@@ -7,30 +7,30 @@ uses
   System.SysUtils, System.Variants, System.Classes, System.Math,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Types,
-  PointsUtilsSingleton,
+  PointsUtilsSingleton, PointPrefixState,
   Point,
   CoordOrderState, ProtocolTable,
+  GeoRow, GeoGrid, GeoFieldsGrid,
   GeoAlgorithmBase,
   GeoAlgorithmLHuilier,
   CalcBase, Vcl.Menus;
 
 type
   TParcelAreaForm = class(TCalcBaseForm)
-    StringGrid1: TStringGrid;
+    StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
     PanelCalculate: TPanel;
     Calculate: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TLHuilierAlgorithm;
     FPts: TPointsArray;          // polygon corners, in grid order
     FNums: array of string;      // point number of every corner
-    procedure MoveToNextCell;
+    procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure FillFromDict(const R: Integer);
   protected
+    procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -58,43 +58,17 @@ end;
 
 procedure TParcelAreaForm.FormCreate(Sender: TObject);
 begin
-  StringGrid1.ColCount := 4;
-  StringGrid1.RowCount := 4;
-  StringGrid1.FixedRows := 1;
-  StringGrid1.FixedCols := 1;
+  StringGrid1.SetColumnDisplayName(CB, 'Číslo bodu');
 
-  StringGrid1.Cells[0, 0] := 'Č.';
-  StringGrid1.Cells[1, 0] := 'Číslo bodu';
-  StringGrid1.Cells[2, 0] := 'Y';
-  StringGrid1.Cells[3, 0] := 'X';
-
-  StringGrid1.Cells[0, 1] := '1';
-  StringGrid1.Cells[0, 2] := '2';
-  StringGrid1.Cells[0, 3] := '3';
-
-  StringGrid1.ColWidths[0] := 40;
-  StringGrid1.ColWidths[1] := 100;
-  StringGrid1.ColWidths[2] := 120;
-  StringGrid1.ColWidths[3] := 120;
-
-  StringGrid1.OnKeyDown  := StringGrid1KeyDown;
-  StringGrid1.OnDrawCell := StringGrid1DrawCell;
+  // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
+  StringGrid1.OnCellCommitted := PointCommitted;
 
   Memo1.Lines.Clear;
 end;
 
-procedure TParcelAreaForm.MoveToNextCell;
+procedure TParcelAreaForm.ApplyCoordOrderToGrids;
 begin
-  if StringGrid1.Col < StringGrid1.ColCount - 1 then
-    StringGrid1.Col := StringGrid1.Col + 1
-  else
-  begin
-    if StringGrid1.Row = StringGrid1.RowCount - 1 then
-      StringGrid1.RowCount := StringGrid1.RowCount + 1;
-    StringGrid1.Row := StringGrid1.Row + 1;
-    StringGrid1.Col := 1;
-    StringGrid1.Cells[0, StringGrid1.Row] := IntToStr(StringGrid1.Row);
-  end;
+  ApplyCoordOrder(StringGrid1);
 end;
 
 procedure TParcelAreaForm.FillFromDict(const R: Integer);
@@ -102,75 +76,53 @@ var
   num: Int64;
   P: Point.TPoint;
 begin
-  num := StrToInt64Def(StringGrid1.Cells[1, R], -1);
+  num := StrToInt64Def(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], -1);
   if num <= 0 then Exit;
 
   if LookupPoint(num, P) then
   begin
-    StringGrid1.Cells[2, R] := FloatToStr(P.Y);
-    StringGrid1.Cells[3, R] := FloatToStr(P.X);
+    StringGrid1.Cells[StringGrid1.FieldToCol(Y), R] := FloatToStr(P.Y);
+    StringGrid1.Cells[StringGrid1.FieldToCol(X), R] := FloatToStr(P.X);
   end;
 end;
 
-procedure TParcelAreaForm.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
-  Rect: TRect; State: TGridDrawState);
-var
-  Text: string;
-  TextW, X, Y: Integer;
+// Fills coordinates from the list; a missing point is offered via AddPoint.
+// The first column carries the row number.
+procedure TParcelAreaForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
-  with StringGrid1.Canvas do
+  if ARow < StringGrid1.FixedRows then Exit;
+
+  if ACol = StringGrid1.FieldToCol(CB) then
   begin
-    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-    begin
-      Brush.Color := clBtnFace;
-      Font.Style := [fsBold];
-      FillRect(Rect);
-      Text := StringGrid1.Cells[ACol, ARow];
-      TextW := TextWidth(Text);
-      X := Rect.Left + (Rect.Width - TextW) div 2;
-      Y := Rect.Top + (Rect.Height - TextHeight(Text)) div 2;
-      TextRect(Rect, X, Y, Text);
-    end
-    else
-    begin
-      Brush.Color := clWindow;
-      Font.Style := [];
-      FillRect(Rect);
-      Text := StringGrid1.Cells[ACol, ARow];
-      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
-    end;
+    NormalizePointCell(StringGrid1, ACol, ARow);
+    FillFromDict(ARow);
   end;
-end;
 
-procedure TParcelAreaForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key <> VK_RETURN then Exit;
-  Key := 0;
-
-  if StringGrid1.Col = 1 then
-    FillFromDict(StringGrid1.Row);
-
-  MoveToNextCell;
+  StringGrid1.Cells[0, ARow] := IntToStr(ARow);
 end;
 
 procedure TParcelAreaForm.CalculateClick(Sender: TObject);
 var
-  i, n: Integer;
+  i, n, cCB, cY, cX: Integer;
 begin
+  cCB := StringGrid1.FieldToCol(CB);
+  cY  := StringGrid1.FieldToCol(Y);
+  cX  := StringGrid1.FieldToCol(X);
+
   n := 0;
   SetLength(FPts, 0);
   SetLength(FNums, 0);
 
   for i := 1 to StringGrid1.RowCount - 1 do
   begin
-    if (StringGrid1.Cells[2, i] = '') or (StringGrid1.Cells[3, i] = '') then
+    if (StringGrid1.Cells[cY, i] = '') or (StringGrid1.Cells[cX, i] = '') then
       Continue;
     Inc(n);
     SetLength(FPts, n);
     SetLength(FNums, n);
-    FPts[n-1].Y := StrToFloatDef(StringGrid1.Cells[2, i], 0);
-    FPts[n-1].X := StrToFloatDef(StringGrid1.Cells[3, i], 0);
-    FNums[n-1] := StringGrid1.Cells[1, i];
+    FPts[n-1].Y := StrToFloatDef(StringGrid1.Cells[cY, i], 0);
+    FPts[n-1].X := StrToFloatDef(StringGrid1.Cells[cX, i], 0);
+    FNums[n-1] := StringGrid1.Cells[cCB, i];
   end;
 
   if n < 3 then

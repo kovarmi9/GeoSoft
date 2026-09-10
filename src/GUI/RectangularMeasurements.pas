@@ -7,7 +7,7 @@ uses
   System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Menus,
-  Types, Math, Point, PointsUtilsSingleton,
+  Types, Math, Point, PointsUtilsSingleton, PointPrefixState,
   GeoRow, GeoGrid, GeoFieldsGrid, CoordOrderState, ProtocolTable,
   GeoAlgorithmBase,
   GeoAlgorithmRectangularMeasurements,
@@ -110,6 +110,7 @@ procedure TRectangularMeasurementsForm.PointCommitted(Sender: TObject; ACol, ARo
 begin
   if (ACol <> StringGrid1.FieldToCol(CB)) or (ARow < StringGrid1.FixedRows) then
     Exit;
+  NormalizePointCell(StringGrid1, ACol, ARow);
   FillFromDict(ARow);
 end;
 

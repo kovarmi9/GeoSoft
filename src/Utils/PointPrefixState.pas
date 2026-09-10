@@ -3,7 +3,7 @@
 interface
 
 uses
-  SysUtils, StdCtrls;
+  SysUtils, StdCtrls, Grids;
 
 type
   TPointPrefixState = record
@@ -20,6 +20,14 @@ procedure LoadPrefixToCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
 procedure SavePrefixFromCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
 function BuildPointId(const RawOwn, Ku6, Zpmz5: string): string;
 function BuildPointIdFromPrefixState(const RawOwn: string): string;
+
+/// <summary>
+/// Rewrites the cell into the full point number: the prefix from the
+/// toolbar plus the number the user typed. Leading zeros are kept.
+/// Does nothing when the cell is empty or does not hold a number.
+/// </summary>
+procedure NormalizePointCell(AGrid: TStringGrid; ACol, ARow: Integer);
+
 procedure ResetPointPrefixState;
 
 implementation
@@ -77,6 +85,20 @@ end;
 function BuildPointIdFromPrefixState(const RawOwn: string): string;
 begin
   Result := BuildPointId(RawOwn, GPointPrefix.KU, GPointPrefix.ZPMZ);
+end;
+
+procedure NormalizePointCell(AGrid: TStringGrid; ACol, ARow: Integer);
+var
+  S: string;
+  N: Int64;
+begin
+  S := Trim(AGrid.Cells[ACol, ARow]);
+  if S = '' then
+    Exit;
+
+  S := BuildPointIdFromPrefixState(S);
+  if TryStrToInt64(S, N) then    // only when it really is a number
+    AGrid.Cells[ACol, ARow] := S;
 end;
 
 procedure LoadPrefixToCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);

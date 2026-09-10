@@ -246,7 +246,7 @@ begin
   PozCol := G.FieldToCol(Poznamka);
 
   if ACol = CBCol then
-    G.Cells[CBCol, ARow] := BuildPointIdFromPrefixState(G.Cells[CBCol, ARow]);
+    NormalizePointCell(G, CBCol, ARow);
 
   if (ACol = PozCol) and (Trim(G.Cells[PozCol, ARow]) = '') then
     G.Cells[PozCol, ARow] := Trim(GPointPrefix.Popis);

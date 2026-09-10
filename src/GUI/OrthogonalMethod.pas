@@ -133,7 +133,6 @@ end;
 procedure TOrthogonalMethodForm.DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   G: TGeoPointsGrid;
-  PointIdText: string;
   PNum: Int64;
   P: Point.TPoint;
 begin
@@ -144,9 +143,8 @@ begin
     1:
     begin
       SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-      PointIdText := BuildPointIdFromPrefixState(G.Cells[1, ARow]);
-      if TryStrToInt64(PointIdText, PNum) then
-        G.Cells[1, ARow] := IntToStr(PNum);
+      NormalizePointCell(G, 1, ARow);
+      PNum := StrToInt64Def(G.Cells[1, ARow], 0);
       if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
       begin
         P := TPointDictionary.GetInstance.GetPoint(PNum);

@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin, Vcl.ExtCtrls,
-  Vcl.Grids, PointsUtilsSingleton, Point, System.Types,
+  Vcl.Grids, PointsUtilsSingleton, PointPrefixState, Point, System.Types,
   CalcBase, Vcl.Menus;
 
 type
@@ -185,6 +185,7 @@ begin
 
     if StringGrid1.Col = 2 then
     begin
+      NormalizePointCell(StringGrid1, 2, StringGrid1.Row);
       PointNumber := StrToInt64Def(StringGrid1.Cells[2, StringGrid1.Row], -1);
       if PointNumber < 0 then
         ShowMessage('Neplatné číslo bodu.')
@@ -199,6 +200,7 @@ begin
     end
     else if StringGrid1.Col = 5 then
     begin
+      NormalizePointCell(StringGrid1, 5, StringGrid1.Row);
       PointNumber := StrToInt64Def(StringGrid1.Cells[5, StringGrid1.Row], -1);
       if PointNumber < 0 then
         ShowMessage('Neplatné číslo bodu.')

@@ -101,15 +101,9 @@ begin
 end;
 
 procedure TAddPointForm.PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
-var
-  PointIdText: string;
-  PNum: Int64;
 begin
   if (ACol <> COL_POINTNO) or (ARow < DATA_ROW) then Exit;
-  if Trim(StringGrid.Cells[COL_POINTNO, ARow]) = '' then Exit;
-  PointIdText := BuildPointIdFromPrefixState(StringGrid.Cells[COL_POINTNO, ARow]);
-  if TryStrToInt64(PointIdText, PNum) then
-    StringGrid.Cells[COL_POINTNO, ARow] := IntToStr(PNum);
+  NormalizePointCell(StringGrid, ACol, ARow);
 end;
 
 function TAddPointForm.Execute(PointNumber: Int64; out NewP: TPoint): Boolean;

@@ -110,9 +110,7 @@ begin
 
   if (ACol = COL_FROM) or (ACol = COL_TO) then
   begin
-    if Trim(GridPairs.Cells[ACol, ARow]) <> '' then
-      GridPairs.Cells[ACol, ARow] :=
-        BuildPointIdFromPrefixState(GridPairs.Cells[ACol, ARow]);
+    NormalizePointCell(GridPairs, ACol, ARow);
 
     num := StrToInt64Def(Trim(GridPairs.Cells[ACol, ARow]), 0);
     if num > 0 then

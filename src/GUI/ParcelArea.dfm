@@ -22,7 +22,7 @@ inherited ParcelAreaForm: TParcelAreaForm
     ExplicitLeft = 8
     ExplicitTop = 561
   end
-  object StringGrid1: TStringGrid [2]
+  object StringGrid1: TGeoFieldsGrid [2]
     Left = 0
     Top = 35
     Width = 800
@@ -32,9 +32,16 @@ inherited ParcelAreaForm: TParcelAreaForm
     RowCount = 4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
+    EnterEndBehavior = ebAddRow
+    GeoFields = [CB, X, Y]
     ExplicitLeft = 16
     ExplicitTop = 32
     ExplicitHeight = 457
+    ColWidths = (
+      40
+      100
+      120
+      120)
     RowHeights = (
       24
       24

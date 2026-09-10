@@ -5,8 +5,7 @@ interface
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms,
   Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
-  PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable,
-  CoordOrderState;
+  PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable;
 
 type
   TCalcBaseForm = class(TForm)
@@ -34,12 +33,6 @@ type
     Prot: TProtocol;          // shared by every WriteProtocol
 
     /// <summary>
-    /// The order the grids of this form are laid out in right now. A plain
-    /// grid cannot tell, so the form has to remember it.
-    /// </summary>
-    FGridOrder: TCoordOrder;
-
-    /// <summary>
     /// Finds a point. An unknown one is offered through the AddPoint dialog.
     /// Use pt only when the result is True.
     /// </summary>
@@ -51,10 +44,9 @@ type
     function PointId(ANum: Int64): string;
 
     /// <summary>
-    /// Descendants override this to put the coordinate columns of their
-    /// grids into the order that is set now. The base form decides when it
-    /// runs, and it runs only after the order really changed, so the
-    /// descendant can swap without asking.
+    /// Descendants override this to set the column order of their grids.
+    /// A field grid and a pair of edits check the order themselves; a plain
+    /// grid cannot, so that form has to remember what it already applied.
     /// </summary>
     procedure ApplyCoordOrderToGrids; virtual;
 
@@ -99,9 +91,6 @@ begin
   // always uses a comma, see ProtFormat in ProtocolTable.
   FS := FormatSettings;
   Prot := TProtocol.Create;
-
-  // The designer lays the coordinate columns out as Y, X - the cadastre order
-  FGridOrder := coYX;
 
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 
@@ -204,12 +193,7 @@ end;
 procedure TCalcBaseForm.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
-
-  if FGridOrder <> GCoordOrder then
-  begin
-    FGridOrder := GCoordOrder;
-    ApplyCoordOrderToGrids;
-  end;
+  ApplyCoordOrderToGrids;
 end;
 
 procedure TCalcBaseForm.FormDeactivate(Sender: TObject);

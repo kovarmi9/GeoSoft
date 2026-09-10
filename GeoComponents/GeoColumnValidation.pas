@@ -328,6 +328,8 @@ begin
   Result := TColumnFilter(inherited Add);
 end;
 
+// Shrinking deletes the trailing filters for good. Anything set in the
+// designer is lost when ColCount goes down and does not come back.
 procedure TColumnFilters.EnsureCount(AColCount: Integer);
 begin
   while Count < AColCount do

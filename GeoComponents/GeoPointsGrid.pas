@@ -86,6 +86,11 @@ type
     /// <summary>
     /// Validation filters for data columns only.
     /// Item index 0 corresponds to first data column (after FixedCols).
+    ///
+    /// They can be set here in the designer or in code. GeoSoft sets them
+    /// in FormCreate: the designer shows the items by index only, while
+    /// code can name the column (ColumnFilters[COL_QUALITY]) and comment
+    /// it, and OnGetDefaultText cannot be assigned in the designer at all.
     /// </summary>
     property ColumnFilters: TColumnFilters
       read FColumnFilters write SetColumnFilters;

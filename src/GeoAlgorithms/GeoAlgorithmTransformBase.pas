@@ -10,8 +10,10 @@ interface
 uses Point, GeoAlgorithmBase;
 
 type
-  // Abstract base class for all coordinate transformation algorithms
-  TTransformationAlgorithm = class abstract
+  // Abstract base class for all coordinate transformation algorithms.
+  // TAlgorithmBase gives it the shared Warnings list; the point-in/point-out
+  // contract of TAlgorithm does not fit here, so it is not used.
+  TTransformationAlgorithm = class abstract(TAlgorithmBase)
   public
     // Estimates transformation parameters using matched local and global control points
     procedure ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray); virtual; abstract;

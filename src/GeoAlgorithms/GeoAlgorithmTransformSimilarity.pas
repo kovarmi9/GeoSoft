@@ -42,6 +42,8 @@ var
   YrL, XrL, YrG, XrG: Double;
   SumSq, SumL1, SumL2: Double;
 begin
+  ClearWarnings;
+
   n := Length(LocalPoints);
 
   // Compute centroids of both point sets

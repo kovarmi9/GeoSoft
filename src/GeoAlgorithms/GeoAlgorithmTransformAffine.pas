@@ -140,6 +140,8 @@ var
   AT, ATA, InvATA: TMatrix;
   ATL, Params: TVector;
 begin
+  ClearWarnings;
+
   n := Length(LocalPoints);
   SetLength(A, 2 * n, 6);
   SetLength(L, 2 * n);

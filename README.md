@@ -9,3 +9,7 @@ GeoSoft is a desktop application for geodetic computations and point management.
 * Polar method calculation
 * Orthogonal method calculation
 * Coordinate transformation tools
+
+## Documentation
+
+* <https://kovarmi9.github.io/GeoSoft/>

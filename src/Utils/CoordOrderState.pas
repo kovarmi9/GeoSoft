@@ -11,7 +11,8 @@ unit CoordOrderState;
 interface
 
 uses
-  System.SysUtils, Vcl.Controls, Point, GeoRow, GeoFieldsGrid, ProtocolTable;
+  System.SysUtils, System.Classes, Vcl.Controls, Vcl.Grids, Point, GeoRow,
+  GeoGrid, GeoPointsGrid, GeoFieldsGrid, ProtocolTable;
 
 type
   TCoordOrder = (coYX, coXY);
@@ -38,6 +39,17 @@ function CoordNames(AWidth: Integer = ColWCoord): string;
 // The two coordinates in the same order and the same width.
 function CoordPair(const P: Point.TPoint; AWidth: Integer = ColWCoord;
   ADecimals: Integer = 2): string;
+
+// A plain grid does not know which column carries which field, so the form
+// has to ask. The pair sits in AFirstCol and the column right after it.
+function CoordColY(AFirstCol: Integer): Integer;
+function CoordColX(AFirstCol: Integer): Integer;
+
+// Swaps two whole columns of a grid: caption, width, every cell and, when
+// the grid has them, the validation filter. It knows nothing about
+// coordinates - the form says which two columns to swap.
+// The two columns have to be neighbours.
+procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
 
 // Column order of a field grid
 procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid); overload;
@@ -115,6 +127,64 @@ begin
   else
     Result := Pad(Num(P.X, ADecimals), AWidth) + ColGap +
               Pad(Num(P.Y, ADecimals), AWidth);
+end;
+
+function CoordColY(AFirstCol: Integer): Integer;
+begin
+  if GCoordOrder = coYX then
+    Result := AFirstCol
+  else
+    Result := AFirstCol + 1;
+end;
+
+function CoordColX(AFirstCol: Integer): Integer;
+begin
+  if GCoordOrder = coYX then
+    Result := AFirstCol + 1
+  else
+    Result := AFirstCol;
+end;
+
+procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
+var
+  R, W, F1, F2: Integer;
+  S: string;
+  Geo: TGeoGrid;
+  Pts: TGeoPointsGrid;
+begin
+  W := AGrid.ColWidths[ACol1];
+  AGrid.ColWidths[ACol1] := AGrid.ColWidths[ACol2];
+  AGrid.ColWidths[ACol2] := W;
+
+  for R := 0 to AGrid.RowCount - 1 do      // row 0 carries the caption
+  begin
+    S := AGrid.Cells[ACol1, R];
+    AGrid.Cells[ACol1, R] := AGrid.Cells[ACol2, R];
+    AGrid.Cells[ACol2, R] := S;
+  end;
+
+  // TGeoGrid keeps the captions in a list and writes them into row 0
+  if AGrid is TGeoGrid then
+  begin
+    Geo := TGeoGrid(AGrid);
+    if (ACol1 < Geo.ColumnHeaders.Count) and (ACol2 < Geo.ColumnHeaders.Count) then
+    begin
+      S := Geo.ColumnHeaders[ACol1];
+      Geo.ColumnHeaders[ACol1] := Geo.ColumnHeaders[ACol2];
+      Geo.ColumnHeaders[ACol2] := S;
+    end;
+  end;
+
+  // The columns are neighbours, so moving one filter is already a swap
+  if AGrid is TGeoPointsGrid then
+  begin
+    Pts := TGeoPointsGrid(AGrid);
+    F1  := ACol1 - Pts.FixedCols;
+    F2  := ACol2 - Pts.FixedCols;
+    if (F1 >= 0) and (F2 >= 0) and
+       (F1 < Pts.ColumnFilters.Count) and (F2 < Pts.ColumnFilters.Count) then
+      Pts.ColumnFilters.Items[F1].Index := F2;
+  end;
 end;
 
 type

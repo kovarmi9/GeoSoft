@@ -100,14 +100,18 @@ procedure TOrthogonalMethodForm.SetupValidations;
 begin
   GridBaseline.ColumnFilters[0].DataType := cdtInteger;
   GridBaseline.ColumnFilters[1].DataType := cdtExpression;
+  GridBaseline.ColumnFilters[1].DecimalPlaces := 3;
   GridBaseline.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
   GridBaseline.ColumnFilters[2].DataType := cdtExpression;
+  GridBaseline.ColumnFilters[2].DecimalPlaces := 3;
   GridBaseline.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
 
   GridDetail.ColumnFilters[0].DataType := cdtInteger;
   GridDetail.ColumnFilters[1].DataType := cdtExpression;
+  GridDetail.ColumnFilters[1].DecimalPlaces := 3;
   GridDetail.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
   GridDetail.ColumnFilters[2].DataType := cdtExpression;
+  GridDetail.ColumnFilters[2].DecimalPlaces := 3;
   GridDetail.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
   GridDetail.ColumnFilters[7].MaxLength := 32;
   with GridDetail.ColumnFilters[6] do

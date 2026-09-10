@@ -8,7 +8,7 @@ uses
   System.Math, System.IOUtils, System.UITypes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.StdCtrls,
-  PointsUtilsSingleton, Point,
+  PointsUtilsSingleton, Point, CoordOrderState,
   GeoGrid, GeoPointsGrid, GeoColumnValidation, PointPrefixState;
 
 type
@@ -67,6 +67,8 @@ type
     FLastCol:     Integer;
     FCurrentFile: string;
     FFileFlag:    Boolean;
+    FGridOrder:   TCoordOrder;   // order the columns are laid out in now
+    procedure ApplyCoordOrderToGrid;
     function  CurrentQuality: Integer;
     function  IsValidQualityStr(const S: string): Boolean;
     function  PadZeros(const S: string; PadLen: Integer): string;
@@ -122,6 +124,8 @@ begin
 
   FLastRow     := 0;
   FLastCol     := 0;
+  // The designer lays the coordinate columns out as Y, X - the cadastre order
+  FGridOrder   := coYX;
   FCurrentFile := '';
   FFileFlag    := False;
   UpdateCurrentDirectoryPath;
@@ -136,9 +140,22 @@ begin
   StringGrid1.EditorMode := True;
 end;
 
+// Runs only after the order really changed, so it swaps without asking.
+procedure TPointsManagementForm.ApplyCoordOrderToGrid;
+begin
+  SwapGridColumns(StringGrid1, 1, 2);
+end;
+
 procedure TPointsManagementForm.FormActivate(Sender: TObject);
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
+
+  if FGridOrder <> GCoordOrder then
+  begin
+    FGridOrder := GCoordOrder;
+    ApplyCoordOrderToGrid;
+  end;
+
   RefreshGrid;
   UpdateStatusBar;
 end;
@@ -170,9 +187,8 @@ begin
     begin
       pt := TPointDictionary.GetInstance.GetPoint(Key);
       StringGrid1.Cells[0, i] := Format('%.15d', [pt.PointNumber]);
-      // Columns are in the cadastre order Y, X
-      StringGrid1.Cells[1, i] := FloatToStr(pt.Y);
-      StringGrid1.Cells[2, i] := FloatToStr(pt.X);
+      StringGrid1.Cells[CoordColY(1), i] := FloatToStr(pt.Y);
+      StringGrid1.Cells[CoordColX(1), i] := FloatToStr(pt.X);
       StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
       StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
       StringGrid1.Cells[5, i] := string(pt.Description);
@@ -276,9 +292,8 @@ begin
   ApplyDescriptionToRow(ARow);
 
   PointNumber := StrToInt64Def(StringGrid1.Cells[0, ARow], -1);
-  // Columns are in the cadastre order Y, X
-  Y           := StrToFloatDef(StringGrid1.Cells[1, ARow], NaN);
-  X           := StrToFloatDef(StringGrid1.Cells[2, ARow], NaN);
+  Y           := StrToFloatDef(StringGrid1.Cells[CoordColY(1), ARow], NaN);
+  X           := StrToFloatDef(StringGrid1.Cells[CoordColX(1), ARow], NaN);
   Z           := StrToFloatDef(StringGrid1.Cells[3, ARow], NaN);
   Quality     := StrToIntDef(StringGrid1.Cells[4, ARow], -1);
   Description := StringGrid1.Cells[5, ARow];

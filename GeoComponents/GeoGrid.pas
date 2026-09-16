@@ -126,6 +126,13 @@ type
     function CommitCurrentCell: Boolean;
 
     /// <summary>
+    /// Beeps and keeps the cursor on the cell, with the editor open.
+    /// Used by ciaBlock and by forms that refuse a value from
+    /// OnCellCommitted.
+    /// </summary>
+    procedure RejectCommit;
+
+    /// <summary>
     /// State of the check box on one row. Row 0 is the header box, which
     /// switches all the others.
     /// </summary>
@@ -383,6 +390,12 @@ begin
   CommitCell;
   Result := not FLastCommitFailed;
   FLastCommitFailed := False;
+end;
+
+procedure TGeoGrid.RejectCommit;
+begin
+  MessageBeep(MB_ICONWARNING);
+  FLastCommitFailed := True;
 end;
 
 function TGeoGrid.SelectCell(ACol, ARow: Integer): Boolean;

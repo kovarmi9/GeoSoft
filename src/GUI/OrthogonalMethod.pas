@@ -19,17 +19,13 @@ uses
   GeoAlgorithmBase,
   GeoAlgorithmOrthogonal,
   GeoGrid,
-  GeoPointsGrid,
+  GeoFieldsGrid,
+  GeoRow,
   GeoColumnValidation,
   CoordOrderState,
   ProtocolTable,
   CalcBase,
   PointPrefixState, Vcl.Menus;
-
-const
-  // Coordinate pair as the designer laid it out, the same in both grids.
-  // Which column holds Y and which X says CoordColY / CoordColX.
-  COL_COORD = 4;
 
 type
   // One detail point, as the protocol shows it
@@ -41,8 +37,8 @@ type
   end;
 
   TOrthogonalMethodForm = class(TCalcBaseForm)
-    GridBaseline: TGeoPointsGrid;
-    GridDetail: TGeoPointsGrid;
+    GridBaseline: TGeoFieldsGrid;
+    GridDetail: TGeoFieldsGrid;
     Panel2: TPanel;
     PanelSave: TPanel;
     Memo1: TMemo;
@@ -56,7 +52,6 @@ type
     FWarn: TStringList;              // warnings of all detail rows
     FRows: array of TOrthoRow;       // one item per detail grid row
     FBaseValid: Boolean;
-    FGridOrder: TCoordOrder;   // order the columns are laid out in now
     FPNum, FKNum: string;
     FsP, FqP, FsK, FqK: Double;
     FOdch, FMezni: Double;
@@ -64,8 +59,8 @@ type
     procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    function  ReadFloat(Grid: TGeoPointsGrid; Col, Row: Integer; out V: Double): Boolean;
-    procedure FillRowFromPoint(Grid: TGeoPointsGrid; R: Integer; const P: Point.TPoint);
+    function  ReadFloat(Grid: TGeoFieldsGrid; Col, Row: Integer; out V: Double): Boolean;
+    procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
     function  TryComputeDetailRow(R: Integer): Boolean;
   protected
@@ -90,9 +85,6 @@ begin
   FWarn := TStringList.Create;
   SetupValidations;
 
-  // The designer lays the coordinate columns out as Y, X - the cadastre order
-  FGridOrder := coYX;
-
   GridBaseline.OnCellCommitted         := BasePointCommitted;
   GridDetail.OnCellCommitted := DetailPointCommitted;
   GridDetail.OnSelectCell    := DetailGridSelectCell;
@@ -106,79 +98,62 @@ begin
   inherited Destroy;
 end;
 
-// A plain grid cannot tell which order its columns are in, so the form
-// remembers what it already applied.
 procedure TOrthogonalMethodForm.ApplyCoordOrderToGrids;
 begin
-  if FGridOrder = GCoordOrder then Exit;
-  FGridOrder := GCoordOrder;
-  SwapGridColumns(GridBaseline, COL_COORD, COL_COORD + 1);
-  SwapGridColumns(GridDetail,   COL_COORD, COL_COORD + 1);
+  ApplyCoordOrder(GridBaseline);
+  ApplyCoordOrder(GridDetail);
 end;
 
+// Validation comes from GeoFieldsDef; only the captions are per form.
 procedure TOrthogonalMethodForm.SetupValidations;
-begin
-  GridBaseline.ColumnFilters[0].DataType := cdtInteger;
-  GridBaseline.ColumnFilters[1].DataType := cdtExpression;
-  GridBaseline.ColumnFilters[1].DecimalPlaces := 3;
-  GridBaseline.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
-  GridBaseline.ColumnFilters[2].DataType := cdtExpression;
-  GridBaseline.ColumnFilters[2].DecimalPlaces := 3;
-  GridBaseline.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
 
-  GridDetail.ColumnFilters[0].DataType := cdtInteger;
-  GridDetail.ColumnFilters[1].DataType := cdtExpression;
-  GridDetail.ColumnFilters[1].DecimalPlaces := 3;
-  GridDetail.ColumnFilters[1].OnInvalidCommit := ciaBeepAndClear;
-  GridDetail.ColumnFilters[2].DataType := cdtExpression;
-  GridDetail.ColumnFilters[2].DecimalPlaces := 3;
-  GridDetail.ColumnFilters[2].OnInvalidCommit := ciaBeepAndClear;
-  GridDetail.ColumnFilters[7].MaxLength := 32;
-  with GridDetail.ColumnFilters[6] do
+  procedure Names(G: TGeoFieldsGrid);
   begin
-    DataType := cdtInteger;  OnInvalidCommit := ciaBeepAndClear;
-    HasMinValue := True;  MinValue := 0;
-    HasMaxValue := True;  MaxValue := 8;
+    G.SetColumnDisplayName(CB,       'Číslo bodu');
+    G.SetColumnDisplayName(Xm,       'Staničení');
+    G.SetColumnDisplayName(Ym,       'Kolmice');
+    G.SetColumnDisplayName(Poznamka, 'Popis');
   end;
+
+begin
+  Names(GridBaseline);
+  Names(GridDetail);
 end;
 
 procedure TOrthogonalMethodForm.BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   P: Point.TPoint;
 begin
-  if ACol = 1 then
-    LoadBasePoint(ARow, P);
+  if (ACol = GridBaseline.FieldToCol(CB)) and not LoadBasePoint(ARow, P) then
+    GridBaseline.RejectCommit;
 end;
 
 procedure TOrthogonalMethodForm.DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
-  G: TGeoPointsGrid;
+  G: TGeoFieldsGrid;
   PNum: Int64;
   P: Point.TPoint;
 begin
   G := GridDetail;
   if ARow < G.FixedRows then Exit;
 
-  case ACol of
-    1:
+  if ACol = G.FieldToCol(CB) then
+  begin
+    NormalizePointCell(G, ACol, ARow);
+    PNum := StrToInt64Def(G.Cells[ACol, ARow], 0);
+    if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
     begin
-      NormalizePointCell(G, 1, ARow);
-      PNum := StrToInt64Def(G.Cells[1, ARow], 0);
-      if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
-      begin
-        P := TPointDictionary.GetInstance.GetPoint(PNum);
-        FillRowFromPoint(G, ARow, P);
-      end;
-      if Trim(G.Cells[7, ARow]) = '' then G.Cells[7, ARow] := Trim(GPointPrefix.KK);
-      if Trim(G.Cells[8, ARow]) = '' then G.Cells[8, ARow] := Trim(GPointPrefix.Popis);
+      P := TPointDictionary.GetInstance.GetPoint(PNum);
+      FillRowFromPoint(G, ARow, P);
     end;
-    2, 3:
-    begin
-      TryComputeDetailRow(ARow);
-      if Trim(G.Cells[7, ARow]) = '' then G.Cells[7, ARow] := Trim(GPointPrefix.KK);
-      if Trim(G.Cells[8, ARow]) = '' then G.Cells[8, ARow] := Trim(GPointPrefix.Popis);
-    end;
-  end;
+  end
+  else if (ACol = G.FieldToCol(Xm)) or (ACol = G.FieldToCol(Ym)) then
+    TryComputeDetailRow(ARow)
+  else
+    Exit;
+
+  if Trim(G.Cells[G.FieldToCol(Poznamka), ARow]) = '' then
+    G.Cells[G.FieldToCol(Poznamka), ARow] := Trim(GPointPrefix.Popis);
 end;
 
 procedure TOrthogonalMethodForm.DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
@@ -187,20 +162,18 @@ begin
     GridDetail.Cells[0, ARow] := IntToStr(ARow);
 end;
 
-function TOrthogonalMethodForm.ReadFloat(Grid: TGeoPointsGrid; Col, Row: Integer; out V: Double): Boolean;
+function TOrthogonalMethodForm.ReadFloat(Grid: TGeoFieldsGrid; Col, Row: Integer; out V: Double): Boolean;
 begin
   Result := TryStrToFloat(Trim(Grid.Cells[Col, Row]), V, FS);
 end;
 
-procedure TOrthogonalMethodForm.FillRowFromPoint(Grid: TGeoPointsGrid; R: Integer; const P: Point.TPoint);
+procedure TOrthogonalMethodForm.FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
 begin
-  Grid.Cells[1, R] := IntToStr(P.PointNumber);
-  // Columns 4 and 5 are in the cadastre order Y, X
-  Grid.Cells[CoordColY(COL_COORD), R] := FloatToStr(P.Y, FS);
-  Grid.Cells[CoordColX(COL_COORD), R] := FloatToStr(P.X, FS);
-  Grid.Cells[6, R] := FloatToStr(P.Z, FS);
-  Grid.Cells[7, R] := IntToStr(P.Quality);
-  Grid.Cells[8, R] := string(P.Description);
+  Grid.Cells[Grid.FieldToCol(CB), R]       := Format('%.15d', [P.PointNumber]);
+  Grid.Cells[Grid.FieldToCol(Y),  R]       := FloatToStr(P.Y, FS);
+  Grid.Cells[Grid.FieldToCol(X),  R]       := FloatToStr(P.X, FS);
+  Grid.Cells[Grid.FieldToCol(Z),  R]       := FloatToStr(P.Z, FS);
+  Grid.Cells[Grid.FieldToCol(Poznamka), R] := string(P.Description);
 end;
 
 function TOrthogonalMethodForm.LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
@@ -208,7 +181,7 @@ var
   num: Int64;
 begin
   Result := False;
-  num := StrToInt64Def(GridBaseline.Cells[1, R], -1);
+  num := StrToInt64Def(GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], -1);
   if num <= 0 then
   begin
     ShowMessage(Format('Zadejte číslo bodu v řádku %s.', [GridBaseline.Cells[0, R]]));
@@ -227,31 +200,32 @@ var
   W: string;
 begin
   Result := False;
-  if not ReadFloat(GridDetail, 2, R, s) then Exit;
-  if not ReadFloat(GridDetail, 3, R, q) then Exit;
+  if not ReadFloat(GridDetail, GridDetail.FieldToCol(Xm), R, s) then Exit;
+  if not ReadFloat(GridDetail, GridDetail.FieldToCol(Ym), R, q) then Exit;
   if FOrthoAlg = nil then Exit;
 
   SetLength(InPts, 1);
-  InPts[0].PointNumber := StrToInt64Def(GridDetail.Cells[1, R], 0);
+  InPts[0].PointNumber := StrToInt64Def(GridDetail.Cells[GridDetail.FieldToCol(CB), R], 0);
   InPts[0].X           := s;
   InPts[0].Y           := q;
   InPts[0].Z           := 0;
-  InPts[0].Quality     := StrToIntDef(Trim(GridDetail.Cells[7, R]), 0);
+  // Quality comes from the toolbar for every point, as in the polar method
+  InPts[0].Quality     := StrToIntDef(Trim(GPointPrefix.KK), 0);
   {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
-  InPts[0].Description := GridDetail.Cells[8, R];
+  InPts[0].Description := GridDetail.Cells[GridDetail.FieldToCol(Poznamka), R];
   {$WARN IMPLICIT_STRING_CAST_LOSS ON}
   OutPts := FOrthoAlg.Calculate(InPts);
   if Length(OutPts) > 0 then
   begin
     AlreadyExists := TPointDictionary.GetInstance.PointExists(OutPts[0].PointNumber);
-    GridDetail.Cells[CoordColY(COL_COORD), R] := FloatToStr(OutPts[0].Y, FS);
-    GridDetail.Cells[CoordColX(COL_COORD), R] := FloatToStr(OutPts[0].X, FS);
+    GridDetail.Cells[GridDetail.FieldToCol(Y), R] := FloatToStr(OutPts[0].Y, FS);
+    GridDetail.Cells[GridDetail.FieldToCol(X), R] := FloatToStr(OutPts[0].X, FS);
     TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
 
     if R > High(FRows) then
       SetLength(FRows, R + 1);
     FRows[R].Valid   := True;
-    FRows[R].Num     := FormatPointId(GridDetail.Cells[1, R]);
+    FRows[R].Num     := FormatPointId(GridDetail.Cells[GridDetail.FieldToCol(CB), R]);
     FRows[R].S       := InPts[0].X;   // stationing, not a coordinate
     FRows[R].Q       := InPts[0].Y;   // offset, not a coordinate
     FRows[R].Updated := AlreadyExists;
@@ -283,14 +257,17 @@ var
   P0, K0: Point.TPoint;
   sP, qP, sK, qK: Double;
   dX, dY, dg, dS, dQ, L, Odch, MezniOdch: Double;
+  cS, cQ: Integer;
 begin
   if not LoadBasePoint(1, P0) then Exit;
   if not LoadBasePoint(2, K0) then Exit;
 
-  if not ReadFloat(GridBaseline, 2, 1, sP) then sP := 0;
-  if not ReadFloat(GridBaseline, 3, 1, qP) then qP := 0;
-  if not ReadFloat(GridBaseline, 2, 2, sK) then sK := 0;
-  if not ReadFloat(GridBaseline, 3, 2, qK) then qK := 0;
+  cS := GridBaseline.FieldToCol(Xm);   // staniceni
+  cQ := GridBaseline.FieldToCol(Ym);   // kolmice
+  if not ReadFloat(GridBaseline, cS, 1, sP) then sP := 0;
+  if not ReadFloat(GridBaseline, cQ, 1, qP) then qP := 0;
+  if not ReadFloat(GridBaseline, cS, 2, sK) then sK := 0;
+  if not ReadFloat(GridBaseline, cQ, 2, qK) then qK := 0;
 
   FreeAndNil(FOrthoAlg);
   FOrthoAlg := TOrthogonalMethodAlgorithm.Create(P0, K0);
@@ -305,8 +282,8 @@ begin
   Odch      := Abs(dg - L);
   MezniOdch := 0.012 * Sqrt(L) + 0.10;
 
-  FPNum  := FormatPointId(GridBaseline.Cells[1, 1]);
-  FKNum  := FormatPointId(GridBaseline.Cells[1, 2]);
+  FPNum  := FormatPointId(GridBaseline.Cells[GridBaseline.FieldToCol(CB), 1]);
+  FKNum  := FormatPointId(GridBaseline.Cells[GridBaseline.FieldToCol(CB), 2]);
   FsP := sP;  FqP := qP;
   FsK := sK;  FqK := qK;
   FOdch  := Odch;

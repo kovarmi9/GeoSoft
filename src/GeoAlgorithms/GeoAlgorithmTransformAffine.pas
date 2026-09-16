@@ -66,7 +66,7 @@ begin
   for i := 0 to N - 1 do
   begin
     if Abs(Aug[i][i]) < 1e-12 then
-      raise Exception.Create('Matrix is singular or nearly singular');
+      raise Exception.Create('Matice je singulární - identické body jsou v degenerované poloze.');
 
     for j := 0 to N - 1 do
     begin
@@ -143,6 +143,12 @@ begin
   ClearWarnings;
 
   n := Length(LocalPoints);
+  if n <> Length(GlobalPoints) then
+    raise Exception.Create(
+      'Počet bodů v místní a cílové soustavě se neshoduje.');
+  if n < 3 then
+    raise Exception.Create(
+      'Pro afinní transformaci jsou potřeba alespoň 3 identické body.');
   SetLength(A, 2 * n, 6);
   SetLength(L, 2 * n);
 

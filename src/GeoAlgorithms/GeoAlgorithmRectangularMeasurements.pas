@@ -56,7 +56,7 @@ begin
   N := Length(InputPoints);
 
   if N < 3 then
-    raise Exception.Create('At least 3 points are required.');
+    raise Exception.Create('Pro výpočet jsou potřeba alespoň 3 body.');
 
   SetLength(FLocalPoints, N);
   CurX := 0;  CurY := 0;
@@ -98,7 +98,7 @@ begin
       end;
 
   if IdCount < 2 then
-    raise Exception.Create('At least 2 points with known coordinates are required.');
+    raise Exception.Create('Jsou potřeba alespoň 2 body se známými souřadnicemi.');
 
   Transform := TCongruentTransformation.Create;
   try

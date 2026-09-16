@@ -40,13 +40,13 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       ExplicitLeft = 690
     end
   end
-  object GridBaseline: TGeoPointsGrid [2]
+  object GridBaseline: TGeoFieldsGrid [2]
     Left = 0
     Top = 75
     Width = 800
     Height = 81
     Align = alTop
-    ColCount = 9
+    ColCount = 8
     FixedColor = clRed
     RowCount = 3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
@@ -54,6 +54,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     TabOrder = 2
     OnKeyDown = AnchorGridKeyDown
     EnterEndBehavior = ebMoveFocusNext
+    GeoFields = [CB, X, Y, Z, Xm, Ym, Poznamka]
     ColumnHeaders.Strings = (
       ''
       #268#237'slo bodu'
@@ -62,35 +63,16 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       'Y'
       'X'
       'Z'
-      'Kvalita'
       'Popis')
     RowHeaders.Strings = (
       ''
       'P'
       'K')
-    ColumnFilters = <
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end>
     ExplicitWidth = 798
     ColWidths = (
       64
       88
       88
-      87
       87
       87
       87
@@ -115,13 +97,13 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     ScrollBars = ssVertical
     TabOrder = 3
   end
-  object GridDetail: TGeoPointsGrid [4]
+  object GridDetail: TGeoFieldsGrid [4]
     Left = 0
     Top = 364
     Width = 800
     Height = 187
     Align = alClient
-    ColCount = 9
+    ColCount = 8
     FixedColor = clRed
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
@@ -129,6 +111,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     TabOrder = 4
     OnKeyDown = DetailGridKeyDown
     EnterEndBehavior = ebAddRow
+    GeoFields = [CB, X, Y, Z, Xm, Ym, Poznamka]
     ColumnHeaders.Strings = (
       ''
       #268#237'slo bodu'
@@ -137,34 +120,15 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       'Y'
       'X'
       'Z'
-      'Kvalita'
       'Popis')
     RowHeaders.Strings = (
       '')
-    ColumnFilters = <
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end
-      item
-      end>
     ExplicitWidth = 798
     ExplicitHeight = 179
     ColWidths = (
       64
       88
       88
-      87
       87
       87
       87

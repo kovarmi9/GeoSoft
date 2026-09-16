@@ -20,6 +20,7 @@ type
     HasMaxValue: Boolean;
     MaxValue: Double;
     DecimalPlaces: Integer;
+    AllowEmpty: Boolean;
   end;
 
   /// <summary>
@@ -57,6 +58,7 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
+  Result.AllowEmpty := False;
 end;
 
 /// <summary>
@@ -71,6 +73,7 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
+  Result.AllowEmpty := False;
 end;
 
 /// <summary>
@@ -86,6 +89,7 @@ begin
   Result.HasMaxValue := True;
   Result.MaxValue := AMaxValue;
   Result.DecimalPlaces := ADecimalPlaces;
+  Result.AllowEmpty := False;
 end;
 
 /// <summary>
@@ -100,12 +104,14 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := -1;
+  Result.AllowEmpty := False;
 end;
 
 /// <summary>
 /// Integer length limit.
 /// </summary>
-function MakeInteger(AMaxLength: Integer): TColumnFilterData;
+function MakeInteger(AMaxLength: Integer;
+  AAllowEmpty: Boolean = False): TColumnFilterData;
 begin
   Result.MinLength := 0;
   Result.MaxLength := AMaxLength;
@@ -114,6 +120,7 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := -1;
+  Result.AllowEmpty := AAllowEmpty;
 end;
 
 /// <summary>
@@ -144,43 +151,44 @@ begin
   AFilter.HasMaxValue := AData.Filter.HasMaxValue;
   AFilter.MaxValue := AData.Filter.MaxValue;
   AFilter.DecimalPlaces := AData.Filter.DecimalPlaces;
+  AFilter.AllowEmpty := AData.Filter.AllowEmpty;
 end;
 
 initialization
   SetField(Uloha,    'Uloha',             cdtInteger, MakeInteger(2));
 
-  SetField(CB,       'Cislo bodu',        cdtNone,    MakeText(16));
+  SetField(CB,       'Cislo bodu',        cdtInteger, MakeInteger(15, True));
 
-  SetField(X,        'X',                 cdtFloat,   MakeFloat(3));
+  SetField(X,        'X',                 cdtExpression, MakeFloat(3));
 
-  SetField(Y,        'Y',                 cdtFloat,   MakeFloat(3));
+  SetField(Y,        'Y',                 cdtExpression, MakeFloat(3));
 
-  SetField(Z,        'Z',                 cdtFloat,   MakeFloat(3));
+  SetField(Z,        'Z',                 cdtExpression, MakeFloat(3));
 
-  SetField(Xm,       'Xm',                cdtFloat,   MakeFloat(3));
+  SetField(Xm,       'Xm',                cdtExpression, MakeFloat(3));
 
-  SetField(Ym,       'Ym',                cdtFloat,   MakeFloat(3));
+  SetField(Ym,       'Ym',                cdtExpression, MakeFloat(3));
 
-  SetField(Zm,       'Zm',                cdtFloat,   MakeFloat(3));
+  SetField(Zm,       'Zm',                cdtExpression, MakeFloat(3));
 
   SetField(TypS,     'Typ delky',         cdtInteger, MakeInteger(1));
 
-  SetField(SH,       'Vodorovna delka',   cdtFloat,   MakeMin(0, 3));
+  SetField(SH,       'Vodorovna delka',   cdtExpression, MakeMin(0, 3));
 
-  SetField(SS,       'Sikma delka',       cdtFloat,   MakeMin(0, 3));
+  SetField(SS,       'Sikma delka',       cdtExpression, MakeMin(0, 3));
 
-  SetField(VS,       'Vyska pristroje',   cdtFloat,   MakeFloat(3));
+  SetField(VS,       'Vyska pristroje',   cdtExpression, MakeFloat(3));
 
-  SetField(VC,       'Vyska cile',        cdtFloat,   MakeFloat(3));
+  SetField(VC,       'Vyska cile',        cdtExpression, MakeFloat(3));
 
   SetField(HZ,       'HZ uhel [g]',       cdtFloat,   MakeRange(-400, 400, 6));
 
   SetField(Zuhel,    'Zenitovy uhel [g]', cdtFloat,   MakeRange(-400, 400, 6));
 
-  SetField(PolarD,   'Polarni domenek',   cdtFloat,   MakeFloat(3));
+  SetField(PolarD,   'Polarni domenek',   cdtExpression, MakeFloat(3));
 
-  SetField(PolarK,   'Polarni kolmice',   cdtFloat,   MakeFloat(3));
+  SetField(PolarK,   'Polarni kolmice',   cdtExpression, MakeFloat(3));
 
-  SetField(Poznamka, 'Poznamka',          cdtNone,    MakeText(128));
+  SetField(Poznamka, 'Poznamka',          cdtNone,    MakeText(32));
 
 end.

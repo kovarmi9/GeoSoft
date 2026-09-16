@@ -245,17 +245,19 @@ begin
   else
     ColCount := FixedCols + DataCount;
 
-  // 3) Restore default widths for visible data columns
-  for I := FixedCols to ColCount - 1 do
-    ColWidths[I] := DefaultColWidth;
+  // Column widths are deliberately left alone. TCustomGrid gives a newly
+  // added column DefaultColWidth by itself, and anything set in the designer
+  // or by the user survives a field reorder.
 
-  // 4) Rebuild headers and validation filters
+  // 3) Rebuild headers and validation filters
   RefreshHeaders;
   RefreshFilters;
 
-  // 5) Hide placeholder column when no fields are active
+  // 4) Hide placeholder column when no fields are active
   if DataCount = 0 then
-    ColWidths[FixedCols] := 0;
+    ColWidths[FixedCols] := 0
+  else if ColWidths[FixedCols] = 0 then
+    ColWidths[FixedCols] := DefaultColWidth;   // it was the placeholder
 end;
 
 procedure TGeoFieldsGrid.RefreshHeaders;
@@ -355,12 +357,7 @@ begin
         MessageBeep(MB_ICONWARNING);
       end;
       ciaBlock:
-      begin
-        // Navigaci zablokuje MoveToNextCell přes FLastCommitFailed
-        // Editor zůstane otevřený s původní hodnotou buňky
-        MessageBeep(MB_ICONWARNING);
-        FLastCommitFailed := True;
-      end;
+        RejectCommit;
     end;
   end;
 end;

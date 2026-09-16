@@ -45,6 +45,12 @@ begin
   ClearWarnings;
 
   n := Length(LocalPoints);
+  if n <> Length(GlobalPoints) then
+    raise Exception.Create(
+      'Počet bodů v místní a cílové soustavě se neshoduje.');
+  if n < 2 then
+    raise Exception.Create(
+      'Pro podobnostní transformaci jsou potřeba alespoň 2 identické body.');
 
   // Compute centroids of both point sets
   SumYL := 0; SumXL := 0; SumYG := 0; SumXG := 0;
@@ -77,6 +83,11 @@ begin
     SumL1 := SumL1 + (XrL * XrG + YrL * YrG);
     SumL2 := SumL2 + (XrL * YrG - YrL * XrG);
   end;
+
+  // All control points in one spot - no direction can be derived from them
+  if SumSq < 1e-10 then
+    raise Exception.Create(
+      'Identické body splývají, transformaci z nich nelze určit.');
 
   // Lambda parameters (closed-form least-squares solution)
   FLambda1 := SumL1 / SumSq;

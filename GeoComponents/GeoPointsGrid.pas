@@ -260,12 +260,7 @@ begin
         MessageBeep(MB_ICONWARNING);
       end;
       ciaBlock:
-      begin
-        // Navigaci zablokuje MoveToNextCell přes FLastCommitFailed
-        // Editor zůstane otevřený s původní hodnotou buňky
-        MessageBeep(MB_ICONWARNING);
-        FLastCommitFailed := True;
-      end;
+        RejectCommit;
     end;
   end;
 end;

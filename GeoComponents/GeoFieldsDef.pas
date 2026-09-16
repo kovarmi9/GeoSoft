@@ -21,6 +21,7 @@ type
     MaxValue: Double;
     DecimalPlaces: Integer;
     AllowEmpty: Boolean;
+    WrapAt: Double;
   end;
 
   /// <summary>
@@ -59,6 +60,7 @@ begin
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
   Result.AllowEmpty := False;
+  Result.WrapAt := 0;
 end;
 
 /// <summary>
@@ -74,6 +76,7 @@ begin
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
   Result.AllowEmpty := False;
+  Result.WrapAt := 0;
 end;
 
 /// <summary>
@@ -90,6 +93,7 @@ begin
   Result.MaxValue := AMaxValue;
   Result.DecimalPlaces := ADecimalPlaces;
   Result.AllowEmpty := False;
+  Result.WrapAt := 0;
 end;
 
 /// <summary>
@@ -105,6 +109,7 @@ begin
   Result.MaxValue := 0;
   Result.DecimalPlaces := -1;
   Result.AllowEmpty := False;
+  Result.WrapAt := 0;
 end;
 
 /// <summary>
@@ -121,6 +126,23 @@ begin
   Result.MaxValue := 0;
   Result.DecimalPlaces := -1;
   Result.AllowEmpty := AAllowEmpty;
+  Result.WrapAt := 0;
+end;
+
+/// <summary>
+/// Angle in gon: no limits, the value wraps into 0..400.
+/// </summary>
+function MakeGon(ADecimalPlaces: Integer): TColumnFilterData;
+begin
+  Result.MinLength := 0;
+  Result.MaxLength := 0;
+  Result.HasMinValue := False;
+  Result.MinValue := 0;
+  Result.HasMaxValue := False;
+  Result.MaxValue := 0;
+  Result.DecimalPlaces := ADecimalPlaces;
+  Result.AllowEmpty := False;
+  Result.WrapAt := 400;
 end;
 
 /// <summary>
@@ -152,6 +174,7 @@ begin
   AFilter.MaxValue := AData.Filter.MaxValue;
   AFilter.DecimalPlaces := AData.Filter.DecimalPlaces;
   AFilter.AllowEmpty := AData.Filter.AllowEmpty;
+  AFilter.WrapAt := AData.Filter.WrapAt;
 end;
 
 initialization
@@ -181,9 +204,9 @@ initialization
 
   SetField(VC,       'Vyska cile',        cdtExpression, MakeFloat(3));
 
-  SetField(HZ,       'HZ uhel [g]',       cdtFloat,   MakeRange(-400, 400, 6));
+  SetField(HZ,       'HZ uhel [g]',       cdtExpression, MakeGon(6));
 
-  SetField(Zuhel,    'Zenitovy uhel [g]', cdtFloat,   MakeRange(-400, 400, 6));
+  SetField(Zuhel,    'Zenitovy uhel [g]', cdtExpression, MakeRange(0, 400, 6));
 
   SetField(PolarD,   'Polarni domenek',   cdtExpression, MakeFloat(3));
 

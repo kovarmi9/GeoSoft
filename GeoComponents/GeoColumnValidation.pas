@@ -48,6 +48,7 @@ type
     FMaxValue: Double;
     FDecimalPlaces: Integer;
     FAllowEmpty: Boolean;
+    FWrapAt: Double;
     FOnInvalidCommit: TCommitInvalidAction;
     FOnGetDefaultText: TGetDefaultTextEvent;
 
@@ -60,6 +61,7 @@ type
     procedure SetMaxValue(const Value: Double);
     procedure SetDecimalPlaces(const Value: Integer);
     procedure SetAllowEmpty(const Value: Boolean);
+    procedure SetWrapAt(const Value: Double);
 
     function GetColumn: Integer;
     procedure SetOnInvalidCommit(const Value: TCommitInvalidAction);
@@ -122,6 +124,13 @@ type
     /// </summary>
     property AllowEmpty: Boolean
       read FAllowEmpty write SetAllowEmpty default False;
+
+    /// <summary>
+    /// Period of a value that repeats, 0 for none. On commit the value is
+    /// moved into 0..WrapAt by whole periods. Use 400 for gon.
+    /// </summary>
+    property WrapAt: Double
+      read FWrapAt write SetWrapAt;
 
     /// <summary>
     /// Controls what happens when commit validation fails.
@@ -214,6 +223,7 @@ begin
   FMaxValue        := 0.0;
   FDecimalPlaces   := -1;
   FAllowEmpty      := False;
+  FWrapAt          := 0;
   FOnInvalidCommit := ciaBlock;
 end;
 
@@ -233,6 +243,7 @@ begin
     FMaxValue        := Src.FMaxValue;
     FDecimalPlaces   := Src.FDecimalPlaces;
     FAllowEmpty      := Src.FAllowEmpty;
+    FWrapAt          := Src.FWrapAt;
     FOnInvalidCommit := Src.FOnInvalidCommit;
     // FOnGetDefaultText is not copied — it must be assigned in code, not in the form designer
     Changed(False);
@@ -306,6 +317,13 @@ procedure TColumnFilter.SetAllowEmpty(const Value: Boolean);
 begin
   if FAllowEmpty = Value then Exit;
   FAllowEmpty := Value;
+  Changed(False);
+end;
+
+procedure TColumnFilter.SetWrapAt(const Value: Double);
+begin
+  if FWrapAt = Value then Exit;
+  FWrapAt := Value;
   Changed(False);
 end;
 
@@ -612,6 +630,16 @@ begin
     Exit(False);
 end;
 
+// Takes away whole periods, so a repeating value lands in 0..WrapAt.
+procedure Wrap(AFilter: TColumnFilter; var AValue: Double);
+begin
+  if AFilter.WrapAt <= 0 then
+    Exit;
+  AValue := AValue - AFilter.WrapAt * Int(AValue / AFilter.WrapAt);
+  if AValue < 0 then
+    AValue := AValue + AFilter.WrapAt;
+end;
+
 function TryGetNumericValue(AFilter: TColumnFilter;
                             const AText: string; out Value: Double): Boolean;
 var
@@ -835,6 +863,7 @@ begin
     cdtExpression:
       if TryEvaluateExpression(AText, V) then
       begin
+        Wrap(AFilter, V);
         if not CheckValueBounds(AFilter, V) then
           Exit(False);
         AText := FormatDouble(V, AFilter.DecimalPlaces);
@@ -843,7 +872,10 @@ begin
     cdtFloat:
       if (AFilter.DecimalPlaces >= 0) and
          TryStrToFloat(AText, V, FormatSettings) then
+      begin
+        Wrap(AFilter, V);
         AText := FormatDouble(V, AFilter.DecimalPlaces);
+      end;
   end;
 end;
 

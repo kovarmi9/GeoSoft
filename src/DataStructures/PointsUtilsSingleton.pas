@@ -281,39 +281,41 @@ end;
 
 procedure TPointDictionary.ExportToBinary(const FileName: string);
 var
-  BinaryFile: TFileStream;
+  BinaryFile: File of TPoint;
   Point: TPoint;
   Rec: TPoint;
 begin
   //CheckFileError(FileName); // Check file validity before writing
-  BinaryFile := TFileStream.Create(FileName, fmCreate);
+  AssignFile(BinaryFile, FileName);
+  Rewrite(BinaryFile);
   try
     for Point in FPointDict.Values do
     begin
       Rec := Point;
       if GCoordOrder = coYX then
         SwapXY(Rec);   // the first slot in the file carries the first coordinate
-      BinaryFile.Write(Rec, SizeOf(Rec));
+      Write(BinaryFile, Rec);
     end;
   finally
-    BinaryFile.Free;
+    CloseFile(BinaryFile);
   end;
 end;
 
 procedure TPointDictionary.ImportFromBinary(const FileName: string);
 var
-  BinaryFile: TFileStream;
+  BinaryFile: File of TPoint;
   Point: TPoint;
   Imported, Updated: Integer;
 begin
   CheckFileError(FileName);
-  BinaryFile := TFileStream.Create(FileName, fmOpenRead);
+  AssignFile(BinaryFile, FileName);
+  Reset(BinaryFile);
   Imported := 0;
   Updated := 0;
   try
-    while BinaryFile.Position < BinaryFile.Size do
+    while not Eof(BinaryFile) do
     begin
-      BinaryFile.Read(Point, SizeOf(Point));
+      Read(BinaryFile, Point);
       if GCoordOrder = coYX then
         SwapXY(Point);
       if PointExists(Point.PointNumber) then
@@ -322,7 +324,7 @@ begin
       Inc(Imported);
     end;
   finally
-    BinaryFile.Free;
+    CloseFile(BinaryFile);
   end;
   if Updated > 0 then
     MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [Imported, Updated]),

@@ -5,6 +5,10 @@ interface
 uses
   System.SysUtils, System.Classes;
 
+const
+  MAX_CB    = 15;   // point number length
+  MAX_POPIS = 32;   // description length
+
 type
   // Enum of all supported measurement fields
   TGeoField = (
@@ -27,10 +31,12 @@ type
   // Set of selected fields
   TGeoFields = set of TGeoField;
 
-  // Single measurement row record
-  TGeoRow = record
+  // Single measurement row record.
+  // Packed on purpose: the binary file stores this record as it is,
+  // so the layout must depend only on the field types, not on the compiler.
+  TGeoRow = packed record
     Uloha:         Integer;     // task type
-    CB:            string[16];  // point number
+    CB:            string[MAX_CB];  // point number
     X, Y, Z:       Double;      // global coordinates
     Xm, Ym, Zm:    Double;      // local coordinates
     TypS:          Integer;     // distance type
@@ -42,7 +48,7 @@ type
     Zuhel:         Double;      // zenith angle [gon] — named Zuhel to avoid collision with Z coordinate
     PolarD:        Double;      // polar offset (domerek)
     PolarK:        Double;      // polar perpendicular (kolmice)
-    Poznamka:      string[128]; // note
+    Poznamka:      string[MAX_POPIS]; // note
   end;
 
   // Dynamic array of rows

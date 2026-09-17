@@ -398,7 +398,7 @@ begin
 
           case Field of
             Uloha:    if not TryToInt(Value, Row.Uloha) then Row.Uloha := 0;
-            CB:       Row.CB := ShortString(Copy(Value, 1, 16));
+            CB:       Row.CB := ShortString(Copy(Value, 1, MAX_CB));
             X:        if not TryToFloat(Value, Row.X,  FormatSettings) then Row.X  := 0;
             Y:        if not TryToFloat(Value, Row.Y,  FormatSettings) then Row.Y  := 0;
             Z:        if not TryToFloat(Value, Row.Z,  FormatSettings) then Row.Z  := 0;
@@ -414,7 +414,7 @@ begin
             Zuhel:    if not TryToFloat(Value, Row.Zuhel, FormatSettings) then Row.Zuhel := 0;
             PolarD:   if not TryToFloat(Value, Row.PolarD, FormatSettings) then Row.PolarD := 0;
             PolarK:   if not TryToFloat(Value, Row.PolarK, FormatSettings) then Row.PolarK := 0;
-            Poznamka: Row.Poznamka := ShortString(Copy(Value, 1, 128));
+            Poznamka: Row.Poznamka := ShortString(Copy(Value, 1, MAX_POPIS));
           end;
         end;
     end;

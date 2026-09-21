@@ -28,14 +28,6 @@ type
     Memo1: TMemo;
     PanelCalculate: TPanel;
     ButtonCalculate: TButton;
-    PanelStation: TPanel;
-    EditStationNo: TLabeledEdit;
-    EditStationY: TLabeledEdit;
-    EditStationX: TLabeledEdit;
-    EditStationZ: TLabeledEdit;
-    EditStationVS: TLabeledEdit;
-    EditStationKK: TLabeledEdit;
-    EditStationPopis: TLabeledEdit;
     procedure FormCreate(Sender: TObject);
     procedure ButtonCalculateClick(Sender: TObject);
   private
@@ -87,7 +79,7 @@ end;
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
 begin
   ApplyCoordOrder(StringGrid1);
-  ApplyCoordOrder(EditStationY, EditStationX);
+  //ApplyCoordOrder(EditStationY, EditStationX);
 end;
 
 procedure TRectangularMeasurementsForm.FillFromDict(const R: Integer);

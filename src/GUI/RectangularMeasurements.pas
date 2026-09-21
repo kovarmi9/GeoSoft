@@ -8,7 +8,8 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Menus,
   Types, Math, Point, PointsUtilsSingleton, PointPrefixState,
-  GeoRow, GeoGrid, GeoFieldsGrid, CoordOrderState, ProtocolTable,
+  GeoRow, GeoDataFrame, GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState,
+  ProtocolTable,
   GeoAlgorithmBase,
   GeoAlgorithmRectangularMeasurements,
   CalcBase, Vcl.Mask;
@@ -28,8 +29,11 @@ type
     Memo1: TMemo;
     PanelCalculate: TPanel;
     ButtonCalculate: TButton;
+    ButtonSave: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonCalculateClick(Sender: TObject);
+    procedure ButtonSaveClick(Sender: TObject);
+    procedure MenuUlozitProtokolClick(Sender: TObject);
   private
     FAlg: TRectangularMeasurementsAlgorithm;
     FLines: array of TChainLine;
@@ -74,6 +78,11 @@ begin
   StringGrid1.OnCellCommitted := PointCommitted;
 
   Memo1.Lines.Clear;
+end;
+
+procedure TRectangularMeasurementsForm.MenuUlozitProtokolClick(Sender: TObject);
+begin
+  inherited;
 end;
 
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
@@ -220,6 +229,35 @@ begin
   end;
 
   ShowProtocol(Memo1.Lines);
+end;
+
+const
+  ULOHA_KONSTR_OMERNE = 4;                        // task code
+  CSV_NAME            = 'konstrukcni_omerne.csv'; // saved next to exe
+
+// Dumps the grid through a data frame into CSV
+procedure TRectangularMeasurementsForm.ButtonSaveClick(Sender: TObject);
+var
+  DF: TGeoDataFrame;
+  FileName: string;
+begin
+  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
+
+  DF := TGeoDataFrame.Create([Uloha, CB, X, Y, SH, Poznamka]);
+  try
+    GridToFrame(StringGrid1, DF, ULOHA_KONSTR_OMERNE);
+
+    if DF.Count = 0 then
+    begin
+      ShowMessage('Zápisník je prázdný, nic se neuložilo.');
+      Exit;
+    end;
+
+    DF.ToCSV(FileName, ';', ',');
+    ShowMessage(Format('Uloženo %d řádků do souboru%s%s', [DF.Count, sLineBreak, FileName]));
+  finally
+    DF.Free;
+  end;
 end;
 
 procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);

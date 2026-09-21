@@ -1,9 +1,12 @@
 inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233
+  ClientHeight = 598
   StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate
+  ExplicitHeight = 662
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
+    ExplicitWidth = 792
     inherited ComboBoxKU: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
@@ -18,8 +21,9 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     end
   end
   inherited StatusBar1: TStatusBar
-    Top = 551
-    ExplicitTop = 551
+    Top = 536
+    ExplicitTop = 528
+    ExplicitWidth = 798
   end
   object StringGrid1: TGeoFieldsGrid [2]
     Left = 0
@@ -40,7 +44,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       'Vodorovna delka'
       'Poznamka')
     GeoFields = [CB, X, Y, SH, Poznamka]
-    ExplicitTop = 87
+    ExplicitWidth = 798
     ColWidths = (
       40
       64
@@ -53,34 +57,49 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Left = 0
     Top = 163
     Width = 800
-    Height = 388
+    Height = 373
     Align = alClient
     Lines.Strings = (
       'Protokol')
     ScrollBars = ssVertical
     TabOrder = 3
-    ExplicitHeight = 378
+    ExplicitLeft = 32
+    ExplicitTop = 123
   end
   object PanelCalculate: TPanel [4]
     Left = 0
-    Top = 570
+    Top = 555
     Width = 800
-    Height = 30
+    Height = 43
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
+    ExplicitTop = 547
+    ExplicitWidth = 798
     DesignSize = (
       800
-      30)
+      43)
     object ButtonCalculate: TButton
-      Left = 576
-      Top = 2
+      Left = 574
+      Top = 6
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = ButtonCalculateClick
+      ExplicitLeft = 572
+    end
+    object ButtonSave: TButton
+      Left = 684
+      Top = 6
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Ulo'#382'it'
+      TabOrder = 1
+      OnClick = ButtonSaveClick
+      ExplicitLeft = 682
     end
   end
 end

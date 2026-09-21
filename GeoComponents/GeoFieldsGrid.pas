@@ -442,6 +442,7 @@ begin
       X:        Cells[C, ARow] := FloatToStr(GRow.X);
       Y:        Cells[C, ARow] := FloatToStr(GRow.Y);
       Z:        Cells[C, ARow] := FloatToStr(GRow.Z);
+      CBm:      Cells[C, ARow] := string(GRow.CBm);
       Xm:       Cells[C, ARow] := FloatToStr(GRow.Xm);
       Ym:       Cells[C, ARow] := FloatToStr(GRow.Ym);
       Zm:       Cells[C, ARow] := FloatToStr(GRow.Zm);
@@ -455,6 +456,7 @@ begin
       PolarD:   Cells[C, ARow] := FloatToStr(GRow.PolarD);
       PolarK:   Cells[C, ARow] := FloatToStr(GRow.PolarK);
       Poznamka: Cells[C, ARow] := string(GRow.Poznamka);
+      KK:       Cells[C, ARow] := IntToStr(GRow.KK);
     end;
   end;
 end;
@@ -482,6 +484,7 @@ begin
       X:        TryStrToFloat(S, GRow.X);
       Y:        TryStrToFloat(S, GRow.Y);
       Z:        TryStrToFloat(S, GRow.Z);
+      CBm:      GRow.CBm := ShortString(S);
       Xm:       TryStrToFloat(S, GRow.Xm);
       Ym:       TryStrToFloat(S, GRow.Ym);
       Zm:       TryStrToFloat(S, GRow.Zm);
@@ -495,6 +498,7 @@ begin
       PolarD:   TryStrToFloat(S, GRow.PolarD);
       PolarK:   TryStrToFloat(S, GRow.PolarK);
       Poznamka: GRow.Poznamka := ShortString(S);
+      KK:       TryStrToInt(S, GRow.KK);
     end;
   end;
 end;

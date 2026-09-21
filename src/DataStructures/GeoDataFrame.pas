@@ -277,6 +277,7 @@ begin
           X:        s := FloatToStr(Row.X, FormatSettings);
           Y:        s := FloatToStr(Row.Y, FormatSettings);
           Z:        s := FloatToStr(Row.Z, FormatSettings);
+          CBm:      s := '"' + StringReplace(string(Row.CBm), '"', '""', [rfReplaceAll]) + '"';
           Xm:       s := FloatToStr(Row.Xm, FormatSettings);
           Ym:       s := FloatToStr(Row.Ym, FormatSettings);
           Zm:       s := FloatToStr(Row.Zm, FormatSettings);
@@ -290,6 +291,7 @@ begin
           PolarD:   s := FloatToStr(Row.PolarD, FormatSettings);
           PolarK:   s := FloatToStr(Row.PolarK, FormatSettings);
           Poznamka: s := '"' + StringReplace(string(Row.Poznamka), '"', '""', [rfReplaceAll]) + '"';
+          KK:       s := IntToStr(Row.KK);
         end;
 
         Line := Line + s;
@@ -402,6 +404,7 @@ begin
             X:        if not TryToFloat(Value, Row.X,  FormatSettings) then Row.X  := 0;
             Y:        if not TryToFloat(Value, Row.Y,  FormatSettings) then Row.Y  := 0;
             Z:        if not TryToFloat(Value, Row.Z,  FormatSettings) then Row.Z  := 0;
+            CBm:      Row.CBm := ShortString(Copy(Value, 1, MAX_CB));
             Xm:       if not TryToFloat(Value, Row.Xm, FormatSettings) then Row.Xm := 0;
             Ym:       if not TryToFloat(Value, Row.Ym, FormatSettings) then Row.Ym := 0;
             Zm:       if not TryToFloat(Value, Row.Zm, FormatSettings) then Row.Zm := 0;
@@ -415,6 +418,7 @@ begin
             PolarD:   if not TryToFloat(Value, Row.PolarD, FormatSettings) then Row.PolarD := 0;
             PolarK:   if not TryToFloat(Value, Row.PolarK, FormatSettings) then Row.PolarK := 0;
             Poznamka: Row.Poznamka := ShortString(Copy(Value, 1, MAX_POPIS));
+            KK:       if not TryToInt(Value, Row.KK) then Row.KK := 0;
           end;
         end;
     end;

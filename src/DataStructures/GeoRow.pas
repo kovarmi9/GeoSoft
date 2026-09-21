@@ -15,6 +15,7 @@ type
     Uloha,
     CB,
     X, Y, Z,
+    CBm,
     Xm, Ym, Zm,
     TypS,
     SH,
@@ -25,7 +26,8 @@ type
     Zuhel,
     PolarD,
     PolarK,
-    Poznamka
+    Poznamka,
+    KK
   );
 
   // Set of selected fields
@@ -38,6 +40,7 @@ type
     Uloha:         Integer;     // task type
     CB:            string[MAX_CB];  // point number
     X, Y, Z:       Double;      // global coordinates
+    CBm:           string[MAX_CB];  // source point number
     Xm, Ym, Zm:    Double;      // local coordinates
     TypS:          Integer;     // distance type
     SH:            Double;      // horizontal distance
@@ -49,6 +52,7 @@ type
     PolarD:        Double;      // polar offset (domerek)
     PolarK:        Double;      // polar perpendicular (kolmice)
     Poznamka:      string[MAX_POPIS]; // note
+    KK:            Integer;     // quality code 0..8
   end;
 
   // Dynamic array of rows
@@ -76,7 +80,7 @@ procedure LoadRow(const FileName: string; out Rows: TGeoRowArray); overload;
 // Field name lookup table used for CSV headers
 const
   GeoFieldNames: array[TGeoField] of string = (
-    'Uloha','CB','X','Y','Z','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka'
+    'Uloha','CB','X','Y','Z','CBm','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka','KK'
   );
 
 implementation
@@ -86,6 +90,7 @@ begin
    ARow.Uloha := 0;
    ARow.CB := '';
    ARow.X := 0 ; ARow.Y := 0; ARow.Z := 0;
+   ARow.CBm := '';
    ARow.Xm := 0 ; ARow.Ym := 0; ARow.Zm := 0;
    ARow.TypS := 0;
    ARow.SH := 0;
@@ -97,6 +102,7 @@ begin
    ARow.PolarD := 0;
    ARow.PolarK := 0;
    ARow.Poznamka := '';
+   ARow.KK := 0;
 end;
 
 // Overload that prints all fields — delegates to the field-mask overload
@@ -125,6 +131,7 @@ begin
         X:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.X]);
         Y:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Y]);
         Z:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Z]);
+        CBm:      s := Format('%s: %s', [GeoFieldNames[f], ARow.CBm]);
         Xm:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Xm]);
         Ym:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Ym]);
         Zm:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Zm]);
@@ -138,6 +145,7 @@ begin
         PolarD:   s := Format('%s: %.3f', [GeoFieldNames[f], ARow.PolarD]);
         PolarK:   s := Format('%s: %.3f', [GeoFieldNames[f], ARow.PolarK]);
         Poznamka: s := Format('%s: %s', [GeoFieldNames[f], ARow.Poznamka]);
+        KK:       s := Format('%s: %d', [GeoFieldNames[f], ARow.KK]);
       end;
       Result.Add(s);
     end;

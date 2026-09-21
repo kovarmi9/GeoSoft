@@ -130,6 +130,23 @@ begin
 end;
 
 /// <summary>
+/// Integer with a length limit and a value range.
+/// </summary>
+function MakeIntegerRange(AMaxLength: Integer;
+  AMinValue, AMaxValue: Double): TColumnFilterData;
+begin
+  Result.MinLength := 0;
+  Result.MaxLength := AMaxLength;
+  Result.HasMinValue := True;
+  Result.MinValue := AMinValue;
+  Result.HasMaxValue := True;
+  Result.MaxValue := AMaxValue;
+  Result.DecimalPlaces := -1;
+  Result.AllowEmpty := False;
+  Result.WrapAt := 0;
+end;
+
+/// <summary>
 /// Angle in gon: no limits, the value wraps into 0..400.
 /// </summary>
 function MakeGon(ADecimalPlaces: Integer): TColumnFilterData;
@@ -188,6 +205,8 @@ initialization
 
   SetField(Z,        'Z',                 cdtExpression, MakeFloat(3));
 
+  SetField(CBm,      'Cislo bodu zdroj',  cdtInteger, MakeInteger(15, True));
+
   SetField(Xm,       'Xm',                cdtExpression, MakeFloat(3));
 
   SetField(Ym,       'Ym',                cdtExpression, MakeFloat(3));
@@ -213,5 +232,7 @@ initialization
   SetField(PolarK,   'Polarni kolmice',   cdtExpression, MakeFloat(3));
 
   SetField(Poznamka, 'Poznamka',          cdtNone,    MakeText(32));
+
+  SetField(KK,       'Kod kvality',       cdtInteger, MakeIntegerRange(1, 0, 8));
 
 end.

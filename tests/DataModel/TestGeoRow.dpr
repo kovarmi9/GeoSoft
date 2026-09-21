@@ -27,6 +27,7 @@ begin
     r1.Uloha := 1;
     r1.CB := '751261478500012';
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
+    r1.CB := 'ahoj';
     r1.Xm := 1000;  r1.Ym := 5000;  r1.Zm := 0;
     r1.TypS := 1;
     r1.SH := 104.456;
@@ -38,6 +39,7 @@ begin
     r1.PolarD := 0.45;
     r1.PolarK := 0.20;
     r1.Poznamka := 'Testovací řádek';
+    r1.kk := 10;
 
     // Výpis vplněného řádku
     Writeln('Výpis vyplněného řádku');

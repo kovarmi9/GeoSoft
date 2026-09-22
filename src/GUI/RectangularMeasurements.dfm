@@ -3,10 +3,9 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   ClientHeight = 598
   StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate
-  ExplicitHeight = 662
+  ExplicitHeight = 659
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
-    ExplicitWidth = 796
     inherited ComboBoxKU: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
@@ -22,8 +21,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   end
   inherited StatusBar1: TStatusBar
     Top = 536
-    ExplicitTop = 528
-    ExplicitWidth = 798
+    ExplicitTop = 536
   end
   object StringGrid1: TGeoFieldsGrid [2]
     Left = 0
@@ -33,7 +31,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Align = alTop
     ColCount = 9
     RowCount = 2
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
     EnterEndBehavior = ebAddRow
     ColumnHeaders.Strings = (
@@ -41,20 +39,22 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       'Cislo bodu'
       'X'
       'Y'
+      'Xm'
+      'Ym'
       'Vodorovna delka'
-      'Poznamka')
+      'Poznamka'
+      'Kod kvality')
     GeoFields = [CB, X, Y, Xm, Ym, SH, Poznamka, KK]
-    ExplicitWidth = 798
     ColWidths = (
       40
+      120
       80
-      64
-      64
-      64
-      64
-      64
-      64
-      64)
+      80
+      80
+      80
+      80
+      80
+      80)
   end
   object Memo1: TMemo [3]
     Left = 0
@@ -66,8 +66,6 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       'Protokol')
     ScrollBars = ssVertical
     TabOrder = 3
-    ExplicitWidth = 798
-    ExplicitHeight = 365
   end
   object PanelCalculate: TPanel [4]
     Left = 0
@@ -77,8 +75,6 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
-    ExplicitTop = 547
-    ExplicitWidth = 798
     DesignSize = (
       800
       43)
@@ -91,7 +87,6 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = ButtonCalculateClick
-      ExplicitLeft = 570
     end
     object ButtonSave: TButton
       Left = 682
@@ -102,7 +97,6 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       Caption = 'Ulo'#382'it'
       TabOrder = 1
       OnClick = ButtonSaveClick
-      ExplicitLeft = 680
     end
   end
 end

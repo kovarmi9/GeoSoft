@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages,
-  System.SysUtils, System.Variants, System.Classes,
+  System.SysUtils, System.Variants, System.Classes, System.UITypes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Menus,
   Types, Math, Point, PointsUtilsSingleton, PointPrefixState,
@@ -15,32 +15,6 @@ uses
   CalcBase, Vcl.Mask;
 
 type
-  // One point of the chain, as the protocol shows it
-  TChainLine = record
-    Num:     Int64;
-    Dist:    Double;        // measured length to the next point
-    HasDist: Boolean;
-    Pt:      Point.TPoint;  // given coordinates, or computed ones
-    Known:   Boolean;       // True = given point
-  end;
-
-  // One item of the chain, as the grid holds it
-  TChainItem = record
-    Row:   Integer;         // grid row
-    Num:   Int64;
-    Dist:  Double;          // signed length from the previous point
-    Known: Boolean;         // found in the point list
-    Pt:    Point.TPoint;    // given coordinates of a known point
-  end;
-
-  // One computed stretch between two known points
-  TChainSegment = record
-    Lines:    array of TChainLine;
-    Closure:  Double;
-    MeasDist: Double;       // from the local walk
-    CalcDist: Double;       // from the given coordinates
-  end;
-
   TRectangularMeasurementsForm = class(TCalcBaseForm)
     StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
@@ -52,8 +26,8 @@ type
     procedure ButtonSaveClick(Sender: TObject);
   private
     FAlg: TRectangularMeasurementsAlgorithm;
-    FChain: array of TChainItem;
-    FSegments: array of TChainSegment;
+    FFrame: TGeoDataFrame;          // the input and the output of the run
+    FRows: TArray<Integer>;         // grid row of each frame row
     FWarnings: TStringList;         // collected from all stretches
     FRowNew: array of Boolean;      // listed point the user calls new
     FRowCB: array of string;        // last point number per row
@@ -61,8 +35,7 @@ type
     procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
     procedure FillRow(const R: Integer);
     procedure RecalcLocal;
-    procedure CollectChain;
-    procedure ComputeSegment(AFrom, ATo: Integer);
+    procedure BuildFrame;
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -83,12 +56,14 @@ begin
   inherited Create(AOwner);
   FAlg := TRectangularMeasurementsAlgorithm.Create;
   FWarnings := TStringList.Create;
+  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Xm, Ym, SH, Poznamka, KK]);
 end;
 
 destructor TRectangularMeasurementsForm.Destroy;
 begin
   FAlg.Free;
   FWarnings.Free;
+  FFrame.Free;
   inherited;
 end;
 
@@ -189,8 +164,8 @@ begin
 
   if Known then
   begin
-    SetCell(Y, R, FloatToStr(P.Y));
-    SetCell(X, R, FloatToStr(P.X));
+    SetCell(Y, R, FormatFloat('0.00', P.Y, FS));
+    SetCell(X, R, FormatFloat('0.00', P.X, FS));
     SetCell(KK, R, IntToStr(P.Quality));
     SetCell(Poznamka, R, string(P.Description));
   end
@@ -203,39 +178,14 @@ end;
 
 // Walks the chain again and refreshes the local coordinates
 procedure TRectangularMeasurementsForm.RecalcLocal;
-var
-  I, N, cCB, cSH: Integer;
-  Chain, Local: TPointsArray;
-  Rows: array of Integer;
 begin
   if StringGrid1.FieldToCol(Xm) < 0 then
     Exit;
 
-  cCB := StringGrid1.FieldToCol(CB);
-  cSH := StringGrid1.FieldToCol(SH);
-
-  N := 0;
-  for I := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
-  begin
-    if Trim(StringGrid1.Cells[cCB, I]) = '' then Continue;
-    Inc(N);
-    SetLength(Chain, N);
-    SetLength(Rows, N);
-    Chain[N - 1].PointNumber := StrToInt64Def(StringGrid1.Cells[cCB, I], 0);
-    Chain[N - 1].X := StrToFloatDef(StringGrid1.Cells[cSH, I], 0);
-    Rows[N - 1] := I;
-  end;
-
-  if N = 0 then Exit;
-
-  FAlg.BuildLocalPoints(Chain);
-  Local := FAlg.LocalPoints;
-
-  for I := 0 to High(Local) do
-  begin
-    SetCell(Xm, Rows[I], FormatFloat('0.00', Local[I].X, FS));
-    SetCell(Ym, Rows[I], FormatFloat('0.00', Local[I].Y, FS));
-  end;
+  // The walk needs no point list, so the plain bridge is enough
+  GridToFrame(StringGrid1, FFrame, ULOHA_DET, FRows);
+  FAlg.BuildLocalFrame(FFrame);
+  FrameToGrid(StringGrid1, FFrame, FRows, [Xm, Ym]);
 end;
 
 // Normalizes the number and refills the row
@@ -256,227 +206,158 @@ begin
     RecalcLocal;
 end;
 
-// Reads the grid rows into FChain
-procedure TRectangularMeasurementsForm.CollectChain;
+// Fills the frame from the grid and marks the given points
+procedure TRectangularMeasurementsForm.BuildFrame;
 var
-  I, N, cCB, cSH: Integer;
+  I, GridRow: Integer;
+  Num: Int64;
+  P: Point.TPoint;
+  IsGiven: Boolean;
 begin
-  SetLength(FChain, 0);
-  cCB := StringGrid1.FieldToCol(CB);
-  cSH := StringGrid1.FieldToCol(SH);
-  N := 0;
+  GridToFrame(StringGrid1, FFrame, ULOHA_DET, FRows);
 
-  for I := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
+  for I := 0 to FFrame.Count - 1 do
   begin
-    if Trim(StringGrid1.Cells[cCB, I]) = '' then Continue;
+    GridRow := FRows[I];
+    Num := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
 
-    Inc(N);
-    SetLength(FChain, N);
-    FChain[N - 1].Row   := I;
-    FChain[N - 1].Num   := StrToInt64Def(StringGrid1.Cells[cCB, I], 0);
-    FChain[N - 1].Dist  := StrToFloatDef(StringGrid1.Cells[cSH, I], 0);
-    FChain[N - 1].Known := TPointDictionary.GetInstance.PointExists(FChain[N - 1].Num);
+    // A listed point is given, unless the user said it is a new one
+    IsGiven := TPointDictionary.GetInstance.PointExists(Num)
+      and not ((GridRow <= High(FRowNew)) and FRowNew[GridRow]);
 
-    // The user said this listed point is a new one
-    if FChain[N - 1].Known and (I <= High(FRowNew)) and FRowNew[I] then
+    if IsGiven then
     begin
-      FChain[N - 1].Known := False;
-      FWarnings.Add(Format('Bod %s je v seznamu, ale počítá se jako nový.',
-        [PointId(FChain[N - 1].Num)]));
-    end;
+      FFrame.Rows[I].Uloha := ULOHA_IDENT;
 
-    // Coordinates of a known point always come from the list
-    if FChain[N - 1].Known then
-      FChain[N - 1].Pt := TPointDictionary.GetInstance.GetPoint(FChain[N - 1].Num);
-  end;
-end;
-
-// Computes one stretch between two different known points
-procedure TRectangularMeasurementsForm.ComputeSegment(AFrom, ATo: Integer);
-var
-  I, N: Integer;
-  Chain, Ident, Res, Loc: TPointsArray;
-  Seg: TChainSegment;
-  Head: string;
-begin
-  N := ATo - AFrom + 1;
-  if N < 3 then Exit;            // two known points side by side
-
-  Head := Format('Úsek %s–%s: ',
-    [PointId(FChain[AFrom].Num), PointId(FChain[ATo].Num)]);
-
-  SetLength(Chain, N);
-  for I := 0 to N - 1 do
-  begin
-    Chain[I].PointNumber := FChain[AFrom + I].Num;
-    if I = 0 then
-      Chain[I].X := 0            // the walk starts here
-    else
-    begin
-      Chain[I].X := FChain[AFrom + I].Dist;
-      if Chain[I].X = 0 then
-        FWarnings.Add(Head + Format('bod %s nemá délku.',
-          [PointId(FChain[AFrom + I].Num)]));
+      // The list decides, the cell can be edited
+      P := TPointDictionary.GetInstance.GetPoint(Num);
+      FFrame.Rows[I].X := P.X;
+      FFrame.Rows[I].Y := P.Y;
+      SetCell(Y, GridRow, FormatFloat('0.00', P.Y, FS));
+      SetCell(X, GridRow, FormatFloat('0.00', P.X, FS));
     end;
   end;
-
-  SetLength(Ident, 2);
-  Ident[0] := FChain[AFrom].Pt;
-  Ident[1] := FChain[ATo].Pt;
-
-  FAlg.IdenticalPoints := Ident;
-  try
-    Res := FAlg.Calculate(Chain);
-  except
-    on E: Exception do
-    begin
-      FWarnings.Add(Head + E.Message);
-      Exit;
-    end;
-  end;
-
-  for I := 0 to FAlg.Warnings.Count - 1 do
-    FWarnings.Add(Head + FAlg.Warnings[I]);
-
-  Loc := FAlg.LocalPoints;
-  Seg.Closure  := FAlg.Closure;
-  Seg.MeasDist := Sqrt(Sqr(Loc[N - 1].X - Loc[0].X) + Sqr(Loc[N - 1].Y - Loc[0].Y));
-  Seg.CalcDist := Sqrt(Sqr(Ident[1].X - Ident[0].X) + Sqr(Ident[1].Y - Ident[0].Y));
-
-  SetLength(Seg.Lines, N);
-  for I := 0 to N - 1 do
-  begin
-    Seg.Lines[I].Num     := FChain[AFrom + I].Num;
-    Seg.Lines[I].Dist    := Chain[I].X;
-    Seg.Lines[I].HasDist := I > 0;
-    Seg.Lines[I].Known   := FChain[AFrom + I].Known;
-
-    if FChain[AFrom + I].Known then
-      Seg.Lines[I].Pt := FChain[AFrom + I].Pt
-    else
-    begin
-      Seg.Lines[I].Pt := Res[I];
-      SetCell(Y, FChain[AFrom + I].Row, FormatFloat('0.00', Res[I].Y, FS));
-      SetCell(X, FChain[AFrom + I].Row, FormatFloat('0.00', Res[I].X, FS));
-    end;
-  end;
-
-  SetLength(FSegments, Length(FSegments) + 1);
-  FSegments[High(FSegments)] := Seg;
 end;
 
 procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
 var
-  I, First: Integer;
+  I, S: Integer;
+  Back: TArray<Integer>;
 begin
   FWarnings.Clear;
-  CollectChain;
-  SetLength(FSegments, 0);
+  Memo1.Lines.Clear;
+  BuildFrame;
 
-  if Length(FChain) = 0 then
+  if FFrame.Count = 0 then
   begin
     ShowMessage('Zápisník je prázdný.');
     Exit;
   end;
 
-  if not FChain[0].Known then
+  if FFrame.Rows[0].Uloha <> ULOHA_IDENT then
   begin
     ShowMessage('První bod řetězce musí být známý.');
     Exit;
   end;
 
-  // Old results would look valid if a stretch fails now
-  for I := 0 to High(FChain) do
-    if not FChain[I].Known then
+  for I := 0 to FFrame.Count - 1 do
+    if FFrame.Rows[I].Uloha = ULOHA_DET then
     begin
-      SetCell(Y, FChain[I].Row, '');
-      SetCell(X, FChain[I].Row, '');
+      // Old results would look valid if a stretch fails now
+      SetCell(Y, FRows[I], '');
+      SetCell(X, FRows[I], '');
+
+      if TPointDictionary.GetInstance.PointExists(
+           StrToInt64Def(string(FFrame.Rows[I].CB), 0)) then
+        FWarnings.Add(Format('Bod %s je v seznamu, ale počítá se jako nový.',
+          [FormatPointId(string(FFrame.Rows[I].CB))]));
     end;
 
-  First := 0;
-  for I := 1 to High(FChain) do
-    // Coming back to the same point closes nothing - rotation needs two points
-    if FChain[I].Known and (FChain[I].Num <> FChain[First].Num) then
-    begin
-      ComputeSegment(First, I);
-      First := I;
-    end;
+  FAlg.CalculateFrame(FFrame);
+  FWarnings.AddStrings(FAlg.Warnings);
 
-  if Length(FSegments) = 0 then
+  if Length(FAlg.Segments) = 0 then
   begin
     ShowMessage('V řetězci zatím není druhý známý bod s jiným číslem.');
     Exit;
   end;
 
-  if First < High(FChain) then
-    FWarnings.Add(Format('Za bodem %s už není známý bod, %d bodů zůstalo nespočítaných.',
-      [PointId(FChain[First].Num), High(FChain) - First]));
+  // Only computed points of a finished stretch go back to the grid
+  SetLength(Back, FFrame.Count);
+  for I := 0 to High(Back) do
+    Back[I] := -1;
+  for S := 0 to High(FAlg.Segments) do
+    for I := FAlg.Segments[S].FromRow to FAlg.Segments[S].ToRow do
+      if FFrame.Rows[I].Uloha = ULOHA_DET then
+        Back[I] := FRows[I];
 
+  FrameToGrid(StringGrid1, FFrame, Back, [X, Y]);
   ShowProtocol(Memo1.Lines);
 end;
 
 const
-  ULOHA_KONSTR_OMERNE = 4;                        // task code
-  CSV_NAME            = 'konstrukcni_omerne.csv'; // saved next to exe
+  CSV_NAME = 'konstrukcni_omerne.csv';   // saved next to exe
 
-// Dumps the grid through a data frame into CSV
+// Dumps the frame into CSV
 procedure TRectangularMeasurementsForm.ButtonSaveClick(Sender: TObject);
 var
-  DF: TGeoDataFrame;
   FileName: string;
 begin
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
+  BuildFrame;
 
-  DF := TGeoDataFrame.Create([Uloha, CB, X, Y, Xm, Ym, SH, Poznamka, KK]);
-  try
-    GridToFrame(StringGrid1, DF, ULOHA_KONSTR_OMERNE);
-
-    if DF.Count = 0 then
-    begin
-      ShowMessage('Zápisník je prázdný, nic se neuložilo.');
-      Exit;
-    end;
-
-    DF.ToCSV(FileName, ';', ',');
-    ShowMessage(Format('Uloženo %d řádků do souboru%s%s', [DF.Count, sLineBreak, FileName]));
-  finally
-    DF.Free;
+  if FFrame.Count = 0 then
+  begin
+    ShowMessage('Zápisník je prázdný, nic se neuložilo.');
+    Exit;
   end;
+
+  FFrame.ToCSV(FileName, ';', ',');
+  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
+    [FFrame.Count, sLineBreak, FileName]));
 end;
 
 procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);
 var
   S, I: Integer;
-  Seg: TChainSegment;
+  Seg: TSegmentInfo;
+  Row: TGeoRow;
+  Pt: Point.TPoint;
   Kind, Dist: string;
 begin
   Prot.Title(ALines, 'Konstrukční oměrné');
 
-  for S := 0 to High(FSegments) do
+  for S := 0 to High(FAlg.Segments) do
   begin
-    Seg := FSegments[S];
+    Seg := FAlg.Segments[S];
 
     Prot.Text(Format('Úsek %d: %s → %s', [S + 1,
-      PointId(Seg.Lines[0].Num), PointId(Seg.Lines[High(Seg.Lines)].Num)]));
+      FormatPointId(string(FFrame.Rows[Seg.FromRow].CB)),
+      FormatPointId(string(FFrame.Rows[Seg.ToRow].CB))]));
 
     Prot.Table(['Č.', 'Číslo bodu', 'Délka', CoordNames, 'Typ'],
                [ColWNo, ColWPoint, ColWDist, ColWPair, ColWFlag]);
 
-    for I := 0 to High(Seg.Lines) do
+    for I := Seg.FromRow to Seg.ToRow do
     begin
-      if Seg.Lines[I].Known then
+      Row := FFrame.Rows[I];
+
+      if Row.Uloha = ULOHA_IDENT then
         Kind := 'daný'
       else
         Kind := 'vypočtený';
 
       // the first point of a stretch has no length in front of it
-      if Seg.Lines[I].HasDist then
-        Dist := Num(Seg.Lines[I].Dist)
+      if I = Seg.FromRow then
+        Dist := ''
       else
-        Dist := '';
+        Dist := Num(Row.SH);
 
-      Prot.Row([IntToStr(I + 1), PointId(Seg.Lines[I].Num), Dist,
-                CoordPair(Seg.Lines[I].Pt), Kind]);
+      Pt.X := Row.X;
+      Pt.Y := Row.Y;
+
+      Prot.Row([IntToStr(I - Seg.FromRow + 1), FormatPointId(string(Row.CB)),
+                Dist, CoordPair(Pt), Kind]);
     end;
 
     Prot.Text('');

@@ -32,8 +32,11 @@ type
     // InputPoints — measurement chain:
     //   PointNumber = point ID
     //   X = signed distance FROM previous point TO this point
-    //       (sign = turn direction: + right, - left; first point = 0)
+    //       (+ right, - left in the field; first point = 0)
     function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
+
+    // Local coordinates from the signed chain, no transformation
+    procedure BuildLocalPoints(const AChain: TPointsArray);
   end;
 
 implementation
@@ -44,11 +47,45 @@ begin
   FClosure := 0;
 end;
 
+procedure TRectangularMeasurementsAlgorithm.BuildLocalPoints(
+  const AChain: TPointsArray);
+var
+  I: Integer;
+  DirX, DirY, NewDirX, CurX, CurY, Dist, TS: Double;
+begin
+  SetLength(FLocalPoints, Length(AChain));
+  CurX := 0;  CurY := 0;
+  DirX := 1;  DirY := 0;
+
+  for I := 0 to High(AChain) do
+  begin
+    if I > 0 then
+    begin
+      // S-JTSK axes: X south, Y west
+      TS := Sign(AChain[I].X);
+      if TS <> 0 then
+      begin
+        NewDirX := -TS * DirY;
+        DirY := TS * DirX;
+        DirX := NewDirX;
+      end;
+
+      Dist := Abs(AChain[I].X);
+      CurX := CurX + Dist * DirX;
+      CurY := CurY + Dist * DirY;
+    end;
+
+    FLocalPoints[I].PointNumber := AChain[I].PointNumber;
+    FLocalPoints[I].X := CurX;
+    FLocalPoints[I].Y := CurY;
+  end;
+end;
+
 function TRectangularMeasurementsAlgorithm.Calculate(
   const InputPoints: TPointsArray): TPointsArray;
 var
   I, J, N, IdCount: Integer;
-  DirX, DirY, NewDirX, CurX, CurY, Dist, TS, D: Double;
+  D: Double;
   LocalId, GlobalId: TPointsArray;
   Transform: TCongruentTransformation;
 begin
@@ -58,31 +95,7 @@ begin
   if N < 3 then
     raise Exception.Create('Pro výpočet jsou potřeba alespoň 3 body.');
 
-  SetLength(FLocalPoints, N);
-  CurX := 0;  CurY := 0;
-  DirX := 1;  DirY := 0;
-
-  for I := 0 to N - 1 do
-  begin
-    if I > 0 then
-    begin
-      TS := Sign(InputPoints[I].X);
-      if TS <> 0 then
-      begin
-        NewDirX := TS * DirY;
-        DirY := -TS * DirX;
-        DirX := NewDirX;
-      end;
-
-      Dist := Abs(InputPoints[I].X);
-      CurX := CurX + Dist * DirX;
-      CurY := CurY + Dist * DirY;
-    end;
-
-    FLocalPoints[I].PointNumber := InputPoints[I].PointNumber;
-    FLocalPoints[I].X := CurX;
-    FLocalPoints[I].Y := CurY;
-  end;
+  BuildLocalPoints(InputPoints);
 
   IdCount := 0;
   for I := 0 to N - 1 do

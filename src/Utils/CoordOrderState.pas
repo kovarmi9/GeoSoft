@@ -54,6 +54,11 @@ procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
 // Column order of a field grid
 procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid); overload;
 
+// The same for a grid with its own column order. The form gives both
+// orders, the pair inside them is what differs.
+procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid;
+  const AOrderYX, AOrderXY: array of TGeoField); overload;
+
 // Order of a pair of coordinate controls. It only moves them; the value
 // stays in its own control.
 procedure ApplyCoordOrder(AYCtrl, AXCtrl: TWinControl); overload;
@@ -248,6 +253,43 @@ begin
     AGrid.SetFieldOrder([Y, X])      // order is the component's
   else
     AGrid.SetFieldOrder([]);         // back to the TGeoField order
+  WriteGridTexts(AGrid, Texts);
+end;
+
+// True when the grid already shows this order
+function OrderMatches(AGrid: TGeoFieldsGrid;
+  const AOrder: array of TGeoField): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to High(AOrder) do
+    if AGrid.FieldToCol(AOrder[I]) <> AGrid.FixedCols + I then
+      Exit;
+  Result := True;
+end;
+
+procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid;
+  const AOrderYX, AOrderXY: array of TGeoField);
+var
+  Texts: TGridTexts;
+begin
+  if AGrid = nil then
+    Exit;
+
+  if GCoordOrder = coYX then
+  begin
+    if OrderMatches(AGrid, AOrderYX) then Exit;
+    ReadGridTexts(AGrid, Texts);
+    AGrid.SetFieldOrder(AOrderYX);
+  end
+  else
+  begin
+    if OrderMatches(AGrid, AOrderXY) then Exit;
+    ReadGridTexts(AGrid, Texts);
+    AGrid.SetFieldOrder(AOrderXY);
+  end;
+
   WriteGridTexts(AGrid, Texts);
 end;
 

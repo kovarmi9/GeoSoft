@@ -6,7 +6,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   ExplicitHeight = 662
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
-    ExplicitWidth = 792
+    ExplicitWidth = 796
     inherited ComboBoxKU: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
@@ -31,7 +31,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Width = 800
     Height = 128
     Align = alTop
-    ColCount = 6
+    ColCount = 9
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
@@ -43,10 +43,13 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       'Y'
       'Vodorovna delka'
       'Poznamka')
-    GeoFields = [CB, X, Y, SH, Poznamka]
+    GeoFields = [CB, X, Y, Xm, Ym, SH, Poznamka, KK]
     ExplicitWidth = 798
     ColWidths = (
       40
+      80
+      64
+      64
       64
       64
       64
@@ -63,8 +66,8 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       'Protokol')
     ScrollBars = ssVertical
     TabOrder = 3
-    ExplicitLeft = 32
-    ExplicitTop = 123
+    ExplicitWidth = 798
+    ExplicitHeight = 365
   end
   object PanelCalculate: TPanel [4]
     Left = 0
@@ -80,7 +83,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       800
       43)
     object ButtonCalculate: TButton
-      Left = 574
+      Left = 572
       Top = 6
       Width = 75
       Height = 25
@@ -88,10 +91,10 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = ButtonCalculateClick
-      ExplicitLeft = 572
+      ExplicitLeft = 570
     end
     object ButtonSave: TButton
-      Left = 684
+      Left = 682
       Top = 6
       Width = 75
       Height = 25
@@ -99,7 +102,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       Caption = 'Ulo'#382'it'
       TabOrder = 1
       OnClick = ButtonSaveClick
-      ExplicitLeft = 682
+      ExplicitLeft = 680
     end
   end
 end

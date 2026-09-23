@@ -73,6 +73,15 @@ function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): stri
 function FloatCell(const V: Double): string; overload;
 function FloatCell(const V: Double; const AFS: TFormatSettings): string; overload;
 function FloatCell(const V: Double; const AFormat: string): string; overload;
+function FloatCell(const V: Double; const AFormat: string;
+  const AFS: TFormatSettings): string; overload;
+
+// One field of a row as text, and back. These two are the only places
+// that list all the fields.
+function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField;
+  const AFormat: string; const AFS: TFormatSettings): string;
+procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField;
+  const AText: string; const AFS: TFormatSettings);
 
 // Finds a field by its name from GeoFieldNames
 function FindGeoField(const AName: string; out AField: TGeoField): Boolean;
@@ -199,6 +208,75 @@ begin
     Result := ''
   else
     Result := FormatFloat(AFormat, V);
+end;
+
+function FloatCell(const V: Double; const AFormat: string;
+  const AFS: TFormatSettings): string;
+begin
+  if IsNan(V) then
+    Result := ''
+  else if AFormat = '' then
+    Result := FloatToStr(V, AFS)
+  else
+    Result := FormatFloat(AFormat, V, AFS);
+end;
+
+function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField;
+  const AFormat: string; const AFS: TFormatSettings): string;
+begin
+  case AField of
+    Uloha:    Result := IntToStr(ARow.Uloha);
+    CB:       Result := string(ARow.CB);
+    X:        Result := FloatCell(ARow.X, AFormat, AFS);
+    Y:        Result := FloatCell(ARow.Y, AFormat, AFS);
+    Z:        Result := FloatCell(ARow.Z, AFormat, AFS);
+    CBm:      Result := string(ARow.CBm);
+    Xm:       Result := FloatCell(ARow.Xm, AFormat, AFS);
+    Ym:       Result := FloatCell(ARow.Ym, AFormat, AFS);
+    Zm:       Result := FloatCell(ARow.Zm, AFormat, AFS);
+    TypS:     Result := IntToStr(ARow.TypS);
+    SH:       Result := FloatCell(ARow.SH, AFormat, AFS);
+    SS:       Result := FloatCell(ARow.SS, AFormat, AFS);
+    VS:       Result := FloatCell(ARow.VS, AFormat, AFS);
+    VC:       Result := FloatCell(ARow.VC, AFormat, AFS);
+    HZ:       Result := FloatCell(ARow.HZ, AFormat, AFS);
+    Zuhel:    Result := FloatCell(ARow.Zuhel, AFormat, AFS);
+    PolarD:   Result := FloatCell(ARow.PolarD, AFormat, AFS);
+    PolarK:   Result := FloatCell(ARow.PolarK, AFormat, AFS);
+    Poznamka: Result := string(ARow.Poznamka);
+    KK:       Result := IntToStr(ARow.KK);
+  end;
+end;
+
+// Text that is not a number leaves the field alone, so an empty cell stays NaN
+procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField;
+  const AText: string; const AFS: TFormatSettings);
+var
+  S: string;
+begin
+  S := Trim(AText);
+  case AField of
+    Uloha:    TryStrToInt(S, ARow.Uloha);
+    CB:       ARow.CB := ShortString(Copy(S, 1, MAX_CB));
+    X:        TryStrToFloat(S, ARow.X, AFS);
+    Y:        TryStrToFloat(S, ARow.Y, AFS);
+    Z:        TryStrToFloat(S, ARow.Z, AFS);
+    CBm:      ARow.CBm := ShortString(Copy(S, 1, MAX_CB));
+    Xm:       TryStrToFloat(S, ARow.Xm, AFS);
+    Ym:       TryStrToFloat(S, ARow.Ym, AFS);
+    Zm:       TryStrToFloat(S, ARow.Zm, AFS);
+    TypS:     TryStrToInt(S, ARow.TypS);
+    SH:       TryStrToFloat(S, ARow.SH, AFS);
+    SS:       TryStrToFloat(S, ARow.SS, AFS);
+    VS:       TryStrToFloat(S, ARow.VS, AFS);
+    VC:       TryStrToFloat(S, ARow.VC, AFS);
+    HZ:       TryStrToFloat(S, ARow.HZ, AFS);
+    Zuhel:    TryStrToFloat(S, ARow.Zuhel, AFS);
+    PolarD:   TryStrToFloat(S, ARow.PolarD, AFS);
+    PolarK:   TryStrToFloat(S, ARow.PolarK, AFS);
+    Poznamka: ARow.Poznamka := ShortString(Copy(S, 1, MAX_POPIS));
+    KK:       TryStrToInt(S, ARow.KK);
+  end;
 end;
 
 function FindGeoField(const AName: string; out AField: TGeoField): Boolean;

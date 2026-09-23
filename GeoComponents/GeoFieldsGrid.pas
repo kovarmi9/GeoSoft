@@ -44,8 +44,6 @@ type
     procedure ApplyColumnFields;
     procedure ColumnFieldsChanged(Sender: TObject);
     procedure SetReadOnlyFields(const Value: TGeoFields);
-    function FieldIsOrdered(F: TGeoField): Boolean;
-    procedure ApplyFieldOrder;
     procedure RebuildColumns;
     procedure RefreshHeaders;
     procedure RefreshFilters;
@@ -315,57 +313,43 @@ begin
       Inc(Result);
 end;
 
-function TGeoFieldsGrid.FieldIsOrdered(F: TGeoField): Boolean;
-var
-  I: Integer;
-begin
-  Result := False;
-  for I := 0 to High(FFieldOrder) do
-    if FFieldOrder[I] = F then
-    begin
-      Result := True;
-      Exit;
-    end;
-end;
-
 // Refills the columns used by the ordered fields, left to right,
 // with those fields in the order the caller gave.
-procedure TGeoFieldsGrid.ApplyFieldOrder;
-var
-  I, K: Integer;
-begin
-  K := 0;
-  for I := 0 to High(FColToField) do
-    if FieldIsOrdered(FColToField[I]) then
-    begin
-      while (K <= High(FFieldOrder)) and not (FFieldOrder[K] in FGeoFields) do
-        Inc(K);                  // skip ordered fields this grid does not show
-      if K > High(FFieldOrder) then
-        Exit;
-      FColToField[I] := FFieldOrder[K];
-      Inc(K);
-    end;
-end;
-
 procedure TGeoFieldsGrid.RebuildColumns;
 var
   F: TGeoField;
-  I: Integer;
+  I, K, N: Integer;
   DataCount: Integer;
+  Listed: TGeoFields;
 begin
-  // 1) Build mapping: data-column index -> field
+  // 1) Active fields in TGeoField order
   DataCount := CountActiveFields;
   SetLength(FColToField, DataCount);
-
-  I := 0;
+  N := 0;
   for F := Low(TGeoField) to High(TGeoField) do
     if F in FGeoFields then
     begin
-      FColToField[I] := F;
-      Inc(I);
+      FColToField[N] := F;
+      Inc(N);
     end;
 
-  ApplyFieldOrder;
+  // The listed fields go back into the slots they occupy, in the order
+  // given, so a pair can swap without moving any other column
+  Listed := [];
+  for I := 0 to High(FFieldOrder) do
+    Include(Listed, FFieldOrder[I]);
+
+  K := 0;
+  for I := 0 to High(FColToField) do
+    if FColToField[I] in Listed then
+    begin
+      while (K <= High(FFieldOrder)) and not (FFieldOrder[K] in FGeoFields) do
+        Inc(K);
+      if K > High(FFieldOrder) then
+        Break;
+      FColToField[I] := FFieldOrder[K];
+      Inc(K);
+    end;
 
   // 2) Grid must always have at least one data column
   if DataCount = 0 then
@@ -569,28 +553,7 @@ begin
   begin
     F := FColToField[I];
     C := FixedCols + I;
-    case F of
-      Uloha:    Cells[C, ARow] := IntToStr(GRow.Uloha);
-      CB:       Cells[C, ARow] := string(GRow.CB);
-      X:        Cells[C, ARow] := FloatCell(GRow.X);
-      Y:        Cells[C, ARow] := FloatCell(GRow.Y);
-      Z:        Cells[C, ARow] := FloatCell(GRow.Z);
-      CBm:      Cells[C, ARow] := string(GRow.CBm);
-      Xm:       Cells[C, ARow] := FloatCell(GRow.Xm);
-      Ym:       Cells[C, ARow] := FloatCell(GRow.Ym);
-      Zm:       Cells[C, ARow] := FloatCell(GRow.Zm);
-      TypS:     Cells[C, ARow] := IntToStr(GRow.TypS);
-      SH:       Cells[C, ARow] := FloatCell(GRow.SH);
-      SS:       Cells[C, ARow] := FloatCell(GRow.SS);
-      VS:       Cells[C, ARow] := FloatCell(GRow.VS);
-      VC:       Cells[C, ARow] := FloatCell(GRow.VC);
-      HZ:       Cells[C, ARow] := FloatCell(GRow.HZ);
-      Zuhel:    Cells[C, ARow] := FloatCell(GRow.Zuhel);
-      PolarD:   Cells[C, ARow] := FloatCell(GRow.PolarD);
-      PolarK:   Cells[C, ARow] := FloatCell(GRow.PolarK);
-      Poznamka: Cells[C, ARow] := string(GRow.Poznamka);
-      KK:       Cells[C, ARow] := IntToStr(GRow.KK);
-    end;
+    Cells[C, ARow] := GeoFieldToText(GRow, F, '', FormatSettings);
   end;
 end;
 
@@ -598,7 +561,6 @@ procedure TGeoFieldsGrid.GetGeoRow(ARow: Integer; out GRow: TGeoRow);
 var
   I, C: Integer;
   F: TGeoField;
-  S: string;
 begin
   if (ARow < FixedRows) or (ARow >= RowCount) then
     raise Exception.CreateFmt('Row %d is out of range.', [ARow]);
@@ -609,30 +571,7 @@ begin
   begin
     F := FColToField[I];
     C := FixedCols + I;
-    S := Trim(Cells[C, ARow]);
-
-    case F of
-      Uloha:    TryStrToInt(S, GRow.Uloha);
-      CB:       GRow.CB := ShortString(S);
-      X:        TryStrToFloat(S, GRow.X);
-      Y:        TryStrToFloat(S, GRow.Y);
-      Z:        TryStrToFloat(S, GRow.Z);
-      CBm:      GRow.CBm := ShortString(S);
-      Xm:       TryStrToFloat(S, GRow.Xm);
-      Ym:       TryStrToFloat(S, GRow.Ym);
-      Zm:       TryStrToFloat(S, GRow.Zm);
-      TypS:     TryStrToInt(S, GRow.TypS);
-      SH:       TryStrToFloat(S, GRow.SH);
-      SS:       TryStrToFloat(S, GRow.SS);
-      VS:       TryStrToFloat(S, GRow.VS);
-      VC:       TryStrToFloat(S, GRow.VC);
-      HZ:       TryStrToFloat(S, GRow.HZ);
-      Zuhel:    TryStrToFloat(S, GRow.Zuhel);
-      PolarD:   TryStrToFloat(S, GRow.PolarD);
-      PolarK:   TryStrToFloat(S, GRow.PolarK);
-      Poznamka: GRow.Poznamka := ShortString(S);
-      KK:       TryStrToInt(S, GRow.KK);
-    end;
+    TextToGeoField(GRow, F, Cells[C, ARow], FormatSettings);
   end;
 end;
 

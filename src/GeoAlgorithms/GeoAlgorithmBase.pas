@@ -30,7 +30,6 @@ type
     FScale: Double;
   public
     constructor Create;
-    constructor CreateWithScale(AScale: Double);
 
     // Scale factor applied to computed coordinates (default 1.0)
     property Scale: Double read FScale write FScale;
@@ -67,12 +66,6 @@ constructor TAlgorithm.Create;
 begin
   inherited Create;
   FScale := 1.0;
-end;
-
-constructor TAlgorithm.CreateWithScale(AScale: Double);
-begin
-  Create;
-  FScale := AScale;
 end;
 
 end.

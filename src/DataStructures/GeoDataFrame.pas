@@ -67,9 +67,6 @@ implementation
 
 // Forward declarations of private helper functions
 function SplitCsvLine(const ALine: string; ASep: Char): TStrArray; forward;
-function GeoFieldFromName(const AName: string; out AField: TGeoField): Boolean; forward;
-function TryToInt(const ACell: string; var AOutVal: Integer): Boolean; forward;
-function TryToFloat(const ACell: string; var AOutVal: Double; const FormatSettings: TFormatSettings): Boolean; forward;
 
 function GeoFieldsToMask(const F: TGeoFields): LongWord; forward;
 function MaskToGeoFields(const Mask: LongWord): TGeoFields; forward;
@@ -271,28 +268,9 @@ begin
         if Line <> '' then
           Line := Line + ACellSep;
 
-        case Field of
-          Uloha:    s := IntToStr(Row.Uloha);
-          CB:       s := '"' + StringReplace(string(Row.CB), '"', '""', [rfReplaceAll]) + '"';
-          X:        s := FloatCell(Row.X, FormatSettings);
-          Y:        s := FloatCell(Row.Y, FormatSettings);
-          Z:        s := FloatCell(Row.Z, FormatSettings);
-          CBm:      s := '"' + StringReplace(string(Row.CBm), '"', '""', [rfReplaceAll]) + '"';
-          Xm:       s := FloatCell(Row.Xm, FormatSettings);
-          Ym:       s := FloatCell(Row.Ym, FormatSettings);
-          Zm:       s := FloatCell(Row.Zm, FormatSettings);
-          TypS:     s := IntToStr(Row.TypS);
-          SH:       s := FloatCell(Row.SH, FormatSettings);
-          SS:       s := FloatCell(Row.SS, FormatSettings);
-          VS:       s := FloatCell(Row.VS, FormatSettings);
-          VC:       s := FloatCell(Row.VC, FormatSettings);
-          HZ:       s := FloatCell(Row.HZ, FormatSettings);
-          Zuhel:    s := FloatCell(Row.Zuhel, FormatSettings);
-          PolarD:   s := FloatCell(Row.PolarD, FormatSettings);
-          PolarK:   s := FloatCell(Row.PolarK, FormatSettings);
-          Poznamka: s := '"' + StringReplace(string(Row.Poznamka), '"', '""', [rfReplaceAll]) + '"';
-          KK:       s := IntToStr(Row.KK);
-        end;
+        s := GeoFieldToText(Row, Field, '', FormatSettings);
+        if Field in [CB, CBm, Poznamka] then
+          s := '"' + StringReplace(s, '"', '""', [rfReplaceAll]) + '"';
 
         Line := Line + s;
       end;
@@ -363,7 +341,7 @@ begin
   for j := 0 to ColCount - 1 do
   begin
     Value := Trim(Header[j]);
-    if GeoFieldFromName(Value, Field) then
+    if FindGeoField(Value, Field) then
     begin
       ColMap[j]   := Field;
       ColKnown[j] := True;
@@ -398,28 +376,7 @@ begin
           Field := ColMap[j];
           Value := FieldsArr[j];
 
-          case Field of
-            Uloha:    if not TryToInt(Value, Row.Uloha) then Row.Uloha := 0;
-            CB:       Row.CB := ShortString(Copy(Value, 1, MAX_CB));
-            X:        TryToFloat(Value, Row.X, FormatSettings);
-            Y:        TryToFloat(Value, Row.Y, FormatSettings);
-            Z:        TryToFloat(Value, Row.Z, FormatSettings);
-            CBm:      Row.CBm := ShortString(Copy(Value, 1, MAX_CB));
-            Xm:       TryToFloat(Value, Row.Xm, FormatSettings);
-            Ym:       TryToFloat(Value, Row.Ym, FormatSettings);
-            Zm:       TryToFloat(Value, Row.Zm, FormatSettings);
-            TypS:     if not TryToInt(Value, Row.TypS) then Row.TypS := 0;
-            SH:       TryToFloat(Value, Row.SH, FormatSettings);
-            SS:       TryToFloat(Value, Row.SS, FormatSettings);
-            VS:       TryToFloat(Value, Row.VS, FormatSettings);
-            VC:       TryToFloat(Value, Row.VC, FormatSettings);
-            HZ:       TryToFloat(Value, Row.HZ, FormatSettings);
-            Zuhel:    TryToFloat(Value, Row.Zuhel, FormatSettings);
-            PolarD:   TryToFloat(Value, Row.PolarD, FormatSettings);
-            PolarK:   TryToFloat(Value, Row.PolarK, FormatSettings);
-            Poznamka: Row.Poznamka := ShortString(Copy(Value, 1, MAX_POPIS));
-            KK:       if not TryToInt(Value, Row.KK) then Row.KK := 0;
-          end;
+          TextToGeoField(Row, Field, Value, FormatSettings);
         end;
     end;
 
@@ -579,40 +536,6 @@ begin
   // Store the last cell
   SetLength(Result, n + 1);
   Result[n] := buf;
-end;
-
-// Maps a CSV header name to a TGeoField enum value; returns True on match
-function GeoFieldFromName(const AName: string; out AField: TGeoField): Boolean;
-var
-  f: TGeoField;
-begin
-  Result := False;
-  for f := Low(TGeoField) to High(TGeoField) do
-    if SameText(AName, GeoFieldNames[f]) then
-    begin
-      AField := f;
-      Exit(True);
-    end;
-end;
-
-// Tries to parse a trimmed cell string as an integer; updates AOutVal only on success
-function TryToInt(const ACell: string; var AOutVal: Integer): Boolean;
-var
-  tmp: Integer;
-begin
-  Result := TryStrToInt(Trim(ACell), tmp);
-  if Result then
-    AOutVal := tmp;
-end;
-
-// Tries to parse a trimmed cell string as a float using the given format settings
-function TryToFloat(const ACell: string; var AOutVal: Double; const FormatSettings: TFormatSettings): Boolean;
-var
-  tmp: Double;
-begin
-  Result := TryStrToFloat(Trim(ACell), tmp, FormatSettings);
-  if Result then
-    AOutVal := tmp;
 end;
 
 // Converts a TGeoFields set to a bitmask (one bit per enum ordinal)

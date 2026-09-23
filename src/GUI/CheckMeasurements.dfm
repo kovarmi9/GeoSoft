@@ -101,14 +101,23 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
       800
       30)
     object Calculate: TButton
-      Left = 698
-      Top = 2
+      Left = 594
+      Top = 6
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = CalculateClick
+    end
+    object ButtonSave: TButton
+      Left = 713
+      Top = 6
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Ulo'#382'it'
+      TabOrder = 1
     end
   end
   inherited MainMenu1: TMainMenu

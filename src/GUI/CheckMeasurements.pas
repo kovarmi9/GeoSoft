@@ -29,6 +29,7 @@ type
     GridPairs: TGeoPointsGrid;
     PanelCalculate: TPanel;
     Calculate: TButton;
+    ButtonSave: TButton;
     procedure CalculateClick(Sender: TObject);
     procedure GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer;
       var CanSelect: Boolean);

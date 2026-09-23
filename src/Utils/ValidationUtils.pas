@@ -33,12 +33,13 @@ begin
     Result := 0;
 end;
 
+// NaN means nobody filled the value in, so it has to survive
 class function TValidationUtils.ValidateCoordinate(const ACoordinate: Double): Double;
 begin
-  if not IsNan(ACoordinate) and not IsInfinite(ACoordinate) then
-    Result := ACoordinate
+  if IsInfinite(ACoordinate) then
+    Result := 0.0
   else
-    Result := 0.0;
+    Result := ACoordinate;
 end;
 
 class function TValidationUtils.ValidateQuality(const AQuality: Integer): Integer;

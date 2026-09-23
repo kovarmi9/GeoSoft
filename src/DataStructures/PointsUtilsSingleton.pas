@@ -12,6 +12,7 @@ type
     FPointDict: TDictionary<Int64, TPoint>;
     class var FInstance: TPointDictionary;
     procedure CheckFileError(const FileName: string);
+    procedure ReportImport(AImported, AUpdated: Integer);
 
     function GetValues: TEnumerable<TPoint>;
   public
@@ -202,12 +203,7 @@ begin
   finally
     CloseFile(TXTFile);
   end;
-  if Updated > 0 then
-    MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [Imported, Updated]),
-      mtInformation, [mbOK], 0)
-  else
-    MessageDlg(Format('Importováno %d bodů.', [Imported]),
-      mtInformation, [mbOK], 0);
+  ReportImport(Imported, Updated);
 end;
 
 procedure TPointDictionary.ExportToCSV(const FileName: string);
@@ -271,12 +267,7 @@ begin
   finally
     CloseFile(CSVFile);
   end;
-  if Updated > 0 then
-    MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [Imported, Updated]),
-      mtInformation, [mbOK], 0)
-  else
-    MessageDlg(Format('Importováno %d bodů.', [Imported]),
-      mtInformation, [mbOK], 0);
+  ReportImport(Imported, Updated);
 end;
 
 procedure TPointDictionary.ExportToBinary(const FileName: string);
@@ -326,11 +317,17 @@ begin
   finally
     CloseFile(BinaryFile);
   end;
-  if Updated > 0 then
-    MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [Imported, Updated]),
+  ReportImport(Imported, Updated);
+end;
+
+// One message for every import path
+procedure TPointDictionary.ReportImport(AImported, AUpdated: Integer);
+begin
+  if AUpdated > 0 then
+    MessageDlg(Format('Importováno %d bodů, z toho %d přepsáno.', [AImported, AUpdated]),
       mtInformation, [mbOK], 0)
   else
-    MessageDlg(Format('Importováno %d bodů.', [Imported]),
+    MessageDlg(Format('Importováno %d bodů.', [AImported]),
       mtInformation, [mbOK], 0);
 end;
 

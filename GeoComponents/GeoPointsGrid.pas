@@ -75,6 +75,9 @@ type
     /// </summary>
     procedure CommitCell; override;
 
+    /// <summary>A column the program fills is not for the cursor.</summary>
+    function CellSelectable(ACol, ARow: Integer): Boolean; override;
+
   public
     /// <summary>Constructor.</summary>
     constructor Create(AOwner: TComponent); override;
@@ -83,6 +86,10 @@ type
     destructor Destroy; override;
 
   published
+    // Headers are the source of truth here, so they belong in the designer
+    property ColumnHeaders;
+    property RowHeaders;
+
     /// <summary>
     /// Validation filters for data columns only.
     /// Item index 0 corresponds to first data column (after FixedCols).
@@ -205,6 +212,18 @@ begin
   Filter := FilterForCol(Col);
   if Filter <> nil then
     FilterKeyPress(Filter, AText, Key);
+end;
+
+function TGeoPointsGrid.CellSelectable(ACol, ARow: Integer): Boolean;
+var
+  Filter: TColumnFilter;
+begin
+  Result := inherited CellSelectable(ACol, ARow);
+  if not Result then
+    Exit;
+
+  Filter := FilterForCol(ACol);
+  Result := (Filter = nil) or not Filter.ReadOnly;
 end;
 
 procedure TGeoPointsGrid.CommitCell;

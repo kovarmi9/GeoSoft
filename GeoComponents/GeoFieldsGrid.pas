@@ -36,8 +36,14 @@ type
     FColToField: array of TGeoField;                   // data-column index -> TGeoField
     FColumnFilters: TColumnFilters;                    // one per data column
     FFieldOrder: TArray<TGeoField>;                    // wanted order; empty = TGeoField order
+    FColumnFields: TStrings;                         // order as field names
+    FReadOnlyFields: TGeoFields;                       // the program fills these
 
     procedure SetGeoFields(const Value: TGeoFields);
+    procedure SetColumnFields(const Value: TStrings);
+    procedure ApplyColumnFields;
+    procedure ColumnFieldsChanged(Sender: TObject);
+    procedure SetReadOnlyFields(const Value: TGeoFields);
     function FieldIsOrdered(F: TGeoField): Boolean;
     procedure ApplyFieldOrder;
     procedure RebuildColumns;
@@ -47,9 +53,14 @@ type
     function GetColumnFilter(ADataCol: Integer): TColumnFilter;
 
   protected
+    function CellSelectable(ACol, ARow: Integer): Boolean; override;
+    function GeoFieldsStored: Boolean;
     function CreateEditor: TInplaceEdit; override;
     procedure UpdateHeaders; override;
     procedure Loaded; override;
+
+    // Column headers are derived from ColumnFields, not set from outside
+    property ColumnHeaders;
 
     /// <summary>
     /// Validates and commits cell value.
@@ -83,6 +94,9 @@ type
     /// </summary>
     function ColToField(ACol: Integer): TGeoField;
 
+    /// <summary>How many data columns carry a field.</summary>
+    function DataFieldCount: Integer;
+
     /// <summary>
     /// Override display name for a single field on this instance.
     /// </summary>
@@ -106,17 +120,32 @@ type
     procedure SetGeoRow(ARow: Integer; const GRow: TGeoRow);
     procedure GetGeoRow(ARow: Integer; out GRow: TGeoRow);
 
-    // Ancestor-published headers are auto-derived from GeoFields.
-    // Re-declaring them as public hides them from Object Inspector.
-    property ColumnHeaders;
+  published
+    // Row headers are free for the form to use
     property RowHeaders;
 
-  published
     /// <summary>
-    /// Active set of fields. Assigning rebuilds columns.
+    /// Active set of fields. ColumnFields rewrites it while the form loads,
+    /// so it is only stored for grids that have no ColumnFields.
     /// </summary>
     property GeoFields: TGeoFields
-      read FGeoFields write SetGeoFields;
+      read FGeoFields write SetGeoFields stored GeoFieldsStored;
+
+    /// <summary>
+    /// The columns of this grid, one per line, in order:
+    ///   FieldName            caption from GeoFieldsDef
+    ///   FieldName=Caption    caption for this grid only
+    /// An empty list leaves everything to GeoFields.
+    /// </summary>
+    property ColumnFields: TStrings
+      read FColumnFields write SetColumnFields;
+
+    /// <summary>
+    /// Fields the program fills. The cursor skips their columns and they
+    /// cannot be clicked or edited; writing from code still works.
+    /// </summary>
+    property ReadOnlyFields: TGeoFields
+      read FReadOnlyFields write SetReadOnlyFields;
   end;
 
 implementation
@@ -146,10 +175,13 @@ begin
   SetLength(FColToField, 0);
 
   FColumnFilters := TColumnFilters.Create(Self);
+  FColumnFields := TStringList.Create;
+  TStringList(FColumnFields).OnChange := ColumnFieldsChanged;
 end;
 
 destructor TGeoFieldsGrid.Destroy;
 begin
+  FColumnFields.Free;
   FColumnFilters.Free;
   inherited Destroy;
 end;
@@ -175,6 +207,102 @@ begin
   for I := 0 to High(AOrder) do
     FFieldOrder[I] := AOrder[I];
   RebuildColumns;
+end;
+
+// One line per column: 'FieldName' or 'FieldName=Caption'.
+// Line order is column order; an empty list leaves GeoFields in charge.
+procedure TGeoFieldsGrid.ApplyColumnFields;
+var
+  I, N, P: Integer;
+  F: TGeoField;
+  S, FieldName, Caption: string;
+  Order: TArray<TGeoField>;
+  Fields: TGeoFields;
+begin
+  if FColumnFields.Count = 0 then
+  begin
+    SetFieldOrder([]);
+    Exit;
+  end;
+
+  SetLength(Order, FColumnFields.Count);
+  Fields := [];
+  N := 0;
+
+  for I := 0 to FColumnFields.Count - 1 do
+  begin
+    S := Trim(FColumnFields[I]);
+    P := Pos('=', S);
+    if P > 0 then
+    begin
+      FieldName := Trim(Copy(S, 1, P - 1));
+      Caption   := Trim(Copy(S, P + 1, MaxInt));
+    end
+    else
+    begin
+      FieldName := S;
+      Caption   := '';
+    end;
+
+    if not FindGeoField(FieldName, F) then
+      Continue;                          // unknown name, no column
+    if F in Fields then
+      Continue;                          // the same field twice
+
+    Order[N] := F;
+    Include(Fields, F);
+    Inc(N);
+
+    if Caption <> '' then
+      FColumnData[F].DisplayName := Caption
+    else
+      FColumnData[F].DisplayName := GeoFieldColumns[F].DisplayName;
+  end;
+
+  SetLength(Order, N);
+  FGeoFields := Fields;        // the list decides which columns exist
+  SetFieldOrder(Order);        // rebuilds columns, headers and filters
+end;
+
+procedure TGeoFieldsGrid.SetColumnFields(const Value: TStrings);
+begin
+  FColumnFields.Assign(Value);   // the list fires OnChange
+end;
+
+// The DFM and the Object Inspector fill the list without the setter
+procedure TGeoFieldsGrid.ColumnFieldsChanged(Sender: TObject);
+begin
+  if csLoading in ComponentState then
+    Exit;                          // Loaded applies it once, after streaming
+  ApplyColumnFields;
+end;
+
+procedure TGeoFieldsGrid.SetReadOnlyFields(const Value: TGeoFields);
+begin
+  if FReadOnlyFields = Value then
+    Exit;
+  FReadOnlyFields := Value;
+  Invalidate;
+end;
+
+// ColumnFields already says which fields the grid shows
+function TGeoFieldsGrid.GeoFieldsStored: Boolean;
+begin
+  Result := FColumnFields.Count = 0;
+end;
+
+// A column the program fills is not for the cursor
+function TGeoFieldsGrid.CellSelectable(ACol, ARow: Integer): Boolean;
+var
+  I: Integer;
+begin
+  Result := inherited CellSelectable(ACol, ARow);
+  if not Result then
+    Exit;
+
+  I := ACol - FixedCols;
+  if (I >= 0) and (I <= High(FColToField)) then
+    Result := not (FColToField[I] in FReadOnlyFields);
 end;
 
 function TGeoFieldsGrid.CountActiveFields: Integer;
@@ -308,7 +436,7 @@ end;
 procedure TGeoFieldsGrid.Loaded;
 begin
   inherited Loaded;
-  RebuildColumns; // Ensure streamed GeoFields are reflected in columns
+  ApplyColumnFields;   // streamed FieldOrder and GeoFields into columns
 end;
 
 procedure TGeoFieldsGrid.EditorKeyPress(const AText: string; var Key: Char);
@@ -387,6 +515,11 @@ begin
   Result := FColToField[I];
 end;
 
+function TGeoFieldsGrid.DataFieldCount: Integer;
+begin
+  Result := Length(FColToField);
+end;
+
 { Per-instance overrides }
 
 procedure TGeoFieldsGrid.SetColumnDisplayName(F: TGeoField;
@@ -439,22 +572,22 @@ begin
     case F of
       Uloha:    Cells[C, ARow] := IntToStr(GRow.Uloha);
       CB:       Cells[C, ARow] := string(GRow.CB);
-      X:        Cells[C, ARow] := FloatToStr(GRow.X);
-      Y:        Cells[C, ARow] := FloatToStr(GRow.Y);
-      Z:        Cells[C, ARow] := FloatToStr(GRow.Z);
+      X:        Cells[C, ARow] := FloatCell(GRow.X);
+      Y:        Cells[C, ARow] := FloatCell(GRow.Y);
+      Z:        Cells[C, ARow] := FloatCell(GRow.Z);
       CBm:      Cells[C, ARow] := string(GRow.CBm);
-      Xm:       Cells[C, ARow] := FloatToStr(GRow.Xm);
-      Ym:       Cells[C, ARow] := FloatToStr(GRow.Ym);
-      Zm:       Cells[C, ARow] := FloatToStr(GRow.Zm);
+      Xm:       Cells[C, ARow] := FloatCell(GRow.Xm);
+      Ym:       Cells[C, ARow] := FloatCell(GRow.Ym);
+      Zm:       Cells[C, ARow] := FloatCell(GRow.Zm);
       TypS:     Cells[C, ARow] := IntToStr(GRow.TypS);
-      SH:       Cells[C, ARow] := FloatToStr(GRow.SH);
-      SS:       Cells[C, ARow] := FloatToStr(GRow.SS);
-      VS:       Cells[C, ARow] := FloatToStr(GRow.VS);
-      VC:       Cells[C, ARow] := FloatToStr(GRow.VC);
-      HZ:       Cells[C, ARow] := FloatToStr(GRow.HZ);
-      Zuhel:    Cells[C, ARow] := FloatToStr(GRow.Zuhel);
-      PolarD:   Cells[C, ARow] := FloatToStr(GRow.PolarD);
-      PolarK:   Cells[C, ARow] := FloatToStr(GRow.PolarK);
+      SH:       Cells[C, ARow] := FloatCell(GRow.SH);
+      SS:       Cells[C, ARow] := FloatCell(GRow.SS);
+      VS:       Cells[C, ARow] := FloatCell(GRow.VS);
+      VC:       Cells[C, ARow] := FloatCell(GRow.VC);
+      HZ:       Cells[C, ARow] := FloatCell(GRow.HZ);
+      Zuhel:    Cells[C, ARow] := FloatCell(GRow.Zuhel);
+      PolarD:   Cells[C, ARow] := FloatCell(GRow.PolarD);
+      PolarK:   Cells[C, ARow] := FloatCell(GRow.PolarK);
       Poznamka: Cells[C, ARow] := string(GRow.Poznamka);
       KK:       Cells[C, ARow] := IntToStr(GRow.KK);
     end;

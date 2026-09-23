@@ -3,7 +3,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   ClientHeight = 598
   StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate
-  ExplicitHeight = 659
+  ExplicitHeight = 657
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
     inherited ComboBoxKU: TComboBox
@@ -34,17 +34,16 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
     EnterEndBehavior = ebAddRow
-    ColumnHeaders.Strings = (
-      ''
-      'Cislo bodu'
+    ColumnFields.Strings = (
+      'CB='#268#237'slo bodu'
+      'SH=D'#233'lka'
+      'Xm=X m'#237'stn'#237
+      'Ym=Y m'#237'stn'#237
       'X'
       'Y'
-      'Xm'
-      'Ym'
-      'Vodorovna delka'
-      'Poznamka'
-      'Kod kvality')
-    GeoFields = [CB, X, Y, Xm, Ym, SH, Poznamka, KK]
+      'KK=K'#243'd kvality'
+      'Poznamka=Pozn'#225'mka')
+    ReadOnlyFields = [X, Y, Xm, Ym]
     ColWidths = (
       40
       120

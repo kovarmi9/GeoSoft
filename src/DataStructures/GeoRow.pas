@@ -3,7 +3,7 @@
 interface
 
 uses
-  System.SysUtils, System.Classes;
+  System.SysUtils, System.Classes, System.Math;
 
 const
   MAX_CB    = 15;   // point number length
@@ -69,6 +69,14 @@ function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: 
 // Returns a comma-separated list of active field names
 function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string;
 
+// An unfilled value turns into an empty cell
+function FloatCell(const V: Double): string; overload;
+function FloatCell(const V: Double; const AFS: TFormatSettings): string; overload;
+function FloatCell(const V: Double; const AFormat: string): string; overload;
+
+// Finds a field by its name from GeoFieldNames
+function FindGeoField(const AName: string; out AField: TGeoField): Boolean;
+
 // Saves one or more rows to a binary typed file
 procedure SaveRow(const FileName: string; const Row: TGeoRow; Append: Boolean = False); overload;
 procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: Boolean = False); overload;
@@ -89,18 +97,19 @@ procedure ClearGeoRow(var ARow: TGeoRow);
 begin
    ARow.Uloha := 0;
    ARow.CB := '';
-   ARow.X := 0 ; ARow.Y := 0; ARow.Z := 0;
+   // NaN marks a value nobody filled in
+   ARow.X := NaN ; ARow.Y := NaN; ARow.Z := NaN;
    ARow.CBm := '';
-   ARow.Xm := 0 ; ARow.Ym := 0; ARow.Zm := 0;
+   ARow.Xm := NaN ; ARow.Ym := NaN; ARow.Zm := NaN;
    ARow.TypS := 0;
-   ARow.SH := 0;
-   ARow.SS := 0;
-   ARow.VS := 0;
-   ARow.VC := 0;
-   ARow.HZ := 0;
-   ARow.Zuhel := 0;
-   ARow.PolarD := 0;
-   ARow.PolarK := 0;
+   ARow.SH := NaN;
+   ARow.SS := NaN;
+   ARow.VS := NaN;
+   ARow.VC := NaN;
+   ARow.HZ := NaN;
+   ARow.Zuhel := NaN;
+   ARow.PolarD := NaN;
+   ARow.PolarK := NaN;
    ARow.Poznamka := '';
    ARow.KK := 0;
 end;
@@ -165,6 +174,43 @@ begin
         Result := Result + Asep;
       Result := Result + GeoFieldNames[f];
       first := False;
+    end;
+end;
+
+function FloatCell(const V: Double): string;
+begin
+  if IsNan(V) then
+    Result := ''
+  else
+    Result := FloatToStr(V);
+end;
+
+function FloatCell(const V: Double; const AFS: TFormatSettings): string;
+begin
+  if IsNan(V) then
+    Result := ''
+  else
+    Result := FloatToStr(V, AFS);
+end;
+
+function FloatCell(const V: Double; const AFormat: string): string;
+begin
+  if IsNan(V) then
+    Result := ''
+  else
+    Result := FormatFloat(AFormat, V);
+end;
+
+function FindGeoField(const AName: string; out AField: TGeoField): Boolean;
+var
+  F: TGeoField;
+begin
+  Result := False;
+  for F := Low(TGeoField) to High(TGeoField) do
+    if SameText(AName, GeoFieldNames[F]) then
+    begin
+      AField := F;
+      Exit(True);
     end;
 end;
 

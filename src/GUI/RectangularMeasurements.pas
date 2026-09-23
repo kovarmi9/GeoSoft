@@ -71,13 +71,6 @@ procedure TRectangularMeasurementsForm.FormCreate(Sender: TObject);
 var
   D: TColumnFilterData;
 begin
-  StringGrid1.SetColumnDisplayName(CB, 'Číslo bodu');
-  StringGrid1.SetColumnDisplayName(SH, 'Délka');
-  StringGrid1.SetColumnDisplayName(Xm, 'X místní');
-  StringGrid1.SetColumnDisplayName(Ym, 'Y místní');
-  StringGrid1.SetColumnDisplayName(KK, 'Kód kvality');
-  StringGrid1.SetColumnDisplayName(Poznamka, 'Poznámka');
-
   // Left turn is written as a negative length
   D := GeoFieldColumns[SH].Filter;
   D.HasMinValue := False;
@@ -89,14 +82,10 @@ begin
   Memo1.Lines.Clear;
 end;
 
-const
-  // Column order, both coordinate pairs follow the toolbar switch
-  ORDER_YX: array[0..7] of TGeoField = (CB, SH, Ym, Xm, Y, X, KK, Poznamka);
-  ORDER_XY: array[0..7] of TGeoField = (CB, SH, Xm, Ym, X, Y, KK, Poznamka);
-
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
 begin
-  ApplyCoordOrder(StringGrid1, ORDER_YX, ORDER_XY);
+  // Both pairs follow the toolbar switch; the order itself is in the DFM
+  ApplyCoordOrder(StringGrid1, [Y, X, Ym, Xm]);
 end;
 
 // Writes one value by field, when the grid shows it

@@ -55,15 +55,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     OnKeyDown = AnchorGridKeyDown
     EnterEndBehavior = ebMoveFocusNext
     GeoFields = [CB, X, Y, Z, Xm, Ym, Poznamka]
-    ColumnHeaders.Strings = (
-      ''
-      #268#237'slo bodu'
-      'Stani'#269'en'#237
-      'Kolmice'
-      'Y'
-      'X'
-      'Z'
-      'Popis')
     RowHeaders.Strings = (
       ''
       'P'
@@ -112,15 +103,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     OnKeyDown = DetailGridKeyDown
     EnterEndBehavior = ebAddRow
     GeoFields = [CB, X, Y, Z, Xm, Ym, Poznamka]
-    ColumnHeaders.Strings = (
-      ''
-      #268#237'slo bodu'
-      'Stani'#269'en'#237
-      'Kolmice'
-      'Y'
-      'X'
-      'Z'
-      'Popis')
     RowHeaders.Strings = (
       '')
     ExplicitWidth = 798

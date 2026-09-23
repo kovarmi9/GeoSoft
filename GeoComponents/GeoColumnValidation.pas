@@ -49,6 +49,7 @@ type
     FDecimalPlaces: Integer;
     FAllowEmpty: Boolean;
     FWrapAt: Double;
+    FReadOnly: Boolean;
     FOnInvalidCommit: TCommitInvalidAction;
     FOnGetDefaultText: TGetDefaultTextEvent;
 
@@ -62,6 +63,7 @@ type
     procedure SetDecimalPlaces(const Value: Integer);
     procedure SetAllowEmpty(const Value: Boolean);
     procedure SetWrapAt(const Value: Double);
+    procedure SetReadOnly(const Value: Boolean);
 
     function GetColumn: Integer;
     procedure SetOnInvalidCommit(const Value: TCommitInvalidAction);
@@ -140,6 +142,13 @@ type
     property OnInvalidCommit: TCommitInvalidAction
       read FOnInvalidCommit write SetOnInvalidCommit
       default ciaBlock;
+
+    /// <summary>
+    /// True when the program fills this column. The cursor skips it, it
+    /// cannot be clicked and it is drawn grey. Code still writes into it.
+    /// </summary>
+    property ReadOnly: Boolean
+      read FReadOnly write SetReadOnly default False;
   end;
 
   /// <summary>
@@ -224,6 +233,7 @@ begin
   FDecimalPlaces   := -1;
   FAllowEmpty      := False;
   FWrapAt          := 0;
+  FReadOnly        := False;
   FOnInvalidCommit := ciaBlock;
 end;
 
@@ -244,6 +254,7 @@ begin
     FDecimalPlaces   := Src.FDecimalPlaces;
     FAllowEmpty      := Src.FAllowEmpty;
     FWrapAt          := Src.FWrapAt;
+    FReadOnly        := Src.FReadOnly;
     FOnInvalidCommit := Src.FOnInvalidCommit;
     // FOnGetDefaultText is not copied — it must be assigned in code, not in the form designer
     Changed(False);
@@ -324,6 +335,13 @@ procedure TColumnFilter.SetWrapAt(const Value: Double);
 begin
   if FWrapAt = Value then Exit;
   FWrapAt := Value;
+  Changed(False);
+end;
+
+procedure TColumnFilter.SetReadOnly(const Value: Boolean);
+begin
+  if FReadOnly = Value then Exit;
+  FReadOnly := Value;
   Changed(False);
 end;
 

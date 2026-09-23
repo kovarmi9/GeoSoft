@@ -59,7 +59,7 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := False;
+  Result.AllowEmpty := True;      // an empty cell means not filled
   Result.WrapAt := 0;
 end;
 
@@ -75,7 +75,7 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := False;
+  Result.AllowEmpty := True;      // an empty cell means not filled
   Result.WrapAt := 0;
 end;
 
@@ -92,7 +92,7 @@ begin
   Result.HasMaxValue := True;
   Result.MaxValue := AMaxValue;
   Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := False;
+  Result.AllowEmpty := True;      // an empty cell means not filled
   Result.WrapAt := 0;
 end;
 
@@ -158,7 +158,7 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := False;
+  Result.AllowEmpty := True;      // an empty cell means not filled
   Result.WrapAt := 400;
 end;
 
@@ -195,9 +195,9 @@ begin
 end;
 
 initialization
-  SetField(Uloha,    'Uloha',             cdtInteger, MakeInteger(2));
+  SetField(Uloha,    'Úloha',             cdtInteger, MakeInteger(2));
 
-  SetField(CB,       'Cislo bodu',        cdtInteger, MakeInteger(15, True));
+  SetField(CB,       'Číslo bodu',        cdtInteger, MakeInteger(15, True));
 
   SetField(X,        'X',                 cdtExpression, MakeFloat(3));
 
@@ -205,7 +205,7 @@ initialization
 
   SetField(Z,        'Z',                 cdtExpression, MakeFloat(3));
 
-  SetField(CBm,      'Cislo bodu zdroj',  cdtInteger, MakeInteger(15, True));
+  SetField(CBm,      'Číslo bodu zdroj',  cdtInteger, MakeInteger(15, True));
 
   SetField(Xm,       'Xm',                cdtExpression, MakeFloat(3));
 
@@ -213,26 +213,26 @@ initialization
 
   SetField(Zm,       'Zm',                cdtExpression, MakeFloat(3));
 
-  SetField(TypS,     'Typ delky',         cdtInteger, MakeInteger(1));
+  SetField(TypS,     'Typ délky',         cdtInteger, MakeInteger(1));
 
-  SetField(SH,       'Vodorovna delka',   cdtExpression, MakeMin(0, 3));
+  SetField(SH,       'Vodorovná délka',   cdtExpression, MakeMin(0, 3));
 
-  SetField(SS,       'Sikma delka',       cdtExpression, MakeMin(0, 3));
+  SetField(SS,       'Šikmá délka',       cdtExpression, MakeMin(0, 3));
 
-  SetField(VS,       'Vyska pristroje',   cdtExpression, MakeFloat(3));
+  SetField(VS,       'Výška přístroje',   cdtExpression, MakeFloat(3));
 
-  SetField(VC,       'Vyska cile',        cdtExpression, MakeFloat(3));
+  SetField(VC,       'Výška cíle',        cdtExpression, MakeFloat(3));
 
-  SetField(HZ,       'HZ uhel [g]',       cdtExpression, MakeGon(6));
+  SetField(HZ,       'HZ úhel [g]',       cdtExpression, MakeGon(6));
 
-  SetField(Zuhel,    'Zenitovy uhel [g]', cdtExpression, MakeRange(0, 400, 6));
+  SetField(Zuhel,    'Zenitový úhel [g]', cdtExpression, MakeRange(0, 400, 6));
 
-  SetField(PolarD,   'Polarni domenek',   cdtExpression, MakeFloat(3));
+  SetField(PolarD,   'Polární doměrek',   cdtExpression, MakeFloat(3));
 
-  SetField(PolarK,   'Polarni kolmice',   cdtExpression, MakeFloat(3));
+  SetField(PolarK,   'Polární kolmice',   cdtExpression, MakeFloat(3));
 
-  SetField(Poznamka, 'Poznamka',          cdtNone,    MakeText(32));
+  SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(32));
 
-  SetField(KK,       'Kod kvality',       cdtInteger, MakeIntegerRange(1, 0, 8));
+  SetField(KK,       'Kód kvality',       cdtInteger, MakeIntegerRange(1, 0, 8));
 
 end.

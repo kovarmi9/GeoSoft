@@ -92,6 +92,21 @@ type
     procedure MoveToNextCell(PressedKey: Word; Shift: TShiftState); virtual;
 
     /// <summary>
+    /// Descendants can refuse a cell; the cursor never lands there and no
+    /// editor opens on it. Default: every cell is selectable.
+    /// </summary>
+    function CellSelectable(ACol, ARow: Integer): Boolean; virtual;
+
+    /// <summary>First column of a row the cursor may land on.</summary>
+    function FirstSelectableCol(ARow: Integer): Integer;
+
+    /// <summary>
+    /// Next cell to the right the cursor may land on, wrapping to the next
+    /// row. False at the end of the grid.
+    /// </summary>
+    function NextSelectable(var ACol, ARow: Integer): Boolean;
+
+    /// <summary>
     /// Commits current cell value before leaving it.
     /// Base: writes InplaceEditor.Text into Cells[Col, Row].
     /// Override in descendants to add validation or formatting.
@@ -118,6 +133,14 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
+
+    /// <summary>Column header captions. Published by descendants.</summary>
+    property ColumnHeaders: TStrings
+      read FColumnHeaders write SetColumnHeaders;
+
+    /// <summary>Row header captions. Published by descendants.</summary>
+    property RowHeaders: TStrings
+      read FRowHeaders write SetRowHeaders;
 
     /// <summary>
     /// Validates the current cell. Returns True if navigation can proceed,
@@ -155,14 +178,6 @@ type
       read FEnterEndBehavior write FEnterEndBehavior
       default ebStayOnLastCell;
 
-    /// <summary>Column header captions.</summary>
-    property ColumnHeaders: TStrings
-      read FColumnHeaders write SetColumnHeaders;
-
-    /// <summary>Row header captions.</summary>
-    property RowHeaders: TStrings
-      read FRowHeaders write SetRowHeaders;
-
     /// <summary>
     /// Fired after the user leaves a cell and its value is committed.
     /// ACol/ARow identify the cell that was just committed.
@@ -173,6 +188,10 @@ type
   end;
 
 implementation
+
+const
+  // Pale grey - a locked cell must still read as data, not as a header
+  clReadOnlyCell = TColor($00F4F4F4);
 
 { TGeoInplaceEdit }
 
@@ -270,7 +289,12 @@ begin
       OnDrawCell(Self, ACol, ARow, Rect, State);
   end
   else
+  begin
+    // A cell the cursor cannot reach is not for typing - show it
+    if not CellSelectable(ACol, ARow) then
+      Canvas.Brush.Color := clReadOnlyCell;
     inherited DrawCell(ACol, ARow, Rect, State);
+  end;
 
   if ACol = FCheckColumn then
     DrawCheckBox(ARow, Rect);
@@ -295,10 +319,45 @@ begin
   inherited KeyDown(Key, Shift);
 end;
 
+function TGeoGrid.CellSelectable(ACol, ARow: Integer): Boolean;
+begin
+  Result := True;
+end;
+
+function TGeoGrid.FirstSelectableCol(ARow: Integer): Integer;
+begin
+  Result := FixedCols;
+  while (Result < ColCount - 1) and not CellSelectable(Result, ARow) do
+    Inc(Result);
+end;
+
+function TGeoGrid.NextSelectable(var ACol, ARow: Integer): Boolean;
+var
+  Guard: Integer;
+begin
+  Guard := ColCount * RowCount;   // never loop over the whole grid twice
+
+  repeat
+    if ACol < ColCount - 1 then
+      Inc(ACol)
+    else if ARow < RowCount - 1 then
+    begin
+      Inc(ARow);
+      ACol := FixedCols;
+    end
+    else
+      Exit(False);                // end of grid, the caller decides
+
+    Dec(Guard);
+  until CellSelectable(ACol, ARow) or (Guard <= 0);
+
+  Result := CellSelectable(ACol, ARow);
+end;
+
 // Navigation logic
 procedure TGeoGrid.MoveToNextCell(PressedKey: Word; Shift: TShiftState);
 var
-  FirstDataCol, FirstDataRow: Integer;
+  FirstDataCol, FirstDataRow, C, R: Integer;
 begin
   // First editable cell position
   FirstDataCol := FixedCols;
@@ -326,38 +385,26 @@ begin
   if EditorMode then
     EditorMode := False;
 
-  // Move to the next column in current row
-  if Col < ColCount - 1 then
-    Col := Col + 1
-
-  // Move to the first data column of next row
-  else if Row < RowCount - 1 then
-  begin
-    Row := Row + 1;
-    Col := FirstDataCol;
-  end
+  // Next cell the cursor may land on; refused columns are skipped
+  C := Col;
+  R := Row;
+  if NextSelectable(C, R) then
+    MoveColRow(C, R, True, True)
 
   // Handle movement at the last cell
   else
   begin
     case FEnterEndBehavior of
       ebStayOnLastCell:
-        begin
-          Row := RowCount - 1;
-          Col := ColCount - 1;
-        end;
+        ;                          // already on the last cell we may use
 
       ebWrapToStart:
-        begin
-          Row := FirstDataRow;
-          Col := FirstDataCol;
-        end;
+        MoveColRow(FirstSelectableCol(FirstDataRow), FirstDataRow, True, True);
 
       ebAddRow:
         begin
           RowCount := RowCount + 1;
-          Row := Row + 1;
-          Col := FirstDataCol;
+          MoveColRow(FirstSelectableCol(Row + 1), Row + 1, True, True);
         end;
 
       ebMoveFocusNext:
@@ -400,6 +447,9 @@ end;
 
 function TGeoGrid.SelectCell(ACol, ARow: Integer): Boolean;
 begin
+  if not CellSelectable(ACol, ARow) then
+    Exit(False);
+
   // Commit current cell before moving (mouse clicks, arrow keys)
   if (ACol <> Col) or (ARow <> Row) then
   begin

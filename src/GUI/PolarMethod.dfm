@@ -191,15 +191,6 @@ inherited PolarMethodForm: TPolarMethodForm
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
       EnterEndBehavior = ebAddRow
-      ColumnHeaders.Strings = (
-        ''
-        'Cislo bodu'
-        'X'
-        'Y'
-        'Z'
-        'Sikma delka'
-        'HZ uhel [g]'
-        'Poznamka')
       GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
       ColWidths = (
         64
@@ -255,15 +246,6 @@ inherited PolarMethodForm: TPolarMethodForm
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 4
       EnterEndBehavior = ebAddRow
-      ColumnHeaders.Strings = (
-        ''
-        'Cislo bodu'
-        'X'
-        'Y'
-        'Z'
-        'Sikma delka'
-        'HZ uhel [g]'
-        'Poznamka')
       GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
       ColWidths = (
         64

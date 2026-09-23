@@ -1,4 +1,4 @@
-unit CoordOrderState;
+﻿unit CoordOrderState;
 
 // Order in which the program shows and stores the coordinate pair.
 // Y, X is the cadastre order and the default. The setting lives only for the
@@ -12,7 +12,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Grids, Point, GeoRow,
-  GeoGrid, GeoPointsGrid, GeoFieldsGrid, ProtocolTable;
+  GeoPointsGrid, GeoFieldsGrid, ProtocolTable;
 
 type
   TCoordOrder = (coYX, coXY);
@@ -54,10 +54,10 @@ procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
 // Column order of a field grid
 procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid); overload;
 
-// The same for a grid with its own column order. The form gives both
-// orders, the pair inside them is what differs.
+// The same for a grid whose order is set in the designer. The fields are
+// read in pairs and each pair is swapped inside the current order.
 procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid;
-  const AOrderYX, AOrderXY: array of TGeoField); overload;
+  const APairs: array of TGeoField); overload;
 
 // Order of a pair of coordinate controls. It only moves them; the value
 // stays in its own control.
@@ -154,7 +154,6 @@ procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
 var
   R, W, F1, F2: Integer;
   S: string;
-  Geo: TGeoGrid;
   Pts: TGeoPointsGrid;
 begin
   W := AGrid.ColWidths[ACol1];
@@ -168,22 +167,20 @@ begin
     AGrid.Cells[ACol2, R] := S;
   end;
 
-  // TGeoGrid keeps the captions in a list and writes them into row 0
-  if AGrid is TGeoGrid then
-  begin
-    Geo := TGeoGrid(AGrid);
-    if (ACol1 < Geo.ColumnHeaders.Count) and (ACol2 < Geo.ColumnHeaders.Count) then
-    begin
-      S := Geo.ColumnHeaders[ACol1];
-      Geo.ColumnHeaders[ACol1] := Geo.ColumnHeaders[ACol2];
-      Geo.ColumnHeaders[ACol2] := S;
-    end;
-  end;
-
-  // The columns are neighbours, so moving one filter is already a swap
+  // Only a points grid owns its captions and filters; a fields grid
+  // rebuilds both from the field definitions
   if AGrid is TGeoPointsGrid then
   begin
     Pts := TGeoPointsGrid(AGrid);
+
+    if (ACol1 < Pts.ColumnHeaders.Count) and (ACol2 < Pts.ColumnHeaders.Count) then
+    begin
+      S := Pts.ColumnHeaders[ACol1];
+      Pts.ColumnHeaders[ACol1] := Pts.ColumnHeaders[ACol2];
+      Pts.ColumnHeaders[ACol2] := S;
+    end;
+
+    // The columns are neighbours, so moving one filter is already a swap
     F1  := ACol1 - Pts.FixedCols;
     F2  := ACol2 - Pts.FixedCols;
     if (F1 >= 0) and (F2 >= 0) and
@@ -256,40 +253,62 @@ begin
   WriteGridTexts(AGrid, Texts);
 end;
 
-// True when the grid already shows this order
-function OrderMatches(AGrid: TGeoFieldsGrid;
-  const AOrder: array of TGeoField): Boolean;
+// Current order of the data columns
+function CurrentOrder(AGrid: TGeoFieldsGrid): TArray<TGeoField>;
 var
   I: Integer;
 begin
-  Result := False;
-  for I := 0 to High(AOrder) do
-    if AGrid.FieldToCol(AOrder[I]) <> AGrid.FixedCols + I then
-      Exit;
-  Result := True;
+  SetLength(Result, AGrid.DataFieldCount);
+  for I := 0 to High(Result) do
+    Result[I] := AGrid.ColToField(AGrid.FixedCols + I);
 end;
 
-procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid;
-  const AOrderYX, AOrderXY: array of TGeoField);
+procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid; const APairs: array of TGeoField);
 var
+  Order: TArray<TGeoField>;
   Texts: TGridTexts;
+  P, IA, IB: Integer;
+  Changed: Boolean;
+
+  function IndexOf(F: TGeoField): Integer;
+  var
+    I: Integer;
+  begin
+    Result := -1;
+    for I := 0 to High(Order) do
+      if Order[I] = F then
+        Exit(I);
+  end;
+
 begin
   if AGrid = nil then
     Exit;
 
-  if GCoordOrder = coYX then
+  Order := CurrentOrder(AGrid);
+  Changed := False;
+
+  P := 0;
+  while P < High(APairs) do
   begin
-    if OrderMatches(AGrid, AOrderYX) then Exit;
-    ReadGridTexts(AGrid, Texts);
-    AGrid.SetFieldOrder(AOrderYX);
-  end
-  else
-  begin
-    if OrderMatches(AGrid, AOrderXY) then Exit;
-    ReadGridTexts(AGrid, Texts);
-    AGrid.SetFieldOrder(AOrderXY);
+    IA := IndexOf(APairs[P]);
+    IB := IndexOf(APairs[P + 1]);
+
+    // The first of the pair leads only in the YX order
+    if (IA >= 0) and (IB >= 0) and ((GCoordOrder = coYX) <> (IA < IB)) then
+    begin
+      Order[IA] := APairs[P + 1];
+      Order[IB] := APairs[P];
+      Changed := True;
+    end;
+
+    Inc(P, 2);
   end;
 
+  if not Changed then
+    Exit;
+
+  ReadGridTexts(AGrid, Texts);       // content is the application's
+  AGrid.SetFieldOrder(Order);        // order is the component's
   WriteGridTexts(AGrid, Texts);
 end;
 

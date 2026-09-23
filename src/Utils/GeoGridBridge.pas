@@ -24,22 +24,22 @@ begin
   case F of
     Uloha:    Result := IntToStr(ARow.Uloha);
     CB:       Result := string(ARow.CB);
-    X:        Result := FormatFloat(AFormat, ARow.X);
-    Y:        Result := FormatFloat(AFormat, ARow.Y);
-    Z:        Result := FormatFloat(AFormat, ARow.Z);
+    X:        Result := FloatCell(ARow.X, AFormat);
+    Y:        Result := FloatCell(ARow.Y, AFormat);
+    Z:        Result := FloatCell(ARow.Z, AFormat);
     CBm:      Result := string(ARow.CBm);
-    Xm:       Result := FormatFloat(AFormat, ARow.Xm);
-    Ym:       Result := FormatFloat(AFormat, ARow.Ym);
-    Zm:       Result := FormatFloat(AFormat, ARow.Zm);
+    Xm:       Result := FloatCell(ARow.Xm, AFormat);
+    Ym:       Result := FloatCell(ARow.Ym, AFormat);
+    Zm:       Result := FloatCell(ARow.Zm, AFormat);
     TypS:     Result := IntToStr(ARow.TypS);
-    SH:       Result := FormatFloat(AFormat, ARow.SH);
-    SS:       Result := FormatFloat(AFormat, ARow.SS);
-    VS:       Result := FormatFloat(AFormat, ARow.VS);
-    VC:       Result := FormatFloat(AFormat, ARow.VC);
-    HZ:       Result := FormatFloat(AFormat, ARow.HZ);
-    Zuhel:    Result := FormatFloat(AFormat, ARow.Zuhel);
-    PolarD:   Result := FormatFloat(AFormat, ARow.PolarD);
-    PolarK:   Result := FormatFloat(AFormat, ARow.PolarK);
+    SH:       Result := FloatCell(ARow.SH, AFormat);
+    SS:       Result := FloatCell(ARow.SS, AFormat);
+    VS:       Result := FloatCell(ARow.VS, AFormat);
+    VC:       Result := FloatCell(ARow.VC, AFormat);
+    HZ:       Result := FloatCell(ARow.HZ, AFormat);
+    Zuhel:    Result := FloatCell(ARow.Zuhel, AFormat);
+    PolarD:   Result := FloatCell(ARow.PolarD, AFormat);
+    PolarK:   Result := FloatCell(ARow.PolarK, AFormat);
     Poznamka: Result := string(ARow.Poznamka);
     KK:       Result := IntToStr(ARow.KK);
   else

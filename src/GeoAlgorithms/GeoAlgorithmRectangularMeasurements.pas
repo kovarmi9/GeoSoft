@@ -80,7 +80,7 @@ procedure TRectangularMeasurementsAlgorithm.BuildLocalPoints(
   const AChain: TPointsArray);
 var
   I: Integer;
-  DirX, DirY, NewDirX, CurX, CurY, Dist, TS: Double;
+  DirX, DirY, NewDirX, CurX, CurY, Dist, TS, D: Double;
 begin
   SetLength(FLocalPoints, Length(AChain));
   CurX := 0;  CurY := 0;
@@ -90,8 +90,12 @@ begin
   begin
     if I > 0 then
     begin
+      D := AChain[I].X;
+      if IsNan(D) then
+        D := 0;                    // an unfilled length is no step
+
       // S-JTSK axes: X south, Y west
-      TS := Sign(AChain[I].X);
+      TS := Sign(D);
       if TS <> 0 then
       begin
         NewDirX := -TS * DirY;
@@ -99,7 +103,7 @@ begin
         DirX := NewDirX;
       end;
 
-      Dist := Abs(AChain[I].X);
+      Dist := Abs(D);
       CurX := CurX + Dist * DirX;
       CurY := CurY + Dist * DirY;
     end;
@@ -212,7 +216,7 @@ begin
     else
     begin
       Chain[I].X := AFrame.Rows[AFrom + I].SH;
-      if Chain[I].X = 0 then
+      if IsNan(Chain[I].X) then
         AMsgs.Add(Head + Format('bod %s nemá délku.',
           [string(AFrame.Rows[AFrom + I].CB)]));
     end;
@@ -225,6 +229,13 @@ begin
   Ident[1].PointNumber := Chain[N - 1].PointNumber;
   Ident[1].X := AFrame.Rows[ATo].X;
   Ident[1].Y := AFrame.Rows[ATo].Y;
+
+  if IsNan(Ident[0].X) or IsNan(Ident[0].Y) or
+     IsNan(Ident[1].X) or IsNan(Ident[1].Y) then
+  begin
+    AMsgs.Add(Head + 'daný bod nemá souřadnice.');
+    Exit;
+  end;
 
   FIdenticalPoints := Ident;
   try

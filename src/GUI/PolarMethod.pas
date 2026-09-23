@@ -303,6 +303,7 @@ begin
     num := StrToInt64Def(Trim(string(Row.CB)), 0);
     if num <= 0 then Continue;
     if Trim(GridDetail.Cells[GridDetail.FieldToCol(SS), r]) = '' then Continue;
+    if Trim(GridDetail.Cells[GridDetail.FieldToCol(HZ), r]) = '' then Continue;
 
     InPts[nDet].PointNumber := num;
     InPts[nDet].X := Row.HZ;
@@ -359,6 +360,7 @@ begin
     num := StrToInt64Def(Trim(string(Row.CB)), 0);
     if num <= 0 then Continue;
     if Trim(GridDetail.Cells[GridDetail.FieldToCol(SS), r]) = '' then Continue;
+    if Trim(GridDetail.Cells[GridDetail.FieldToCol(HZ), r]) = '' then Continue;
     if i >= Length(OutPts) then Break;
 
     GridDetail.Cells[GridDetail.FieldToCol(Y), r] := FloatToStr(OutPts[i].Y, FS);

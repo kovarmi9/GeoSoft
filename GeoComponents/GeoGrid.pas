@@ -107,6 +107,24 @@ type
     function NextSelectable(var ACol, ARow: Integer): Boolean;
 
     /// <summary>
+    /// Previous cell to the left the cursor may land on, wrapping to the
+    /// end of the row above. False at the first cell.
+    /// </summary>
+    function PrevSelectable(var ACol, ARow: Integer): Boolean;
+
+    /// <summary>Esc in the editor: drop what was typed, keep the cell.</summary>
+    procedure CancelEdit;
+
+    /// <summary>
+    /// Neighbour in the same row the cursor may land on. False when the row
+    /// ends or only locked cells follow.
+    /// </summary>
+    function StepInRow(var ACol: Integer; ADelta: Integer): Boolean;
+
+    /// <summary>Steps one cell back. AOpenEditor is what Enter needs.</summary>
+    procedure MoveToPrevCell(AOpenEditor: Boolean);
+
+    /// <summary>
     /// Commits current cell value before leaving it.
     /// Base: writes InplaceEditor.Text into Cells[Col, Row].
     /// Override in descendants to add validation or formatting.
@@ -212,17 +230,9 @@ procedure TGeoInplaceEdit.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
+    // The grid owns the navigation, the same as it does for Esc
     if Owner is TGeoGrid then
-    begin
-      // Validate before moving — if commit fails, stay on current cell
-      if not TGeoGrid(Owner).CommitCurrentCell then
-      begin
-        Key := 0;
-        Exit;
-      end;
-      TGeoGrid(Owner).MoveToNextCell(Key, Shift);
-    end;
-
+      TGeoGrid(Owner).KeyDown(Key, Shift);
     Key := 0;
     Exit;
   end;
@@ -300,9 +310,55 @@ begin
     DrawCheckBox(ARow, Rect);
 end;
 
-// Handle Enter/Tab inside grid
+// Every key the grid answers itself; the inplace editor forwards them here
 procedure TGeoGrid.KeyDown(var Key: Word; Shift: TShiftState);
+var
+  C, D: Integer;
 begin
+  // The inplace editor forwards Esc here, so one branch serves both states
+  if Key = VK_ESCAPE then
+  begin
+    if EditorMode then
+      CancelEdit                // first Esc: drop the entry
+    else
+      MoveToPrevCell(False);    // second Esc: step back, stay in selection
+    Key := 0;
+    Exit;
+  end;
+
+  // Delete clears the cell and keeps the selection, the Windows way
+  if (Key = VK_DELETE) and not EditorMode then
+  begin
+    if CellSelectable(Col, Row) then
+    begin
+      Cells[Col, Row] := '';
+      CommitCell;               // the form recomputes what depended on it
+    end;
+    Key := 0;
+    Exit;
+  end;
+
+  // Space toggles the row's check box where the cell cannot be typed into
+  if (Key = VK_SPACE) and (Shift = []) and not EditorMode and
+     (FCheckColumn >= 0) and not (goEditing in Options) then
+  begin
+    Checked[Row] := not Checked[Row];
+    Key := 0;
+    Exit;
+  end;
+
+  // Arrows must skip locked columns, or the cursor stops dead on them
+  // Shift extends the selection and Ctrl scrolls, both belong to the ancestor
+  if ((Key = VK_LEFT) or (Key = VK_RIGHT)) and not EditorMode and (Shift = []) then
+  begin
+    if Key = VK_LEFT then D := -1 else D := 1;
+    C := Col;
+    if StepInRow(C, D) then
+      MoveColRow(C, Row, True, True);
+    Key := 0;
+    Exit;
+  end;
+
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
     // Validate before moving — block the key if commit fails
@@ -311,7 +367,12 @@ begin
       Key := 0;
       Exit;
     end;
-    MoveToNextCell(Key, Shift);
+
+    // Shift means backwards; like Tab, only Enter opens the editor
+    if ssShift in Shift then
+      MoveToPrevCell(Key = VK_RETURN)
+    else
+      MoveToNextCell(Key, Shift);
     Key := 0;
     Exit;
   end;
@@ -352,6 +413,70 @@ begin
   until CellSelectable(ACol, ARow) or (Guard <= 0);
 
   Result := CellSelectable(ACol, ARow);
+end;
+
+function TGeoGrid.PrevSelectable(var ACol, ARow: Integer): Boolean;
+var
+  Guard: Integer;
+begin
+  Guard := ColCount * RowCount;   // never loop over the whole grid twice
+
+  repeat
+    if ACol > FixedCols then
+      Dec(ACol)
+    else if ARow > FixedRows then
+    begin
+      Dec(ARow);
+      ACol := ColCount - 1;
+    end
+    else
+      Exit(False);                // first cell, nowhere to step back
+
+    Dec(Guard);
+  until CellSelectable(ACol, ARow) or (Guard <= 0);
+
+  Result := CellSelectable(ACol, ARow);
+end;
+
+// Esc leaves the editor and clears the cell, the same as Delete does on a
+// selected cell. The cursor stays, so the next Esc steps back.
+procedure TGeoGrid.CancelEdit;
+begin
+  EditorMode := False;      // HideEdit writes the typed text into the cell
+  Cells[Col, Row] := '';    // ... and this throws it away
+  FLastCommitFailed := False;
+  CommitCell;               // the form recomputes what depended on it
+end;
+
+function TGeoGrid.StepInRow(var ACol: Integer; ADelta: Integer): Boolean;
+var
+  C: Integer;
+begin
+  C := ACol + ADelta;
+  while (C >= FixedCols) and (C < ColCount) and not CellSelectable(C, Row) do
+    Inc(C, ADelta);
+
+  Result := (C >= FixedCols) and (C < ColCount);
+  if Result then
+    ACol := C;
+end;
+
+// Esc steps back without opening the editor, Shift+Enter opens it
+procedure TGeoGrid.MoveToPrevCell(AOpenEditor: Boolean);
+var
+  C, R: Integer;
+begin
+  if EditorMode then
+    EditorMode := False;
+
+  C := Col;
+  R := Row;
+  if not PrevSelectable(C, R) then
+    Exit;                       // already at the start
+
+  MoveColRow(C, R, True, True);
+  if AOpenEditor and (goEditing in Options) then
+    EditorMode := True;
 end;
 
 // Navigation logic

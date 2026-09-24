@@ -16,7 +16,6 @@ type
     ComboBox1: TComboBox;
     StaticText2: TStaticText;
     procedure FormCreate(Sender: TObject);
-    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
   private
     FGridOrder: TCoordOrder;   // order the columns are laid out in now
@@ -113,13 +112,6 @@ begin
     StringGrid1.Options := StringGrid1.Options + [goEditing]
   else
     StringGrid1.Options := StringGrid1.Options - [goEditing];
-end;
-
-// Enter is handled by TGeoGrid (EnterEndBehavior = ebAddRow).
-procedure TTransformationForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key = VK_DELETE then
-    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
 end;
 
 end.

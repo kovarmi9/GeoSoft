@@ -64,7 +64,6 @@ inherited TransformationForm: TTransformationForm
     RowCount = 3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
-    OnKeyDown = StringGrid1KeyDown
     OnSelectCell = StringGrid1SelectCell
     EnterEndBehavior = ebAddRow
     CheckColumn = 1

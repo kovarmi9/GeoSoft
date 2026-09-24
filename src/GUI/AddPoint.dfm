@@ -3,7 +3,7 @@ object AddPointForm: TAddPointForm
   Top = 0
   Caption = 'P'#345'idat bod'
   ClientHeight = 116
-  ClientWidth = 391
+  ClientWidth = 534
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -11,6 +11,7 @@ object AddPointForm: TAddPointForm
   Font.Name = 'Segoe UI'
   Font.Style = []
   KeyPreview = True
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnShow = FormShow
   TextHeight = 15
@@ -29,7 +30,7 @@ object AddPointForm: TAddPointForm
   object StringGrid: TGeoPointsGrid
     Left = 0
     Top = 0
-    Width = 391
+    Width = 534
     Height = 116
     Align = alClient
     ColCount = 6
@@ -37,8 +38,6 @@ object AddPointForm: TAddPointForm
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs]
     TabOrder = 0
-    OnEnter = StringGridEnter
-    OnSelectCell = StringGridSelectCell
     EnterEndBehavior = ebMoveFocusNext
     ColumnHeaders.Strings = (
       #268#237'slo bodu'
@@ -49,6 +48,7 @@ object AddPointForm: TAddPointForm
       'Popis')
     ColumnFilters = <
       item
+        ReadOnly = True
       end
       item
       end
@@ -60,18 +60,17 @@ object AddPointForm: TAddPointForm
       end
       item
       end>
-    ExplicitWidth = 389
-    ExplicitHeight = 108
+    ExplicitWidth = 391
     ColWidths = (
-      61
-      61
-      60
-      60
-      60
-      60)
+      120
+      80
+      80
+      80
+      80
+      80)
   end
   object btnOK: TButton
-    Left = 216
+    Left = 370
     Top = 75
     Width = 75
     Height = 25
@@ -80,7 +79,7 @@ object AddPointForm: TAddPointForm
     TabOrder = 1
   end
   object btnCancel: TButton
-    Left = 297
+    Left = 451
     Top = 75
     Width = 75
     Height = 25

@@ -20,15 +20,14 @@ type
     lblWarning: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure StringGridEnter(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     FGridOrder: TCoordOrder;   // order the columns are laid out in now
     procedure ApplyCoordOrderToGrid;
     procedure FocusInputCell;
+    function  CoordMissing(ACol: Integer; const AName: string): Boolean;
     procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
     procedure GetDescriptionDefault(var AText: string; var AHandled: Boolean);
-    procedure PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
   public
     /// <summary>
     ///  Shows the Add Point dialog for a single point entry.
@@ -54,39 +53,33 @@ const
   COL_QUALITY = 4;
   COL_DESC    = 5;
   DATA_ROW    = 1;
-  // First editable coordinate column, whatever the order is
-  COL_FIRST_COORD = 1;
 
 procedure TAddPointForm.FormCreate(Sender: TObject);
+
+  procedure Coord(AIndex: Integer);
+  begin
+    StringGrid.ColumnFilters[AIndex].DataType        := cdtExpression;
+    StringGrid.ColumnFilters[AIndex].DecimalPlaces   := 3;
+    StringGrid.ColumnFilters[AIndex].OnInvalidCommit := ciaBlock;
+  end;
+
 begin
-  StringGrid.ColumnFilters[COL_POINTNO].DataType := cdtNone;
+  Coord(COL_COORD);
+  Coord(COL_COORD + 1);
+  Coord(COL_Z);
 
-  StringGrid.ColumnFilters[COL_COORD].DataType        := cdtExpression;
-  StringGrid.ColumnFilters[COL_COORD].DecimalPlaces   := 3;
-  StringGrid.ColumnFilters[COL_COORD].OnInvalidCommit := ciaBlock;
-
-  StringGrid.ColumnFilters[COL_COORD + 1].DataType        := cdtExpression;
-  StringGrid.ColumnFilters[COL_COORD + 1].DecimalPlaces   := 3;
-  StringGrid.ColumnFilters[COL_COORD + 1].OnInvalidCommit := ciaBlock;
-
-  StringGrid.ColumnFilters[COL_Z].DataType        := cdtExpression;
-  StringGrid.ColumnFilters[COL_Z].DecimalPlaces   := 3;
-  StringGrid.ColumnFilters[COL_Z].OnInvalidCommit := ciaBlock;
-
-  StringGrid.ColumnFilters[COL_QUALITY].DataType          := cdtInteger;
-  StringGrid.ColumnFilters[COL_QUALITY].MaxLength         := 1;
-  StringGrid.ColumnFilters[COL_QUALITY].HasMinValue       := True;
-  StringGrid.ColumnFilters[COL_QUALITY].MinValue          := 0;
-  StringGrid.ColumnFilters[COL_QUALITY].HasMaxValue       := True;
-  StringGrid.ColumnFilters[COL_QUALITY].MaxValue          := 8;
-  StringGrid.ColumnFilters[COL_QUALITY].OnInvalidCommit   := ciaBlock;
-  StringGrid.ColumnFilters[COL_QUALITY].OnGetDefaultText  := GetQualityDefault;
+  StringGrid.ColumnFilters[COL_QUALITY].DataType         := cdtInteger;
+  StringGrid.ColumnFilters[COL_QUALITY].MaxLength        := 1;
+  StringGrid.ColumnFilters[COL_QUALITY].HasMinValue      := True;
+  StringGrid.ColumnFilters[COL_QUALITY].MinValue         := 0;
+  StringGrid.ColumnFilters[COL_QUALITY].HasMaxValue      := True;
+  StringGrid.ColumnFilters[COL_QUALITY].MaxValue         := 8;
+  StringGrid.ColumnFilters[COL_QUALITY].OnInvalidCommit  := ciaBlock;
+  StringGrid.ColumnFilters[COL_QUALITY].OnGetDefaultText := GetQualityDefault;
 
   StringGrid.ColumnFilters[COL_DESC].DataType         := cdtNone;
   StringGrid.ColumnFilters[COL_DESC].MaxLength        := 32;
   StringGrid.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
-
-  StringGrid.OnCellCommitted := PointNumberCommitted;
 
   // The designer lays the coordinate columns out as Y, X - the cadastre order
   FGridOrder := coYX;
@@ -101,11 +94,17 @@ begin
   SwapGridColumns(StringGrid, COL_COORD, COL_COORD + 1);
 end;
 
+// Keeps the quality inside 0..8, falling back when the text is not a code
+function ClampQuality(const AText: string; ADefault: Integer): Integer;
+begin
+  Result := StrToIntDef(Trim(AText), ADefault);
+  if (Result < 0) or (Result > 8) then
+    Result := ADefault;
+end;
+
 function ReadDefaultQuality: Integer;
 begin
-  Result := StrToIntDef(Trim(GPointPrefix.KK), 3);
-  if (Result < 0) or (Result > 8) then
-    Result := 3;
+  Result := ClampQuality(GPointPrefix.KK, 3);
 end;
 
 procedure TAddPointForm.GetQualityDefault(var AText: string; var AHandled: Boolean);
@@ -120,78 +119,62 @@ begin
   AHandled := True;
 end;
 
-procedure TAddPointForm.PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
+// Reports an empty or invalid coordinate and puts the cursor back on it
+function TAddPointForm.CoordMissing(ACol: Integer; const AName: string): Boolean;
+var
+  Value: Double;
 begin
-  if (ACol <> COL_POINTNO) or (ARow < DATA_ROW) then Exit;
-  NormalizePointCell(StringGrid, ACol, ARow);
+  Result := not TryStrToFloat(StringGrid.Cells[ACol, DATA_ROW], Value);
+  if not Result then
+    Exit;
+
+  MessageDlg(Format('Pole %s musí obsahovat platné číslo.', [AName]),
+             mtError, [mbOK], 0);
+  StringGrid.Col        := ACol;
+  StringGrid.EditorMode := True;
+end;
+
+// OK keeps the dialog open until both coordinates are valid
+procedure TAddPointForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  if ModalResult <> mrOk then
+    Exit;
+
+  if StringGrid.EditorMode then
+    StringGrid.EditorMode := False;
+
+  CanClose := not CoordMissing(CoordColY(COL_COORD), 'Y') and
+              not CoordMissing(CoordColX(COL_COORD), 'X');
 end;
 
 function TAddPointForm.Execute(PointNumber: Int64; out NewP: TPoint): Boolean;
 var
   StoredPointNumber: Int64;
-  QStr: string;
-  DStr: string;
-  Q: Integer;
-  Dummy: Double;
+  Desc: string;
 begin
   StringGrid.Cells[COL_POINTNO, DATA_ROW] :=
     BuildPointIdFromPrefixState(IntToStr(PointNumber));
-  StoredPointNumber := StrToInt64Def(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
-  lblWarning.Caption := Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [StoredPointNumber]);
+  StoredPointNumber :=
+    StrToInt64Def(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
+  lblWarning.Caption :=
+    Format('Bod %d nebyl nalezen. Přejete si jej přidat?', [StoredPointNumber]);
 
-  repeat
-    Result := (ShowModal = mrOk);
-    if not Result then
-      Exit;
+  Result := ShowModal = mrOk;
+  if not Result then
+    Exit;
 
-    // Commit an open editor
-    if StringGrid.EditorMode then
-      StringGrid.EditorMode := False;
+  // The grid fills these only when the user visits the cell
+  Desc := Trim(StringGrid.Cells[COL_DESC, DATA_ROW]);
+  if Desc = '' then
+    Desc := Trim(GPointPrefix.Popis);
 
-    // Y and X are required, Z defaults to 0. Checked in column order, Y first.
-    if not TryStrToFloat(StringGrid.Cells[CoordColY(COL_COORD), DATA_ROW], Dummy) then
-    begin
-      MessageDlg('Pole Y musí obsahovat platné číslo.', mtError, [mbOK], 0);
-      StringGrid.Col        := CoordColY(COL_COORD);
-      StringGrid.EditorMode := True;
-      Continue;
-    end;
-    if not TryStrToFloat(StringGrid.Cells[CoordColX(COL_COORD), DATA_ROW], Dummy) then
-    begin
-      MessageDlg('Pole X musí obsahovat platné číslo.', mtError, [mbOK], 0);
-      StringGrid.Col        := CoordColX(COL_COORD);
-      StringGrid.EditorMode := True;
-      Continue;
-    end;
-
-    Break; // all valid
-  until False;
-
-  StoredPointNumber := StrToInt64Def(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
-
-  // Dafaults from global prefix... quality/description just when user let it blanc
-  QStr := Trim(StringGrid.Cells[COL_QUALITY, DATA_ROW]);
-  if QStr = '' then
-    Q := ReadDefaultQuality
-  else
-  begin
-    Q := StrToIntDef(QStr, ReadDefaultQuality);
-    if (Q < 0) or (Q > 8) then
-      Q := ReadDefaultQuality;
-  end;
-
-  DStr := Trim(StringGrid.Cells[COL_DESC, DATA_ROW]);
-  if DStr = '' then
-    DStr := Trim(GPointPrefix.Popis);
-
-  // Creates point
   NewP := TPoint.Create(
     StoredPointNumber,
     StrToFloatDef(StringGrid.Cells[CoordColX(COL_COORD), DATA_ROW], 0.0),
     StrToFloatDef(StringGrid.Cells[CoordColY(COL_COORD), DATA_ROW], 0.0),
     StrToFloatDef(StringGrid.Cells[COL_Z, DATA_ROW], 0.0),
-    Q,
-    DStr
+    ClampQuality(StringGrid.Cells[COL_QUALITY, DATA_ROW], ReadDefaultQuality),
+    Desc
   );
 
   // Saves point to the dictionary — ask if already exists
@@ -211,21 +194,15 @@ begin
     TPointDictionary.GetInstance.AddPoint(NewP);
 end;
 
-procedure TAddPointForm.StringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-begin
-  CanSelect := True;
-  // TGeoPointsGrid handles validation and defaults through ColumnFilters
-end;
-
 procedure TAddPointForm.FormShow(Sender: TObject);
 var
-  c: Integer;
+  C: Integer;
 begin
   ApplyCoordOrderToGrid;
 
-  // delete columns 1..n, column 0 (PointNumber) leaves
-  for c := COL_FIRST_COORD to StringGrid.ColCount - 1 do
-    StringGrid.Cells[c, DATA_ROW] := '';
+  // Only the point number survives, the rest starts empty
+  for C := COL_COORD to StringGrid.ColCount - 1 do
+    StringGrid.Cells[C, DATA_ROW] := '';
 
   FocusInputCell;
 end;
@@ -235,16 +212,10 @@ begin
   ActiveControl := StringGrid;
   if StringGrid.CanFocus then
     StringGrid.SetFocus;
-  StringGrid.Row := DATA_ROW;
-  StringGrid.Col := COL_FIRST_COORD;
-  StringGrid.EditorMode := True;
-end;
 
-procedure TAddPointForm.StringGridEnter(Sender: TObject);
-begin
-  // After focus always jump to
-  FocusInputCell;
+  StringGrid.Row        := DATA_ROW;
+  StringGrid.Col        := COL_COORD;
+  StringGrid.EditorMode := True;   // an empty coordinate must block Enter
 end;
-
 
 end.

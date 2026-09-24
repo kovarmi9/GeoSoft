@@ -97,18 +97,25 @@ type
     /// </summary>
     function CellSelectable(ACol, ARow: Integer): Boolean; virtual;
 
+    /// <summary>
+    /// First cell at or after ACol in ARow the cursor may land on. ADelta
+    /// is 1 forwards, -1 backwards. ACol is undefined when False.
+    /// </summary>
+    function SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;
+
     /// <summary>First column of a row the cursor may land on.</summary>
     function FirstSelectableCol(ARow: Integer): Integer;
 
     /// <summary>
     /// Next cell to the right the cursor may land on, wrapping to the next
-    /// row. False at the end of the grid.
+    /// row. False at the end of the grid; ACol and ARow are then undefined.
     /// </summary>
     function NextSelectable(var ACol, ARow: Integer): Boolean;
 
     /// <summary>
     /// Previous cell to the left the cursor may land on, wrapping to the
-    /// end of the row above. False at the first cell.
+    /// end of the row above. False at the first cell; ACol and ARow are
+    /// then undefined.
     /// </summary>
     function PrevSelectable(var ACol, ARow: Integer): Boolean;
 
@@ -116,13 +123,13 @@ type
     procedure CancelEdit;
 
     /// <summary>
-    /// Neighbour in the same row the cursor may land on. False when the row
-    /// ends or only locked cells follow.
+    /// Steps one cell back. False at the first cell, so the caller can hand
+    /// the focus to the previous control.
     /// </summary>
-    function StepInRow(var ACol: Integer; ADelta: Integer): Boolean;
+    function MoveToPrevCell(AOpenEditor: Boolean): Boolean;
 
-    /// <summary>Steps one cell back. AOpenEditor is what Enter needs.</summary>
-    procedure MoveToPrevCell(AOpenEditor: Boolean);
+    /// <summary>Hands the focus to the next or previous control on the form.</summary>
+    procedure LeaveGrid(ABackwards: Boolean);
 
     /// <summary>
     /// Commits current cell value before leaving it.
@@ -352,8 +359,8 @@ begin
   if ((Key = VK_LEFT) or (Key = VK_RIGHT)) and not EditorMode and (Shift = []) then
   begin
     if Key = VK_LEFT then D := -1 else D := 1;
-    C := Col;
-    if StepInRow(C, D) then
+    C := Col + D;
+    if SelectableInRow(C, Row, D) then
       MoveColRow(C, Row, True, True);
     Key := 0;
     Exit;
@@ -368,9 +375,12 @@ begin
       Exit;
     end;
 
-    // Shift means backwards; like Tab, only Enter opens the editor
+    // Shift means backwards; at the first cell Tab leaves, Enter stays
     if ssShift in Shift then
-      MoveToPrevCell(Key = VK_RETURN)
+    begin
+      if not MoveToPrevCell(Key = VK_RETURN) and (Key = VK_TAB) then
+        LeaveGrid(True);
+    end
     else
       MoveToNextCell(Key, Shift);
     Key := 0;
@@ -385,57 +395,46 @@ begin
   Result := True;
 end;
 
+function TGeoGrid.SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;
+begin
+  while (ACol >= FixedCols) and (ACol < ColCount) and
+        not CellSelectable(ACol, ARow) do
+    Inc(ACol, ADelta);
+
+  Result := (ACol >= FixedCols) and (ACol < ColCount);
+end;
+
 function TGeoGrid.FirstSelectableCol(ARow: Integer): Integer;
 begin
   Result := FixedCols;
-  while (Result < ColCount - 1) and not CellSelectable(Result, ARow) do
-    Inc(Result);
+  if not SelectableInRow(Result, ARow, 1) then
+    Result := ColCount - 1;   // whole row locked, land on the last column
 end;
 
 function TGeoGrid.NextSelectable(var ACol, ARow: Integer): Boolean;
-var
-  Guard: Integer;
 begin
-  Guard := ColCount * RowCount;   // never loop over the whole grid twice
-
-  repeat
-    if ACol < ColCount - 1 then
-      Inc(ACol)
-    else if ARow < RowCount - 1 then
-    begin
-      Inc(ARow);
-      ACol := FixedCols;
-    end
-    else
-      Exit(False);                // end of grid, the caller decides
-
-    Dec(Guard);
-  until CellSelectable(ACol, ARow) or (Guard <= 0);
-
-  Result := CellSelectable(ACol, ARow);
+  Inc(ACol);
+  while ARow < RowCount do
+  begin
+    if SelectableInRow(ACol, ARow, 1) then
+      Exit(True);
+    Inc(ARow);
+    ACol := FixedCols;
+  end;
+  Result := False;                // end of grid, the caller decides
 end;
 
 function TGeoGrid.PrevSelectable(var ACol, ARow: Integer): Boolean;
-var
-  Guard: Integer;
 begin
-  Guard := ColCount * RowCount;   // never loop over the whole grid twice
-
-  repeat
-    if ACol > FixedCols then
-      Dec(ACol)
-    else if ARow > FixedRows then
-    begin
-      Dec(ARow);
-      ACol := ColCount - 1;
-    end
-    else
-      Exit(False);                // first cell, nowhere to step back
-
-    Dec(Guard);
-  until CellSelectable(ACol, ARow) or (Guard <= 0);
-
-  Result := CellSelectable(ACol, ARow);
+  Dec(ACol);
+  while ARow >= FixedRows do
+  begin
+    if SelectableInRow(ACol, ARow, -1) then
+      Exit(True);
+    Dec(ARow);
+    ACol := ColCount - 1;
+  end;
+  Result := False;                // first cell, nowhere to step back
 end;
 
 // Esc leaves the editor and clears the cell, the same as Delete does on a
@@ -448,21 +447,8 @@ begin
   CommitCell;               // the form recomputes what depended on it
 end;
 
-function TGeoGrid.StepInRow(var ACol: Integer; ADelta: Integer): Boolean;
-var
-  C: Integer;
-begin
-  C := ACol + ADelta;
-  while (C >= FixedCols) and (C < ColCount) and not CellSelectable(C, Row) do
-    Inc(C, ADelta);
-
-  Result := (C >= FixedCols) and (C < ColCount);
-  if Result then
-    ACol := C;
-end;
-
 // Esc steps back without opening the editor, Shift+Enter opens it
-procedure TGeoGrid.MoveToPrevCell(AOpenEditor: Boolean);
+function TGeoGrid.MoveToPrevCell(AOpenEditor: Boolean): Boolean;
 var
   C, R: Integer;
 begin
@@ -471,7 +457,8 @@ begin
 
   C := Col;
   R := Row;
-  if not PrevSelectable(C, R) then
+  Result := PrevSelectable(C, R);
+  if not Result then
     Exit;                       // already at the start
 
   MoveColRow(C, R, True, True);
@@ -479,34 +466,26 @@ begin
     EditorMode := True;
 end;
 
+procedure TGeoGrid.LeaveGrid(ABackwards: Boolean);
+begin
+  // PostMessage defers the focus change until this event is handled;
+  // WM_NEXTDLGCTL moves focus forward or backward
+  PostMessage(GetParentForm(Self).Handle, WM_NEXTDLGCTL, Ord(ABackwards), 0);
+end;
+
 // Navigation logic
 procedure TGeoGrid.MoveToNextCell(PressedKey: Word; Shift: TShiftState);
 var
-  FirstDataCol, FirstDataRow, C, R: Integer;
+  C, R: Integer;
+  EndBehavior: TEnterEndBehavior;
 begin
-  // First editable cell position
-  FirstDataCol := FixedCols;
-  FirstDataRow := FixedRows;
-
   // Clamp current position to data area
-  if Row < FirstDataRow then
-    Row := FirstDataRow;
-  if Col < FirstDataCol then
-    Col := FirstDataCol;
+  if Row < FixedRows then
+    Row := FixedRows;
+  if Col < FixedCols then
+    Col := FixedCols;
 
-  // Commit current value before closing editor
-  CommitCell;
-
-  // CommitCell set FLastCommitFailed — stay on current cell and reopen editor
-  if FLastCommitFailed then
-  begin
-    FLastCommitFailed := False;
-    if goEditing in Options then
-      EditorMode := True;
-    Exit;
-  end;
-
-  // Close editor before moving
+  // KeyDown has already committed the cell and stops on failure
   if EditorMode then
     EditorMode := False;
 
@@ -519,12 +498,18 @@ begin
   // Handle movement at the last cell
   else
   begin
-    case FEnterEndBehavior of
+    // Tab is a form key, so at the edge it always leaves; Enter obeys the setting
+    if PressedKey = VK_TAB then
+      EndBehavior := ebMoveFocusNext
+    else
+      EndBehavior := FEnterEndBehavior;
+
+    case EndBehavior of
       ebStayOnLastCell:
         ;                          // already on the last cell we may use
 
       ebWrapToStart:
-        MoveColRow(FirstSelectableCol(FirstDataRow), FirstDataRow, True, True);
+        MoveColRow(FirstSelectableCol(FixedRows), FixedRows, True, True);
 
       ebAddRow:
         begin
@@ -534,9 +519,7 @@ begin
 
       ebMoveFocusNext:
         begin
-          // PostMessage defers focus change until current event handling is done;
-          // WM_NEXTDLGCTL moves focus forward (Tab) or backward (Shift+Tab)
-          PostMessage(GetParentForm(Self).Handle, WM_NEXTDLGCTL, Ord(ssShift in Shift), 0);
+          LeaveGrid(False);
           Exit;
         end;
     end;

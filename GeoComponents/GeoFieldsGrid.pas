@@ -54,7 +54,6 @@ type
     function CellSelectable(ACol, ARow: Integer): Boolean; override;
     function GeoFieldsStored: Boolean;
     function CreateEditor: TInplaceEdit; override;
-    procedure UpdateHeaders; override;
     procedure Loaded; override;
 
     // Column headers are derived from ColumnFields, not set from outside
@@ -409,12 +408,6 @@ end;
 function TGeoFieldsGrid.GetColumnFilter(ADataCol: Integer): TColumnFilter;
 begin
   Result := ResolveFilter(FColumnFilters, ADataCol);
-end;
-
-procedure TGeoFieldsGrid.UpdateHeaders;
-begin
-  inherited UpdateHeaders;
-  // Ancestor already writes header text into fixed cells.
 end;
 
 procedure TGeoFieldsGrid.Loaded;

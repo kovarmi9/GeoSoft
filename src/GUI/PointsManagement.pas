@@ -87,6 +87,7 @@ type
     procedure DoSave;
   public
     function CreateNewList: Boolean;
+    function OpenList: Boolean;
     function HasActiveList: Boolean;
   end;
 
@@ -413,6 +414,13 @@ end;
 
 procedure TPointsManagementForm.FileOpenClick(Sender: TObject);
 begin
+  OpenList;
+end;
+
+// Picks an existing list and uses it as it is, without writing to it
+function TPointsManagementForm.OpenList: Boolean;
+begin
+  Result := False;
   if not AskSaveChanges then Exit;
 
   OpenDialog1.Filter := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
@@ -433,6 +441,7 @@ begin
   FFileFlag    := False;
   RefreshGrid;
   UpdateStatusBar;
+  Result := True;
 end;
 
 procedure TPointsManagementForm.FileNewClick(Sender: TObject);

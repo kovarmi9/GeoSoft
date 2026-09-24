@@ -51,16 +51,10 @@ uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
 
 procedure TForm1.Open2Click(Sender: TObject);
 begin
-  if not PointsManagementForm.HasActiveList then
-  begin
-    if Application.MessageBox(
-      'Seznam souřadnic neexistuje. Chcete vytvořit nový?',
-      'GeoSoft',
-      MB_YESNO or MB_ICONQUESTION) <> IDYES then
-      Exit;
-    if not PointsManagementForm.CreateNewList then
-      Exit;
-  end;
+  // Cancelling the dialog just brings the current list up
+  if not PointsManagementForm.OpenList and
+     not PointsManagementForm.HasActiveList then
+    Exit;
   PointsManagementForm.Show;
 end;
 

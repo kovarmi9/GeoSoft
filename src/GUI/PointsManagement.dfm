@@ -253,10 +253,12 @@ object PointsManagementForm: TPointsManagementForm
     end
   end
   object OpenDialog1: TOpenDialog
+    Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 584
     Top = 96
   end
   object SaveDialog1: TSaveDialog
+    Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 384
     Top = 152
   end

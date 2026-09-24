@@ -67,7 +67,6 @@ type
     FLastRow:     Integer;
     FLastCol:     Integer;
     FCurrentFile: string;
-    FFileFlag:    Boolean;
     FGridOrder:   TCoordOrder;   // order the columns are laid out in now
     procedure ApplyCoordOrderToGrid;
     procedure LoadPrefix;
@@ -83,12 +82,14 @@ type
     procedure UpdateStatusBar;
     procedure DoImport(AFormat: TFileFormat);
     procedure DoExport(AFormat: TFileFormat);
-    function  AskSaveChanges: Boolean;
-    procedure DoSave;
+    procedure CommitCurrentRow;
   public
     function CreateNewList: Boolean;
     function OpenList: Boolean;
     function HasActiveList: Boolean;
+    function AskSaveChanges: Boolean;
+    procedure DoSave;
+    procedure SaveListAs;
   end;
 
 var
@@ -131,7 +132,7 @@ begin
   // The designer lays the coordinate columns out as Y, X - the cadastre order
   FGridOrder   := coYX;
   FCurrentFile := '';
-  FFileFlag    := False;
+  TPointDictionary.GetInstance.Modified := False;
   UpdateCurrentDirectoryPath;
   LoadPrefix;
 end;
@@ -333,8 +334,14 @@ begin
     TPointDictionary.GetInstance.AddPoint(
       TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
 
-  FFileFlag := True;
   UpdateStatusBar;
+end;
+
+// The row under the cursor is only in the grid until you leave it
+procedure TPointsManagementForm.CommitCurrentRow;
+begin
+  if StringGrid1.Row >= StringGrid1.FixedRows then
+    TrySaveRow(StringGrid1.Row);
 end;
 
 procedure TPointsManagementForm.PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -348,10 +355,16 @@ end;
 
 procedure TPointsManagementForm.UpdateStatusBar;
 begin
+  Caption := 'Seznam souřadnic';
+  if FCurrentFile <> '' then
+    Caption := Caption + ' — ' + ExtractFileName(FCurrentFile);
+  if TPointDictionary.GetInstance.Modified then
+    Caption := Caption + '*';
+
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text :=
       Format('Bodů v paměti: %d   |   %s',
-        [TPointDictionary.GetInstance.GetPointCount, GetCurrentDir]);
+        [TPointDictionary.GetInstance.GetPointCount, FCurrentFile]);
 end;
 
 procedure TPointsManagementForm.UpdateCurrentDirectoryPath;
@@ -364,8 +377,10 @@ end;
 
 function TPointsManagementForm.AskSaveChanges: Boolean;
 begin
+  CommitCurrentRow;
+
   Result := True;
-  if not FFileFlag then Exit;
+  if not TPointDictionary.GetInstance.Modified then Exit;
   case MessageDlg('Uložit změny?', mtConfirmation,
                   [mbYes, mbNo, mbCancel], 0) of
     mrYes:    DoSave;
@@ -376,6 +391,8 @@ end;
 
 procedure TPointsManagementForm.DoSave;
 begin
+  CommitCurrentRow;
+
   if FCurrentFile = '' then
   begin
     SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
@@ -385,7 +402,8 @@ begin
   end;
   try
     TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
-    FFileFlag := False;
+    TPointDictionary.GetInstance.Modified := False;
+    UpdateStatusBar;
   except
     on E: Exception do
       ShowMessage('Chyba při ukládání: ' + E.Message);
@@ -399,13 +417,21 @@ end;
 
 procedure TPointsManagementForm.FileSaveAsClick(Sender: TObject);
 begin
+  SaveListAs;
+end;
+
+procedure TPointsManagementForm.SaveListAs;
+begin
+  CommitCurrentRow;
+
   SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
   SaveDialog1.DefaultExt := 'bin';
   if not SaveDialog1.Execute then Exit;
   FCurrentFile := SaveDialog1.FileName;
   try
     TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
-    FFileFlag := False;
+    TPointDictionary.GetInstance.Modified := False;
+    UpdateStatusBar;
   except
     on E: Exception do
       ShowMessage('Chyba při ukládání: ' + E.Message);
@@ -438,7 +464,7 @@ begin
   end;
 
   FCurrentFile := OpenDialog1.FileName;
-  FFileFlag    := False;
+  TPointDictionary.GetInstance.Modified := False;
   RefreshGrid;
   UpdateStatusBar;
   Result := True;
@@ -462,8 +488,8 @@ begin
 
   TPointDictionary.GetInstance.Clear;
   FCurrentFile := SaveDialog1.FileName;
-  FFileFlag    := False;
   TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
+  TPointDictionary.GetInstance.Modified := False;
   RefreshGrid;
   UpdateStatusBar;
   Result := True;
@@ -499,7 +525,6 @@ begin
     end;
   end;
 
-  FFileFlag := True;
   RefreshGrid;
 end;
 

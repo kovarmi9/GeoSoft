@@ -23,6 +23,11 @@ type
     Pokus1: TMenuItem;
     Polrnmetodanov1: TMenuItem;
     Konstruknomrn1: TMenuItem;
+    MenuView: TMenuItem;
+    MenuShowList: TMenuItem;
+    MenuSep1: TMenuItem;
+    MenuSaveList: TMenuItem;
+    MenuSaveListAs: TMenuItem;
     YX2XY: TToggleSwitch;
     procedure Open2Click(Sender: TObject);
     procedure Vytvoitseznam1Click(Sender: TObject);
@@ -33,6 +38,10 @@ type
     procedure CheckMeasurementsClick(Sender: TObject);
     procedure Polrnmetodanov1Click(Sender: TObject);
     procedure YX2XYClick(Sender: TObject);
+    procedure MenuShowListClick(Sender: TObject);
+    procedure MenuSaveListClick(Sender: TObject);
+    procedure MenuSaveListAsClick(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
   private
     { Private declarations }
   public
@@ -49,13 +58,33 @@ implementation
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState;
 
+// File menu: picks a list file and shows it
 procedure TForm1.Open2Click(Sender: TObject);
 begin
-  // Cancelling the dialog just brings the current list up
-  if not PointsManagementForm.OpenList and
-     not PointsManagementForm.HasActiveList then
-    Exit;
+  if PointsManagementForm.OpenList then
+    PointsManagementForm.Show;
+end;
+
+// View menu: brings the list window up with whatever is loaded
+procedure TForm1.MenuShowListClick(Sender: TObject);
+begin
   PointsManagementForm.Show;
+end;
+
+// The list is the document, so it is saved from the main menu too
+procedure TForm1.MenuSaveListClick(Sender: TObject);
+begin
+  PointsManagementForm.DoSave;
+end;
+
+procedure TForm1.MenuSaveListAsClick(Sender: TObject);
+begin
+  PointsManagementForm.SaveListAs;
+end;
+
+procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+  CanClose := PointsManagementForm.AskSaveChanges;
 end;
 
 procedure TForm1.Vytvoitseznam1Click(Sender: TObject);

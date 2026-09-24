@@ -10,6 +10,7 @@ type
   TPointDictionary = class
   private
     FPointDict: TDictionary<Int64, TPoint>;
+    FModified: Boolean;
     class var FInstance: TPointDictionary;
     procedure CheckFileError(const FileName: string);
     procedure ReportImport(AImported, AUpdated: Integer);
@@ -18,6 +19,12 @@ type
   public
     constructor Create;
     destructor Destroy; override;
+
+    /// <summary>
+    /// True when the list differs from the file it was loaded from.
+    /// Every change sets it; the form clears it after saving or loading.
+    /// </summary>
+    property Modified: Boolean read FModified write FModified;
 
     class function GetInstance: TPointDictionary;
 
@@ -104,6 +111,7 @@ end;
 procedure TPointDictionary.AddOrUpdatePoint(const APoint: TPoint);
 begin
   FPointDict.AddOrSetValue(APoint.PointNumber, APoint);
+  FModified := True;
 end;
 
 procedure TPointDictionary.UpdatePoint(const APoint: TPoint);
@@ -122,7 +130,10 @@ end;
 procedure TPointDictionary.RemovePoint(const PointNumber: Int64);
 begin
   if FPointDict.ContainsKey(PointNumber) then
-    FPointDict.Remove(PointNumber)
+  begin
+    FPointDict.Remove(PointNumber);
+    FModified := True;
+  end
   else
     raise Exception.CreateFmt('Point with number %d not found for removal.', [PointNumber]);
 end;
@@ -140,6 +151,7 @@ end;
 procedure TPointDictionary.Clear;
 begin
   FPointDict.Clear;
+  FModified := True;
 end;
 
 // File export

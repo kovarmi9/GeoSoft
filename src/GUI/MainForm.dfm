@@ -2,6 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'GeoSoft'
+  OnCloseQuery = FormCloseQuery
   ClientHeight = 691
   ClientWidth = 966
   Color = clBtnFace
@@ -3206,13 +3207,31 @@ object Form1: TForm1
     Top = 192
     object N1: TMenuItem
       Caption = 'Soubor'
+      object Vytvoitseznam1: TMenuItem
+        Caption = 'Nov'#253' seznam...'
+        OnClick = Vytvoitseznam1Click
+      end
       object Open2: TMenuItem
-        Caption = 'Otev'#345#237't seznam'
+        Caption = 'Otev'#345#237't seznam...'
         OnClick = Open2Click
       end
-      object Vytvoitseznam1: TMenuItem
-        Caption = 'Vytvo'#345'it seznam'
-        OnClick = Vytvoitseznam1Click
+      object MenuSep1: TMenuItem
+        Caption = '-'
+      end
+      object MenuSaveList: TMenuItem
+        Caption = 'Ulo'#382'it'
+        OnClick = MenuSaveListClick
+      end
+      object MenuSaveListAs: TMenuItem
+        Caption = 'Ulo'#382'it jako...'
+        OnClick = MenuSaveListAsClick
+      end
+    end
+    object MenuView: TMenuItem
+      Caption = 'Zobrazit'
+      object MenuShowList: TMenuItem
+        Caption = 'Seznam sou'#345'adnic'
+        OnClick = MenuShowListClick
       end
     end
     object Vypocty: TMenuItem

@@ -118,6 +118,7 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
       Anchors = [akTop, akRight]
       Caption = 'Ulo'#382'it'
       TabOrder = 1
+      OnClick = ButtonSaveClick
     end
   end
   inherited MainMenu1: TMainMenu

@@ -7,6 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin,
   Vcl.ExtCtrls, Vcl.Grids, Vcl.Menus, Vcl.Dialogs,
   Point, PointsUtilsSingleton, PointPrefixState,
+  GeoRow, GeoDataFrame,
   CoordOrderState, ProtocolTable,
   GeoGrid, GeoPointsGrid, GeoColumnValidation,
   GeoAlgorithmCheckMeasurements,
@@ -23,6 +24,10 @@ const
   COL_PASS = 7;
   COL_NOTE = 8;
 
+  // Task code from the survey notebook convention
+  ULOHA_KONTROLNI = 9;
+  CSV_NAME        = 'kontrolni_omerne.csv';
+
 type
   TCheckMeasurementsForm = class(TCalcBaseForm)
     Memo1: TMemo;
@@ -33,9 +38,13 @@ type
     procedure CalculateClick(Sender: TObject);
     procedure GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer;
       var CanSelect: Boolean);
+    procedure ButtonSaveClick(Sender: TObject);
   private
     FAlg: TCheckMeasurementsAlgorithm;
+    FFrame: TGeoDataFrame;
+    FSkipped: Integer;      // pairs left out because a point is missing
     procedure SetupValidations;
+    procedure BuildFrame;
     procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
     function  ReadPairFromRow(ARow: Integer; out APair: TCheckPair): Boolean;
     procedure ClearComputed(ARow: Integer);
@@ -59,6 +68,8 @@ constructor TCheckMeasurementsForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TCheckMeasurementsAlgorithm.Create;
+  FFrame := TGeoDataFrame.Create(
+    [Uloha, CB, X, Y, CBm, Xm, Ym, SH, KK, Poznamka]);
   SetupValidations;
 
   // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
@@ -67,6 +78,7 @@ end;
 
 destructor TCheckMeasurementsForm.Destroy;
 begin
+  FFrame.Free;
   FAlg.Free;
   inherited;
 end;
@@ -214,6 +226,74 @@ begin
     end;
 
   SetLength(Result, N);
+end;
+
+// One row per measurement: the point we start from, the point we go to,
+// the measured length and the worse quality code of the two
+procedure TCheckMeasurementsForm.BuildFrame;
+var
+  R: Integer;
+  P: TCheckPair;
+  Row: TGeoRow;
+begin
+  FFrame.ClearData;
+  FSkipped := 0;
+
+  for R := GridPairs.FixedRows to GridPairs.RowCount - 1 do
+  begin
+    if not ReadPairFromRow(R, P) then
+      Continue;
+
+    if not P.Found then
+    begin
+      Inc(FSkipped);           // without coordinates there is nothing to store
+      Continue;
+    end;
+
+    ClearGeoRow(Row);
+    Row.Uloha := ULOHA_KONTROLNI;
+
+    Row.CB := ShortString(Trim(GridPairs.Cells[COL_FROM, R]));
+    Row.X  := P.P1.X;
+    Row.Y  := P.P1.Y;
+
+    Row.CBm := ShortString(Trim(GridPairs.Cells[COL_TO, R]));
+    Row.Xm  := P.P2.X;
+    Row.Ym  := P.P2.Y;
+
+    if P.HasMeasured then
+      Row.SH := P.Measured;    // not measured stays NaN, so the cell is empty
+
+    // The tolerance follows the less accurate point
+    Row.KK := Max(P.P1.Quality, P.P2.Quality);
+    Row.Poznamka := ShortString(P.Note);
+
+    FFrame.AddRow(Row);
+  end;
+end;
+
+procedure TCheckMeasurementsForm.ButtonSaveClick(Sender: TObject);
+var
+  FileName: string;
+  Report: string;
+begin
+  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
+  BuildFrame;
+
+  if FFrame.Count = 0 then
+  begin
+    ShowMessage('Není co uložit.');
+    Exit;
+  end;
+
+  FFrame.ToCSV(FileName, ';', ',');
+
+  Report := Format('Uloženo %d oměrných do souboru%s%s',
+    [FFrame.Count, sLineBreak, FileName]);
+  if FSkipped > 0 then
+    Report := Report + Format('%s%s%d přeskočeno — chybí bod v seznamu.',
+      [sLineBreak, sLineBreak, FSkipped]);
+  ShowMessage(Report);
 end;
 
 procedure TCheckMeasurementsForm.WriteProtocol(ALines: TStrings);

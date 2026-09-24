@@ -2,8 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'GeoSoft'
-  OnCloseQuery = FormCloseQuery
-  ClientHeight = 691
+  ClientHeight = 696
   ClientWidth = 966
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -3183,6 +3182,7 @@ object Form1: TForm1
     80030000C0070000E00F0000}
   Menu = MainMenu1
   Position = poScreenCenter
+  OnCloseQuery = FormCloseQuery
   TextHeight = 15
   object ToolBar1: TToolBar
     Left = 0

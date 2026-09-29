@@ -13,7 +13,7 @@
 interface
 
 uses
-  System.SysUtils, System.Classes;
+  System.SysUtils, System.Classes, System.Math;
 
 const
   // Width of the title and of the end line. Keep it at least as wide as the
@@ -69,6 +69,10 @@ function Num(AValue: Double; ADecimals: Integer): string;
 var
   Zero: string;
 begin
+  // NaN means nobody filled the value in, so the column stays blank
+  if IsNan(AValue) then
+    Exit('');
+
   Result := FloatToStrF(AValue, ffFixed, 18, ADecimals, ProtFormat);
 
   // A value rounded away to -0,000 looks like an error in the protocol

@@ -8,9 +8,12 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, Math, Point, GeoAlgorithmBase;
+  System.SysUtils, Math, GeoRow, GeoDataFrame, GeoAlgorithmBase;
 
 const
+  // Task code from the survey notebook convention
+  ULOHA_KONTROLNI = 9;
+
   // Distance tolerance for quality code 3: 0.012 * sqrt(d) + 0.10 [m]
   TOL_COEF = 0.012;
   TOL_BASE = 0.10;
@@ -18,102 +21,98 @@ const
   MIN_DIST = 0.001;  // below this the points are treated as identical
 
 type
-  TCheckPair = record
-    // input
-    PointNo1, PointNo2: Int64;
-    P1, P2:      Point.TPoint;
-    Found:       Boolean;      // both points found in the coordinate list
+  // What the grid and the protocol show for one measurement
+  TCheckResult = record
+    Found:       Boolean;
+    HasMeasured: Boolean;
     Measured:    Double;
-    HasMeasured: Boolean;      // False = not measured, only computed
-    Note:        string;
-    // output
     Computed:    Double;
-    Diff:        Double;       // Measured - Computed
+    Diff:        Double;
     Tolerance:   Double;
     Passed:      Boolean;
   end;
 
-  TCheckPairs = array of TCheckPair;
-
-  TCheckMeasurementsAlgorithm = class(TAlgorithmBase)
-  private
-    FPairs: TCheckPairs;
-    FMeasuredCount: Integer;
-    FComputedOnlyCount: Integer;
-    FFailedCount: Integer;
-    FSkippedCount: Integer;
-    FMaxDiff: Double;
+  TCheckMeasurementsAlgorithm = class(TFrameAlgorithm)
   public
-    // Calculate fills the output fields of every pair
-    property Pairs: TCheckPairs read FPairs write FPairs;
+    class function TaskCode: Integer; override;
 
-    property MeasuredCount: Integer read FMeasuredCount;
-    property ComputedOnlyCount: Integer read FComputedOnlyCount;
-    property FailedCount: Integer read FFailedCount;
-    property SkippedCount: Integer read FSkippedCount;
-    property MaxDiff: Double read FMaxDiff;  // largest difference, with sign
+    /// <summary>
+    /// The frame is the input and the output: SS gets the length computed
+    /// from the coordinates. Under task 9 SS is that length, not a slant
+    /// distance.
+    /// </summary>
+    procedure Calculate(AFrame: TGeoDataFrame); override;
 
-    procedure Calculate;
+    /// <summary>Horizontal distance from the coordinates, NaN without them.</summary>
+    class function ComputedDistance(const ARow: TGeoRow): Double;
+
+    /// <summary>Derives what is shown from one row. No state is kept.</summary>
+    class function ResultOf(const ARow: TGeoRow): TCheckResult;
   end;
 
 implementation
 
-procedure TCheckMeasurementsAlgorithm.Calculate;
+class function TCheckMeasurementsAlgorithm.TaskCode: Integer;
+begin
+  Result := ULOHA_KONTROLNI;
+end;
+
+class function TCheckMeasurementsAlgorithm.ComputedDistance(
+  const ARow: TGeoRow): Double;
+begin
+  if IsNan(ARow.X) or IsNan(ARow.Y) or IsNan(ARow.Xm) or IsNan(ARow.Ym) then
+    Result := NaN
+  else
+    Result := Sqrt(Sqr(ARow.Xm - ARow.X) + Sqr(ARow.Ym - ARow.Y));
+end;
+
+class function TCheckMeasurementsAlgorithm.ResultOf(
+  const ARow: TGeoRow): TCheckResult;
+begin
+  Result := Default(TCheckResult);
+
+  Result.Found := not (IsNan(ARow.X) or IsNan(ARow.Y) or
+                       IsNan(ARow.Xm) or IsNan(ARow.Ym));
+  if not Result.Found then
+    Exit;
+
+  Result.Computed    := ARow.SS;
+  Result.HasMeasured := not IsNan(ARow.SH);
+  if not Result.HasMeasured then
+    Exit;
+
+  Result.Measured  := ARow.SH;
+  Result.Diff      := ARow.SH - ARow.SS;
+  Result.Tolerance := TOL_COEF * Sqrt(ARow.SS) + TOL_BASE;
+  Result.Passed    := Abs(Result.Diff) <= Result.Tolerance;
+end;
+
+procedure TCheckMeasurementsAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   i: Integer;
+  R: TCheckResult;
 begin
   ClearWarnings;
-  FMeasuredCount     := 0;
-  FComputedOnlyCount := 0;
-  FFailedCount       := 0;
-  FSkippedCount      := 0;
-  FMaxDiff           := 0;
 
-  for i := 0 to High(FPairs) do
+  for i := 0 to AFrame.Count - 1 do
   begin
-    FPairs[i].Computed  := 0;
-    FPairs[i].Diff      := 0;
-    FPairs[i].Tolerance := 0;
-    FPairs[i].Passed    := False;
+    AFrame.Rows[i].SS := ComputedDistance(AFrame.Rows[i]);
 
-    if not FPairs[i].Found then
-    begin
-      Inc(FSkippedCount);
+    R := ResultOf(AFrame.Rows[i]);
+    if not R.Found then
       Continue;
-    end;
 
-    // Horizontal distance (2D)
-    FPairs[i].Computed := Sqrt(Sqr(FPairs[i].P2.X - FPairs[i].P1.X) +
-                               Sqr(FPairs[i].P2.Y - FPairs[i].P1.Y));
+    if R.Computed < MIN_DIST then
+      AddWarning(Format('Oměrná %d (body %s - %s): body mají shodné souřadnice.',
+        [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm)]));
 
-    if FPairs[i].Computed < MIN_DIST then
-      AddWarning(Format('Oměrná %d (body %d - %d): body mají shodné souřadnice.',
-        [i + 1, FPairs[i].PointNo1, FPairs[i].PointNo2]));
-
-    if not FPairs[i].HasMeasured then
-    begin
-      Inc(FComputedOnlyCount);
-      Continue;
-    end;
-
-    FPairs[i].Diff      := FPairs[i].Measured - FPairs[i].Computed;
-    FPairs[i].Tolerance := TOL_COEF * Sqrt(FPairs[i].Computed) + TOL_BASE;
-    FPairs[i].Passed    := Abs(FPairs[i].Diff) <= FPairs[i].Tolerance;
-
-    Inc(FMeasuredCount);
-
-    if Abs(FPairs[i].Diff) > Abs(FMaxDiff) then
-      FMaxDiff := FPairs[i].Diff;
-
-    if not FPairs[i].Passed then
-    begin
-      Inc(FFailedCount);
-      AddWarning(Format('Oměrná %d (body %d - %d): rozdíl %.3f m překračuje mezní ' +
-        'odchylku %.3f m - bod 8 § 81 katastrální vyhlášky',
-        [i + 1, FPairs[i].PointNo1, FPairs[i].PointNo2,
-         FPairs[i].Diff, FPairs[i].Tolerance]));
-    end;
+    if R.HasMeasured and not R.Passed then
+      AddWarning(Format('Oměrná %d (body %s - %s): rozdíl %.3f m překračuje mezní ' +
+        'odchylku %.3f m - příloha, bod 13.5 katastrální vyhlášky',
+        [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm),
+         R.Diff, R.Tolerance]));
   end;
 end;
 
 end.
+

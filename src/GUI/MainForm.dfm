@@ -2,7 +2,7 @@ object Form1: TForm1
   Left = 0
   Top = 0
   Caption = 'GeoSoft'
-  ClientHeight = 696
+  ClientHeight = 691
   ClientWidth = 966
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET

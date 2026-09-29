@@ -1,9 +1,9 @@
 inherited OrthogonalMethodForm: TOrthogonalMethodForm
+  ActiveControl = GridBaseline
   Caption = 'Ortogon'#225'ln'#237' metoda'
   StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
-    ExplicitWidth = 792
     inherited ComboBoxKU: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
@@ -23,13 +23,12 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Width = 800
     Height = 40
     Align = alTop
-    TabOrder = 1
-    ExplicitWidth = 798
+    TabOrder = 2
     DesignSize = (
       800
       40)
     object Button1: TButton
-      Left = 692
+      Left = 708
       Top = 9
       Width = 75
       Height = 25
@@ -37,7 +36,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = Button1Click
-      ExplicitLeft = 690
     end
   end
   object GridBaseline: TGeoFieldsGrid [2]
@@ -46,20 +44,28 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Width = 800
     Height = 81
     Align = alTop
-    ColCount = 8
+    ColCount = 9
     FixedColor = clRed
     RowCount = 3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
-    TabOrder = 2
+    TabOrder = 1
     OnKeyDown = AnchorGridKeyDown
     EnterEndBehavior = ebMoveFocusNext
-    GeoFields = [CB, X, Y, Z, Xm, Ym, Poznamka]
     RowHeaders.Strings = (
       ''
       'P'
       'K')
-    ExplicitWidth = 798
+    ColumnFields.Strings = (
+      'CB'
+      'X'
+      'Y'
+      'Z'
+      'Xm=Stani'#269'en'#237
+      'Ym=Kolmice'
+      'KK'
+      'Poznamka=Popis')
+    ReadOnlyFields = [X, Y, Z, Poznamka, KK]
     ColWidths = (
       64
       88
@@ -68,7 +74,8 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       87
       87
       87
-      87)
+      87
+      64)
     RowHeights = (
       24
       24
@@ -79,6 +86,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Top = 156
     Width = 800
     Height = 208
+    TabStop = False
     Align = alTop
     Lines.Strings = (
       
@@ -94,7 +102,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Width = 800
     Height = 187
     Align = alClient
-    ColCount = 8
+    ColCount = 9
     FixedColor = clRed
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
@@ -102,11 +110,18 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     TabOrder = 4
     OnKeyDown = DetailGridKeyDown
     EnterEndBehavior = ebAddRow
-    GeoFields = [CB, X, Y, Z, Xm, Ym, Poznamka]
     RowHeaders.Strings = (
       '')
-    ExplicitWidth = 798
-    ExplicitHeight = 179
+    ColumnFields.Strings = (
+      'CB'
+      'X'
+      'Y'
+      'Z'
+      'Xm=Stani'#269'en'#237
+      'Ym=Kolmice'
+      'KK'
+      'Poznamka=Popis')
+    ReadOnlyFields = [X, Y, Z]
     ColWidths = (
       64
       88
@@ -115,7 +130,8 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       87
       87
       87
-      87)
+      87
+      64)
     RowHeights = (
       24
       24)
@@ -128,25 +144,21 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
-    ExplicitTop = 562
-    ExplicitWidth = 798
     DesignSize = (
       800
       30)
     object Save: TButton
-      Left = 692
-      Top = 2
+      Left = 588
+      Top = 6
       Width = 75
       Height = 25
       Anchors = [akTop, akRight]
       Caption = 'Ulo'#382'it'
       TabOrder = 0
-      ExplicitLeft = 690
     end
   end
   inherited StatusBar1: TStatusBar
     Top = 551
-    ExplicitTop = 543
-    ExplicitWidth = 798
+    ExplicitTop = 551
   end
 end

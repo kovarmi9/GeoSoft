@@ -6,6 +6,7 @@ uses
   Winapi.Windows,
   System.SysUtils,
   System.Classes,
+  Math,
   Vcl.Controls,
   Vcl.Forms,
   Vcl.Dialogs,
@@ -16,26 +17,18 @@ uses
   Vcl.StdCtrls,
   PointsUtilsSingleton,
   Point,
-  GeoAlgorithmBase,
   GeoAlgorithmOrthogonal,
   GeoGrid,
   GeoFieldsGrid,
   GeoRow,
-  GeoColumnValidation,
+  GeoDataFrame,
+  GeoGridBridge,
   CoordOrderState,
   ProtocolTable,
   CalcBase,
   PointPrefixState, Vcl.Menus;
 
 type
-  // One detail point, as the protocol shows it
-  TOrthoRow = record
-    Valid:   Boolean;
-    Num:     string;    // formatted point id
-    S, Q:    Double;    // stationing and offset
-    Updated: Boolean;   // point was already in the list
-  end;
-
   TOrthogonalMethodForm = class(TCalcBaseForm)
     GridBaseline: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
@@ -48,21 +41,20 @@ type
     procedure DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);
   private
-    FOrthoAlg: TOrthogonalMethodAlgorithm;
-    FWarn: TStringList;              // warnings of all detail rows
-    FRows: array of TOrthoRow;       // one item per detail grid row
-    FBaseValid: Boolean;
-    FPNum, FKNum: string;
-    FsP, FqP, FsK, FqK: Double;
-    FOdch, FMezni: Double;
-    procedure SetupValidations;
+    FAlg: TOrthogonalMethodAlgorithm;
+    FFrame: TGeoDataFrame;        // the input and the output of the run
+    FRows: TArray<Integer>;       // detail grid row of each frame row, -1 = P or K
+    FUpdated: array of Boolean;   // point was in the list before we computed it
     procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    function  ReadFloat(Grid: TGeoFieldsGrid; Col, Row: Integer; out V: Double): Boolean;
+    procedure SaveClick(Sender: TObject);
     procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
-    function  TryComputeDetailRow(R: Integer): Boolean;
+    function  WasUpdated(AGridRow: Integer): Boolean;
+    procedure StorePoint(const ARow: TGeoRow);
+    procedure BuildFrame;
+    procedure Recompute;
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -78,23 +70,27 @@ implementation
 
 {$R *.dfm}
 
+const
+  CSV_NAME = 'ortogonalni_metoda.csv';   // saved next to exe
+
 constructor TOrthogonalMethodForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  FWarn := TStringList.Create;
-  SetupValidations;
+  FAlg := TOrthogonalMethodAlgorithm.Create;
+  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Z, Xm, Ym, KK, Poznamka]);
 
-  GridBaseline.OnCellCommitted         := BasePointCommitted;
-  GridDetail.OnCellCommitted := DetailPointCommitted;
-  GridDetail.OnSelectCell    := DetailGridSelectCell;
-  GridDetail.Enabled         := False;
+  GridBaseline.OnCellCommitted := BasePointCommitted;
+  GridDetail.OnCellCommitted   := DetailPointCommitted;
+  GridDetail.OnSelectCell      := DetailGridSelectCell;
+  GridDetail.Enabled           := False;
+  Save.OnClick                 := SaveClick;
 end;
 
 destructor TOrthogonalMethodForm.Destroy;
 begin
-  FOrthoAlg.Free;
-  FWarn.Free;
+  FAlg.Free;
+  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -104,75 +100,13 @@ begin
   ApplyCoordOrder(GridDetail);
 end;
 
-// Validation comes from GeoFieldsDef; only the captions are per form.
-procedure TOrthogonalMethodForm.SetupValidations;
-
-  procedure Names(G: TGeoFieldsGrid);
-  begin
-    G.SetColumnDisplayName(CB,       'Číslo bodu');
-    G.SetColumnDisplayName(Xm,       'Staničení');
-    G.SetColumnDisplayName(Ym,       'Kolmice');
-    G.SetColumnDisplayName(Poznamka, 'Popis');
-  end;
-
-begin
-  Names(GridBaseline);
-  Names(GridDetail);
-end;
-
-procedure TOrthogonalMethodForm.BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
-var
-  P: Point.TPoint;
-begin
-  if (ACol = GridBaseline.FieldToCol(CB)) and not LoadBasePoint(ARow, P) then
-    GridBaseline.RejectCommit;
-end;
-
-procedure TOrthogonalMethodForm.DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
-var
-  G: TGeoFieldsGrid;
-  PNum: Int64;
-  P: Point.TPoint;
-begin
-  G := GridDetail;
-  if ARow < G.FixedRows then Exit;
-
-  if ACol = G.FieldToCol(CB) then
-  begin
-    NormalizePointCell(G, ACol, ARow);
-    PNum := StrToInt64Def(G.Cells[ACol, ARow], 0);
-    if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
-    begin
-      P := TPointDictionary.GetInstance.GetPoint(PNum);
-      FillRowFromPoint(G, ARow, P);
-    end;
-  end
-  else if (ACol = G.FieldToCol(Xm)) or (ACol = G.FieldToCol(Ym)) then
-    TryComputeDetailRow(ARow)
-  else
-    Exit;
-
-  if Trim(G.Cells[G.FieldToCol(Poznamka), ARow]) = '' then
-    G.Cells[G.FieldToCol(Poznamka), ARow] := Trim(GPointPrefix.Popis);
-end;
-
-procedure TOrthogonalMethodForm.DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-begin
-  if ARow >= GridDetail.FixedRows then
-    GridDetail.Cells[0, ARow] := IntToStr(ARow);
-end;
-
-function TOrthogonalMethodForm.ReadFloat(Grid: TGeoFieldsGrid; Col, Row: Integer; out V: Double): Boolean;
-begin
-  Result := TryStrToFloat(Trim(Grid.Cells[Col, Row]), V, FS);
-end;
-
 procedure TOrthogonalMethodForm.FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
 begin
   Grid.Cells[Grid.FieldToCol(CB), R]       := Format('%.15d', [P.PointNumber]);
   Grid.Cells[Grid.FieldToCol(Y),  R]       := FloatToStr(P.Y, FS);
   Grid.Cells[Grid.FieldToCol(X),  R]       := FloatToStr(P.X, FS);
   Grid.Cells[Grid.FieldToCol(Z),  R]       := FloatToStr(P.Z, FS);
+  Grid.Cells[Grid.FieldToCol(KK), R]       := IntToStr(P.Quality);
   Grid.Cells[Grid.FieldToCol(Poznamka), R] := string(P.Description);
 end;
 
@@ -192,52 +126,170 @@ begin
   Result := True;
 end;
 
-function TOrthogonalMethodForm.TryComputeDetailRow(R: Integer): Boolean;
-var
-  s, q: Double;
-  InPts, OutPts: TPointsArray;
-  AlreadyExists: Boolean;
-  W: string;
+// The point was already in the list when its number was typed
+function TOrthogonalMethodForm.WasUpdated(AGridRow: Integer): Boolean;
 begin
-  Result := False;
-  if not ReadFloat(GridDetail, GridDetail.FieldToCol(Xm), R, s) then Exit;
-  if not ReadFloat(GridDetail, GridDetail.FieldToCol(Ym), R, q) then Exit;
-  if FOrthoAlg = nil then Exit;
+  Result := (AGridRow >= 0) and (AGridRow <= High(FUpdated)) and
+            FUpdated[AGridRow];
+end;
 
-  SetLength(InPts, 1);
-  InPts[0].PointNumber := StrToInt64Def(GridDetail.Cells[GridDetail.FieldToCol(CB), R], 0);
-  InPts[0].X           := s;
-  InPts[0].Y           := q;
-  InPts[0].Z           := 0;
-  // Quality comes from the toolbar for every point, as in the polar method
-  InPts[0].Quality     := StrToIntDef(Trim(GPointPrefix.KK), 0);
-  {$WARN IMPLICIT_STRING_CAST_LOSS OFF}
-  InPts[0].Description := GridDetail.Cells[GridDetail.FieldToCol(Poznamka), R];
-  {$WARN IMPLICIT_STRING_CAST_LOSS ON}
-  OutPts := FOrthoAlg.Calculate(InPts);
-  if Length(OutPts) > 0 then
+// Hands one computed row to the point list
+procedure TOrthogonalMethodForm.StorePoint(const ARow: TGeoRow);
+var
+  PNum: Int64;
+  Height: Double;
+begin
+  PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
+  if PNum <= 0 then
+    Exit;
+
+  if IsNan(ARow.Z) then Height := 0 else Height := ARow.Z;
+  TPointDictionary.GetInstance.AddOrUpdatePoint(
+    Point.TPoint.Create(PNum, ARow.X, ARow.Y, Height, ARow.KK,
+                        string(ARow.Poznamka)));
+end;
+
+// Rows 0 and 1 are the measuring line, the rest are the detail points
+procedure TOrthogonalMethodForm.BuildFrame;
+var
+  R: Integer;
+  Row: TGeoRow;
+
+  // Every frame row remembers its detail grid row, -1 for P and K
+  procedure Add(AGridRow: Integer);
   begin
-    AlreadyExists := TPointDictionary.GetInstance.PointExists(OutPts[0].PointNumber);
-    GridDetail.Cells[GridDetail.FieldToCol(Y), R] := FloatToStr(OutPts[0].Y, FS);
-    GridDetail.Cells[GridDetail.FieldToCol(X), R] := FloatToStr(OutPts[0].X, FS);
-    TPointDictionary.GetInstance.AddOrUpdatePoint(OutPts[0]);
-
-    if R > High(FRows) then
-      SetLength(FRows, R + 1);
-    FRows[R].Valid   := True;
-    FRows[R].Num     := FormatPointId(GridDetail.Cells[GridDetail.FieldToCol(CB), R]);
-    FRows[R].S       := InPts[0].X;   // stationing, not a coordinate
-    FRows[R].Q       := InPts[0].Y;   // offset, not a coordinate
-    FRows[R].Updated := AlreadyExists;
-
-    // Calculate clears its warnings every run, so keep them here
-    for W in FOrthoAlg.Warnings do
-      if FWarn.IndexOf(W) < 0 then
-        FWarn.Add(W);
-
-    ShowProtocol(Memo1.Lines);
-    Result := True;
+    Row.Uloha := ULOHA_ORTOGONALNI;
+    FFrame.AddRow(Row);
+    SetLength(FRows, FFrame.Count);
+    FRows[FFrame.Count - 1] := AGridRow;
   end;
+
+  procedure AddBaseline(AGridRow: Integer);
+  var
+    PNum: Int64;
+    P: Point.TPoint;
+  begin
+    GridBaseline.GetGeoRow(AGridRow, Row);
+
+    PNum := StrToInt64Def(Trim(string(Row.CB)), 0);
+    if TPointDictionary.GetInstance.PointExists(PNum) then
+    begin
+      // The list decides, the cell only shows it
+      P := TPointDictionary.GetInstance.GetPoint(PNum);
+      Row.X := P.X;  Row.Y := P.Y;  Row.Z := P.Z;
+      // A given point brings its own quality, the toolbar is for new ones
+      Row.KK := P.Quality;
+    end
+    else
+    begin
+      Row.X := NaN;  Row.Y := NaN;
+    end;
+
+    Add(-1);
+  end;
+
+begin
+  FFrame.ClearData;
+  SetLength(FRows, 0);
+
+  AddBaseline(1);   // P
+  AddBaseline(2);   // K
+
+  for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
+  begin
+    GridDetail.GetGeoRow(R, Row);
+    if StrToInt64Def(Trim(string(Row.CB)), 0) <= 0 then
+      Continue;
+
+    // An old result read from the grid would look like a fresh one
+    Row.X := NaN;  Row.Y := NaN;
+
+    Add(R);
+  end;
+end;
+
+// The frame is the only input, so every change rebuilds it
+procedure TOrthogonalMethodForm.Recompute;
+var
+  I: Integer;
+begin
+  BuildFrame;
+  FAlg.Calculate(FFrame);
+
+  // P and K carry -1, so the bridge leaves those rows alone
+  FrameToGrid(GridDetail, FFrame, FRows, [X, Y]);
+
+  for I := 0 to FFrame.Count - 1 do
+    if (FRows[I] >= 0) and not IsNan(FFrame.Rows[I].X) then
+      StorePoint(FFrame.Rows[I]);
+
+  ShowProtocol(Memo1.Lines);
+end;
+
+procedure TOrthogonalMethodForm.BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
+var
+  P: Point.TPoint;
+begin
+  // An empty cell is a row not filled in yet, not a mistake
+  if (ACol = GridBaseline.FieldToCol(CB)) and
+     (Trim(GridBaseline.Cells[ACol, ARow]) <> '') and
+     not LoadBasePoint(ARow, P) then
+  begin
+    GridBaseline.RejectCommit;
+    Exit;
+  end;
+
+  // A moved measuring line moves every detail point with it
+  if GridDetail.Enabled then
+    Recompute;
+end;
+
+procedure TOrthogonalMethodForm.DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
+var
+  G: TGeoFieldsGrid;
+  PNum: Int64;
+  P: Point.TPoint;
+begin
+  G := GridDetail;
+  if (ARow < G.FixedRows) or (ACol < G.FixedCols) then Exit;
+
+  case G.ColToField(ACol) of
+    CB:
+      begin
+        NormalizePointCell(G, ACol, ARow);
+        PNum := StrToInt64Def(G.Cells[ACol, ARow], 0);
+
+        if Length(FUpdated) <= ARow then
+          SetLength(FUpdated, ARow + 1);
+        // Asked before we store it ourselves, or every rerun would say updated
+        FUpdated[ARow] := (PNum > 0) and
+                          TPointDictionary.GetInstance.PointExists(PNum);
+
+        if FUpdated[ARow] then
+        begin
+          P := TPointDictionary.GetInstance.GetPoint(PNum);
+          FillRowFromPoint(G, ARow, P);
+        end;
+      end;
+
+    Xm, Ym: ;   // a new measurement, nothing to prepare
+  else
+    Exit;       // Z or the note moves no coordinate
+  end;
+
+  // The toolbar only prefills an empty cell, what is typed there wins
+  if Trim(G.Cells[G.FieldToCol(Poznamka), ARow]) = '' then
+    G.Cells[G.FieldToCol(Poznamka), ARow] := Trim(GPointPrefix.Popis);
+  if Trim(G.Cells[G.FieldToCol(KK), ARow]) = '' then
+    G.Cells[G.FieldToCol(KK), ARow] := Trim(GPointPrefix.KK);
+
+  Recompute;
+end;
+
+procedure TOrthogonalMethodForm.DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+begin
+  if ARow >= GridDetail.FixedRows then
+    GridDetail.Cells[0, ARow] := IntToStr(ARow);
 end;
 
 procedure TOrthogonalMethodForm.AnchorGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -255,45 +307,35 @@ end;
 procedure TOrthogonalMethodForm.Button1Click(Sender: TObject);
 var
   P0, K0: Point.TPoint;
-  sP, qP, sK, qK: Double;
-  dX, dY, dg, dS, dQ, L, Odch, MezniOdch: Double;
-  cS, cQ: Integer;
+
+  // The message names a row, so leave the cursor standing in it
+  procedure FocusRow(ARow: Integer);
+  begin
+    GridBaseline.Row := ARow;
+    GridBaseline.Col := GridBaseline.FieldToCol(CB);
+    if GridBaseline.CanFocus then
+      GridBaseline.SetFocus;
+  end;
+
 begin
-  if not LoadBasePoint(1, P0) then Exit;
-  if not LoadBasePoint(2, K0) then Exit;
+  // The tape has to start and end on a known point
+  if not LoadBasePoint(1, P0) then
+  begin
+    FocusRow(1);
+    Exit;
+  end;
+  if not LoadBasePoint(2, K0) then
+  begin
+    FocusRow(2);
+    Exit;
+  end;
 
-  cS := GridBaseline.FieldToCol(Xm);   // staniceni
-  cQ := GridBaseline.FieldToCol(Ym);   // kolmice
-  if not ReadFloat(GridBaseline, cS, 1, sP) then sP := 0;
-  if not ReadFloat(GridBaseline, cQ, 1, qP) then qP := 0;
-  if not ReadFloat(GridBaseline, cS, 2, sK) then sK := 0;
-  if not ReadFloat(GridBaseline, cQ, 2, qK) then qK := 0;
-
-  FreeAndNil(FOrthoAlg);
-  FOrthoAlg := TOrthogonalMethodAlgorithm.Create(P0, K0);
-  FOrthoAlg.SP := sP;  FOrthoAlg.QP := qP;
-  FOrthoAlg.SK := sK;  FOrthoAlg.QK := qK;
-
-  dS := (sK - sP) * FOrthoAlg.Scale;
-  dQ := (qK - qP) * FOrthoAlg.Scale;
-  L  := Sqrt(Sqr(dS) + Sqr(dQ));
-  dX := K0.X - P0.X;  dY := K0.Y - P0.Y;
-  dg := Sqrt(Sqr(dX) + Sqr(dY));
-  Odch      := Abs(dg - L);
-  MezniOdch := 0.012 * Sqrt(L) + 0.10;
-
-  FPNum  := FormatPointId(GridBaseline.Cells[GridBaseline.FieldToCol(CB), 1]);
-  FKNum  := FormatPointId(GridBaseline.Cells[GridBaseline.FieldToCol(CB), 2]);
-  FsP := sP;  FqP := qP;
-  FsK := sK;  FqK := qK;
-  FOdch  := Odch;
-  FMezni := MezniOdch;
-
-  // a new baseline starts a new protocol
-  FWarn.Clear;
-  SetLength(FRows, 0);
-  FBaseValid := True;
-  ShowProtocol(Memo1.Lines);
+  Recompute;
+  if not FAlg.Baseline.Valid then
+  begin
+    ShowMessage(Trim(FAlg.Warnings.Text));
+    Exit;
+  end;
 
   GridDetail.Enabled := True;
   GridDetail.SetFocus;
@@ -302,14 +344,41 @@ begin
   GridDetail.EditorMode := True;
 end;
 
+// Dumps the frame into CSV: the measuring line first, then the detail points.
+procedure TOrthogonalMethodForm.SaveClick(Sender: TObject);
+var
+  FileName: string;
+begin
+  // The file is made from the grids, but nothing on the form moves
+  BuildFrame;
+  FAlg.Calculate(FFrame);
+
+  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
+  FFrame.ToCSV(FileName, ';', ',');
+
+  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
+    [FFrame.Count, sLineBreak, FileName]));
+end;
+
 // The whole protocol is rewritten after every computed row, so an edited
 // row replaces its old line instead of adding a second one.
 procedure TOrthogonalMethodForm.WriteProtocol(ALines: TStrings);
 var
-  i, n: Integer;
+  I, N: Integer;
+  B: TBaselineInfo;
   Tail: string;
+
+  // One line of either point table, wherever the row comes from
+  procedure PointLine(const ALabel: string; const ARow: TGeoRow;
+    const ATail: string = '');
+  begin
+    Prot.Row([ALabel, FormatPointId(string(ARow.CB)),
+              Num(ARow.Xm), Num(ARow.Ym)], ATail);
+  end;
+
 begin
-  if not FBaseValid then
+  B := FAlg.Baseline;
+  if not B.Valid then
   begin
     ALines.Clear;
     Exit;
@@ -320,13 +389,13 @@ begin
   Prot.Text('PŘIPOJOVACÍ BODY');
   Prot.Table(['', 'Číslo bodu', 'Staničení', 'Kolmice'],
              [-4, ColWPoint, ColWDist, ColWDist]);
-  Prot.Row(['P:', FPNum, Num(FsP), Num(FqP)]);
-  Prot.Row(['K:', FKNum, Num(FsK), Num(FqK)]);
+  PointLine('P:', FFrame.Rows[0]);
+  PointLine('K:', FFrame.Rows[1]);
   Prot.Line;
 
-  Prot.Text('Odchylka = ' + Num(FOdch, 3) +
-            '    Mezní KK[3] = ' + Num(FMezni, 3));
-  if FOdch > FMezni then
+  Prot.Text('Odchylka = ' + Num(B.Diff, 3) +
+            '    Mezní KK[3] = ' + Num(B.Tolerance, 3));
+  if B.Diff > B.Tolerance then
     Prot.Text('CHYBA: Odchylka délky pásky překračuje mezní hodnotu!');
 
   Prot.Text('');
@@ -334,20 +403,22 @@ begin
   Prot.Table(['Č.', 'Číslo bodu', 'Staničení', 'Kolmice'],
              [ColWNo, ColWPoint, ColWDist, ColWDist]);
 
-  n := 0;
-  for i := 0 to High(FRows) do
-    if FRows[i].Valid then
-    begin
-      Inc(n);
-      if FRows[i].Updated then
-        Tail := '*** bod v seznamu aktualizován ***'
-      else
-        Tail := '';
-      Prot.Row([IntToStr(n), FRows[i].Num,
-                Num(FRows[i].S), Num(FRows[i].Q)], Tail);
-    end;
+  N := 0;
+  for I := 0 to FFrame.Count - 1 do
+  begin
+    if (FRows[I] < 0) or IsNan(FFrame.Rows[I].X) then
+      Continue;
 
-  Prot.Finish(FWarn);
+    Inc(N);
+    if WasUpdated(FRows[I]) then
+      Tail := '*** bod v seznamu aktualizován ***'
+    else
+      Tail := '';
+
+    PointLine(IntToStr(N), FFrame.Rows[I], Tail);
+  end;
+
+  Prot.Finish(FAlg.Warnings);
 end;
 
 end.

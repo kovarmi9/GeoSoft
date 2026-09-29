@@ -24,9 +24,7 @@ const
   COL_PASS = 7;
   COL_NOTE = 8;
 
-  // Task code from the survey notebook convention
-  ULOHA_KONTROLNI = 9;
-  CSV_NAME        = 'kontrolni_omerne.csv';
+  CSV_NAME = 'kontrolni_omerne.csv';
 
 type
   TCheckMeasurementsForm = class(TCalcBaseForm)
@@ -42,14 +40,13 @@ type
   private
     FAlg: TCheckMeasurementsAlgorithm;
     FFrame: TGeoDataFrame;
-    FSkipped: Integer;      // pairs left out because a point is missing
+    FRows: TArray<Integer>;   // grid row each frame row came from
     procedure SetupValidations;
     procedure BuildFrame;
+    procedure RefreshComputed;
+    procedure Recompute;
     procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
-    function  ReadPairFromRow(ARow: Integer; out APair: TCheckPair): Boolean;
     procedure ClearComputed(ARow: Integer);
-    procedure TryComputeRow(ARow: Integer);
-    function  CollectPairs: TCheckPairs;
   protected
     procedure WriteProtocol(ALines: TStrings); override;
   public
@@ -69,7 +66,7 @@ begin
   inherited Create(AOwner);
   FAlg := TCheckMeasurementsAlgorithm.Create;
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, X, Y, CBm, Xm, Ym, SH, KK, Poznamka]);
+    [Uloha, CB, X, Y, CBm, Xm, Ym, SH, SS, KK, Poznamka]);
   SetupValidations;
 
   // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
@@ -133,39 +130,12 @@ begin
   // The four computed columns are rewritten after every commit, so nothing
   // the user types into them survives. That is why they need no lock.
   if ACol <> COL_NOTE then
-    TryComputeRow(ARow);
+    Recompute;
 
   GridPairs.Cells[0, ARow] := IntToStr(ARow);
 end;
 
 // Reads one grid row. False when the row has no pair of point numbers.
-function TCheckMeasurementsForm.ReadPairFromRow(ARow: Integer;
-  out APair: TCheckPair): Boolean;
-var
-  Dict: TPointDictionary;
-  F1, F2: Boolean;
-begin
-  APair  := Default(TCheckPair);
-  Result := False;
-
-  APair.PointNo1 := StrToInt64Def(Trim(GridPairs.Cells[COL_FROM, ARow]), 0);
-  APair.PointNo2 := StrToInt64Def(Trim(GridPairs.Cells[COL_TO, ARow]), 0);
-  if (APair.PointNo1 <= 0) or (APair.PointNo2 <= 0) then
-    Exit;
-
-  Dict := TPointDictionary.GetInstance;
-  F1 := Dict.PointExists(APair.PointNo1);
-  F2 := Dict.PointExists(APair.PointNo2);
-  if F1 then APair.P1 := Dict.GetPoint(APair.PointNo1);
-  if F2 then APair.P2 := Dict.GetPoint(APair.PointNo2);
-  APair.Found := F1 and F2;
-
-  APair.HasMeasured := TryStrToFloat(Trim(GridPairs.Cells[COL_MEAS, ARow]),
-                                     APair.Measured, FS);
-  APair.Note := Trim(GridPairs.Cells[COL_NOTE, ARow]);
-  Result := True;
-end;
-
 procedure TCheckMeasurementsForm.ClearComputed(ARow: Integer);
 begin
   GridPairs.Cells[COL_COMP, ARow] := '';
@@ -175,57 +145,48 @@ begin
 end;
 
 // Fills the computed columns right after the row is typed in.
-procedure TCheckMeasurementsForm.TryComputeRow(ARow: Integer);
+// Writes the results of the last run back into the computed columns
+procedure TCheckMeasurementsForm.RefreshComputed;
 var
-  Pairs: TCheckPairs;
-  P: TCheckPair;
+  I, R: Integer;
+  Res: TCheckResult;
 begin
-  ClearComputed(ARow);
-
-  if not ReadPairFromRow(ARow, P) then Exit;
-  if not P.Found then
-  begin
-    GridPairs.Cells[COL_PASS, ARow] := 'chybí bod';
-    Exit;
-  end;
-
-  SetLength(Pairs, 1);
-  Pairs[0] := P;
-  FAlg.Pairs := Pairs;
-  FAlg.Calculate;
-  P := FAlg.Pairs[0];
-
-  GridPairs.Cells[COL_COMP, ARow] := FormatFloat('0.000', P.Computed, FS);
-
-  if P.HasMeasured then
-  begin
-    GridPairs.Cells[COL_DIFF, ARow] := FormatFloat('0.000', P.Diff, FS);
-    GridPairs.Cells[COL_TOL, ARow]  := FormatFloat('0.000', P.Tolerance, FS);
-    if P.Passed then
-      GridPairs.Cells[COL_PASS, ARow] := 'ANO'
-    else
-      GridPairs.Cells[COL_PASS, ARow] := 'NE';
-  end
-  else
-    GridPairs.Cells[COL_PASS, ARow] := 'neměřeno';
-end;
-
-function TCheckMeasurementsForm.CollectPairs: TCheckPairs;
-var
-  R, N: Integer;
-  P: TCheckPair;
-begin
-  SetLength(Result, GridPairs.RowCount);
-  N := 0;
-
   for R := GridPairs.FixedRows to GridPairs.RowCount - 1 do
-    if ReadPairFromRow(R, P) then
+    ClearComputed(R);
+
+  for I := 0 to High(FRows) do
+  begin
+    R   := FRows[I];
+    Res := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I]);
+
+    if not Res.Found then
     begin
-      Result[N] := P;
-      Inc(N);
+      GridPairs.Cells[COL_PASS, R] := 'chybí bod';
+      Continue;
     end;
 
-  SetLength(Result, N);
+    GridPairs.Cells[COL_COMP, R] := FormatFloat('0.000', Res.Computed, FS);
+
+    if Res.HasMeasured then
+    begin
+      GridPairs.Cells[COL_DIFF, R] := FormatFloat('0.000', Res.Diff, FS);
+      GridPairs.Cells[COL_TOL, R]  := FormatFloat('0.000', Res.Tolerance, FS);
+      if Res.Passed then
+        GridPairs.Cells[COL_PASS, R] := 'ANO'
+      else
+        GridPairs.Cells[COL_PASS, R] := 'NE';
+    end
+    else
+      GridPairs.Cells[COL_PASS, R] := 'neměřeno';
+  end;
+end;
+
+// The frame is the only input, so every change rebuilds it
+procedure TCheckMeasurementsForm.Recompute;
+begin
+  BuildFrame;
+  FAlg.Calculate(FFrame);
+  RefreshComputed;
 end;
 
 // One row per measurement: the point we start from, the point we go to,
@@ -233,52 +194,58 @@ end;
 procedure TCheckMeasurementsForm.BuildFrame;
 var
   R: Integer;
-  P: TCheckPair;
+  No1, No2: Int64;
+  P1, P2: Point.TPoint;
+  Meas: Double;
   Row: TGeoRow;
+  Dict: TPointDictionary;
 begin
   FFrame.ClearData;
-  FSkipped := 0;
+  SetLength(FRows, 0);
+  Dict := TPointDictionary.GetInstance;
 
   for R := GridPairs.FixedRows to GridPairs.RowCount - 1 do
   begin
-    if not ReadPairFromRow(R, P) then
+    No1 := StrToInt64Def(Trim(GridPairs.Cells[COL_FROM, R]), 0);
+    No2 := StrToInt64Def(Trim(GridPairs.Cells[COL_TO, R]), 0);
+    if (No1 <= 0) or (No2 <= 0) then
       Continue;
-
-    if not P.Found then
-    begin
-      Inc(FSkipped);           // without coordinates there is nothing to store
-      Continue;
-    end;
 
     ClearGeoRow(Row);
     Row.Uloha := ULOHA_KONTROLNI;
-
-    Row.CB := ShortString(Trim(GridPairs.Cells[COL_FROM, R]));
-    Row.X  := P.P1.X;
-    Row.Y  := P.P1.Y;
-
+    Row.CB  := ShortString(Trim(GridPairs.Cells[COL_FROM, R]));
     Row.CBm := ShortString(Trim(GridPairs.Cells[COL_TO, R]));
-    Row.Xm  := P.P2.X;
-    Row.Ym  := P.P2.Y;
 
-    if P.HasMeasured then
-      Row.SH := P.Measured;    // not measured stays NaN, so the cell is empty
+    // A pair without coordinates stays in, only its coordinates are empty
+    if Dict.PointExists(No1) and Dict.PointExists(No2) then
+    begin
+      P1 := Dict.GetPoint(No1);
+      P2 := Dict.GetPoint(No2);
+      Row.X  := P1.X;   Row.Y  := P1.Y;
+      Row.Xm := P2.X;   Row.Ym := P2.Y;
+      // The tolerance follows the less accurate point
+      Row.KK := Max(P1.Quality, P2.Quality);
+    end;
 
-    // The tolerance follows the less accurate point
-    Row.KK := Max(P.P1.Quality, P.P2.Quality);
-    Row.Poznamka := ShortString(P.Note);
+    if TryStrToFloat(Trim(GridPairs.Cells[COL_MEAS, R]), Meas, FS) then
+      Row.SH := Meas;          // not measured stays NaN, so the cell is empty
+
+    Row.Poznamka := ShortString(Trim(GridPairs.Cells[COL_NOTE, R]));
 
     FFrame.AddRow(Row);
+    SetLength(FRows, Length(FRows) + 1);
+    FRows[High(FRows)] := R;
   end;
 end;
 
 procedure TCheckMeasurementsForm.ButtonSaveClick(Sender: TObject);
 var
+  I, Missing: Integer;
   FileName: string;
   Report: string;
 begin
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  BuildFrame;
+  Recompute;               // the file carries SS, so it has to be computed
 
   if FFrame.Count = 0 then
   begin
@@ -288,22 +255,30 @@ begin
 
   FFrame.ToCSV(FileName, ';', ',');
 
+  Missing := 0;
+  for I := 0 to FFrame.Count - 1 do
+    if not TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I]).Found then
+      Inc(Missing);
+
   Report := Format('Uloženo %d oměrných do souboru%s%s',
     [FFrame.Count, sLineBreak, FileName]);
-  if FSkipped > 0 then
-    Report := Report + Format('%s%s%d přeskočeno — chybí bod v seznamu.',
-      [sLineBreak, sLineBreak, FSkipped]);
+  if Missing > 0 then
+    Report := Report + Format('%s%s%d bez souřadnic — chybí bod v seznamu.',
+      [sLineBreak, sLineBreak, Missing]);
   ShowMessage(Report);
 end;
 
 procedure TCheckMeasurementsForm.WriteProtocol(ALines: TStrings);
 var
   i, n: Integer;
-  P: TCheckPair;
+  Res: TCheckResult;
+  No1, No2: Int64;
   Pt: Point.TPoint;
   Dict: TPointDictionary;
   Nums: array of Int64;
-  Verdict: string;
+  Verdict, Note: string;
+  Measured, ComputedOnly, Failed, Skipped: Integer;
+  MaxDiff: Double;
 
   // Every point of the job, in order of first use
   procedure AddNum(ANum: Int64);
@@ -321,10 +296,10 @@ begin
   Dict := TPointDictionary.GetInstance;
   n := 0;
   SetLength(Nums, 0);
-  for i := 0 to High(FAlg.Pairs) do
+  for i := 0 to FFrame.Count - 1 do
   begin
-    AddNum(FAlg.Pairs[i].PointNo1);
-    AddNum(FAlg.Pairs[i].PointNo2);
+    AddNum(StrToInt64Def(string(FFrame.Rows[i].CB), 0));
+    AddNum(StrToInt64Def(string(FFrame.Rows[i].CBm), 0));
   end;
 
   Prot.Title(ALines, 'Kontrolní oměrné');
@@ -348,65 +323,80 @@ begin
               'Rozdíl', 'Mezní', 'Vyhov.'],
              [ColWNo, ColWPoint, ColWPoint, ColWDist, 13, 11, 9, ColWFlag]);
 
-  for i := 0 to High(FAlg.Pairs) do
-  begin
-    P := FAlg.Pairs[i];
+  Measured     := 0;
+  ComputedOnly := 0;
+  Failed       := 0;
+  Skipped      := 0;
+  MaxDiff      := 0;
 
-    if not P.Found then
+  for i := 0 to FFrame.Count - 1 do
+  begin
+    No1 := StrToInt64Def(string(FFrame.Rows[i].CB), 0);
+    No2 := StrToInt64Def(string(FFrame.Rows[i].CBm), 0);
+    Res := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[i]);
+
+    if not Res.Found then
     begin
-      Prot.Row([IntToStr(i + 1), PointId(P.PointNo1), PointId(P.PointNo2)],
+      Inc(Skipped);
+      Prot.Row([IntToStr(i + 1), PointId(No1), PointId(No2)],
                '*** nelze spočítat, chybí bod ***');
       Continue;
     end;
 
-    if P.HasMeasured then
+    if Res.HasMeasured then
     begin
-      if P.Passed then Verdict := 'ANO' else Verdict := 'NE';
-      Prot.Row([IntToStr(i + 1), PointId(P.PointNo1), PointId(P.PointNo2),
-                Num(P.Measured, 3), Num(P.Computed, 3), Num(P.Diff, 3),
-                Num(P.Tolerance, 3), Verdict]);
+      Inc(Measured);
+      if not Res.Passed then
+        Inc(Failed);
+      if Abs(Res.Diff) > Abs(MaxDiff) then
+        MaxDiff := Res.Diff;
+
+      if Res.Passed then Verdict := 'ANO' else Verdict := 'NE';
+      Prot.Row([IntToStr(i + 1), PointId(No1), PointId(No2),
+                Num(Res.Measured, 3), Num(Res.Computed, 3), Num(Res.Diff, 3),
+                Num(Res.Tolerance, 3), Verdict]);
     end
     else
+    begin
+      Inc(ComputedOnly);
       // KatV annex 17.11 - a value that was not measured goes in brackets
-      Prot.Row([IntToStr(i + 1), PointId(P.PointNo1), PointId(P.PointNo2),
-                '-', '(' + Num(P.Computed, 3) + ')', '-', '-', 'neměřeno']);
+      Prot.Row([IntToStr(i + 1), PointId(No1), PointId(No2),
+                '-', '(' + Num(Res.Computed, 3) + ')', '-', '-', 'neměřeno']);
+    end;
 
-    if P.Note <> '' then
-      Prot.Text('      Poznámka: ' + P.Note);
+    Note := string(FFrame.Rows[i].Poznamka);
+    if Note <> '' then
+      Prot.Text('      Poznámka: ' + Note);
   end;
 
   Prot.Line;
-  Prot.Text('Měřených oměrných: ' + IntToStr(FAlg.MeasuredCount) +
-            '    Nevyhovuje: ' + IntToStr(FAlg.FailedCount) +
-            '    Největší rozdíl: ' + Num(FAlg.MaxDiff, 3) + ' m');
+  Prot.Text('Měřených oměrných: ' + IntToStr(Measured) +
+            '    Nevyhovuje: ' + IntToStr(Failed) +
+            '    Největší rozdíl: ' + Num(MaxDiff, 3) + ' m');
 
-  if FAlg.ComputedOnlyCount > 0 then
+  if ComputedOnly > 0 then
     Prot.Text('Neměřených, uvedených ze souřadnic v závorkách: ' +
-              IntToStr(FAlg.ComputedOnlyCount));
+              IntToStr(ComputedOnly));
 
-  if FAlg.SkippedCount > 0 then
+  if Skipped > 0 then
     Prot.Text('Nespočítaných oměrných (chybí bod v seznamu): ' +
-              IntToStr(FAlg.SkippedCount));
+              IntToStr(Skipped));
 
   Prot.Finish(FAlg.Warnings);
 end;
 
 procedure TCheckMeasurementsForm.CalculateClick(Sender: TObject);
-var
-  Pairs: TCheckPairs;
 begin
   if GridPairs.EditorMode then
     GridPairs.EditorMode := False;
 
-  Pairs := CollectPairs;
-  if Length(Pairs) = 0 then
+  Recompute;
+  if FFrame.Count = 0 then
   begin
     ShowMessage('Zadejte alespoň jednu oměrnou.');
     Exit;
   end;
 
-  FAlg.Pairs := Pairs;
-  FAlg.Calculate;
   ShowProtocol(Memo1.Lines);
 end;
 

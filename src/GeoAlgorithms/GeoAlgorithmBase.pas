@@ -3,7 +3,7 @@ unit GeoAlgorithmBase;
 interface
 
 uses
-  System.SysUtils, System.Classes, Point;
+  System.SysUtils, System.Classes, Point, GeoDataFrame;
 
 type
   // Dynamic array of points used as input/output for all algorithms
@@ -36,6 +36,16 @@ type
 
     // Runs the algorithm on InputPoints and returns the computed output points
     function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
+  end;
+
+  // Base for an algorithm whose whole input and output is one frame
+  TFrameAlgorithm = class abstract(TAlgorithmBase)
+  public
+    // Goes in filled with measurements, comes out with the results
+    procedure Calculate(AFrame: TGeoDataFrame); virtual; abstract;
+
+    // The code this algorithm writes into TGeoRow.Uloha
+    class function TaskCode: Integer; virtual; abstract;
   end;
 
 implementation

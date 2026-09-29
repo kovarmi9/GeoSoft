@@ -13,9 +13,8 @@ uses
   GeoAlgorithmTransformCongruent, Point, GeoRow, GeoDataFrame;
 
 const
-  // Row codes of this task, stored in TGeoRow.Uloha
-  ULOHA_IDENT = 41;   // identical (given) point
-  ULOHA_DET   = 42;   // point the program computes
+  // Task code from the survey notebook convention
+  ULOHA_KONSTRUKCNI = 4;
 
 type
   // One computed stretch; rows are indexes into the frame
@@ -28,7 +27,7 @@ type
 
   TSegmentArray = array of TSegmentInfo;
 
-  TRectangularMeasurementsAlgorithm = class(TAlgorithm)
+  TRectangularMeasurementsAlgorithm = class(TFrameAlgorithm)
   private
     FIdenticalPoints: TPointsArray;
     FLocalPoints: TPointsArray;
@@ -40,6 +39,13 @@ type
 
     // Local coordinates from the signed chain, no transformation
     procedure BuildLocalPoints(const AChain: TPointsArray);
+
+    // AChain — one stretch:
+    //   PointNumber = point ID
+    //   X = signed distance FROM previous point TO this point
+    //       (+ right, - left in the field; first point = 0)
+    // IdenticalPoints must hold the two given ends before the call.
+    function TransformChain(const AChain: TPointsArray): TPointsArray;
   public
     constructor Create;
 
@@ -51,24 +57,38 @@ type
 
     property Closure: Double read FClosure;
 
-    // InputPoints — measurement chain:
-    //   PointNumber = point ID
-    //   X = signed distance FROM previous point TO this point
-    //       (+ right, - left in the field; first point = 0)
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
+    class function TaskCode: Integer; override;
 
     // Walks the chain in the frame and fills Xm, Ym of every row
     procedure BuildLocalFrame(AFrame: TGeoDataFrame);
 
+    /// <summary>
+    /// A given point is one that already has coordinates. During a run
+    /// the computed ones are empty; afterwards the protocol tells them
+    /// apart by the stretch boundaries, as the notebook does.
+    /// </summary>
+    class function IsGiven(const ARow: TGeoRow): Boolean;
+
     // Splits the frame into stretches between two different given points
     // and fills X, Y of the computed ones
-    procedure CalculateFrame(AFrame: TGeoDataFrame);
+    procedure Calculate(AFrame: TGeoDataFrame); override;
 
     // Stretches of the last run, for the protocol
     property Segments: TSegmentArray read FSegments;
   end;
 
 implementation
+
+class function TRectangularMeasurementsAlgorithm.IsGiven(
+  const ARow: TGeoRow): Boolean;
+begin
+  Result := not (IsNan(ARow.X) or IsNan(ARow.Y));
+end;
+
+class function TRectangularMeasurementsAlgorithm.TaskCode: Integer;
+begin
+  Result := ULOHA_KONSTRUKCNI;
+end;
 
 constructor TRectangularMeasurementsAlgorithm.Create;
 begin
@@ -138,8 +158,8 @@ begin
   end;
 end;
 
-function TRectangularMeasurementsAlgorithm.Calculate(
-  const InputPoints: TPointsArray): TPointsArray;
+function TRectangularMeasurementsAlgorithm.TransformChain(
+  const AChain: TPointsArray): TPointsArray;
 var
   I, J, N, IdCount: Integer;
   D: Double;
@@ -147,12 +167,12 @@ var
   Transform: TCongruentTransformation;
 begin
   ClearWarnings;
-  N := Length(InputPoints);
+  N := Length(AChain);
 
   if N < 3 then
     raise Exception.Create('Pro výpočet jsou potřeba alespoň 3 body.');
 
-  BuildLocalPoints(InputPoints);
+  BuildLocalPoints(AChain);
 
   IdCount := 0;
   for I := 0 to N - 1 do
@@ -239,7 +259,7 @@ begin
 
   FIdenticalPoints := Ident;
   try
-    Res := Calculate(Chain);
+    Res := TransformChain(Chain);
   except
     on E: Exception do
     begin
@@ -260,7 +280,7 @@ begin
 
   // Given points keep their own coordinates
   for I := 0 to N - 1 do
-    if AFrame.Rows[AFrom + I].Uloha <> ULOHA_IDENT then
+    if not IsGiven(AFrame.Rows[AFrom + I]) then
     begin
       AFrame.Rows[AFrom + I].X := Res[I].X;
       AFrame.Rows[AFrom + I].Y := Res[I].Y;
@@ -270,7 +290,7 @@ begin
   FSegments[High(FSegments)] := Seg;
 end;
 
-procedure TRectangularMeasurementsAlgorithm.CalculateFrame(AFrame: TGeoDataFrame);
+procedure TRectangularMeasurementsAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   I, First: Integer;
   Msgs: TStringList;
@@ -280,7 +300,7 @@ begin
   if AFrame.Count = 0 then Exit;
 
   // The chain has to start on a given point
-  if AFrame.Rows[0].Uloha <> ULOHA_IDENT then
+  if not IsGiven(AFrame.Rows[0]) then
   begin
     AddWarning('První bod řetězce musí být daný.');
     Exit;
@@ -292,7 +312,7 @@ begin
     First := 0;
     for I := 1 to AFrame.Count - 1 do
       // Coming back to the same point closes nothing - rotation needs two
-      if (AFrame.Rows[I].Uloha = ULOHA_IDENT) and
+      if IsGiven(AFrame.Rows[I]) and
          (AFrame.Rows[I].CB <> AFrame.Rows[First].CB) then
       begin
         ComputeStretch(AFrame, First, I, Msgs);

@@ -36,6 +36,7 @@ type
     procedure FillRow(const R: Integer);
     procedure RecalcLocal;
     procedure BuildFrame;
+    procedure Recompute;
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -50,6 +51,9 @@ var
 implementation
 
 {$R *.dfm}
+
+const
+  CSV_NAME = 'konstrukcni_omerne.csv';   // saved next to exe
 
 constructor TRectangularMeasurementsForm.Create(AOwner: TComponent);
 begin
@@ -172,7 +176,7 @@ begin
     Exit;
 
   // The walk needs no point list, so the plain bridge is enough
-  GridToFrame(StringGrid1, FFrame, ULOHA_DET, FRows);
+  GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI, FRows);
   FAlg.BuildLocalFrame(FFrame);
   FrameToGrid(StringGrid1, FFrame, FRows, [Xm, Ym]);
 end;
@@ -203,7 +207,7 @@ var
   P: Point.TPoint;
   IsGiven: Boolean;
 begin
-  GridToFrame(StringGrid1, FFrame, ULOHA_DET, FRows);
+  GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI, FRows);
 
   for I := 0 to FFrame.Count - 1 do
   begin
@@ -216,41 +220,35 @@ begin
 
     if IsGiven then
     begin
-      FFrame.Rows[I].Uloha := ULOHA_IDENT;
-
       // The list decides, the cell can be edited
       P := TPointDictionary.GetInstance.GetPoint(Num);
       FFrame.Rows[I].X := P.X;
       FFrame.Rows[I].Y := P.Y;
       SetCell(Y, GridRow, FormatFloat('0.00', P.Y, FS));
       SetCell(X, GridRow, FormatFloat('0.00', P.X, FS));
+    end
+    else
+    begin
+      // An old result read from the grid would look like a given point
+      FFrame.Rows[I].X := NaN;
+      FFrame.Rows[I].Y := NaN;
     end;
   end;
 end;
 
-procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
+// The frame is the only input, so every run rebuilds it
+procedure TRectangularMeasurementsForm.Recompute;
 var
   I, S: Integer;
   Back: TArray<Integer>;
 begin
   FWarnings.Clear;
-  Memo1.Lines.Clear;
   BuildFrame;
-
   if FFrame.Count = 0 then
-  begin
-    ShowMessage('Zápisník je prázdný.');
     Exit;
-  end;
-
-  if FFrame.Rows[0].Uloha <> ULOHA_IDENT then
-  begin
-    ShowMessage('První bod řetězce musí být známý.');
-    Exit;
-  end;
 
   for I := 0 to FFrame.Count - 1 do
-    if FFrame.Rows[I].Uloha = ULOHA_DET then
+    if not TRectangularMeasurementsAlgorithm.IsGiven(FFrame.Rows[I]) then
     begin
       // Old results would look valid if a stretch fails now
       SetCell(Y, FRows[I], '');
@@ -262,14 +260,8 @@ begin
           [FormatPointId(string(FFrame.Rows[I].CB))]));
     end;
 
-  FAlg.CalculateFrame(FFrame);
+  FAlg.Calculate(FFrame);
   FWarnings.AddStrings(FAlg.Warnings);
-
-  if Length(FAlg.Segments) = 0 then
-  begin
-    ShowMessage('V řetězci zatím není druhý známý bod s jiným číslem.');
-    Exit;
-  end;
 
   // Only computed points of a finished stretch go back to the grid
   SetLength(Back, FFrame.Count);
@@ -277,15 +269,26 @@ begin
     Back[I] := -1;
   for S := 0 to High(FAlg.Segments) do
     for I := FAlg.Segments[S].FromRow to FAlg.Segments[S].ToRow do
-      if FFrame.Rows[I].Uloha = ULOHA_DET then
+      if (I <> FAlg.Segments[S].FromRow) and
+         (I <> FAlg.Segments[S].ToRow) then
         Back[I] := FRows[I];
 
   FrameToGrid(StringGrid1, FFrame, Back, [X, Y]);
   ShowProtocol(Memo1.Lines);
 end;
 
-const
-  CSV_NAME = 'konstrukcni_omerne.csv';   // saved next to exe
+procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
+begin
+  Memo1.Lines.Clear;
+  Recompute;
+
+  if FFrame.Count = 0 then
+    ShowMessage('Zápisník je prázdný.')
+  else if not TRectangularMeasurementsAlgorithm.IsGiven(FFrame.Rows[0]) then
+    ShowMessage('První bod řetězce musí být známý.')
+  else if Length(FAlg.Segments) = 0 then
+    ShowMessage('V řetězci zatím není druhý známý bod s jiným číslem.');
+end;
 
 // Dumps the frame into CSV
 procedure TRectangularMeasurementsForm.ButtonSaveClick(Sender: TObject);
@@ -293,7 +296,7 @@ var
   FileName: string;
 begin
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  BuildFrame;
+  Recompute;               // the file carries the computed coordinates
 
   if FFrame.Count = 0 then
   begin
@@ -331,7 +334,8 @@ begin
     begin
       Row := FFrame.Rows[I];
 
-      if Row.Uloha = ULOHA_IDENT then
+      // The notebook marks the given points by position: first and last
+      if (I = Seg.FromRow) or (I = Seg.ToRow) then
         Kind := 'daný'
       else
         Kind := 'vypočtený';

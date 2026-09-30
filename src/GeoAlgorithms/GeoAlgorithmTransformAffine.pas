@@ -16,8 +16,9 @@ type
   private
     a1, a2, a3: Double; // X-row coefficients
     b1, b2, b3: Double; // Y-row coefficients
+  protected
+    procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); override;
   public
-    procedure ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray); override;
     function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
 
     // Aliases matching the classic geodetic notation
@@ -132,7 +133,7 @@ end;
 
 // Builds the design matrix A and observation vector L, then solves via normal equations:
 // Params = (A^T * A)^-1 * A^T * L
-procedure TAffineTransformation.ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray);
+procedure TAffineTransformation.EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray);
 var
   A: TMatrix;
   L: TVector;

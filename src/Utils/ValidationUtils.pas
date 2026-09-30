@@ -21,6 +21,13 @@ type
     class function ValidateQuality(const AQuality: Integer): Integer; static;
     // Validates the description, truncates to 32 characters
     class function ValidateDescription(const ADescription: string): string; static;
+
+    /// <summary>
+    /// Basic mean coordinate error of a quality code [m]. NaN for a code
+    /// nobody has given a value for yet, so the caller can say so instead
+    /// of testing against a made-up number.
+    /// </summary>
+    class function MxyOfQuality(const AQuality: Integer): Double; static;
   end;
 
 implementation
@@ -53,6 +60,17 @@ end;
 class function TValidationUtils.ValidateDescription(const ADescription: string): string;
 begin
   Result := Copy(ADescription, 1, 32);
+end;
+
+class function TValidationUtils.MxyOfQuality(const AQuality: Integer): Double;
+begin
+  case AQuality of
+    3: Result := 0.14;
+    4: Result := 0.26;
+    5: Result := 0.50;
+  else
+    Result := NaN;   // not specified yet
+  end;
 end;
 
 end.

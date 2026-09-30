@@ -18,8 +18,9 @@ type
     FLambda1, FLambda2: Double; // intermediate lambda parameters from centroid solution
     FOmega, FQ: Double;         // rotation angle [rad] and scale factor (always 1)
     FX0, FY0: Double;           // translation parameters
+  protected
+    procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); override;
   public
-    procedure ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray); override;
     function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
 
     property Lambda1: Double read FLambda1;
@@ -32,7 +33,7 @@ type
 
 implementation
 
-procedure TCongruentTransformation.ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray);
+procedure TCongruentTransformation.EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray);
 var
   i, n: Integer;
   SumYL, SumXL, SumYG, SumXG: Double;

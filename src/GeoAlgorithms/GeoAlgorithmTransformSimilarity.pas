@@ -20,8 +20,9 @@ type
     FLambda1, FLambda2: Double; // intermediate lambda parameters
     FOmega, FQ: Double;         // rotation angle [rad] and scale factor
     FX0, FY0: Double;           // translation parameters
+  protected
+    procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); override;
   public
-    procedure ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray); override;
     function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
 
     property Lambda1: Double read FLambda1;
@@ -34,7 +35,7 @@ type
 
 implementation
 
-procedure TSimilarityTransformation.ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray);
+procedure TSimilarityTransformation.EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray);
 var
   i, n: Integer;
   SumYL, SumXL, SumYG, SumXG: Double;

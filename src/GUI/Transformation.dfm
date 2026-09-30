@@ -62,10 +62,11 @@ inherited TransformationForm: TTransformationForm
     ColCount = 12
     FixedCols = 2
     RowCount = 3
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goTabs, goFixedRowDefAlign]
     TabOrder = 2
     OnSelectCell = StringGrid1SelectCell
     EnterEndBehavior = ebAddRow
+    OnCellCommitted = PointCommitted
     CheckColumn = 1
     ColumnHeaders.Strings = (
       ''

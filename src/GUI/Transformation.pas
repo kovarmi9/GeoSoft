@@ -17,10 +17,10 @@ type
     StaticText2: TStaticText;
     procedure FormCreate(Sender: TObject);
     procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FGridOrder: TCoordOrder;   // order the columns are laid out in now
     procedure SetupValidations;
-    procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
   protected
     procedure ApplyCoordOrderToGrids; override;
   public
@@ -35,15 +35,10 @@ implementation
 
 procedure TTransformationForm.FormCreate(Sender: TObject);
 begin
-  StringGrid1.Options := StringGrid1.Options - [goEditing];
-
   SetupValidations;
 
   // The designer lays the coordinate columns out as Y, X - the cadastre order
   FGridOrder := coYX;
-
-  // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
-  StringGrid1.OnCellCommitted := PointCommitted;
 end;
 
 // Column filters. Filter index = grid column - FixedCols, and FixedCols is 2

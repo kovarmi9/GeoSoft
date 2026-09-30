@@ -31,6 +31,7 @@ object PointsManagementForm: TPointsManagementForm
     OnKeyDown = StringGrid1KeyDown
     OnSelectCell = StringGrid1SelectCell
     EnterEndBehavior = ebAddRow
+    OnCellCommitted = PointNumberCommitted
     ColumnHeaders.Strings = (
       #268#237'slo bodu'
       'Y'

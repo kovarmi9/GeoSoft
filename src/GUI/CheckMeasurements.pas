@@ -37,6 +37,7 @@ type
     procedure GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer;
       var CanSelect: Boolean);
     procedure ButtonSaveClick(Sender: TObject);
+    procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TCheckMeasurementsAlgorithm;
     FFrame: TGeoDataFrame;
@@ -45,7 +46,6 @@ type
     procedure BuildFrame;
     procedure RefreshComputed;
     procedure Recompute;
-    procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure ClearComputed(ARow: Integer);
   protected
     procedure WriteProtocol(ALines: TStrings); override;
@@ -68,9 +68,6 @@ begin
   FFrame := TGeoDataFrame.Create(
     [Uloha, CB, X, Y, CBm, Xm, Ym, SH, SS, KK, Poznamka]);
   SetupValidations;
-
-  // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
-  GridPairs.OnCellCommitted := PairCommitted;
 end;
 
 destructor TCheckMeasurementsForm.Destroy;

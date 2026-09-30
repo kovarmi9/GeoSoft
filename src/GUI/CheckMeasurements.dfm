@@ -51,6 +51,7 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
     TabOrder = 3
     OnSelectCell = GridPairsSelectCell
     EnterEndBehavior = ebAddRow
+    OnCellCommitted = PairCommitted
     ColumnHeaders.Strings = (
       ''
       'Z bodu'

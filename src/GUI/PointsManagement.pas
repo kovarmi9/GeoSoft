@@ -63,6 +63,7 @@ type
     procedure FileSaveAsClick(Sender: TObject);
     procedure FileOpenClick(Sender: TObject);
     procedure FileNewClick(Sender: TObject);
+    procedure PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FLastRow:     Integer;
     FLastCol:     Integer;
@@ -78,7 +79,6 @@ type
     procedure EnsureQualityOnRow(const ARow: Integer);
     procedure ApplyDescriptionToRow(const ARow: Integer);
     procedure TrySaveRow(ARow: Integer);
-    procedure PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure UpdateStatusBar;
     procedure DoImport(AFormat: TFileFormat);
     procedure DoExport(AFormat: TFileFormat);
@@ -124,8 +124,6 @@ begin
   StringGrid1.ColumnFilters[4].OnGetDefaultText  := GetQualityDefault;
   StringGrid1.ColumnFilters[5].DataType      := cdtNone;        // description
   StringGrid1.ColumnFilters[5].MaxLength     := 32;
-
-  StringGrid1.OnCellCommitted := PointNumberCommitted;
 
   FLastRow     := 0;
   FLastCol     := 0;

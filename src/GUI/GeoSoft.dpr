@@ -21,7 +21,8 @@ uses
   GeoAlgorithmTransformBase in '..\GeoAlgorithms\GeoAlgorithmTransformBase.pas',
   GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
-  GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas';
+  GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
+  SettingsDialog in 'SettingsDialog.pas' {SettingsForm};
 
 {$R *.res}
 
@@ -37,5 +38,6 @@ begin
   Application.CreateForm(TRectangularMeasurementsForm, RectangularMeasurementsForm);
   Application.CreateForm(TCheckMeasurementsForm, CheckMeasurementsForm);
   Application.CreateForm(TPolarMethodForm, PolarMethodForm);
+  Application.CreateForm(TSettingsForm, SettingsForm);
   Application.Run;
 end.

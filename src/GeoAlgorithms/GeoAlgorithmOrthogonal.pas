@@ -31,15 +31,9 @@ type
 
   TOrthogonalMethodAlgorithm = class(TFrameAlgorithm)
   private
-    FScale: Double;
     FBaseline: TBaselineInfo;
   public
-    constructor Create;
-
     class function TaskCode: Integer; override;
-
-    // Cartographic distortion; prepared, the program keeps it at 1.0
-    property Scale: Double read FScale write FScale;
 
     // Rows 0 and 1 are P and K, X and Y of the detail rows get filled
     procedure Calculate(AFrame: TGeoDataFrame); override;
@@ -61,12 +55,6 @@ const
 class function TOrthogonalMethodAlgorithm.TaskCode: Integer;
 begin
   Result := ULOHA_ORTOGONALNI;
-end;
-
-constructor TOrthogonalMethodAlgorithm.Create;
-begin
-  inherited Create;
-  FScale := 1.0;
 end;
 
 procedure TOrthogonalMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);
@@ -112,10 +100,10 @@ begin
   end;
 
   // Step 1: convert connection point tape measurements to S-JTSK
-  sP := P.Xm * FScale;
-  qP := P.Ym * FScale;
-  dS := (K.Xm - P.Xm) * FScale;
-  dQ := (K.Ym - P.Ym) * FScale;
+  sP := P.Xm * Scale;
+  qP := P.Ym * Scale;
+  dS := (K.Xm - P.Xm) * Scale;
+  dQ := (K.Ym - P.Ym) * Scale;
 
   j := Sqr(dS) + Sqr(dQ);
   if j < 1e-10 then
@@ -166,8 +154,8 @@ begin
       Continue;
     end;
 
-    si := AFrame.Rows[i].Xm * FScale;
-    qi := AFrame.Rows[i].Ym * FScale;
+    si := AFrame.Rows[i].Xm * Scale;
+    qi := AFrame.Rows[i].Ym * Scale;
 
     offS := si - sP;
     offQ := qi - qP;

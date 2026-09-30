@@ -13,6 +13,7 @@ type
   TAlgorithmBase = class
   private
     FWarnings: TStringList;
+    FScale: Double;
   protected
     procedure AddWarning(const AMsg: string);
     procedure ClearWarnings;
@@ -22,18 +23,18 @@ type
 
     // Warnings produced by the last run (cleared at the start of each run)
     property Warnings: TStringList read FWarnings;
+
+    /// <summary>
+    /// Turns a measured length into a length of the S-JTSK plane: the
+    /// cartographic distortion and the reduction from elevation in one
+    /// number. Prepared, the program keeps it at 1.0.
+    /// </summary>
+    property Scale: Double read FScale write FScale;
   end;
 
   // Base for algorithms that take points in and return points out
   TAlgorithm = class abstract(TAlgorithmBase)
-  private
-    FScale: Double;
   public
-    constructor Create;
-
-    // Scale factor applied to computed coordinates (default 1.0)
-    property Scale: Double read FScale write FScale;
-
     // Runs the algorithm on InputPoints and returns the computed output points
     function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
   end;
@@ -54,6 +55,7 @@ constructor TAlgorithmBase.Create;
 begin
   inherited;
   FWarnings := TStringList.Create;
+  FScale := 1.0;
 end;
 
 destructor TAlgorithmBase.Destroy;
@@ -70,12 +72,6 @@ end;
 procedure TAlgorithmBase.ClearWarnings;
 begin
   FWarnings.Clear;
-end;
-
-constructor TAlgorithm.Create;
-begin
-  inherited Create;
-  FScale := 1.0;
 end;
 
 end.

@@ -47,6 +47,10 @@ type
     procedure Line;                            // as wide as the table
     procedure Finish(AWarnings: TStrings);     // warnings and the end line
 
+    // A point number the way the protocol writes it: 000000 00000 0000
+    function FormatPointId(const S: string): string;
+    function PointId(ANum: Int64): string;
+
     // Where the protocol was written; nil before the first Title
     property Lines: TStrings read FLines;
   end;
@@ -82,6 +86,20 @@ begin
 end;
 
 { TProtocol }
+
+function TProtocol.FormatPointId(const S: string): string;
+var
+  N: string;
+begin
+  // %.15d pads with zeros; %015d would pad with spaces in Delphi
+  N := Format('%.15d', [StrToInt64Def(Trim(S), 0)]);
+  Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
+end;
+
+function TProtocol.PointId(ANum: Int64): string;
+begin
+  Result := FormatPointId(IntToStr(ANum));
+end;
 
 function TProtocol.Cells(const AValues: array of string): string;
 var

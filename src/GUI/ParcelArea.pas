@@ -9,9 +9,8 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Types,
   PointsUtilsSingleton, PointPrefixState,
   Point,
-  CoordOrderState, ProtocolTable,
-  GeoRow, GeoGrid, GeoFieldsGrid,
-  GeoAlgorithmBase,
+  CoordOrderState, ProtocolArea,
+  GeoRow, GeoDataFrame, GeoGrid, GeoFieldsGrid,
   GeoAlgorithmLHuilier,
   CalcBase, Vcl.Menus;
 
@@ -21,14 +20,16 @@ type
     Memo1: TMemo;
     PanelCalculate: TPanel;
     Calculate: TButton;
-    procedure FormCreate(Sender: TObject);
+    Save: TButton;
     procedure CalculateClick(Sender: TObject);
+    procedure SaveClick(Sender: TObject);
+    procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TLHuilierAlgorithm;
-    FPts: TPointsArray;          // polygon corners, in grid order
-    FNums: array of string;      // point number of every corner
-    procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
+    FFrame: TGeoDataFrame;       // the input of the run
+    FProtocol: TAreaProtocol;
     procedure FillFromDict(const R: Integer);
+    function  BuildFrame: Boolean;
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -44,31 +45,28 @@ implementation
 
 {$R *.dfm}
 
+const
+  CSV_NAME = 'vymera.csv';   // saved next to exe
+
 constructor TParcelAreaForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TLHuilierAlgorithm.Create;
+  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y]);
+  FProtocol := TAreaProtocol.Create(Prot, FAlg, FFrame);
 end;
 
 destructor TParcelAreaForm.Destroy;
 begin
+  FProtocol.Free;
   FAlg.Free;
+  FFrame.Free;
   inherited;
-end;
-
-procedure TParcelAreaForm.FormCreate(Sender: TObject);
-begin
-  StringGrid1.SetColumnDisplayName(CB, 'Číslo bodu');
-
-  // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
-  StringGrid1.OnCellCommitted := PointCommitted;
-
-  Memo1.Lines.Clear;
 end;
 
 procedure TParcelAreaForm.ApplyCoordOrderToGrids;
 begin
-  ApplyCoordOrder(StringGrid1);
+  ApplyColumns(StringGrid1, []);
 end;
 
 procedure TParcelAreaForm.FillFromDict(const R: Integer);
@@ -81,8 +79,8 @@ begin
 
   if LookupPoint(num, P) then
   begin
-    StringGrid1.Cells[StringGrid1.FieldToCol(Y), R] := FloatToStr(P.Y);
-    StringGrid1.Cells[StringGrid1.FieldToCol(X), R] := FloatToStr(P.X);
+    StringGrid1.Cells[StringGrid1.FieldToCol(Y), R] := FloatToStr(P.Y, FS);
+    StringGrid1.Cells[StringGrid1.FieldToCol(X), R] := FloatToStr(P.X, FS);
   end;
 end;
 
@@ -101,54 +99,74 @@ begin
   StringGrid1.Cells[0, ARow] := IntToStr(ARow);
 end;
 
-procedure TParcelAreaForm.CalculateClick(Sender: TObject);
+// Every row with a point number is a corner. False, with a message, when
+// a corner is not in the list.
+function TParcelAreaForm.BuildFrame: Boolean;
 var
-  i, n, cCB, cY, cX: Integer;
+  R: Integer;
+  Num: Int64;
+  Row: TGeoRow;
+  P: Point.TPoint;
 begin
-  cCB := StringGrid1.FieldToCol(CB);
-  cY  := StringGrid1.FieldToCol(Y);
-  cX  := StringGrid1.FieldToCol(X);
+  Result := True;
+  FFrame.ClearData;
 
-  n := 0;
-  SetLength(FPts, 0);
-  SetLength(FNums, 0);
-
-  for i := 1 to StringGrid1.RowCount - 1 do
+  for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
   begin
-    if (StringGrid1.Cells[cY, i] = '') or (StringGrid1.Cells[cX, i] = '') then
+    StringGrid1.GetGeoRow(R, Row);
+    Num := StrToInt64Def(Trim(string(Row.CB)), 0);
+    if Num <= 0 then
       Continue;
-    Inc(n);
-    SetLength(FPts, n);
-    SetLength(FNums, n);
-    FPts[n-1].Y := StrToFloatDef(StringGrid1.Cells[cY, i], 0);
-    FPts[n-1].X := StrToFloatDef(StringGrid1.Cells[cX, i], 0);
-    FNums[n-1] := StringGrid1.Cells[cCB, i];
-  end;
 
-  if n < 3 then
-  begin
-    ShowMessage('Pro výpočet plochy jsou potřeba alespoň 3 body.');
-    Exit;
-  end;
+    if not TPointDictionary.GetInstance.PointExists(Num) then
+    begin
+      ShowMessage(Format('Bod %s není v seznamu souřadnic.',
+        [Trim(string(Row.CB))]));
+      Result := False;
+      Exit;
+    end;
 
-  FAlg.Calculate(FPts);
-  ShowProtocol(Memo1.Lines);
+    // The list decides, the cells only show it
+    P := TPointDictionary.GetInstance.GetPoint(Num);
+    Row.Uloha := ULOHA_VYMERA;
+    Row.X := P.X;
+    Row.Y := P.Y;
+    FFrame.AddRow(Row);
+  end;
 end;
 
-procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);
-var
-  i: Integer;
+procedure TParcelAreaForm.CalculateClick(Sender: TObject);
 begin
-  Prot.Title(ALines, 'Výpočet plochy parcely');
+  // The frame is the only input, so every run rebuilds it
+  if not BuildFrame then
+    Exit;
+  FAlg.Calculate(FFrame);
+  ShowProtocol(Memo1.Lines);
 
-  Prot.Table(['Č.', 'Číslo bodu', CoordNames],
-             [ColWNo, ColWPoint, ColWPair]);
-  for i := 0 to High(FPts) do
-    Prot.Row([IntToStr(i + 1), FormatPointId(FNums[i]), CoordPair(FPts[i])]);
+  if IsNan(FAlg.Area) then
+    ShowMessage(Trim(FAlg.Warnings.Text));
+end;
 
-  Prot.Text('');
-  Prot.Text('Plocha = ' + Num(FAlg.Area) + ' m²');
-  Prot.Finish(FAlg.Warnings);
+// Dumps the frame into CSV. The area belongs to the whole job, not to a
+// row, so it stays in the protocol.
+procedure TParcelAreaForm.SaveClick(Sender: TObject);
+var
+  FileName: string;
+begin
+  if not BuildFrame then
+    Exit;
+
+  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
+  FFrame.ToCSV(FileName, ';', ',');
+
+  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
+    [FFrame.Count, sLineBreak, FileName]));
+end;
+
+// TAreaProtocol writes it
+procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);
+begin
+  FProtocol.Write(ALines);
 end;
 
 end.

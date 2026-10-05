@@ -24,6 +24,9 @@ type
     procedure FormCreate(Sender: TObject);
     procedure ButtonCalculateClick(Sender: TObject);
     procedure ButtonSaveClick(Sender: TObject);
+    procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
+    procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
+      var ASelectable: Boolean);
   private
     FAlg: TRectangularMeasurementsAlgorithm;
     FFrame: TGeoDataFrame;          // the input and the output of the run
@@ -31,7 +34,6 @@ type
     FWarnings: TStringList;         // collected from all stretches
     FRowNew: array of Boolean;      // listed point the user calls new
     FRowCB: array of string;        // last point number per row
-    procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
     procedure FillRow(const R: Integer);
     procedure RecalcLocal;
@@ -79,17 +81,11 @@ begin
   D := GeoFieldColumns[SH].Filter;
   D.HasMinValue := False;
   StringGrid1.SetColumnFilterData(SH, D);
-
-  // OnKeyDown never fires for Enter on TGeoGrid, so use OnCellCommitted
-  StringGrid1.OnCellCommitted := CellCommitted;
-
-  Memo1.Lines.Clear;
 end;
 
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
 begin
-  // Both pairs follow the toolbar switch; the order itself is in the DFM
-  ApplyCoordOrder(StringGrid1, [Y, X, Ym, Xm]);
+  ApplyColumns(StringGrid1, []);
 end;
 
 // Writes one value by field, when the grid shows it
@@ -179,6 +175,14 @@ begin
   GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI, FRows);
   FAlg.BuildLocalFrame(FFrame);
   FrameToGrid(StringGrid1, FFrame, FRows, [Xm, Ym]);
+end;
+
+// The first point starts the chain, no length leads to it
+procedure TRectangularMeasurementsForm.GridCellSelectable(Sender: TObject;
+  ACol, ARow: Integer; var ASelectable: Boolean);
+begin
+  if (ARow = StringGrid1.FixedRows) and (ACol = StringGrid1.FieldToCol(SH)) then
+    ASelectable := False;
 end;
 
 // Normalizes the number and refills the row

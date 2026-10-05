@@ -1,7 +1,6 @@
 inherited ParcelAreaForm: TParcelAreaForm
   Caption = 'V'#253'm'#283'ry'
   StyleElements = [seFont, seClient, seBorder]
-  OnCreate = FormCreate
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
     ExplicitWidth = 792
@@ -33,7 +32,12 @@ inherited ParcelAreaForm: TParcelAreaForm
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
     EnterEndBehavior = ebAddRow
-    GeoFields = [CB, X, Y]
+    OnCellCommitted = PointCommitted
+    ColumnFields.Strings = (
+      'CB'
+      'Y'
+      'X')
+    ReadOnlyFields = [X, Y]
     ExplicitLeft = 16
     ExplicitTop = 32
     ExplicitHeight = 457
@@ -54,8 +58,6 @@ inherited ParcelAreaForm: TParcelAreaForm
     Width = 800
     Height = 429
     Align = alBottom
-    Lines.Strings = (
-      'Protokol')
     ScrollBars = ssVertical
     TabOrder = 3
     ExplicitTop = 152
@@ -74,7 +76,7 @@ inherited ParcelAreaForm: TParcelAreaForm
       800
       30)
     object Calculate: TButton
-      Left = 582
+      Left = 636
       Top = 2
       Width = 75
       Height = 25
@@ -82,6 +84,16 @@ inherited ParcelAreaForm: TParcelAreaForm
       Caption = 'V'#253'po'#269'et'
       TabOrder = 0
       OnClick = CalculateClick
+    end
+    object Save: TButton
+      Left = 717
+      Top = 2
+      Width = 75
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Ulo'#382'it'
+      TabOrder = 1
+      OnClick = SaveClick
     end
   end
 end

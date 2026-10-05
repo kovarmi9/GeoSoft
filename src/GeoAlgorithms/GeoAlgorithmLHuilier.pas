@@ -7,52 +7,58 @@
 interface
 
 uses
-  System.SysUtils, GeoAlgorithmBase, Point;
+  System.SysUtils, Math, GeoAlgorithmBase, GeoDataFrame;
+
+const
+  // Task code from the survey notebook convention
+  ULOHA_VYMERA = 95;
 
 type
-  TLHuilierAlgorithm = class(TAlgorithm)
+  TLHuilierAlgorithm = class(TFrameAlgorithm)
   private
     FArea: Double;
   public
-    constructor Create;
+    class function TaskCode: Integer; override;
 
+    // Every row is a corner of the polygon; X and Y are read, nothing is
+    // written. The area goes to Area [m²].
+    procedure Calculate(AFrame: TGeoDataFrame); override;
+
+    // Area of the last run, NaN when it could not be computed
     property Area: Double read FArea;
-
-    // InputPoints: lomové body polygonu (rovinné souřadnice X, Y v m)
-    // Výsledná plocha je ve vlastnosti Area [m²]
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
   end;
 
 implementation
 
-constructor TLHuilierAlgorithm.Create;
+class function TLHuilierAlgorithm.TaskCode: Integer;
 begin
-  inherited Create;
-  FArea := 0;
+  Result := ULOHA_VYMERA;
 end;
 
-function TLHuilierAlgorithm.Calculate(const InputPoints: TPointsArray): TPointsArray;
+procedure TLHuilierAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   i, n: Integer;
   sum: Double;
 begin
   ClearWarnings;
+  FArea := NaN;
 
-  n := Length(InputPoints);
+  n := AFrame.Count;
   if n < 3 then
-    raise Exception.Create('Pro výpočet plochy jsou potřeba alespoň 3 body.');
+  begin
+    AddWarning('Pro výpočet plochy jsou potřeba alespoň 3 body.');
+    Exit;
+  end;
 
   sum := 0;
   for i := 0 to n - 1 do
-    sum := sum + (InputPoints[i].Y * InputPoints[(i + 1) mod n].X -
-                  InputPoints[(i + 1) mod n].Y * InputPoints[i].X);
+    sum := sum + (AFrame.Rows[i].Y * AFrame.Rows[(i + 1) mod n].X -
+                  AFrame.Rows[(i + 1) mod n].Y * AFrame.Rows[i].X);
 
   FArea := Abs(sum) / 2;
 
   if FArea < 1e-6 then
     AddWarning('Plocha je nulová — body mohou být kolineární.');
-
-  Result := Copy(InputPoints);
 end;
 
 end.

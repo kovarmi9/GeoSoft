@@ -63,6 +63,10 @@ procedure ApplyCoordOrder(AGrid: TGeoFieldsGrid;
 // stays in its own control.
 procedure ApplyCoordOrder(AYCtrl, AXCtrl: TWinControl); overload;
 
+// ColumnFields order without AHidden, coordinate pairs as the switch says.
+// Content stays; a hidden column loses its values.
+procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields);
+
 implementation
 
 procedure CoordRead(const P: Point.TPoint; out AFirst, ASecond: Double);
@@ -309,6 +313,88 @@ begin
 
   ReadGridTexts(AGrid, Texts);       // content is the application's
   AGrid.SetFieldOrder(Order);        // order is the component's
+  WriteGridTexts(AGrid, Texts);
+end;
+
+procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields);
+var
+  Order, Cur: TArray<TGeoField>;
+  Fields: TGeoFields;
+  Texts: TGridTexts;
+  I, N, P: Integer;
+  F: TGeoField;
+  S: string;
+  Same: Boolean;
+
+  function IndexOf(AField: TGeoField): Integer;
+  var
+    J: Integer;
+  begin
+    Result := -1;
+    for J := 0 to High(Order) do
+      if Order[J] = AField then
+        Exit(J);
+  end;
+
+  // In the YX order Y goes first, in the XY order X does
+  procedure Swap(AY, AX: TGeoField);
+  var
+    IY, IX: Integer;
+  begin
+    IY := IndexOf(AY);
+    IX := IndexOf(AX);
+    if (IY < 0) or (IX < 0) then
+      Exit;
+
+    if ((GCoordOrder = coYX) and (IY > IX)) or
+       ((GCoordOrder = coXY) and (IY < IX)) then
+    begin
+      Order[IY] := AX;
+      Order[IX] := AY;
+    end;
+  end;
+
+begin
+  if (AGrid = nil) or (AGrid.ColumnFields.Count = 0) then
+    Exit;
+
+  // The designer order, without the hidden fields
+  SetLength(Order, AGrid.ColumnFields.Count);
+  Fields := [];
+  N := 0;
+  for I := 0 to AGrid.ColumnFields.Count - 1 do
+  begin
+    S := AGrid.ColumnFields[I];
+    P := Pos('=', S);
+    if P > 0 then
+      S := Copy(S, 1, P - 1);
+    if not FindGeoField(Trim(S), F) or (F in AHidden) or (F in Fields) then
+      Continue;
+
+    Order[N] := F;
+    Include(Fields, F);
+    Inc(N);
+  end;
+  SetLength(Order, N);
+
+  Swap(Y, X);
+  Swap(Ym, Xm);
+
+  // Unchanged, nothing to do
+  if AGrid.GeoFields = Fields then
+  begin
+    Cur := CurrentOrder(AGrid);
+    Same := Length(Cur) = N;
+    for I := 0 to N - 1 do
+      if Same and (Cur[I] <> Order[I]) then
+        Same := False;
+    if Same then
+      Exit;
+  end;
+
+  ReadGridTexts(AGrid, Texts);       // content is the application's
+  AGrid.GeoFields := Fields;         // layout is the component's
+  AGrid.SetFieldOrder(Order);
   WriteGridTexts(AGrid, Texts);
 end;
 

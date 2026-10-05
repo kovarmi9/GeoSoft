@@ -34,6 +34,8 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
     EnterEndBehavior = ebAddRow
+    OnCellCommitted = CellCommitted
+    OnCellSelectable = GridCellSelectable
     ColumnFields.Strings = (
       'CB='#268#237'slo bodu'
       'SH=D'#233'lka'
@@ -61,8 +63,6 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Width = 800
     Height = 373
     Align = alClient
-    Lines.Strings = (
-      'Protokol')
     ScrollBars = ssVertical
     TabOrder = 3
   end

@@ -108,7 +108,7 @@ begin
   j := Sqr(dS) + Sqr(dQ);
   if j < 1e-10 then
   begin
-    AddWarning('Staničení připojovacích bodů P a K na pásce musí být různá.');
+    AddWarning('Připojovací body P a K na pásce splývají.');
     Exit;
   end;
 

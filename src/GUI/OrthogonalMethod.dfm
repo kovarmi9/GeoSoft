@@ -52,6 +52,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     TabOrder = 1
     OnKeyDown = AnchorGridKeyDown
     EnterEndBehavior = ebMoveFocusNext
+    OnCellCommitted = BasePointCommitted
     RowHeaders.Strings = (
       ''
       'P'
@@ -102,6 +103,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Width = 800
     Height = 187
     Align = alClient
+    Enabled = False
     ColCount = 9
     FixedColor = clRed
     RowCount = 2
@@ -109,7 +111,9 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     ParentColor = True
     TabOrder = 4
     OnKeyDown = DetailGridKeyDown
+    OnSelectCell = DetailGridSelectCell
     EnterEndBehavior = ebAddRow
+    OnCellCommitted = DetailPointCommitted
     RowHeaders.Strings = (
       '')
     ColumnFields.Strings = (
@@ -155,6 +159,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       Anchors = [akTop, akRight]
       Caption = 'Ulo'#382'it'
       TabOrder = 0
+      OnClick = SaveClick
     end
   end
   inherited StatusBar1: TStatusBar

@@ -26,7 +26,7 @@ uses
   CoordOrderState,
   ProtocolTable,
   CalcBase,
-  PointPrefixState, Vcl.Menus;
+  PointPrefixState, Vcl.Menus, SettingsState;
 
 type
   TOrthogonalMethodForm = class(TCalcBaseForm)
@@ -40,23 +40,21 @@ type
     procedure AnchorGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);
+    procedure SaveClick(Sender: TObject);
+    procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
+    procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
+    procedure DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
   private
     FAlg: TOrthogonalMethodAlgorithm;
     FFrame: TGeoDataFrame;        // the input and the output of the run
     FRows: TArray<Integer>;       // detail grid row of each frame row, -1 = P or K
-    FUpdated: array of Boolean;   // point was in the list before we computed it
-    procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
-    procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
-    procedure DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure SaveClick(Sender: TObject);
     procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
-    function  WasUpdated(AGridRow: Integer): Boolean;
-    procedure StorePoint(const ARow: TGeoRow);
     procedure BuildFrame;
     procedure Recompute;
   protected
     procedure ApplyCoordOrderToGrids; override;
+    procedure ApplySettings; override;
     procedure WriteProtocol(ALines: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -79,12 +77,6 @@ begin
 
   FAlg := TOrthogonalMethodAlgorithm.Create;
   FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Z, Xm, Ym, KK, Poznamka]);
-
-  GridBaseline.OnCellCommitted := BasePointCommitted;
-  GridDetail.OnCellCommitted   := DetailPointCommitted;
-  GridDetail.OnSelectCell      := DetailGridSelectCell;
-  GridDetail.Enabled           := False;
-  Save.OnClick                 := SaveClick;
 end;
 
 destructor TOrthogonalMethodForm.Destroy;
@@ -96,8 +88,13 @@ end;
 
 procedure TOrthogonalMethodForm.ApplyCoordOrderToGrids;
 begin
-  ApplyCoordOrder(GridBaseline);
-  ApplyCoordOrder(GridDetail);
+  ApplyColumns(GridBaseline, []);
+  ApplyColumns(GridDetail, []);
+end;
+
+procedure TOrthogonalMethodForm.ApplySettings;
+begin
+  FAlg.Scale := GSettings.Scale;
 end;
 
 procedure TOrthogonalMethodForm.FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
@@ -124,29 +121,6 @@ begin
   if not LookupPoint(num, P) then Exit;
   FillRowFromPoint(GridBaseline, R, P);
   Result := True;
-end;
-
-// The point was already in the list when its number was typed
-function TOrthogonalMethodForm.WasUpdated(AGridRow: Integer): Boolean;
-begin
-  Result := (AGridRow >= 0) and (AGridRow <= High(FUpdated)) and
-            FUpdated[AGridRow];
-end;
-
-// Hands one computed row to the point list
-procedure TOrthogonalMethodForm.StorePoint(const ARow: TGeoRow);
-var
-  PNum: Int64;
-  Height: Double;
-begin
-  PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
-  if PNum <= 0 then
-    Exit;
-
-  if IsNan(ARow.Z) then Height := 0 else Height := ARow.Z;
-  TPointDictionary.GetInstance.AddOrUpdatePoint(
-    Point.TPoint.Create(PNum, ARow.X, ARow.Y, Height, ARow.KK,
-                        string(ARow.Poznamka)));
 end;
 
 // Rows 0 and 1 are the measuring line, the rest are the detail points
@@ -230,6 +204,12 @@ procedure TOrthogonalMethodForm.BasePointCommitted(Sender: TObject; ACol, ARow: 
 var
   P: Point.TPoint;
 begin
+  // Enter on an empty tape cell means zero, the user confirmed it
+  if ((ACol = GridBaseline.FieldToCol(Xm)) or
+      (ACol = GridBaseline.FieldToCol(Ym))) and
+     (Trim(GridBaseline.Cells[ACol, ARow]) = '') then
+    GridBaseline.Cells[ACol, ARow] := '0';
+
   // An empty cell is a row not filled in yet, not a mistake
   if (ACol = GridBaseline.FieldToCol(CB)) and
      (Trim(GridBaseline.Cells[ACol, ARow]) <> '') and
@@ -259,20 +239,17 @@ begin
         NormalizePointCell(G, ACol, ARow);
         PNum := StrToInt64Def(G.Cells[ACol, ARow], 0);
 
-        if Length(FUpdated) <= ARow then
-          SetLength(FUpdated, ARow + 1);
-        // Asked before we store it ourselves, or every rerun would say updated
-        FUpdated[ARow] := (PNum > 0) and
-                          TPointDictionary.GetInstance.PointExists(PNum);
-
-        if FUpdated[ARow] then
+        if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
         begin
           P := TPointDictionary.GetInstance.GetPoint(PNum);
           FillRowFromPoint(G, ARow, P);
         end;
       end;
 
-    Xm, Ym: ;   // a new measurement, nothing to prepare
+    Xm, Ym:
+      // Enter on an empty tape cell means zero, the same as for P and K
+      if Trim(G.Cells[ACol, ARow]) = '' then
+        G.Cells[ACol, ARow] := '0';
   else
     Exit;       // Z or the note moves no coordinate
   end;
@@ -410,7 +387,7 @@ begin
       Continue;
 
     Inc(N);
-    if WasUpdated(FRows[I]) then
+    if WasInList(FFrame.Rows[I]) then
       Tail := '*** bod v seznamu aktualizován ***'
     else
       Tail := '';

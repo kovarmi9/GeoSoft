@@ -41,42 +41,6 @@ inherited PolarMethodForm: TPolarMethodForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    object Splitter1: TSplitter
-      Left = 0
-      Top = 52
-      Width = 800
-      Height = 5
-      Cursor = crVSplit
-      Align = alTop
-      ExplicitWidth = 675
-    end
-    object Label1: TLabel
-      Left = 0
-      Top = 57
-      Width = 800
-      Height = 15
-      Align = alTop
-      Caption = 'Orientace'
-      ExplicitWidth = 51
-    end
-    object Splitter2: TSplitter
-      Left = 0
-      Top = 319
-      Width = 800
-      Height = 5
-      Cursor = crVSplit
-      Align = alTop
-      ExplicitWidth = 675
-    end
-    object Label2: TLabel
-      Left = 0
-      Top = 324
-      Width = 800
-      Height = 15
-      Align = alTop
-      Caption = 'Podrobn'#233' body'
-      ExplicitWidth = 82
-    end
     object PanelStation: TPanel
       Left = 0
       Top = 0
@@ -180,52 +144,133 @@ inherited PolarMethodForm: TPolarMethodForm
         Text = ''
       end
     end
+    object Label1: TLabel
+      Left = 0
+      Top = 52
+      Width = 800
+      Height = 15
+      Align = alTop
+      Caption = 'Orientace'
+      ExplicitWidth = 51
+    end
     object GridOrientation: TGeoFieldsGrid
       Left = 0
-      Top = 72
+      Top = 67
       Width = 800
-      Height = 128
+      Height = 100
       Align = alTop
-      ColCount = 8
+      ColCount = 14
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
       EnterEndBehavior = ebAddRow
-      GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
+      OnCellCommitted = OrientationCellCommitted
+      ColumnFields.Strings = (
+        'CB='#268#237'slo bodu'
+        'Y'
+        'X'
+        'Z'
+        'SH=Vod. d'#233'lka'
+        'SS='#352'ikm'#225' d'#233'lka'
+        'VC=V'#253#353'ka c'#237'le'
+        'HZ=Vod. '#250'hel'
+        'Zuhel=Zenitov'#253' '#250'hel'
+        'PolarD=Pol'#225'rn'#237' om'#283'rek'
+        'PolarK=Kolmice'
+        'KK=K'#243'd kvality'
+        'Poznamka=Popis')
+      ReadOnlyFields = [X, Y, Z, KK, Poznamka]
       ColWidths = (
         64
-        64
-        64
-        64
-        64
-        64
-        64
-        64)
+        88
+        88
+        88
+        87
+        87
+        87
+        87
+        87
+        87
+        87
+        87
+        87
+        87)
     end
-    object Memo1: TMemo
+    object Splitter1: TSplitter
       Left = 0
-      Top = 200
+      Top = 167
       Width = 800
-      Height = 89
+      Height = 5
+      Cursor = crVSplit
       Align = alTop
-      Lines.Strings = (
-        'Protokol')
-      ScrollBars = ssVertical
+      ExplicitWidth = 675
+      MinSize = 60
+    end
+    object Label2: TLabel
+      Left = 0
+      Top = 172
+      Width = 800
+      Height = 15
+      Align = alTop
+      Caption = 'Podrobn'#233' body'
+      ExplicitWidth = 82
+    end
+    object GridDetail: TGeoFieldsGrid
+      Left = 0
+      Top = 187
+      Width = 800
+      Height = 143
+      Align = alClient
+      ColCount = 14
+      RowCount = 2
+      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 2
+      EnterEndBehavior = ebAddRow
+      OnCellCommitted = DetailCellCommitted
+      ColumnFields.Strings = (
+        'CB='#268#237'slo bodu'
+        'Y'
+        'X'
+        'Z'
+        'SH=Vod. d'#233'lka'
+        'SS='#352'ikm'#225' d'#233'lka'
+        'VC=V'#253#353'ka c'#237'le'
+        'HZ=Vod. '#250'hel'
+        'Zuhel=Zenitov'#253' '#250'hel'
+        'PolarD=Pol'#225'rn'#237' om'#283'rek'
+        'PolarK=Kolmice'
+        'KK=K'#243'd kvality'
+        'Poznamka=Popis')
+      ReadOnlyFields = [X, Y, Z]
+      ColWidths = (
+        64
+        88
+        88
+        88
+        87
+        87
+        87
+        87
+        87
+        87
+        87
+        87
+        87
+        87)
     end
     object PanelCalculate: TPanel
       Left = 0
-      Top = 289
+      Top = 330
       Width = 800
       Height = 30
-      Align = alTop
+      Align = alBottom
       BevelOuter = bvNone
       TabOrder = 3
       DesignSize = (
         800
         30)
       object Calculate: TButton
-        Left = 582
+        Left = 636
         Top = 2
         Width = 75
         Height = 25
@@ -234,50 +279,44 @@ inherited PolarMethodForm: TPolarMethodForm
         TabOrder = 0
         OnClick = CalculateClick
       end
-    end
-    object GridDetail: TGeoFieldsGrid
-      Left = 0
-      Top = 339
-      Width = 800
-      Height = 161
-      Align = alTop
-      ColCount = 8
-      RowCount = 2
-      Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
-      TabOrder = 4
-      EnterEndBehavior = ebAddRow
-      GeoFields = [CB, X, Y, Z, SS, HZ, Poznamka]
-      ColWidths = (
-        64
-        64
-        64
-        64
-        64
-        64
-        64
-        64)
-    end
-    object PanelSave: TPanel
-      Left = 0
-      Top = 500
-      Width = 800
-      Height = 30
-      Align = alTop
-      BevelOuter = bvNone
-      TabOrder = 5
-      DesignSize = (
-        800
-        30)
       object Save: TButton
-        Left = 582
+        Left = 717
         Top = 2
         Width = 75
         Height = 25
         Anchors = [akTop, akRight]
         Caption = 'Ulo'#382'it'
-        TabOrder = 0
-        OnClick = CalculateClick
+        TabOrder = 1
+        OnClick = SaveClick
       end
+    end
+    object Splitter2: TSplitter
+      Left = 0
+      Top = 360
+      Width = 800
+      Height = 5
+      Cursor = crVSplit
+      Align = alBottom
+      ExplicitWidth = 675
+      MinSize = 60
+    end
+    object Memo1: TMemo
+      Left = 0
+      Top = 365
+      Width = 800
+      Height = 181
+      TabStop = False
+      Align = alBottom
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -13
+      Font.Name = 'Consolas'
+      Font.Style = []
+      ParentFont = False
+      ReadOnly = True
+      ScrollBars = ssBoth
+      TabOrder = 4
+      WordWrap = False
     end
   end
 end

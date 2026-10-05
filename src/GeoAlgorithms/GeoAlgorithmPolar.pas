@@ -1,35 +1,88 @@
 ﻿unit GeoAlgorithmPolar;
 
+// Polar method, fixed or free station.
+// Row 0 is the station, then the orientations, then the detail points.
+// The free station is congruent by default: lengths are already reduced
+// by Scale, so a scale left to estimate would be error, not signal.
+
 interface
 
 uses
-  System.SysUtils, Math, GeoAlgorithmBase, Point;
+  System.SysUtils, Math, Point, GeoAlgorithmBase, GeoRow, GeoDataFrame,
+  GeoAlgorithmTransformBase, GeoAlgorithmTransformCongruent,
+  GeoAlgorithmTransformSimilarity;
+
+const
+  // Task code from the survey notebook convention
+  ULOHA_POLARNI = 1;
+
+  MEZNI_DFI = 0.08;   // [gon], 10.2 of the decree
 
 type
-  TOrientation = record
-    B: TPoint;
-    psi_B: Double;
-    dist_B: Double;
+  // Role of a frame row
+  TPolarRole = (prNone, prStation, prOrient, prDetail);
+
+  // Residuals of one orientation
+  TOrientResult = record
+    Dfi:     Double;   // direction residual [gon], NaN without direction
+    Dg:      Double;   // distance from coordinates [m]
+    Ds:      Double;   // distance residual [m], NaN without distance
   end;
 
-  TOrientations = array of TOrientation;
+  // Results of the whole run
+  TPolarInfo = record
+    Valid:         Boolean;
+    FreeStation:   Boolean;
+    OrientCount:   Integer;   // rows 1..OrientCount, row 0 is the station
+    Shift:         Double;    // orientation shift [gon]
+    ShiftError:    Double;
+    Congruent:     Boolean;   // how the free station was transformed
+    Q:             Double;    // scale of that transformation
+  end;
 
-  TPolarMethodAlgorithm = class(TAlgorithm)
+  TPolarMethodAlgorithm = class(TFrameAlgorithm)
   private
-    FStation: TPoint;
-    FOrientations: TOrientations;
-    FOrientationShift: Double;
-    FStredniChybaOrPos: Double;
+    FInfo: TPolarInfo;
+    FCongruent: Boolean;
+    FCongruentTr: TCongruentTransformation;
+    FHelmertTr: TSimilarityTransformation;
+
+    class function IsGiven(const ARow: TGeoRow): Boolean;
+    class function RoleOf(const ARow: TGeoRow): TPolarRole;
+    class function Dist(const A, B: TGeoRow): Double;
+    class function Weight(const AStation, ARow: TGeoRow;
+                          ALongest: Double): Double;
+
+    // The steps of Calculate, in order
+    function CheckLayout(AFrame: TGeoDataFrame): Boolean;
+    function SolveFreeStation(AFrame: TGeoDataFrame): Boolean;
+    function MeanShift(AFrame: TGeoDataFrame; const AStation: TGeoRow): Double;
+    function CheckOrientations(AFrame: TGeoDataFrame): Double;
+    procedure ComputeDetails(AFrame: TGeoDataFrame; AMaxDist: Double);
+
+    function LongestOrient(AFrame: TGeoDataFrame; const AStation: TGeoRow): Double;
+    function GetResiduals: TPointResiduals;
   public
-    constructor Create; overload;
-    constructor Create(const AStation: TPoint; const AOrientations: TOrientations); overload;
+    constructor Create;
+    destructor Destroy; override;
 
-    property Station: TPoint read FStation write FStation;
-    property Orientations: TOrientations read FOrientations write FOrientations;
-    property OrientationShift: Double read FOrientationShift;
-    property StredniChybaOrPos: Double read FStredniChybaOrPos;
+    class function TaskCode: Integer; override;
 
-    function Calculate(const Body: TPointsArray): TPointsArray; override;
+    /// <summary>Checks the rows, fills X and Y of the detail points.</summary>
+    procedure Calculate(AFrame: TGeoDataFrame); override;
+
+    /// <summary>Residuals of one orientation.</summary>
+    class function ResultOf(const AStation, ARow: TGeoRow;
+                            AShift, AScale: Double): TOrientResult;
+
+    /// <summary>The job of the last run, for the protocol.</summary>
+    property Info: TPolarInfo read FInfo;
+
+    /// <summary>True: the free station is congruent, False: Helmert.</summary>
+    property Congruent: Boolean read FCongruent write FCongruent;
+
+    /// <summary>Fit of the free station, empty otherwise.</summary>
+    property Residuals: TPointResiduals read GetResiduals;
   end;
 
 implementation
@@ -37,103 +90,368 @@ implementation
 const
   GON_TO_RAD = Pi / 200;
   RAD_TO_GON = 200 / Pi;
-  MEZNI_DFI  = 0.08;
 
 constructor TPolarMethodAlgorithm.Create;
 begin
   inherited Create;
-  FOrientationShift := 0;
-  FStredniChybaOrPos := 0;
+  FCongruent := True;
+  FCongruentTr := TCongruentTransformation.Create;
+  FHelmertTr := TSimilarityTransformation.Create;
 end;
 
-constructor TPolarMethodAlgorithm.Create(const AStation: TPoint; const AOrientations: TOrientations);
+destructor TPolarMethodAlgorithm.Destroy;
 begin
-  Create;
-  FStation := AStation;
-  FOrientations := AOrientations;
+  FCongruentTr.Free;
+  FHelmertTr.Free;
+  inherited Destroy;
 end;
 
-function TPolarMethodAlgorithm.Calculate(const Body: TPointsArray): TPointsArray;
+class function TPolarMethodAlgorithm.TaskCode: Integer;
+begin
+  Result := ULOHA_POLARNI;
+end;
+
+// A given point is one that already has coordinates
+class function TPolarMethodAlgorithm.IsGiven(const ARow: TGeoRow): Boolean;
+begin
+  Result := not (IsNan(ARow.X) or IsNan(ARow.Y));
+end;
+
+// Distance between two rows from their coordinates
+class function TPolarMethodAlgorithm.Dist(const A, B: TGeoRow): Double;
+begin
+  Result := Sqrt(Sqr(B.X - A.X) + Sqr(B.Y - A.Y));
+end;
+
+// Weight of an orientation: its length over the longest one, as in GEUS
+class function TPolarMethodAlgorithm.Weight(const AStation, ARow: TGeoRow;
+  ALongest: Double): Double;
+begin
+  if ALongest > 0 then
+    Result := Dist(AStation, ARow) / ALongest
+  else
+    Result := 1;
+end;
+
+// What the row is, by the fields it has
+class function TPolarMethodAlgorithm.RoleOf(const ARow: TGeoRow): TPolarRole;
 var
-  i, j, n: Integer;
-  sigma_AB, psi_B_rad, delta_i, delta: Double;
-  sumSin, sumCos: Double;
-  deltas: array of Double;
-  dfi, ds, dist_computed: Double;
-  sumDfiSqr, maxDist: Double;
-  d, psi, sigma_AP: Double;
+  HasVS, HasVC, HasDir, HasDist, Given: Boolean;
 begin
-  ClearWarnings;
+  HasVS   := not IsNan(ARow.VS);
+  HasVC   := not IsNan(ARow.VC);
+  HasDir  := not IsNan(ARow.HZ);
+  HasDist := not IsNan(ARow.SH);
+  Given   := IsGiven(ARow);
 
-  n := Length(FOrientations);
-  if n = 0 then
-    raise Exception.Create('Nejsou zadány orientační body.');
+  // Nothing is measured to the station itself
+  if HasVS and not HasVC and not HasDir and not HasDist then
+    Result := prStation
+  else if HasVC and not HasVS and Given and (HasDir or HasDist) then
+    Result := prOrient
+  else if HasVC and not HasVS and not Given and HasDir and HasDist then
+    Result := prDetail
+  else
+    Result := prNone;
+end;
 
-  SetLength(deltas, n);
-  sumSin := 0;
-  sumCos := 0;
+function TPolarMethodAlgorithm.GetResiduals: TPointResiduals;
+begin
+  if not FInfo.FreeStation then
+    SetLength(Result, 0)
+  else if FInfo.Congruent then
+    Result := FCongruentTr.Residuals
+  else
+    Result := FHelmertTr.Residuals;
+end;
 
-  for i := 0 to n - 1 do
+class function TPolarMethodAlgorithm.ResultOf(const AStation, ARow: TGeoRow;
+  AShift, AScale: Double): TOrientResult;
+var
+  Sigma, Psi: Double;
+begin
+  // An empty cell means it was not measured
+  if IsNan(ARow.HZ) then
+    Result.Dfi := NaN
+  else
   begin
-    sigma_AB := ArcTan2(FOrientations[i].B.Y - FStation.Y, FOrientations[i].B.X - FStation.X);
-    psi_B_rad := FOrientations[i].psi_B * GON_TO_RAD;
-    delta_i := sigma_AB - psi_B_rad;
-    deltas[i] := delta_i;
-    sumCos := sumCos + Cos(delta_i);
-    sumSin := sumSin + Sin(delta_i);
+    Sigma := ArcTan2(ARow.Y - AStation.Y, ARow.X - AStation.X);
+    Psi   := ARow.HZ * GON_TO_RAD;
+    Result.Dfi := ArcTan2(Sin(Sigma - Psi - AShift * GON_TO_RAD),
+                          Cos(Sigma - Psi - AShift * GON_TO_RAD)) * RAD_TO_GON;
   end;
 
-  delta := ArcTan2(sumSin, sumCos);
-  FOrientationShift := delta * RAD_TO_GON;
+  Result.Dg := Dist(AStation, ARow);
+  if IsNan(ARow.SH) then
+    Result.Ds := NaN
+  else
+    Result.Ds := ARow.SH * AScale - Result.Dg;
+end;
 
-  sumDfiSqr := 0;
-  maxDist := 0;
+// The orientations go into a local system around the instrument, which the
+// transformation lays on the given points
+function TPolarMethodAlgorithm.SolveFreeStation(AFrame: TGeoDataFrame): Boolean;
+var
+  Local, Global: TPointsArray;
+  I, M: Integer;
+  Psi, D: Double;
+begin
+  Result := False;
 
-  for i := 0 to n - 1 do
+  SetLength(Local, FInfo.OrientCount);
+  SetLength(Global, FInfo.OrientCount);
+  M := 0;
+
+  for I := 1 to FInfo.OrientCount do
   begin
-    dfi := ArcTan2(Sin(deltas[i] - delta), Cos(deltas[i] - delta)) * RAD_TO_GON;
-    sumDfiSqr := sumDfiSqr + Sqr(dfi);
+    if IsNan(AFrame.Rows[I].HZ) or IsNan(AFrame.Rows[I].SH) then
+      Continue;
 
-    if Abs(dfi) > MEZNI_DFI then
-      AddWarning(Format('Orientace %d: odchylka or. posunu dfi = %.4f g překračuje mezní hodnotu %.2f g ' +
-        '- bod 10.2 vyhlášky 31/1995 Sb. v platném znění',
-        [FOrientations[i].B.PointNumber, dfi, MEZNI_DFI]));
+    Psi := AFrame.Rows[I].HZ * GON_TO_RAD;
+    D   := AFrame.Rows[I].SH * Scale;
 
-    if FOrientations[i].dist_B > 0 then
+    Local[M].PointNumber := StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0);
+    Local[M].X := D * Cos(Psi);
+    Local[M].Y := D * Sin(Psi);
+
+    Global[M] := Local[M];
+    Global[M].X := AFrame.Rows[I].X;
+    Global[M].Y := AFrame.Rows[I].Y;
+
+    Inc(M);
+  end;
+
+  SetLength(Local, M);
+  SetLength(Global, M);
+
+  if M < 2 then
+  begin
+    AddWarning('Volné stanovisko potřebuje alespoň dvě orientace ' +
+      's měřeným směrem i délkou.');
+    Exit;
+  end;
+
+  // The instrument stands at the origin, so the translation is its place
+  FInfo.Congruent := FCongruent;
+  try
+    if FCongruent then
     begin
-      dist_computed := Sqrt(Sqr(FOrientations[i].B.X - FStation.X) + Sqr(FOrientations[i].B.Y - FStation.Y));
-      ds := FOrientations[i].dist_B - dist_computed;
-
-      if dist_computed > maxDist then
-        maxDist := dist_computed;
-
-      if Abs(ds) > (0.012 * Sqrt(dist_computed) + 0.10) then
-        AddWarning(Format('Orientace %d: odchylka délky ds = %.3f m překračuje mezní hodnotu %.3f m',
-          [FOrientations[i].B.PointNumber, ds, 0.012 * Sqrt(dist_computed) + 0.10]));
+      FCongruentTr.ComputeParametersFromPoints(Local, Global);
+      AFrame.Rows[0].X := FCongruentTr.X0;
+      AFrame.Rows[0].Y := FCongruentTr.Y0;
+      FInfo.Shift := FCongruentTr.Omega * RAD_TO_GON;
+      FInfo.Q := 1;
+    end
+    else
+    begin
+      FHelmertTr.ComputeParametersFromPoints(Local, Global);
+      AFrame.Rows[0].X := FHelmertTr.X0;
+      AFrame.Rows[0].Y := FHelmertTr.Y0;
+      FInfo.Shift := FHelmertTr.Omega * RAD_TO_GON;
+      FInfo.Q := FHelmertTr.Q;
+    end;
+  except
+    on E: Exception do
+    begin
+      AddWarning('Volné stanovisko: ' + E.Message);
+      Exit;
     end;
   end;
 
-  if n > 1 then
-    FStredniChybaOrPos := Sqrt(sumDfiSqr / (n * (n - 1)))
-  else
-    FStredniChybaOrPos := 0;
+  Result := True;
+end;
 
-  SetLength(Result, Length(Body));
-  for j := 0 to High(Body) do
+// The farthest orientation with a direction, for the weights
+function TPolarMethodAlgorithm.LongestOrient(AFrame: TGeoDataFrame;
+  const AStation: TGeoRow): Double;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 1 to FInfo.OrientCount do
+    if not IsNan(AFrame.Rows[I].HZ) then
+      Result := Max(Result, Dist(AStation, AFrame.Rows[I]));
+end;
+
+// With a given station the shift [gon] is the mean of the orientations,
+// weighted by their length
+function TPolarMethodAlgorithm.MeanShift(AFrame: TGeoDataFrame;
+  const AStation: TGeoRow): Double;
+var
+  I: Integer;
+  Sigma, Psi, SumSin, SumCos, DMax, P: Double;
+begin
+  SumSin := 0;
+  SumCos := 0;
+  DMax := LongestOrient(AFrame, AStation);
+
+  for I := 1 to FInfo.OrientCount do
   begin
-    d := Body[j].Y;
-    psi := Body[j].X * GON_TO_RAD;
-    sigma_AP := delta + psi;
+    if IsNan(AFrame.Rows[I].HZ) then
+      Continue;
 
-    Result[j] := Body[j];
-    Result[j].X := FStation.X + d * Cos(sigma_AP);
-    Result[j].Y := FStation.Y + d * Sin(sigma_AP);
+    Sigma := ArcTan2(AFrame.Rows[I].Y - AStation.Y,
+                     AFrame.Rows[I].X - AStation.X);
+    Psi := AFrame.Rows[I].HZ * GON_TO_RAD;
+    P := Weight(AStation, AFrame.Rows[I], DMax);
 
-    if (maxDist > 0) and (d > maxDist) then
-      AddWarning(Format('Bod %d: délka rajónu %.1f m je větší než nejvzdálenější orientace %.1f m ' +
-        '- bod 4.3.2.2.2 Návodu pro obnovu katastrálního operátu',
-        [Body[j].PointNumber, d, maxDist]));
+    SumCos := SumCos + P * Cos(Sigma - Psi);
+    SumSin := SumSin + P * Sin(Sigma - Psi);
   end;
+
+  Result := ArcTan2(SumSin, SumCos) * RAD_TO_GON;
+end;
+
+// Row 0 is the station, then the orientations, then the detail points
+function TPolarMethodAlgorithm.CheckLayout(AFrame: TGeoDataFrame): Boolean;
+var
+  I, NDir: Integer;
+  Role, Expected: TPolarRole;
+begin
+  Result := False;
+  NDir := 0;
+
+  if AFrame.Count = 0 then
+  begin
+    AddWarning('Zápisník je prázdný.');
+    Exit;
+  end;
+
+  if RoleOf(AFrame.Rows[0]) <> prStation then
+  begin
+    AddWarning('První řádek musí být stanovisko.');
+    Exit;
+  end;
+
+  // The first detail point ends the orientations
+  Expected := prOrient;
+  for I := 1 to AFrame.Count - 1 do
+  begin
+    Role := RoleOf(AFrame.Rows[I]);
+    if (Expected = prOrient) and (Role = prDetail) then
+      Expected := prDetail;
+
+    if Role <> Expected then
+    begin
+      if Expected = prOrient then
+        AddWarning(Format('Bod %s: řádek není orientace ani podrobný bod.',
+          [Trim(string(AFrame.Rows[I].CB))]))
+      else
+        AddWarning(Format('Bod %s: řádek není podrobný bod.',
+          [Trim(string(AFrame.Rows[I].CB))]));
+    end
+    else if Role = prOrient then
+    begin
+      Inc(FInfo.OrientCount);
+      if not IsNan(AFrame.Rows[I].HZ) then
+        Inc(NDir);
+    end;
+  end;
+
+  if NDir = 0 then
+    AddWarning('Zadejte alespoň jednu orientaci s měřeným směrem.');
+  Result := Warnings.Count = 0;
+end;
+
+// Residuals and limits of every orientation. Returns the distance to the
+// farthest one for the detail check (Navod 4.3.2.2.2).
+function TPolarMethodAlgorithm.CheckOrientations(AFrame: TGeoDataFrame): Double;
+var
+  St: TGeoRow;
+  I, NDir: Integer;
+  SumP, SumPDfi, DMax, P, Limit: Double;
+  R: TOrientResult;
+  PtNo: string;
+begin
+  Result := 0;
+  St := AFrame.Rows[0];
+  NDir := 0;
+  SumP := 0;
+  SumPDfi := 0;
+  DMax := LongestOrient(AFrame, St);
+
+  for I := 1 to FInfo.OrientCount do
+  begin
+    R := ResultOf(St, AFrame.Rows[I], FInfo.Shift, Scale);
+    PtNo := Trim(string(AFrame.Rows[I].CB));
+    Result := Max(Result, R.Dg);
+
+    // Without a direction only the distance is checked
+    if not IsNan(R.Dfi) then
+    begin
+      Inc(NDir);
+      P := Weight(St, AFrame.Rows[I], DMax);
+      SumP := SumP + P;
+      SumPDfi := SumPDfi + P * Sqr(R.Dfi);
+
+      if Abs(R.Dfi) > MEZNI_DFI then
+        AddWarning(Format('Orientace %s: odchylka or. posunu dfi = %.4f g překračuje ' +
+          'mezní hodnotu %.2f g - bod 10.2 vyhlášky 31/1995 Sb. v platném znění',
+          [PtNo, R.Dfi, MEZNI_DFI]));
+    end;
+
+    if not IsNan(R.Ds) then
+    begin
+      Limit := 0.012 * Sqrt(R.Dg) + 0.10;
+      if Abs(R.Ds) > Limit then
+        AddWarning(Format('Orientace %s: odchylka délky ds = %.3f m překračuje ' +
+          'mezní hodnotu %.3f m', [PtNo, R.Ds, Limit]));
+    end;
+  end;
+
+  // Mean error of a weighted mean
+  if (NDir > 1) and (SumP > 0) then
+    FInfo.ShiftError := Sqrt(SumPDfi / ((NDir - 1) * SumP));
+end;
+
+procedure TPolarMethodAlgorithm.ComputeDetails(AFrame: TGeoDataFrame;
+  AMaxDist: Double);
+var
+  St: TGeoRow;
+  I: Integer;
+  D, Sigma: Double;
+begin
+  St := AFrame.Rows[0];
+
+  for I := FInfo.OrientCount + 1 to AFrame.Count - 1 do
+  begin
+    D     := AFrame.Rows[I].SH * Scale;
+    Sigma := (FInfo.Shift + AFrame.Rows[I].HZ) * GON_TO_RAD;
+
+    AFrame.Rows[I].X := St.X + D * Cos(Sigma);
+    AFrame.Rows[I].Y := St.Y + D * Sin(Sigma);
+
+    if (AMaxDist > 0) and (D > AMaxDist) then
+      AddWarning(Format('Bod %s: délka rajónu %.1f m je větší než nejvzdálenější ' +
+        'orientace %.1f m - bod 4.3.2.2.2 Návodu pro obnovu katastrálního operátu',
+        [Trim(string(AFrame.Rows[I].CB)), D, AMaxDist]));
+  end;
+end;
+
+procedure TPolarMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);
+var
+  MaxDist: Double;   // distance to the farthest orientation
+begin
+  ClearWarnings;
+  FInfo := Default(TPolarInfo);
+
+  if not CheckLayout(AFrame) then
+    Exit;
+
+  // A free station has no coordinates yet
+  FInfo.FreeStation := not IsGiven(AFrame.Rows[0]);
+  if FInfo.FreeStation then
+  begin
+    // The frame carries the result, so the form reads it from there
+    if not SolveFreeStation(AFrame) then
+      Exit;
+  end
+  else
+    FInfo.Shift := MeanShift(AFrame, AFrame.Rows[0]);
+
+  MaxDist := CheckOrientations(AFrame);
+  ComputeDetails(AFrame, MaxDist);
+  FInfo.Valid := True;
 end;
 
 end.

@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Classes, Point, GeoDataFrame;
 
 type
-  // Dynamic array of points used as input/output for all algorithms
+  // Dynamic array of points, e.g. the input of a transformation
   TPointsArray = array of TPoint;
 
   // Shared infrastructure for every algorithm, whatever its interface is
@@ -30,13 +30,6 @@ type
     /// number. Prepared, the program keeps it at 1.0.
     /// </summary>
     property Scale: Double read FScale write FScale;
-  end;
-
-  // Base for algorithms that take points in and return points out
-  TAlgorithm = class abstract(TAlgorithmBase)
-  public
-    // Runs the algorithm on InputPoints and returns the computed output points
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
   end;
 
   // Base for an algorithm whose whole input and output is one frame

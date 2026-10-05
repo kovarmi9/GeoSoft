@@ -27,8 +27,7 @@ type
   TMxyBand = (mbUnknown, mbWithinMxy, mbWithin2Mxy, mbOver2Mxy);
 
   // Abstract base class for all coordinate transformation algorithms.
-  // TAlgorithmBase gives it the shared Warnings list; the point-in/point-out
-  // contract of TAlgorithm does not fit here, so it is not used.
+  // TAlgorithmBase gives it the shared Warnings list.
   TTransformationAlgorithm = class abstract(TAlgorithmBase)
   private
     FResiduals: TPointResiduals;

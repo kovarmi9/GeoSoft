@@ -138,6 +138,7 @@
     end
     object MenuNastaveni: TMenuItem
       Caption = 'Nastaven'#237
+      OnClick = MenuNastaveniClick
     end
     object MenuNapoveda: TMenuItem
       Caption = 'N'#225'pov'#283'da'

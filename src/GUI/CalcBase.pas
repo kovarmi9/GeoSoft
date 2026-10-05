@@ -3,9 +3,11 @@
 interface
 
 uses
-  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms,
-  Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
-  PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable;
+  Winapi.Windows, System.SysUtils, System.Classes, System.Generics.Collections,
+  Vcl.Controls, Vcl.Forms,
+  Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs, Math,
+  PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable,
+  GeoRow;
 
 type
   TCalcBaseForm = class(TForm)
@@ -29,6 +31,10 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure MenuUlozitProtokolClick(Sender: TObject);
+    procedure MenuNastaveniClick(Sender: TObject);
+  private
+    // points this form added to the list itself
+    FNewPoints: TList<Int64>;
   protected
     FS: TFormatSettings;
     Prot: TProtocol;          // shared by every WriteProtocol
@@ -44,12 +50,27 @@ type
     /// <summary>The same, but straight from a point number.</summary>
     function PointId(ANum: Int64): string;
 
+    /// <summary>Hands one computed row to the point list.</summary>
+    procedure StorePoint(const ARow: TGeoRow);
+
+    /// <summary>
+    /// The point is not one this form added, so the run updated a point
+    /// that was already in the list.
+    /// </summary>
+    function WasInList(const ARow: TGeoRow): Boolean;
+
     /// <summary>
     /// Descendants override this to set the column order of their grids.
     /// A field grid and a pair of edits check the order themselves; a plain
     /// grid cannot, so that form has to remember what it already applied.
     /// </summary>
     procedure ApplyCoordOrderToGrids; virtual;
+
+    /// <summary>
+    /// Descendants override this to take over GSettings: the scale for
+    /// their algorithm, the columns of their grids.
+    /// </summary>
+    procedure ApplySettings; virtual;
 
     /// <summary>
     /// Writes the whole protocol into ALines, starting with Prot.Title and
@@ -75,6 +96,9 @@ implementation
 
 {$R *.dfm}
 
+uses
+  SettingsDialog;
+
 constructor TCalcBaseForm.Create(AOwner: TComponent);
 var
   W, H: Integer;
@@ -96,6 +120,7 @@ begin
   // always uses a comma, see ProtFormat in ProtocolTable.
   FS := FormatSettings;
   Prot := TProtocol.Create;
+  FNewPoints := TList<Int64>.Create;
 
   LoadPrefix;
 
@@ -106,6 +131,7 @@ end;
 destructor TCalcBaseForm.Destroy;
 begin
   Prot.Free;
+  FNewPoints.Free;
   inherited;
 end;
 
@@ -165,17 +191,37 @@ begin
 end;
 
 function TCalcBaseForm.FormatPointId(const S: string): string;
-var
-  N: string;
 begin
-  // %.15d pads with zeros; %015d would pad with spaces in Delphi
-  N := Format('%.15d', [StrToInt64Def(Trim(S), 0)]);
-  Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
+  Result := Prot.FormatPointId(S);
 end;
 
 function TCalcBaseForm.PointId(ANum: Int64): string;
 begin
-  Result := FormatPointId(IntToStr(ANum));
+  Result := Prot.PointId(ANum);
+end;
+
+procedure TCalcBaseForm.StorePoint(const ARow: TGeoRow);
+var
+  PNum: Int64;
+  Height: Double;
+begin
+  PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
+  if PNum <= 0 then
+    Exit;
+
+  // A point we add ourselves is never reported as updated
+  if not TPointDictionary.GetInstance.PointExists(PNum) then
+    FNewPoints.Add(PNum);
+
+  if IsNan(ARow.Z) then Height := 0 else Height := ARow.Z;
+  TPointDictionary.GetInstance.AddOrUpdatePoint(
+    Point.TPoint.Create(PNum, ARow.X, ARow.Y, Height, ARow.KK,
+                        string(ARow.Poznamka)));
+end;
+
+function TCalcBaseForm.WasInList(const ARow: TGeoRow): Boolean;
+begin
+  Result := not FNewPoints.Contains(StrToInt64Def(Trim(string(ARow.CB)), 0));
 end;
 
 procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);
@@ -193,6 +239,17 @@ end;
 procedure TCalcBaseForm.ApplyCoordOrderToGrids;
 begin
   // nothing here; see the descendants
+end;
+
+procedure TCalcBaseForm.ApplySettings;
+begin
+  // nothing here; see the descendants
+end;
+
+procedure TCalcBaseForm.MenuNastaveniClick(Sender: TObject);
+begin
+  if TSettingsForm.Execute then
+    ApplySettings;
 end;
 
 procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);
@@ -213,6 +270,7 @@ end;
 procedure TCalcBaseForm.FormActivate(Sender: TObject);
 begin
   LoadPrefix;
+  ApplySettings;            // columns first, then their order
   ApplyCoordOrderToGrids;
 end;
 

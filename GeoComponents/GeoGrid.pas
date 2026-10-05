@@ -30,6 +30,13 @@ type
   TCellCommittedEvent = procedure(Sender: TObject; ACol, ARow: Integer) of object;
 
   /// <summary>
+  /// Asks the form about one cell. Set ASelectable to False for a cell that
+  /// is not for typing; it is drawn grey and the cursor skips it.
+  /// </summary>
+  TCellSelectableEvent = procedure(Sender: TObject; ACol, ARow: Integer;
+    var ASelectable: Boolean) of object;
+
+  /// <summary>
   /// Custom inplace editor handling Enter/Tab navigation.
   /// </summary>
   TGeoInplaceEdit = class(TInplaceEdit)
@@ -52,6 +59,7 @@ type
     FColumnHeaders: TStrings;
     FRowHeaders: TStrings;
     FOnCellCommitted: TCellCommittedEvent;
+    FOnCellSelectable: TCellSelectableEvent;
 
     FCheckColumn: Integer;            // -1 = no check box column
     FChecked: TArray<Boolean>;        // index 0 is the header "select all"
@@ -93,7 +101,8 @@ type
 
     /// <summary>
     /// Descendants can refuse a cell; the cursor never lands there and no
-    /// editor opens on it. Default: every cell is selectable.
+    /// editor opens on it. Default: every cell is selectable, unless
+    /// OnCellSelectable says otherwise.
     /// </summary>
     function CellSelectable(ACol, ARow: Integer): Boolean; virtual;
 
@@ -209,6 +218,13 @@ type
     /// </summary>
     property OnCellCommitted: TCellCommittedEvent
       read FOnCellCommitted write FOnCellCommitted;
+
+    /// <summary>
+    /// Lets the form close single cells, e.g. a value the first row has not.
+    /// Whole columns are closed by ReadOnlyFields instead.
+    /// </summary>
+    property OnCellSelectable: TCellSelectableEvent
+      read FOnCellSelectable write FOnCellSelectable;
 
   end;
 
@@ -393,6 +409,9 @@ end;
 function TGeoGrid.CellSelectable(ACol, ARow: Integer): Boolean;
 begin
   Result := True;
+  // The form may close single cells, the rest stays open
+  if Assigned(FOnCellSelectable) then
+    FOnCellSelectable(Self, ACol, ARow, Result);
 end;
 
 function TGeoGrid.SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;

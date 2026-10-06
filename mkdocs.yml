@@ -1,9 +1,50 @@
 site_name: GeoSoft
-site_description: Vývojová dokumentace programu GeoSoft
+site_description: Dokumentace programu GeoSoft pro geodetické výpočty
+site_url: https://kovarmi9.github.io/GeoSoft/
 
 theme:
   name: material
   language: cs
+  features:
+    - navigation.tabs        # hlavní části jako záložky nahoře
+    - navigation.indexes     # klik na záložku otevře úvodní stránku části
+    - navigation.top         # tlačítko "nahoru" při dlouhé stránce
+    - search.highlight       # zvýrazní hledané slovo na stránce
+    - content.code.copy      # tlačítko pro kopírování ukázky kódu
+
+markdown_extensions:
+  - admonition               # rámečky Poznámka / Pozor
+  - def_list                 # seznam pojem : vysvětlení
+  - tables
+  - toc:
+      permalink: true        # odkaz na každý nadpis
+  - pymdownx.highlight       # barevné zvýraznění kódu
+  - pymdownx.superfences
 
 nav:
   - Úvod: index.md
+  - Seznam souřadnic:
+      - seznam-souradnic/index.md
+      - Práce se seznamem: seznam-souradnic/prace-se-seznamem.md
+      - Soubory .yxz a .xyz: seznam-souradnic/soubory.md
+      - Import a export: seznam-souradnic/import-export.md
+      - Seznam v programu: seznam-souradnic/v-programu.md
+  - Geodetické výpočty:
+      - vypocty/index.md
+      - Polární metoda: vypocty/polarni-metoda.md
+      - Ortogonální metoda: vypocty/ortogonalni-metoda.md
+      - Konstrukční oměrné: vypocty/konstrukcni-omerne.md
+      - Kontrolní oměrné: vypocty/kontrolni-omerne.md
+      - Výpočet výměry: vypocty/vymera.md
+      - Transformace: vypocty/transformace.md
+  - Nastavení: nastaveni.md
+  - Protokol: protokol.md
+  - Datová struktura:
+      - geodataframe/index.md
+      - Řádek TGeoRow: geodataframe/georow.md
+      - Tabulka TGeoDataFrame: geodataframe/geodataframe.md
+  - Komponenty:
+      - komponenty/index.md
+      - TGeoGrid: komponenty/geogrid.md
+      - TGeoFieldsGrid: komponenty/geofieldsgrid.md
+      - Kontrola zadávání: komponenty/kontrola-zadavani.md

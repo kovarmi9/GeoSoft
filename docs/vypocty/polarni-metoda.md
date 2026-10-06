@@ -1,0 +1,1 @@
+# Polární metoda

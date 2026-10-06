@@ -1,0 +1,1 @@
+# Ortogonální metoda

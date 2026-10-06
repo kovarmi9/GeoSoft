@@ -89,3 +89,6 @@ modules/
 # Windows
 Thumbs.db
 Desktop.ini
+
+# MkDocs output of a local build
+site/

@@ -1,12 +1,7 @@
 ﻿unit CoordOrderState;
 
-// Order in which the program shows and stores the coordinate pair.
-// Y, X is the cadastre order and the default. The setting lives only for the
-// current run, like GPointPrefix.
-//
-// It never changes what the fields mean: TPoint.X is always JTSK X and
-// TPoint.Y is always JTSK Y. Only the order of grid columns, of protocol
-// columns and of columns in saved files follows this setting.
+// Order of Y and X on screen and in text files. Default Y, X, kept only for this run.
+// It never changes the fields: TPoint.X is always X.
 
 interface
 
@@ -15,48 +10,37 @@ uses
   GeoPointsGrid, GeoFieldsGrid, ProtocolTable;
 
 type
+  /// <summary>Order of the coordinate pair: Y, X or X, Y.</summary>
   TCoordOrder = (coYX, coXY);
 
 var
+  /// <summary>Current order.</summary>
   GCoordOrder: TCoordOrder = coYX;
 
-// Coordinate pair in the current order
+/// <summary>Coordinate pair in the current order.</summary>
 procedure CoordRead(const P: Point.TPoint; out AFirst, ASecond: Double);
+/// <summary>Coordinate pair in the current order.</summary>
 procedure CoordWrite(var P: Point.TPoint; const AFirst, ASecond: Double);
 
-// Exchanges X and Y in place. Used for the binary format, which stores the
-// record itself, so the first slot has to carry the first coordinate.
-procedure SwapXY(var P: Point.TPoint);
-
-// Column captions in the current order
-function FirstCoordName: string;
-function SecondCoordName: string;
-
-// Both coordinate captions, in the current order. Use ColWPair as the
-// width of that protocol column.
+/// <summary>Captions Y and X in the current order.</summary>
 function CoordNames(AWidth: Integer = ColWCoord): string;
 
-// The two coordinates in the same order and the same width.
+/// <summary>Both coordinates as text.</summary>
 function CoordPair(const P: Point.TPoint; AWidth: Integer = ColWCoord;
   ADecimals: Integer = 2): string;
 
-// A plain grid does not know which column carries which field, so the form
-// has to ask. The pair sits in AFirstCol and the column right after it.
+/// <summary>Column of Y; the pair starts at AFirstCol.</summary>
 function CoordColY(AFirstCol: Integer): Integer;
+/// <summary>Column of X, see CoordColY.</summary>
 function CoordColX(AFirstCol: Integer): Integer;
 
-// Swaps two whole columns of a grid: caption, width, every cell and, when
-// the grid has them, the validation filter. It knows nothing about
-// coordinates - the form says which two columns to swap.
-// The two columns have to be neighbours.
+/// <summary>Swaps two neighbour columns with all they have.</summary>
 procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
 
-// Order of a pair of coordinate controls. It only moves them; the value
-// stays in its own control.
+/// <summary>Moves the Y and X boxes.</summary>
 procedure ApplyCoordOrder(AYCtrl, AXCtrl: TWinControl);
 
-// ColumnFields order without AHidden, coordinate pairs as the switch says.
-// Content stays; a hidden column loses its values.
+/// <summary>Column order from the designer; keeps the content.</summary>
 procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields);
 
 implementation
@@ -89,45 +73,22 @@ begin
   end;
 end;
 
-procedure SwapXY(var P: Point.TPoint);
-var
-  T: Double;
-begin
-  T   := P.X;
-  P.X := P.Y;
-  P.Y := T;
-end;
-
-function FirstCoordName: string;
-begin
-  if GCoordOrder = coYX then
-    Result := 'Y'
-  else
-    Result := 'X';
-end;
-
-function SecondCoordName: string;
-begin
-  if GCoordOrder = coYX then
-    Result := 'X'
-  else
-    Result := 'Y';
-end;
-
 function CoordNames(AWidth: Integer): string;
 begin
-  Result := Pad(FirstCoordName, AWidth) + ColGap + Pad(SecondCoordName, AWidth);
+  if GCoordOrder = coYX then
+    Result := Pad('Y', AWidth) + ColGap + Pad('X', AWidth)
+  else
+    Result := Pad('X', AWidth) + ColGap + Pad('Y', AWidth);
 end;
 
 function CoordPair(const P: Point.TPoint; AWidth: Integer;
   ADecimals: Integer): string;
+var
+  First, Second: Double;
 begin
-  if GCoordOrder = coYX then
-    Result := Pad(Num(P.Y, ADecimals), AWidth) + ColGap +
-              Pad(Num(P.X, ADecimals), AWidth)
-  else
-    Result := Pad(Num(P.X, ADecimals), AWidth) + ColGap +
-              Pad(Num(P.Y, ADecimals), AWidth);
+  CoordRead(P, First, Second);
+  Result := Pad(Num(First, ADecimals), AWidth) + ColGap +
+            Pad(Num(Second, ADecimals), AWidth);
 end;
 
 function CoordColY(AFirstCol: Integer): Integer;
@@ -163,8 +124,7 @@ begin
     AGrid.Cells[ACol2, R] := S;
   end;
 
-  // Only a points grid owns its captions and filters; a fields grid
-  // rebuilds both from the field definitions
+  // Points grid: also captions and filters
   if AGrid is TGeoPointsGrid then
   begin
     Pts := TGeoPointsGrid(AGrid);
@@ -176,7 +136,7 @@ begin
       Pts.ColumnHeaders[ACol2] := S;
     end;
 
-    // The columns are neighbours, so moving one filter is already a swap
+    // Neighbours: one move is a swap
     F1  := ACol1 - Pts.FixedCols;
     F2  := ACol2 - Pts.FixedCols;
     if (F1 >= 0) and (F2 >= 0) and
@@ -189,7 +149,7 @@ type
   TFieldTexts = array[TGeoField] of string;
   TGridTexts = array of TFieldTexts;
 
-// Reads every data cell keyed by field, so it survives a column reorder.
+// Cell texts by field
 procedure ReadGridTexts(AGrid: TGeoFieldsGrid; out ATexts: TGridTexts);
 var
   Col: array[TGeoField] of Integer;
@@ -206,7 +166,7 @@ begin
         ATexts[R][F] := AGrid.Cells[Col[F], R];
 end;
 
-// Writes them back, each value into the column its field uses now.
+// Texts back by field
 procedure WriteGridTexts(AGrid: TGeoFieldsGrid; const ATexts: TGridTexts);
 var
   Col: array[TGeoField] of Integer;
@@ -256,7 +216,7 @@ var
         Exit(J);
   end;
 
-  // In the YX order Y goes first, in the XY order X does
+  // Puts the pair in the switch order
   procedure Swap(AY, AX: TGeoField);
   var
     IY, IX: Integer;

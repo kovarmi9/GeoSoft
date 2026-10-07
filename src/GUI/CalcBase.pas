@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, System.SysUtils, System.Classes, System.Generics.Collections,
   Vcl.Controls, Vcl.Forms,
-  Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs, Math,
+  Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
   PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable,
   GeoRow;
 
@@ -39,24 +39,18 @@ type
     FS: TFormatSettings;
     Prot: TProtocol;          // shared by every WriteProtocol
 
-    /// <summary>
-    /// Finds a point. An unknown one is offered through the AddPoint dialog.
-    /// Use pt only when the result is True.
-    /// </summary>
+    /// <summary>Finds a point or offers to add it.</summary>
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
 
     function FormatPointId(const S: string): string;
 
-    /// <summary>The same, but straight from a point number.</summary>
+    /// <summary>The same from a number.</summary>
     function PointId(ANum: Int64): string;
 
-    /// <summary>Hands one computed row to the point list.</summary>
+    /// <summary>Saves a computed point.</summary>
     procedure StorePoint(const ARow: TGeoRow);
 
-    /// <summary>
-    /// The point is not one this form added, so the run updated a point
-    /// that was already in the list.
-    /// </summary>
+    /// <summary>True if the point was in the list before.</summary>
     function WasInList(const ARow: TGeoRow): Boolean;
 
     /// <summary>
@@ -148,7 +142,7 @@ begin
 
   dlg := TAddPointForm.Create(Self);
   try
-    // The dialog decides the result: True after OK, False after Cancel
+    // True after OK
     Result := dlg.Execute(PointNo, pt);
   finally
     dlg.Free;
@@ -160,8 +154,7 @@ begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
-// Every keystroke in a prefix combo lands in GPointPrefix, so whoever reads
-// it never has to refresh it first.
+// Toolbar into GPointPrefix
 procedure TCalcBaseForm.SavePrefix;
 begin
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
@@ -172,20 +165,11 @@ begin
   SavePrefix;
 end;
 
+// Zeros for KU and ZPMZ
 procedure TCalcBaseForm.PrefixComboExit(Sender: TObject);
-var
-  KU, ZPMZ: Integer;
 begin
-  KU := StrToIntDef(ComboBoxKU.Text, 0);
-  if KU < 0 then KU := 0;
-  if KU > 999999 then KU := 999999;
-  ComboBoxKU.Text := Format('%.6d', [KU]);
-
-  ZPMZ := StrToIntDef(ComboBoxZPMZ.Text, 0);
-  if ZPMZ < 0 then ZPMZ := 0;
-  if ZPMZ > 99999 then ZPMZ := 99999;
-  ComboBoxZPMZ.Text := Format('%.5d', [ZPMZ]);
-
+  ComboBoxKU.Text   := NormalizeNumericPrefix(ComboBoxKU.Text, ComboBoxKU.MaxLength);
+  ComboBoxZPMZ.Text := NormalizeNumericPrefix(ComboBoxZPMZ.Text, ComboBoxZPMZ.MaxLength);
   SavePrefix;
   LoadPrefix;
 end;
@@ -203,19 +187,17 @@ end;
 procedure TCalcBaseForm.StorePoint(const ARow: TGeoRow);
 var
   PNum: Int64;
-  Height: Double;
 begin
   PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
   if PNum <= 0 then
     Exit;
 
-  // A point we add ourselves is never reported as updated
+  // Remember points this form added
   if not TPointDictionary.GetInstance.PointExists(PNum) then
     FNewPoints.Add(PNum);
 
-  if IsNan(ARow.Z) then Height := 0 else Height := ARow.Z;
   TPointDictionary.GetInstance.AddOrUpdatePoint(
-    Point.TPoint.Create(PNum, ARow.X, ARow.Y, Height, ARow.KK,
+    Point.TPoint.Create(PNum, ARow.X, ARow.Y, ARow.Z, ARow.KK,   // NaN height becomes 0
                         string(ARow.Poznamka)));
 end;
 

@@ -3,38 +3,36 @@
 interface
 
 uses
-  SysUtils, StdCtrls, Grids;
+  System.SysUtils, Vcl.StdCtrls, Vcl.Grids;
 
 type
+  /// <summary>Values of the toolbar, shared by all forms.</summary>
   TPointPrefixState = record
-    KU: string;
-    ZPMZ: string;
-    KK: string;
-    Popis: string;
+    KU: string;      // 6 digits
+    ZPMZ: string;    // 5 digits
+    KK: string;      // Quality code
+    Popis: string;   // Point description
   end;
 
 var
+  /// <summary>The toolbar values, kept only for this run.</summary>
   GPointPrefix: TPointPrefixState;
 
+/// <summary>Fills the toolbar combos from GPointPrefix.</summary>
 procedure LoadPrefixToCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
+/// <summary>Saves the toolbar combos into GPointPrefix.</summary>
 procedure SavePrefixFromCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
-function BuildPointId(const RawOwn, Ku6, Zpmz5: string): string;
+/// <summary>Full point number from the typed number and the toolbar.</summary>
 function BuildPointIdFromPrefixState(const RawOwn: string): string;
+/// <summary>Digits only, cut or padded with zeros to Width.</summary>
+function NormalizeNumericPrefix(const Value: string; Width: Integer): string;
 
-/// <summary>
-/// Rewrites the cell into the full point number: the prefix from the
-/// toolbar plus the number the user typed. Leading zeros are kept.
-/// Does nothing when the cell is empty or does not hold a number.
-/// </summary>
+/// <summary>Full point number in the cell; no digits, no change.</summary>
 procedure NormalizePointCell(AGrid: TStringGrid; ACol, ARow: Integer);
-
-procedure ResetPointPrefixState;
 
 implementation
 
-// True while LoadPrefixToCombos fills the combos. The combos fire OnChange
-// as they are written, and SavePrefixFromCombos must not answer that by
-// writing a half-filled set back into GPointPrefix.
+// True while loading, so OnChange saves nothing
 var
   FLoading: Boolean = False;
 
@@ -72,6 +70,7 @@ begin
   Result := S[1];
 end;
 
+// Up to 4 digits get KU and ZPMZ, a longer number only zeros
 function BuildPointId(const RawOwn, Ku6, Zpmz5: string): string;
 var
   Own: string;
@@ -96,41 +95,22 @@ end;
 procedure NormalizePointCell(AGrid: TStringGrid; ACol, ARow: Integer);
 var
   S: string;
-  N: Int64;
 begin
   S := Trim(AGrid.Cells[ACol, ARow]);
-  if S = '' then
+  if DigitsOnly(S) = '' then     // no number in the cell
     Exit;
 
-  S := BuildPointIdFromPrefixState(S);
-  if TryStrToInt64(S, N) then    // only when it really is a number
-    AGrid.Cells[ACol, ARow] := S;
+  AGrid.Cells[ACol, ARow] := BuildPointIdFromPrefixState(S);
 end;
 
 procedure LoadPrefixToCombos(CbKU, CbZPMZ, CbKK, CbPopis: TComboBox);
-var
-  S: string;
-  Idx: Integer;
 begin
   FLoading := True;
   try
-    if Assigned(CbKU) then
-      CbKU.Text := NormalizeNumericPrefix(GPointPrefix.KU, 6);
-    if Assigned(CbZPMZ) then
-      CbZPMZ.Text := NormalizeNumericPrefix(GPointPrefix.ZPMZ, 5);
-    if Assigned(CbKK) then
-    begin
-      S := NormalizeKK(GPointPrefix.KK);
-      if CbKK.Style = csDropDownList then
-      begin
-        Idx := CbKK.Items.IndexOf(S);
-        CbKK.ItemIndex := Idx;
-      end
-      else
-        CbKK.Text := S;
-    end;
-    if Assigned(CbPopis) then
-      CbPopis.Text := GPointPrefix.Popis;
+    CbKU.Text   := NormalizeNumericPrefix(GPointPrefix.KU, 6);
+    CbZPMZ.Text := NormalizeNumericPrefix(GPointPrefix.ZPMZ, 5);
+    CbKK.ItemIndex := CbKK.Items.IndexOf(NormalizeKK(GPointPrefix.KK));
+    CbPopis.Text := GPointPrefix.Popis;
   finally
     FLoading := False;
   end;
@@ -141,19 +121,11 @@ begin
   if FLoading then
     Exit;
 
-  if Assigned(CbKU) then
-    GPointPrefix.KU := NormalizeNumericPrefix(CbKU.Text, 6);
-  if Assigned(CbZPMZ) then
-    GPointPrefix.ZPMZ := NormalizeNumericPrefix(CbZPMZ.Text, 5);
-  if Assigned(CbKK) then
-  begin
-    if (CbKK.Style = csDropDownList) and (CbKK.ItemIndex >= 0) then
-      GPointPrefix.KK := NormalizeKK(CbKK.Items[CbKK.ItemIndex])
-    else
-      GPointPrefix.KK := NormalizeKK(CbKK.Text);
-  end;
-  if Assigned(CbPopis) then
-    GPointPrefix.Popis := Trim(CbPopis.Text);
+  GPointPrefix.KU   := NormalizeNumericPrefix(CbKU.Text, 6);
+  GPointPrefix.ZPMZ := NormalizeNumericPrefix(CbZPMZ.Text, 5);
+  if CbKK.ItemIndex >= 0 then
+    GPointPrefix.KK := CbKK.Items[CbKK.ItemIndex];
+  GPointPrefix.Popis := Trim(CbPopis.Text);
 end;
 
 procedure ResetPointPrefixState;

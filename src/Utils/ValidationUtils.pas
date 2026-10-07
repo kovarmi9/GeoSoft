@@ -3,31 +3,32 @@
 interface
 
 uses
-  System.SysUtils, System.Math;
+  System.Math;
 
 type
+  /// <summary>Checks the values of a point, used by TPoint.Create.</summary>
   TValidationUtils = class
-  private
-    const
-      MaxPointNumber = 999999999999999;
-      MinQuality = 0;
-      MaxQuality = 8;
   public
-    // Validates the point number, returns 0 if invalid
-    class function ValidatePointNumber(const APointNumber: Int64): Int64; static;
-    // Validates the coordinate, returns 0.0 if invalid
-    class function ValidateCoordinate(const ACoordinate: Double): Double; static;
-    // Validates the quality, returns 0 if invalid
-    class function ValidateQuality(const AQuality: Integer): Integer; static;
-    // Validates the description, truncates to 32 characters
-    class function ValidateDescription(const ADescription: string): string; static;
+    const
+      /// <summary>Largest point number.</summary>
+      MaxPointNumber = 999999999999999;
+      /// <summary>Digits of a point number.</summary>
+      PointNumberDigits = 15;
+      /// <summary>Lowest quality code.</summary>
+      MinQuality = 0;
+      /// <summary>Highest quality code.</summary>
+      MaxQuality = 8;
+      /// <summary>Longest description, must match TPoint.Description.</summary>
+      MaxDescriptionLength = 32;
 
-    /// <summary>
-    /// Basic mean coordinate error of a quality code [m]. NaN for a code
-    /// nobody has given a value for yet, so the caller can say so instead
-    /// of testing against a made-up number.
-    /// </summary>
-    class function MxyOfQuality(const AQuality: Integer): Double; static;
+    /// <summary>Validates the point number, returns 0 if invalid.</summary>
+    class function ValidatePointNumber(const APointNumber: Int64): Int64; static;
+    /// <summary>Validates the coordinate, returns 0.0 if infinite or NaN.</summary>
+    class function ValidateCoordinate(const ACoordinate: Double): Double; static;
+    /// <summary>Validates the quality, returns 0 if invalid.</summary>
+    class function ValidateQuality(const AQuality: Integer): Integer; static;
+    /// <summary>Validates the description, truncates to 32 characters.</summary>
+    class function ValidateDescription(const ADescription: string): string; static;
   end;
 
 implementation
@@ -40,10 +41,10 @@ begin
     Result := 0;
 end;
 
-// NaN means nobody filled the value in, so it has to survive
+// No empty values in the list
 class function TValidationUtils.ValidateCoordinate(const ACoordinate: Double): Double;
 begin
-  if IsInfinite(ACoordinate) then
+  if IsInfinite(ACoordinate) or IsNan(ACoordinate) then
     Result := 0.0
   else
     Result := ACoordinate;
@@ -59,18 +60,7 @@ end;
 
 class function TValidationUtils.ValidateDescription(const ADescription: string): string;
 begin
-  Result := Copy(ADescription, 1, 32);
-end;
-
-class function TValidationUtils.MxyOfQuality(const AQuality: Integer): Double;
-begin
-  case AQuality of
-    3: Result := 0.14;
-    4: Result := 0.26;
-    5: Result := 0.50;
-  else
-    Result := NaN;   // not specified yet
-  end;
+  Result := Copy(ADescription, 1, MaxDescriptionLength);
 end;
 
 end.

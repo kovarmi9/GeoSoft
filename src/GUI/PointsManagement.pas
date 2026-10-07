@@ -4,32 +4,33 @@ interface
 
 uses
   Winapi.Windows,
-  System.SysUtils, System.Classes, System.Generics.Collections,
-  System.Math, System.IOUtils, System.UITypes,
+  System.SysUtils, System.Classes,
+  System.Math, System.UITypes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.StdCtrls,
   PointsUtilsSingleton, Point, CoordOrderState,
-  GeoGrid, GeoPointsGrid, GeoColumnValidation, PointPrefixState;
+  GeoGrid, GeoPointsGrid, GeoColumnValidation, PointPrefixState, ValidationUtils;
 
 type
-  TFileFormat = (ffTXT, ffCSV, ffBinary);
+  TFileFormat = (ffTXT, ffCSV);
 
   TPointsManagementForm = class(TForm)
     StringGrid1: TGeoPointsGrid;
     MainMenu1: TMainMenu;
-    File1: TMenuItem;
-    FileNew: TMenuItem;
-    File2: TMenuItem;
-    SaveAs1: TMenuItem;
-    SaveAs2: TMenuItem;
+    MenuFile: TMenuItem;
+    MenuFileNew: TMenuItem;
+    MenuFileSave: TMenuItem;
+    MenuFileSaveAs: TMenuItem;
+    MenuFileOpen: TMenuItem;
     OpenDialog1: TOpenDialog;
     StatusBar1: TStatusBar;
     ControlBar1: TControlBar;
-    Import1: TMenuItem;
-    Import2: TMenuItem;
-    FromTXT1: TMenuItem;
-    FromTXT2: TMenuItem;
-    FromBinary1: TMenuItem;
+    MenuImport: TMenuItem;
+    MenuExport: TMenuItem;
+    MenuImportTXT: TMenuItem;
+    MenuImportCSV: TMenuItem;
+    MenuExportTXT: TMenuItem;
+    MenuExportCSV: TMenuItem;
     SaveDialog1: TSaveDialog;
     ToolBar2: TToolBar;
     ComboBoxKU: TComboBox;
@@ -43,52 +44,70 @@ type
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-    procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure RefreshGrid;
-    procedure UpdateCurrentDirectoryPath;
     procedure FromTXTClick(Sender: TObject);
     procedure FromCSVClick(Sender: TObject);
-    procedure FromBinaryClick(Sender: TObject);
     procedure SaveAsTXTClick(Sender: TObject);
     procedure SaveAsCSVClick(Sender: TObject);
-    procedure SaveAsBinaryClick(Sender: TObject);
     procedure PrefixComboExit(Sender: TObject);
     procedure PrefixComboChange(Sender: TObject);
     procedure NumericComboKeyPress(Sender: TObject; var Key: Char);
-    procedure NumericComboChange(Sender: TObject);
     procedure NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FileSaveClick(Sender: TObject);
     procedure FileSaveAsClick(Sender: TObject);
     procedure FileOpenClick(Sender: TObject);
     procedure FileNewClick(Sender: TObject);
-    procedure PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
+    procedure GridCellCommitted(Sender: TObject; ACol, ARow: Integer);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure GridSelectCell(Sender: TObject; ACol, ARow: Integer;
+      var CanSelect: Boolean);
+    procedure GridMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
   private
-    FLastRow:     Integer;
-    FLastCol:     Integer;
     FCurrentFile: string;
-    FGridOrder:   TCoordOrder;   // order the columns are laid out in now
+    FRowPoint:    array of Int64;    // point of each row, 0 = none
+    FSelected:    array of Boolean;  // rows selected for deleting
+    FAnchor:      Integer;           // start row of a Shift range
+    FGridOrder:   TCoordOrder;       // current column order
+    FShownChanges: Integer;          // list changes shown in the grid
+    function  Points: TPointDictionary;
+    procedure RefreshGrid;
     procedure ApplyCoordOrderToGrid;
     procedure LoadPrefix;
     procedure SavePrefix;
     function  CurrentQuality: Integer;
-    function  IsValidQualityStr(const S: string): Boolean;
-    function  PadZeros(const S: string; PadLen: Integer): string;
     procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
-    procedure EnsureQualityOnRow(const ARow: Integer);
-    procedure ApplyDescriptionToRow(const ARow: Integer);
-    procedure TrySaveRow(ARow: Integer);
+    procedure GetZeroDefault(var AText: string; var AHandled: Boolean);
+    procedure GetDescriptionDefault(var AText: string; var AHandled: Boolean);
+    function  RowPoint(ARow: Integer): Int64;
+    procedure SetRowPoint(ARow: Integer; ANum: Int64);
+    procedure NumberCommitted(ARow: Integer);
+    function  RowSelected(ARow: Integer): Boolean;
+    procedure SetRowSelected(ARow: Integer; AValue: Boolean);
+    procedure ClearSelection;
+    procedure SelectOnly(ARow: Integer);
+    procedure SelectRange(AFrom, ATo: Integer);
+    function  NumbersBrowsed: Boolean;
+    function  NumberMissing: Boolean;
+    procedure DeleteSelected;
+    procedure StoreRow(ARow: Integer);
     procedure UpdateStatusBar;
     procedure DoImport(AFormat: TFileFormat);
     procedure DoExport(AFormat: TFileFormat);
-    procedure CommitCurrentRow;
+    procedure ShowError(const AText: string);
+    function  WriteListFile(const AFileName: string): Boolean;
+    function  ExecuteListSaveDialog(const ADefaultName: string;
+      out AFileName: string): Boolean;
   public
+    /// <summary>Asks for a file and starts an empty list in it.</summary>
     function CreateNewList: Boolean;
+    /// <summary>Asks for a file and loads it; the open list stays if it fails.</summary>
     function OpenList: Boolean;
-    function HasActiveList: Boolean;
+    /// <summary>Asks to save changes. False when the user cancels.</summary>
     function AskSaveChanges: Boolean;
+    /// <summary>Saves into the open file, or asks for one.</summary>
     procedure DoSave;
+    /// <summary>Asks for a file name and saves into it.</summary>
     procedure SaveListAs;
   end;
 
@@ -99,85 +118,107 @@ implementation
 
 {$R *.dfm}
 
+const
+  // The extension tells the order
+  LIST_FILTER = 'Seznam souřadnic v pořadí Y, X (*.yxz)|*.yxz|Seznam souřadnic v pořadí X, Y (*.xyz)|*.xyz';
+
+  COL_POINTNO = 0;
+  // First of Y, X; see CoordColY
+  COL_COORD   = 1;
+  COL_Z       = 3;
+  COL_QUALITY = 4;
+  COL_DESC    = 5;
+
 // ---- Form setup -----------------------------------------------------------
 
 procedure TPointsManagementForm.FormCreate(Sender: TObject);
-begin
-  // Column validation filters
-  StringGrid1.ColumnFilters[0].DataType      := cdtNone;        // point number
-  StringGrid1.ColumnFilters[1].DataType        := cdtExpression;  // Y
-  StringGrid1.ColumnFilters[1].DecimalPlaces   := 3;
-  StringGrid1.ColumnFilters[1].OnInvalidCommit := ciaBlock;
-  StringGrid1.ColumnFilters[2].DataType        := cdtExpression;  // X
-  StringGrid1.ColumnFilters[2].DecimalPlaces   := 3;
-  StringGrid1.ColumnFilters[2].OnInvalidCommit := ciaBlock;
-  StringGrid1.ColumnFilters[3].DataType        := cdtExpression;  // Z
-  StringGrid1.ColumnFilters[3].DecimalPlaces   := 3;
-  StringGrid1.ColumnFilters[3].OnInvalidCommit := ciaBlock;
-  StringGrid1.ColumnFilters[4].DataType          := cdtInteger;     // quality 0-8
-  StringGrid1.ColumnFilters[4].MaxLength         := 1;
-  StringGrid1.ColumnFilters[4].HasMinValue       := True;
-  StringGrid1.ColumnFilters[4].MinValue          := 0;
-  StringGrid1.ColumnFilters[4].HasMaxValue       := True;
-  StringGrid1.ColumnFilters[4].MaxValue          := 8;
-  StringGrid1.ColumnFilters[4].OnInvalidCommit   := ciaBlock;
-  StringGrid1.ColumnFilters[4].OnGetDefaultText  := GetQualityDefault;
-  StringGrid1.ColumnFilters[5].DataType      := cdtNone;        // description
-  StringGrid1.ColumnFilters[5].MaxLength     := 32;
 
-  FLastRow     := 0;
-  FLastCol     := 0;
-  // The designer lays the coordinate columns out as Y, X - the cadastre order
-  FGridOrder   := coYX;
-  FCurrentFile := '';
-  TPointDictionary.GetInstance.Modified := False;
-  UpdateCurrentDirectoryPath;
+  // Same filter for Y, X and Z
+  procedure Coord(AIndex: Integer);
+  begin
+    StringGrid1.ColumnFilters[AIndex].DataType         := cdtExpression;
+    StringGrid1.ColumnFilters[AIndex].DecimalPlaces    := 3;
+    StringGrid1.ColumnFilters[AIndex].OnInvalidCommit  := ciaBlock;
+    StringGrid1.ColumnFilters[AIndex].OnGetDefaultText := GetZeroDefault;
+  end;
+
+begin
+  // Point number: digits only, empty deletes
+  StringGrid1.ColumnFilters[COL_POINTNO].DataType   := cdtInteger;
+  StringGrid1.ColumnFilters[COL_POINTNO].MaxLength  := TValidationUtils.PointNumberDigits;
+  StringGrid1.ColumnFilters[COL_POINTNO].AllowEmpty := True;
+
+  Coord(COL_COORD);       // Y
+  Coord(COL_COORD + 1);   // X
+  Coord(COL_Z);
+
+  // Quality 0-8
+  StringGrid1.ColumnFilters[COL_QUALITY].DataType         := cdtInteger;
+  StringGrid1.ColumnFilters[COL_QUALITY].MaxLength        := 1;
+  StringGrid1.ColumnFilters[COL_QUALITY].HasMinValue      := True;
+  StringGrid1.ColumnFilters[COL_QUALITY].MinValue         := TValidationUtils.MinQuality;
+  StringGrid1.ColumnFilters[COL_QUALITY].HasMaxValue      := True;
+  StringGrid1.ColumnFilters[COL_QUALITY].MaxValue         := TValidationUtils.MaxQuality;
+  StringGrid1.ColumnFilters[COL_QUALITY].OnInvalidCommit  := ciaBlock;
+  StringGrid1.ColumnFilters[COL_QUALITY].OnGetDefaultText := GetQualityDefault;
+
+  // Description
+  StringGrid1.ColumnFilters[COL_DESC].DataType         := cdtNone;
+  StringGrid1.ColumnFilters[COL_DESC].MaxLength        := TValidationUtils.MaxDescriptionLength;
+  StringGrid1.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
+
+  // The designer has Y before X
+  FGridOrder := coYX;
+  Points.Modified := False;
   LoadPrefix;
 end;
 
+// Shows the list, cursor in the empty row
 procedure TPointsManagementForm.FormShow(Sender: TObject);
 begin
   RefreshGrid;
-  StringGrid1.Row        := 1;
-  StringGrid1.Col        := 0;
+  StringGrid1.Row        := StringGrid1.RowCount - 1;   // the empty row
+  StringGrid1.Col        := COL_POINTNO;
   StringGrid1.EditorMode := True;
 end;
 
-// A plain grid cannot tell which order its columns are in, so the form
-// remembers what it already applied.
-// The four prefix combos on the toolbar, in one place.
+// Toolbar from GPointPrefix
 procedure TPointsManagementForm.LoadPrefix;
 begin
   LoadPrefixToCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
-// Every keystroke in a prefix combo lands in GPointPrefix, so whoever reads
-// it never has to refresh it first.
+// Toolbar into GPointPrefix
 procedure TPointsManagementForm.SavePrefix;
 begin
   SavePrefixFromCombos(ComboBoxKU, ComboBoxZPMZ, ComboBoxKK, ComboBoxPopis);
 end;
 
+// Saves every keystroke
 procedure TPointsManagementForm.PrefixComboChange(Sender: TObject);
 begin
   SavePrefix;
 end;
 
+// Swaps Y and X when the switch changed
 procedure TPointsManagementForm.ApplyCoordOrderToGrid;
 begin
   if FGridOrder = GCoordOrder then Exit;
   FGridOrder := GCoordOrder;
-  SwapGridColumns(StringGrid1, 1, 2);
+  SwapGridColumns(StringGrid1, COL_COORD, COL_COORD + 1);
 end;
 
+// Back in the window: reload only what changed
 procedure TPointsManagementForm.FormActivate(Sender: TObject);
 begin
   LoadPrefix;
   ApplyCoordOrderToGrid;
-  RefreshGrid;
+  if Points.ChangeCount <> FShownChanges then
+    RefreshGrid;          // a calculation changed the list
   UpdateStatusBar;
 end;
 
+// Other forms read the toolbar
 procedure TPointsManagementForm.FormDeactivate(Sender: TObject);
 begin
   SavePrefix;
@@ -187,225 +228,418 @@ end;
 
 procedure TPointsManagementForm.RefreshGrid;
 var
-  pt:   TPoint;
-  Keys: TList<Int64>;
-  Key:  Int64;
-  i:    Integer;
+  P:      TPoint;
+  Key:    Int64;
+  Row, R: Integer;
 begin
-  Keys := TList<Int64>.Create;
-  try
-    for pt in TPointDictionary.GetInstance.Values do
-      Keys.Add(pt.PointNumber);
-    Keys.Sort;
+  // Start clean, no old text
+  StringGrid1.EditorMode := False;
+  for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
+    StringGrid1.Rows[R].Clear;
 
-    StringGrid1.RowCount := Keys.Count + 2;  // header + data + one empty row
+  StringGrid1.RowCount := Points.GetPointCount + 2;  // header + data + one empty row
+  SetLength(FRowPoint, 0);
+  ClearSelection;
+  FAnchor := StringGrid1.FixedRows;
 
-    i := 1;
-    for Key in Keys do
-    begin
-      pt := TPointDictionary.GetInstance.GetPoint(Key);
-      StringGrid1.Cells[0, i] := Format('%.15d', [pt.PointNumber]);
-      StringGrid1.Cells[CoordColY(1), i] := FloatToStr(pt.Y);
-      StringGrid1.Cells[CoordColX(1), i] := FloatToStr(pt.X);
-      StringGrid1.Cells[3, i] := FloatToStr(pt.Z);
-      StringGrid1.Cells[4, i] := IntToStr(pt.Quality);
-      StringGrid1.Cells[5, i] := string(pt.Description);
-      Inc(i);
-    end;
-  finally
-    Keys.Free;
-  end;
-
-  StringGrid1.Repaint;
-end;
-
-procedure TPointsManagementForm.StringGrid1KeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key = VK_DELETE then
+  Row := 1;
+  for Key in Points.SortedNumbers do
   begin
-    StringGrid1.Cells[StringGrid1.Col, StringGrid1.Row] := '';
-    Exit;
+    P := Points.GetPoint(Key);
+    StringGrid1.Cells[COL_POINTNO, Row] := Format('%.15d', [P.PointNumber]);
+    StringGrid1.Cells[CoordColY(COL_COORD), Row] := FloatToStr(P.Y);
+    StringGrid1.Cells[CoordColX(COL_COORD), Row] := FloatToStr(P.X);
+    StringGrid1.Cells[COL_Z, Row] := FloatToStr(P.Z);
+    StringGrid1.Cells[COL_QUALITY, Row] := IntToStr(P.Quality);
+    StringGrid1.Cells[COL_DESC, Row] := string(P.Description);
+    SetRowPoint(Row, Key);
+    Inc(Row);
   end;
-
-  if not ((Key = VK_RETURN) or (Key = VK_TAB)) then
-    Exit;
-
-  // MoveToNextCell -> CommitCell does the commit and validation.
-  // Column 0 gets its full point number later, in TrySaveRow.
+  FShownChanges := Points.ChangeCount;
 end;
 
+// Selected points are blue
 procedure TPointsManagementForm.StringGrid1DrawCell(Sender: TObject; ACol, ARow: Integer;
   Rect: TRect; State: TGridDrawState);
-var
-  Text: string;
-  X, Y: Integer;
 begin
-  with StringGrid1.Canvas do
-  begin
-    if (ACol < StringGrid1.FixedCols) or (ARow < StringGrid1.FixedRows) then
-    begin
-      Brush.Color := clBtnFace;
-      Font.Style  := [fsBold];
-      FillRect(Rect);
-      Text := StringGrid1.Cells[ACol, ARow];
-      X := Rect.Left + (Rect.Width  - TextWidth(Text))  div 2;
-      Y := Rect.Top  + (Rect.Height - TextHeight(Text)) div 2;
-      TextRect(Rect, X, Y, Text);
-    end
-    else
-    begin
-      Brush.Color := clWindow;
-      Font.Style  := [];
-      FillRect(Rect);
-      Text := StringGrid1.Cells[ACol, ARow];
-      if (ACol = 0) and (Trim(Text) <> '') and (Length(Trim(Text)) < 15) then
-        Text := Format('%.15d', [StrToInt64Def(Text, 0)]);
-      TextRect(Rect, Rect.Left + 4, Rect.Top + 2, Text);
-    end;
-  end;
-end;
-
-procedure TPointsManagementForm.StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer;
-  var CanSelect: Boolean);
-begin
-  CanSelect := (ARow <> 0);
-
-  // Apply prefix immediately when leaving the point number column (col 0)
-  if (FLastCol = 0) and (ACol <> 0) and
-     (FLastRow >= StringGrid1.FixedRows) and
-     (Trim(StringGrid1.Cells[0, FLastRow]) <> '') then
-  begin
-    NormalizePointCell(StringGrid1, 0, FLastRow);
-  end;
-
-  // Save the previous row when moving to a different row
-  if (FLastRow > 0) and (ARow <> FLastRow) then
-    TrySaveRow(FLastRow);
-
-  FLastRow := ARow;
-  FLastCol := ACol;
-end;
-
-procedure TPointsManagementForm.TrySaveRow(ARow: Integer);
-var
-  PointNumber: Int64;
-  X, Y, Z:    Double;
-  Quality:    Integer;
-  Description: string;
-  Existing, NewPoint: Point.TPoint;
-begin
-  // Commit an open editor
-  if StringGrid1.EditorMode then
-    StringGrid1.EditorMode := False;
-
-  // Build the full point number (KU + ZPMZ + own number)
-  NormalizePointCell(StringGrid1, 0, ARow);
-
-  EnsureQualityOnRow(ARow);
-  ApplyDescriptionToRow(ARow);
-
-  PointNumber := StrToInt64Def(StringGrid1.Cells[0, ARow], -1);
-  Y           := StrToFloatDef(StringGrid1.Cells[CoordColY(1), ARow], NaN);
-  X           := StrToFloatDef(StringGrid1.Cells[CoordColX(1), ARow], NaN);
-  Z           := StrToFloatDef(StringGrid1.Cells[3, ARow], NaN);
-  Quality     := StrToIntDef(StringGrid1.Cells[4, ARow], -1);
-  Description := StringGrid1.Cells[5, ARow];
-
-  // Incomplete row, skip silently
-  if (PointNumber <= 0) or IsNan(X) or IsNan(Y) or IsNan(Z) then
+  if ARow = 0 then
     Exit;
 
-  if TPointDictionary.GetInstance.PointExists(PointNumber) then
+  if RowSelected(ARow) then
   begin
-    Existing := TPointDictionary.GetInstance.GetPoint(PointNumber);
-    NewPoint := TPoint.Create(PointNumber, X, Y, Z, Quality, Description);
-    if (Existing.X = NewPoint.X) and (Existing.Y = NewPoint.Y) and
-       (Existing.Z = NewPoint.Z) and (Existing.Quality = NewPoint.Quality) and
-       (Existing.Description = NewPoint.Description) then
-      Exit;
-    if MessageDlg(Format('Bod %d již existuje. Chcete ho přepsat?', [PointNumber]),
-                  mtConfirmation, [mbYes, mbNo], 0) <> mrYes then
-      Exit;
-    TPointDictionary.GetInstance.AddOrUpdatePoint(NewPoint);
+    StringGrid1.Canvas.Brush.Color := clHighlight;
+    StringGrid1.Canvas.Font.Color  := clHighlightText;
   end
   else
-    TPointDictionary.GetInstance.AddPoint(
-      TPoint.Create(PointNumber, X, Y, Z, Quality, Description));
+  begin
+    StringGrid1.Canvas.Brush.Color := clWindow;
+    StringGrid1.Canvas.Font.Color  := clWindowText;
+  end;
+  StringGrid1.Canvas.FillRect(Rect);
+  StringGrid1.Canvas.TextRect(Rect, Rect.Left + 4, Rect.Top + 2, StringGrid1.Cells[ACol, ARow]);
+end;
 
+// New rows have no point yet
+function TPointsManagementForm.RowPoint(ARow: Integer): Int64;
+begin
+  if ARow <= High(FRowPoint) then
+    Result := FRowPoint[ARow]
+  else
+    Result := 0;
+end;
+
+procedure TPointsManagementForm.SetRowPoint(ARow: Integer; ANum: Int64);
+begin
+  if ARow > High(FRowPoint) then
+    SetLength(FRowPoint, ARow + 1);   // new items start at 0
+  FRowPoint[ARow] := ANum;
+end;
+
+// Every confirmed cell is saved
+procedure TPointsManagementForm.GridCellCommitted(Sender: TObject;
+  ACol, ARow: Integer);
+begin
+  if ARow < StringGrid1.FixedRows then
+    Exit;
+
+  if ACol = COL_POINTNO then
+    NumberCommitted(ARow)
+  else if RowPoint(ARow) > 0 then
+    StoreRow(ARow);         // the row is a point, so this is an edit
+
+  FShownChanges := Points.ChangeCount;   // no reload needed
+end;
+
+// New number: new point or renumber
+procedure TPointsManagementForm.NumberCommitted(ARow: Integer);
+var
+  Num, Old: Int64;
+begin
+  Old := RowPoint(ARow);    // 0 on an empty row
+
+  if Trim(StringGrid1.Cells[COL_POINTNO, ARow]) = '' then
+  begin
+    // Empty number: ask to delete
+    if Old > 0 then
+    begin
+      StringGrid1.Cells[COL_POINTNO, ARow] := Format('%.15d', [Old]);
+      SelectOnly(ARow);
+      DeleteSelected;
+    end;
+    Exit;
+  end;
+
+  NormalizePointCell(StringGrid1, 0, ARow);
+  Num := StrToInt64Def(StringGrid1.Cells[COL_POINTNO, ARow], 0);
+
+  // Number not changed
+  if Num = Old then
+    Exit;
+
+  if Points.PointExists(Num) then
+  begin
+    // Windows box, it does not reload the grid
+    Application.MessageBox(PChar(Format('Bod %.15d už v seznamu je.', [Num])),
+      'Upozornění', MB_OK or MB_ICONWARNING);
+    StringGrid1.RejectCommit;   // stay on the number to fix it
+    Exit;
+  end;
+
+  SetRowPoint(ARow, Num);
+  StoreRow(ARow);           // save under the new number
+
+  if Old > 0 then
+    Points.RemovePoint(Old);   // renumbered, the old one goes
+end;
+
+// Saves the row; empty cells keep old values
+procedure TPointsManagementForm.StoreRow(ARow: Integer);
+var
+  P:           TPoint;
+  Description: string;
+begin
+  if Points.PointExists(RowPoint(ARow)) then
+    P := Points.GetPoint(RowPoint(ARow))
+  else
+    P := TPoint.Create(RowPoint(ARow), 0, 0, 0, CurrentQuality, Trim(ComboBoxPopis.Text));
+
+  Description := StringGrid1.Cells[COL_DESC, ARow];
+  if Description = '' then
+    Description := string(P.Description);
+
+  Points.AddOrUpdatePoint(TPoint.Create(P.PointNumber,
+    StrToFloatDef(StringGrid1.Cells[CoordColX(COL_COORD), ARow], P.X),
+    StrToFloatDef(StringGrid1.Cells[CoordColY(COL_COORD), ARow], P.Y),
+    StrToFloatDef(StringGrid1.Cells[COL_Z, ARow], P.Z),
+    StrToIntDef(StringGrid1.Cells[COL_QUALITY, ARow], P.Quality),
+    Description));
   UpdateStatusBar;
 end;
 
-// The row under the cursor is only in the grid until you leave it
-procedure TPointsManagementForm.CommitCurrentRow;
+// Delete, Ctrl+A, and no Enter without a number
+procedure TPointsManagementForm.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
 begin
-  if StringGrid1.Row >= StringGrid1.FixedRows then
-    TrySaveRow(StringGrid1.Row);
+  if (Key = VK_DELETE) and NumbersBrowsed then
+  begin
+    Key := 0;               // do not clear the cell
+    DeleteSelected;
+  end;
+
+  if (Key = Ord('A')) and (Shift = [ssCtrl]) and NumbersBrowsed then
+  begin
+    Key := 0;
+    SelectRange(StringGrid1.FixedRows, StringGrid1.RowCount - 1);
+    StringGrid1.Invalidate;
+  end;
+
+  if ((Key = VK_RETURN) or (Key = VK_TAB)) and NumberMissing then
+  begin
+    Key := 0;
+    Application.MessageBox('Nejdřív zadejte číslo bodu.', 'Upozornění',
+      MB_OK or MB_ICONWARNING);   // Windows box, see NumberCommitted
+  end;
 end;
 
-procedure TPointsManagementForm.PointNumberCommitted(Sender: TObject; ACol, ARow: Integer);
+// Row has no number yet
+function TPointsManagementForm.NumberMissing: Boolean;
 begin
-  if (ACol <> 0) or (ARow < StringGrid1.FixedRows) then
+  Result := False;
+  if RowPoint(StringGrid1.Row) > 0 then
+    Exit;                   // the row is a point already
+
+  // Only when the grid has focus
+  if (ActiveControl <> StringGrid1) and
+     ((ActiveControl = nil) or (ActiveControl.Parent <> StringGrid1)) then
     Exit;
-  if Trim(StringGrid1.Cells[0, ARow]) = '' then
-    Exit;
-  NormalizePointCell(StringGrid1, 0, ARow);
+
+  // A typed number is enough
+  Result := (StringGrid1.Col <> COL_POINTNO) or
+            (Trim(StringGrid1.Cells[COL_POINTNO, StringGrid1.Row]) = '');
 end;
 
+// Deletes every selected point after one question
+procedure TPointsManagementForm.DeleteSelected;
+var
+  i, Count: Integer;
+  Num:      Int64;
+  Question: string;
+begin
+  Count := 0;
+  Num   := 0;
+  for i := 1 to StringGrid1.RowCount - 1 do
+    if RowSelected(i) then
+    begin
+      Count := Count + 1;
+      Num   := RowPoint(i);
+    end;
+  if Count = 0 then
+    Exit;
+
+  if Count = 1 then
+    Question := Format('Smazat bod %.15d?', [Num])
+  else
+    Question := Format('Smazat označené body (%d)?', [Count]);
+  if Application.MessageBox(PChar(Question), 'Dotaz',
+                            MB_YESNO or MB_ICONQUESTION) <> IDYES then
+    Exit;
+
+  for i := 1 to StringGrid1.RowCount - 1 do
+    if RowSelected(i) then
+      Points.RemovePoint(RowPoint(i));
+
+  RefreshGrid;
+  UpdateStatusBar;
+end;
+
+// New rows are not selected
+function TPointsManagementForm.RowSelected(ARow: Integer): Boolean;
+begin
+  if ARow <= High(FSelected) then
+    Result := FSelected[ARow]
+  else
+    Result := False;
+end;
+
+// Only points can be selected
+procedure TPointsManagementForm.SetRowSelected(ARow: Integer; AValue: Boolean);
+begin
+  if RowPoint(ARow) = 0 then
+    Exit;
+  if ARow > High(FSelected) then
+    SetLength(FSelected, ARow + 1);   // new items start as False
+  FSelected[ARow] := AValue;
+end;
+
+procedure TPointsManagementForm.ClearSelection;
+begin
+  SetLength(FSelected, 0);
+end;
+
+// Selects this row only
+procedure TPointsManagementForm.SelectOnly(ARow: Integer);
+begin
+  ClearSelection;
+  SetRowSelected(ARow, True);
+  FAnchor := ARow;
+end;
+
+// Selects all rows from AFrom to ATo
+procedure TPointsManagementForm.SelectRange(AFrom, ATo: Integer);
+var
+  i: Integer;
+begin
+  ClearSelection;
+  for i := Min(AFrom, ATo) to Max(AFrom, ATo) do
+    SetRowSelected(i, True);
+end;
+
+// Cursor on a number, not typing
+function TPointsManagementForm.NumbersBrowsed: Boolean;
+begin
+  Result := (ActiveControl = StringGrid1) and not StringGrid1.EditorMode and
+            (StringGrid1.Col = COL_POINTNO);
+end;
+
+// Selection like in Explorer; Col is still the old one
+procedure TPointsManagementForm.GridSelectCell(Sender: TObject;
+  ACol, ARow: Integer; var CanSelect: Boolean);
+var
+  ShiftDown, CtrlDown: Boolean;
+begin
+  ShiftDown := GetKeyState(VK_SHIFT) < 0;
+  CtrlDown  := GetKeyState(VK_CONTROL) < 0;
+
+  if ACol <> COL_POINTNO then
+    ClearSelection                          // other column
+  else if ShiftDown and (StringGrid1.Col = COL_POINTNO) then
+    SelectRange(FAnchor, ARow)              // Shift
+  else if CtrlDown then
+  begin
+    if StringGrid1.Col <> COL_POINTNO then
+      ClearSelection;                       // Ctrl+click
+  end
+  else
+    SelectOnly(ARow);                       // plain click
+
+  StringGrid1.Invalidate;
+end;
+
+// Ctrl+click adds the point to the selection or takes it out
+procedure TPointsManagementForm.GridMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  ACol, ARow: Integer;
+begin
+  if (Button <> mbLeft) or not (ssCtrl in Shift) or (ssShift in Shift) then
+    Exit;
+
+  StringGrid1.MouseToCell(X, Y, ACol, ARow);
+  if (ACol <> COL_POINTNO) or (ARow < StringGrid1.FixedRows) then
+    Exit;
+
+  SetRowSelected(ARow, not RowSelected(ARow));
+  FAnchor := ARow;
+  StringGrid1.Invalidate;
+end;
+
+// Title and status bar
 procedure TPointsManagementForm.UpdateStatusBar;
 begin
   Caption := 'Seznam souřadnic';
   if FCurrentFile <> '' then
     Caption := Caption + ' — ' + ExtractFileName(FCurrentFile);
-  if TPointDictionary.GetInstance.Modified then
+  if Points.Modified then
     Caption := Caption + '*';
 
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text :=
       Format('Bodů v paměti: %d   |   %s',
-        [TPointDictionary.GetInstance.GetPointCount, FCurrentFile]);
+        [Points.GetPointCount, FCurrentFile]);
 end;
 
-procedure TPointsManagementForm.UpdateCurrentDirectoryPath;
+// Error message
+procedure TPointsManagementForm.ShowError(const AText: string);
 begin
-  if StatusBar1.Panels.Count > 0 then
-    StatusBar1.Panels[0].Text := GetCurrentDir;
+  Application.MessageBox(PChar(AText), 'Chyba', MB_OK or MB_ICONERROR);
+end;
+
+// The one point list of the program
+function TPointsManagementForm.Points: TPointDictionary;
+begin
+  Result := TPointDictionary.GetInstance;
+end;
+
+// Saves the list, the file stays open
+function TPointsManagementForm.WriteListFile(const AFileName: string): Boolean;
+begin
+  try
+    Points.ExportToBinary(AFileName);
+    FCurrentFile := AFileName;
+    Points.Modified := False;
+    Result := True;
+  except
+    on E: Exception do
+    begin
+      ShowError('Chyba při ukládání: ' + E.Message);
+      Result := False;
+    end;
+  end;
+  UpdateStatusBar;
 end;
 
 // ---- File handling --------------------------------------------------------
 
 function TPointsManagementForm.AskSaveChanges: Boolean;
 begin
-  CommitCurrentRow;
+  StringGrid1.CommitCurrentCell;
 
   Result := True;
-  if not TPointDictionary.GetInstance.Modified then Exit;
-  case MessageDlg('Uložit změny?', mtConfirmation,
-                  [mbYes, mbNo, mbCancel], 0) of
-    mrYes:    DoSave;
-    mrNo:     ;
-    mrCancel: Result := False;
+  if not Points.Modified then Exit;
+  case Application.MessageBox('Uložit změny?', 'Dotaz',
+                              MB_YESNOCANCEL or MB_ICONQUESTION) of
+    IDYES:    DoSave;
+    IDNO:     ;
+    IDCANCEL: Result := False;
   end;
+end;
+
+// Save dialog, .yxz or .xyz
+function TPointsManagementForm.ExecuteListSaveDialog(const ADefaultName: string;
+  out AFileName: string): Boolean;
+var
+  Ext: string;
+begin
+  if GCoordOrder = coXY then
+  begin
+    SaveDialog1.FilterIndex := 2;
+    Ext := 'xyz';
+  end
+  else
+  begin
+    SaveDialog1.FilterIndex := 1;
+    Ext := 'yxz';
+  end;
+
+  // Name with its extension
+  SaveDialog1.Filter     := LIST_FILTER;
+  SaveDialog1.DefaultExt := Ext;
+  SaveDialog1.FileName   := ADefaultName + '.' + Ext;
+
+  Result := SaveDialog1.Execute;
+  if Result then
+    AFileName := SaveDialog1.FileName;
 end;
 
 procedure TPointsManagementForm.DoSave;
 begin
-  CommitCurrentRow;
+  StringGrid1.CommitCurrentCell;
 
+  // A list without a file is saved as a new one
   if FCurrentFile = '' then
-  begin
-    SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
-    SaveDialog1.DefaultExt := 'bin';
-    if not SaveDialog1.Execute then Exit;
-    FCurrentFile := SaveDialog1.FileName;
-  end;
-  try
-    TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
-    TPointDictionary.GetInstance.Modified := False;
-    UpdateStatusBar;
-  except
-    on E: Exception do
-      ShowMessage('Chyba při ukládání: ' + E.Message);
-  end;
+    SaveListAs
+  else
+    WriteListFile(FCurrentFile);
 end;
 
 procedure TPointsManagementForm.FileSaveClick(Sender: TObject);
@@ -418,22 +652,19 @@ begin
   SaveListAs;
 end;
 
+// Offers the name of the open file
 procedure TPointsManagementForm.SaveListAs;
+var
+  Name, FileName: string;
 begin
-  CommitCurrentRow;
+  StringGrid1.CommitCurrentCell;
 
-  SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
-  SaveDialog1.DefaultExt := 'bin';
-  if not SaveDialog1.Execute then Exit;
-  FCurrentFile := SaveDialog1.FileName;
-  try
-    TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
-    TPointDictionary.GetInstance.Modified := False;
-    UpdateStatusBar;
-  except
-    on E: Exception do
-      ShowMessage('Chyba při ukládání: ' + E.Message);
-  end;
+  if FCurrentFile = '' then
+    Name := 'file'
+  else
+    Name := ChangeFileExt(ExtractFileName(FCurrentFile), '');
+  if ExecuteListSaveDialog(Name, FileName) then
+    WriteListFile(FileName);
 end;
 
 procedure TPointsManagementForm.FileOpenClick(Sender: TObject);
@@ -441,28 +672,27 @@ begin
   OpenList;
 end;
 
-// Picks an existing list and uses it as it is, without writing to it
+// Opens a list file
 function TPointsManagementForm.OpenList: Boolean;
 begin
   Result := False;
   if not AskSaveChanges then Exit;
 
-  OpenDialog1.Filter := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
+  OpenDialog1.Filter := 'Seznam souřadnic (*.yxz;*.xyz)|*.yxz;*.xyz';
   if not OpenDialog1.Execute then Exit;
 
-  TPointDictionary.GetInstance.Clear;
+  // A bad file keeps the open list
   try
-    TPointDictionary.GetInstance.ImportFromBinary(OpenDialog1.FileName);
+    Points.LoadFromBinary(OpenDialog1.FileName);
   except
     on E: Exception do
     begin
-      ShowMessage('Chyba při načítání: ' + E.Message);
+      ShowError('Chyba při načítání: ' + E.Message);
       Exit;
     end;
   end;
 
   FCurrentFile := OpenDialog1.FileName;
-  TPointDictionary.GetInstance.Modified := False;
   RefreshGrid;
   UpdateStatusBar;
   Result := True;
@@ -473,52 +703,56 @@ begin
   CreateNewList;
 end;
 
+// New list is saved at once
 function TPointsManagementForm.CreateNewList: Boolean;
+var
+  FileName: string;
 begin
   Result := False;
   if not AskSaveChanges then Exit;
 
-  SaveDialog1.Filter     := 'Binary (*.bin)|*.bin';
-  SaveDialog1.DefaultExt := 'bin';
   SaveDialog1.InitialDir := ExtractFilePath(Application.ExeName);
-  SaveDialog1.FileName   := 'ss.bin';
-  if not SaveDialog1.Execute then Exit;
+  if not ExecuteListSaveDialog('file', FileName) then
+    Exit;
 
-  TPointDictionary.GetInstance.Clear;
-  FCurrentFile := SaveDialog1.FileName;
-  TPointDictionary.GetInstance.ExportToBinary(FCurrentFile);
-  TPointDictionary.GetInstance.Modified := False;
+  // Check the extension first
+  try
+    TPointDictionary.FileOrder(FileName);
+  except
+    on E: Exception do
+    begin
+      ShowError('Chyba při ukládání: ' + E.Message);
+      Exit;
+    end;
+  end;
+
+  Points.Clear;
+  FCurrentFile := '';
+  WriteListFile(FileName);
   RefreshGrid;
-  UpdateStatusBar;
   Result := True;
 end;
 
-function TPointsManagementForm.HasActiveList: Boolean;
-begin
-  Result := (FCurrentFile <> '') or (TPointDictionary.GetInstance.GetPointCount > 0);
-end;
-
+// Adds the points of a TXT or CSV file to the list
 procedure TPointsManagementForm.DoImport(AFormat: TFileFormat);
 begin
   // Dialog filter by format
-  case AFormat of
-    ffTXT:    OpenDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
-    ffCSV:    OpenDialog1.Filter := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
-    ffBinary: OpenDialog1.Filter := 'Binary soubory (*.bin)|*.bin|Všechny soubory|*.*';
-  end;
+  if AFormat = ffTXT then
+    OpenDialog1.Filter := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*'
+  else
+    OpenDialog1.Filter := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
 
   if not OpenDialog1.Execute then Exit;
 
   try
-    case AFormat of
-      ffTXT:    TPointDictionary.GetInstance.ImportFromTXT(OpenDialog1.FileName);
-      ffCSV:    TPointDictionary.GetInstance.ImportFromCSV(OpenDialog1.FileName);
-      ffBinary: TPointDictionary.GetInstance.ImportFromBinary(OpenDialog1.FileName);
-    end;
+    if AFormat = ffTXT then
+      Points.ImportFromTXT(OpenDialog1.FileName)
+    else
+      Points.ImportFromCSV(OpenDialog1.FileName);
   except
     on E: Exception do
     begin
-      ShowMessage('Chyba při importu: ' + E.Message);
+      ShowError('Chyba při importu: ' + E.Message);
       Exit;
     end;
   end;
@@ -526,49 +760,40 @@ begin
   RefreshGrid;
 end;
 
+// Saves the list into a TXT or CSV file
 procedure TPointsManagementForm.DoExport(AFormat: TFileFormat);
-var
-  Dir: string;
 begin
   // Dialog filter and extension by format
-  case AFormat of
-    ffTXT:
-    begin
-      SaveDialog1.Filter     := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
-      SaveDialog1.DefaultExt := 'txt';
-    end;
-    ffCSV:
-    begin
-      SaveDialog1.Filter     := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
-      SaveDialog1.DefaultExt := 'csv';
-    end;
-    ffBinary:
-    begin
-      SaveDialog1.Filter     := 'Binary (*.bin)|*.bin|Všechny soubory|*.*';
-      SaveDialog1.DefaultExt := 'bin';
-    end;
+  if AFormat = ffTXT then
+  begin
+    SaveDialog1.Filter     := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
+    SaveDialog1.DefaultExt := 'txt';
+  end
+  else
+  begin
+    SaveDialog1.Filter     := 'CSV soubory (*.csv)|*.csv|Všechny soubory|*.*';
+    SaveDialog1.DefaultExt := 'csv';
   end;
+  SaveDialog1.FilterIndex := 1;   // first filter
 
   if not SaveDialog1.Execute then Exit;
 
-  Dir := ExtractFilePath(SaveDialog1.FileName);
-  if (Dir <> '') and not TDirectory.Exists(Dir) then
-    ForceDirectories(Dir);
-
   try
-    case AFormat of
-      ffTXT:    TPointDictionary.GetInstance.ExportToTXT(SaveDialog1.FileName);
-      ffCSV:    TPointDictionary.GetInstance.ExportToCSV(SaveDialog1.FileName);
-      ffBinary: TPointDictionary.GetInstance.ExportToBinary(SaveDialog1.FileName);
-    end;
-    case AFormat of
-      ffTXT:    ShowMessage('Export do TXT úspěšný.');
-      ffCSV:    ShowMessage('Export do CSV úspěšný.');
-      ffBinary: ShowMessage('Export do Binary úspěšný.');
+    if AFormat = ffTXT then
+    begin
+      Points.ExportToTXT(SaveDialog1.FileName);
+      Application.MessageBox('Export do TXT úspěšný.', 'Informace',
+        MB_OK or MB_ICONINFORMATION);
+    end
+    else
+    begin
+      Points.ExportToCSV(SaveDialog1.FileName);
+      Application.MessageBox('Export do CSV úspěšný.', 'Informace',
+        MB_OK or MB_ICONINFORMATION);
     end;
   except
     on E: Exception do
-      ShowMessage('Chyba při exportu: ' + E.Message);
+      ShowError('Chyba při exportu: ' + E.Message);
   end;
 end;
 
@@ -578,34 +803,20 @@ begin DoImport(ffTXT); end;
 procedure TPointsManagementForm.FromCSVClick(Sender: TObject);
 begin DoImport(ffCSV); end;
 
-procedure TPointsManagementForm.FromBinaryClick(Sender: TObject);
-begin DoImport(ffBinary); end;
-
 procedure TPointsManagementForm.SaveAsTXTClick(Sender: TObject);
 begin DoExport(ffTXT); end;
 
 procedure TPointsManagementForm.SaveAsCSVClick(Sender: TObject);
 begin DoExport(ffCSV); end;
 
-procedure TPointsManagementForm.SaveAsBinaryClick(Sender: TObject);
-begin DoExport(ffBinary); end;
-
 // ---- Quality helpers ------------------------------------------------------
 
 function TPointsManagementForm.CurrentQuality: Integer;
 begin
-  if ComboBoxKK.ItemIndex >= 0 then
-    Result := ComboBoxKK.ItemIndex
-  else
-    Result := StrToIntDef(ComboBoxKK.Text, 0);
+  Result := StrToIntDef(ComboBoxKK.Text, 0);   // the selected code
 end;
 
-function TPointsManagementForm.IsValidQualityStr(const S: string): Boolean;
-begin
-  Result := (Length(S) = 1) and CharInSet(S[1], ['0'..'8']);
-end;
-
-// Gives the grid a default quality from the toolbar when the cell is left empty.
+// Enter on an empty KK gives the toolbar KK
 procedure TPointsManagementForm.GetQualityDefault(var AText: string; var AHandled: Boolean);
 begin
   if ComboBoxKK.ItemIndex >= 0 then
@@ -613,32 +824,24 @@ begin
     AText    := IntToStr(CurrentQuality);
     AHandled := True;
   end;
-  // Nothing selected: AHandled stays False, so the grid blocks navigation
+  // No KK selected: Enter is blocked
 end;
 
-// Fallback for when the user skipped the Quality column with the mouse
-procedure TPointsManagementForm.EnsureQualityOnRow(const ARow: Integer);
+// Enter on an empty coordinate gives 0
+procedure TPointsManagementForm.GetZeroDefault(var AText: string; var AHandled: Boolean);
 begin
-  if ARow < StringGrid1.FixedRows then Exit;
-  if not IsValidQualityStr(StringGrid1.Cells[4, ARow]) then
-    StringGrid1.Cells[4, ARow] := IntToStr(CurrentQuality);
+  AText    := '0';
+  AHandled := True;
 end;
 
-// ---- Prefix comboboxy -----------------------------------------------------
-
-function TPointsManagementForm.PadZeros(const S: string; PadLen: Integer): string;
-var
-  N, MaxVal: Int64;
+// Enter on an empty description gives the one from the toolbar
+procedure TPointsManagementForm.GetDescriptionDefault(var AText: string; var AHandled: Boolean);
 begin
-  N := StrToInt64Def(S, 0);
-  if N < 0 then N := 0;
-  if PadLen > 0 then
-    MaxVal := StrToInt64(StringOfChar('9', PadLen))
-  else
-    MaxVal := High(Int64);
-  if N > MaxVal then N := MaxVal;
-  Result := Format('%.*d', [PadLen, N]);
+  AText    := Trim(ComboBoxPopis.Text);
+  AHandled := True;
 end;
+
+// ---- Prefix combos --------------------------------------------------------
 
 procedure TPointsManagementForm.NumericComboKeyPress(Sender: TObject; var Key: Char);
 begin
@@ -646,39 +849,7 @@ begin
     Key := #0;
 end;
 
-procedure TPointsManagementForm.NumericComboChange(Sender: TObject);
-var
-  CB:      TComboBox;
-  S:       string;
-  i:       Integer;
-  Changed: Boolean;
-begin
-  CB      := Sender as TComboBox;
-  S       := CB.Text;
-  Changed := False;
-
-  for i := Length(S) downto 1 do
-    if not CharInSet(S[i], ['0'..'9']) then
-    begin
-      Delete(S, i, 1);
-      Changed := True;
-    end;
-
-  if Length(S) > CB.MaxLength then
-  begin
-    S       := Copy(S, 1, CB.MaxLength);
-    Changed := True;
-  end;
-
-  if Changed then
-  begin
-    CB.Text     := S;
-    CB.SelStart := Length(S);
-  end;
-
-  SavePrefix;
-end;
-
+// Enter goes to the next combo
 procedure TPointsManagementForm.NumericComboKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   CB: TComboBox;
@@ -688,27 +859,20 @@ begin
   Key := 0;
 
   if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
-    CB.Text := PadZeros(CB.Text, CB.Tag);
+    CB.Text := NormalizeNumericPrefix(CB.Text, CB.MaxLength);
 
-  if Sender = ComboBoxKU then
-    ComboBoxZPMZ.SetFocus
-  else if Sender = ComboBoxZPMZ then
-    ComboBoxKK.SetFocus
-  else if Sender = ComboBoxKK then
-    ComboBoxPopis.SetFocus
-  else if Sender = ComboBoxPopis then
+  if Sender = ComboBoxPopis then
   begin
-    if StringGrid1.RowCount <= StringGrid1.FixedRows then
-      StringGrid1.RowCount := StringGrid1.FixedRows + 1;
     StringGrid1.SetFocus;
-    StringGrid1.Row        := StringGrid1.FixedRows;
-    StringGrid1.Col        := 0;
+    StringGrid1.Row        := StringGrid1.RowCount - 1;   // the empty row
+    StringGrid1.Col        := COL_POINTNO;
     StringGrid1.EditorMode := True;
   end
   else
-    SelectNext(ActiveControl, True, True);
+    SelectNext(CB, True, True);   // the next combo by TabOrder
 end;
 
+// Zeros for KU and ZPMZ
 procedure TPointsManagementForm.PrefixComboExit(Sender: TObject);
 var
   CB: TComboBox;
@@ -716,24 +880,10 @@ begin
   if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
   begin
     CB      := Sender as TComboBox;
-    CB.Text := PadZeros(CB.Text, CB.Tag);
+    CB.Text := NormalizeNumericPrefix(CB.Text, CB.MaxLength);
   end;
   SavePrefix;
   LoadPrefix;
-end;
-
-procedure TPointsManagementForm.ApplyDescriptionToRow(const ARow: Integer);
-var
-  DefaultPopis: string;
-begin
-  if ARow < StringGrid1.FixedRows then Exit;
-  if Trim(StringGrid1.Cells[5, ARow]) <> '' then Exit;
-
-  DefaultPopis := Trim(GPointPrefix.Popis);
-  if DefaultPopis = '' then
-    DefaultPopis := Trim(ComboBoxPopis.Text);
-  if DefaultPopis <> '' then
-    StringGrid1.Cells[5, ARow] := DefaultPopis;
 end;
 
 end.

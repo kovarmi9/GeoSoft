@@ -1,1 +1,0 @@
-# Soubory .yxz a .xyz

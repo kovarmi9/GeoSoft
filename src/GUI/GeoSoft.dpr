@@ -22,7 +22,19 @@ uses
   GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
-  SettingsDialog in 'SettingsDialog.pas' {SettingsForm};
+  SettingsDialog in 'SettingsDialog.pas' {SettingsForm},
+  GeoDataFrame in '..\DataStructures\GeoDataFrame.pas',
+  GeoRow in '..\DataStructures\GeoRow.pas',
+  Point in '..\DataStructures\Point.pas',
+  PointsUtilsSingleton in '..\DataStructures\PointsUtilsSingleton.pas',
+  CoordOrderState in '..\Utils\CoordOrderState.pas',
+  GeoGridBridge in '..\Utils\GeoGridBridge.pas',
+  PointPrefixState in '..\Utils\PointPrefixState.pas',
+  ProtocolArea in '..\Utils\ProtocolArea.pas',
+  ProtocolPolar in '..\Utils\ProtocolPolar.pas',
+  ProtocolTable in '..\Utils\ProtocolTable.pas',
+  SettingsState in '..\Utils\SettingsState.pas',
+  ValidationUtils in '..\Utils\ValidationUtils.pas';
 
 {$R *.res}
 
@@ -31,7 +43,6 @@ begin
   Application.MainFormOnTaskbar := True;
   Application.CreateForm(TForm1, Form1);
   Application.CreateForm(TPointsManagementForm, PointsManagementForm);
-  Application.CreateForm(TAddPointForm, AddPointForm);
   Application.CreateForm(TParcelAreaForm, ParcelAreaForm);
   Application.CreateForm(TOrthogonalMethodForm, OrthogonalMethodForm);
   Application.CreateForm(TTransformationForm, TransformationForm);

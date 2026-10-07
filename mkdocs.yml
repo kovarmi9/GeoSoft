@@ -25,10 +25,15 @@ nav:
   - Úvod: index.md
   - Seznam souřadnic:
       - seznam-souradnic/index.md
-      - Práce se seznamem: seznam-souradnic/prace-se-seznamem.md
-      - Soubory .yxz a .xyz: seznam-souradnic/soubory.md
+      - Bod: seznam-souradnic/bod.md
+      - Validace: seznam-souradnic/validace.md
+      - Seznam bodů: seznam-souradnic/seznam-bodu.md
+      - Ukládání: seznam-souradnic/ukladani.md
       - Import a export: seznam-souradnic/import-export.md
-      - Seznam v programu: seznam-souradnic/v-programu.md
+      - Pořadí souřadnic: seznam-souradnic/poradi-souradnic.md
+      - Čísla bodů: seznam-souradnic/cisla-bodu.md
+      - Formulář: seznam-souradnic/formular.md
+      - Přidat bod: seznam-souradnic/pridat-bod.md
   - Geodetické výpočty:
       - vypocty/index.md
       - Polární metoda: vypocty/polarni-metoda.md

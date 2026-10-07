@@ -14,9 +14,9 @@ type
     ToolBar1: TToolBar;
     MainMenu1: TMainMenu;
     N1: TMenuItem;
-    Vytvoitseznam1: TMenuItem;
+    MenuFileNew: TMenuItem;
     Vypocty: TMenuItem;
-    Open2: TMenuItem;
+    MenuFileOpen: TMenuItem;
     Polrnmetoda1: TMenuItem;
     Ortogonlnmetoda1: TMenuItem;
     ransformace1: TMenuItem;
@@ -29,8 +29,8 @@ type
     MenuSaveList: TMenuItem;
     MenuSaveListAs: TMenuItem;
     YX2XY: TToggleSwitch;
-    procedure Open2Click(Sender: TObject);
-    procedure Vytvoitseznam1Click(Sender: TObject);
+    procedure MenuFileOpenClick(Sender: TObject);
+    procedure MenuFileNewClick(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
     procedure Ortogonlnmetoda1Click(Sender: TObject);
     procedure TransformationClick(Sender: TObject);
@@ -59,7 +59,7 @@ uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState;
 
 // File menu: picks a list file and shows it
-procedure TForm1.Open2Click(Sender: TObject);
+procedure TForm1.MenuFileOpenClick(Sender: TObject);
 begin
   if PointsManagementForm.OpenList then
     PointsManagementForm.Show;
@@ -87,7 +87,7 @@ begin
   CanClose := PointsManagementForm.AskSaveChanges;
 end;
 
-procedure TForm1.Vytvoitseznam1Click(Sender: TObject);
+procedure TForm1.MenuFileNewClick(Sender: TObject);
 begin
   if PointsManagementForm.CreateNewList then
     PointsManagementForm.Show;

@@ -3207,13 +3207,13 @@ object Form1: TForm1
     Top = 192
     object N1: TMenuItem
       Caption = 'Soubor'
-      object Vytvoitseznam1: TMenuItem
+      object MenuFileNew: TMenuItem
         Caption = 'Nov'#253' seznam...'
-        OnClick = Vytvoitseznam1Click
+        OnClick = MenuFileNewClick
       end
-      object Open2: TMenuItem
+      object MenuFileOpen: TMenuItem
         Caption = 'Otev'#345#237't seznam...'
-        OnClick = Open2Click
+        OnClick = MenuFileOpenClick
       end
       object MenuSep1: TMenuItem
         Caption = '-'

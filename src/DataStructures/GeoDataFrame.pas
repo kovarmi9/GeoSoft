@@ -365,7 +365,7 @@ begin
   for i := 0 to FCount - 1 do
     Buffer[i + 1] := FRows[i];
 
-  SaveRow(FileName, Buffer, False);
+  SaveRows(FileName, Buffer);
 end;
 
 procedure TGeoDataFrame.LoadFromFile(const FileName: string);
@@ -376,7 +376,7 @@ var
   mask: LongWord;
   DataCount, i: Integer;
 begin
-  LoadRow(FileName, AllRows);
+  AllRows := LoadRows(FileName);
 
   // Empty file — reset and exit
   if Length(AllRows) = 0 then

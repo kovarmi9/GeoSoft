@@ -78,13 +78,15 @@ procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField;
 // Finds a field by its name from GeoFieldNames
 function FindGeoField(const AName: string; out AField: TGeoField): Boolean;
 
-// Saves one or more rows to a binary typed file
-procedure SaveRow(const FileName: string; const Row: TGeoRow; Append: Boolean = False); overload;
-procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: Boolean = False); overload;
+/// <summary>Writes one row to a binary file; AAppend adds it to the end.</summary>
+procedure SaveRow(const AFileName: string; const ARow: TGeoRow; AAppend: Boolean = False);
+/// <summary>Writes rows to a binary file; AAppend adds them to the end.</summary>
+procedure SaveRows(const AFileName: string; const ARows: array of TGeoRow; AAppend: Boolean = False);
 
-// Loads rows from a binary typed file
-function LoadRow(const FileName: string; Index: Integer = -1): TGeoRow; overload;
-procedure LoadRow(const FileName: string; out Rows: TGeoRowArray); overload;
+/// <summary>Reads one row from a binary file, the first one by default.</summary>
+function LoadRow(const AFileName: string; AIndex: Integer = 0): TGeoRow;
+/// <summary>Reads all rows from a binary file.</summary>
+function LoadRows(const AFileName: string): TGeoRowArray;
 
 // Field name lookup table used for CSV headers
 const
@@ -260,93 +262,71 @@ begin
     end;
 end;
 
-// Single-row overload — wraps the array version with one element
-procedure SaveRow(const FileName: string; const Row: TGeoRow; Append: Boolean = False);
+procedure SaveRow(const AFileName: string; const ARow: TGeoRow; AAppend: Boolean = False);
 begin
-  SaveRow(FileName, [Row], Append);
+  SaveRows(AFileName, [ARow], AAppend);
 end;
 
-// Writes all rows to a typed binary file; appends if Append = True
-procedure SaveRow(const FileName: string; const Rows: array of TGeoRow; Append: Boolean = False);
+procedure SaveRows(const AFileName: string; const ARows: array of TGeoRow;
+  AAppend: Boolean = False);
 var
   F: File of TGeoRow;
-  Count: Integer;
 begin
-  AssignFile(F, FileName);
-
-  // Open existing file for read/write when appending, otherwise overwrite
-  if Append and FileExists(FileName) then
+  AssignFile(F, AFileName);
+  if AAppend and FileExists(AFileName) then
     Reset(F)
   else
     Rewrite(F);
-
-  // Seek to end when appending, or to the start when overwriting
-  if Append then
-    Seek(F, FileSize(F))
-  else
-    Seek(F, 0);
-
-  Count := Length(Rows);
-  if Count > 0 then
-    // BlockWrite: Rows[0] is the start of the memory block, Count is the record count
-    BlockWrite(F, Rows[0], Count);
-
-  CloseFile(F);
+  try
+    Seek(F, FileSize(F));    // write after the last row (a new file is empty)
+    if Length(ARows) > 0 then
+      BlockWrite(F, ARows[0], Length(ARows));
+  finally
+    CloseFile(F);
+  end;
 end;
 
-function LoadRow(const FileName: string; Index: Integer = -1): TGeoRow;
-var
-  F: File of TGeoRow;  // typed file — one unit equals one TGeoRow
-begin
-  if not FileExists(FileName) then
-    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [FileName]);
-
-  AssignFile(F, FileName);
-  Reset(F);
-
-  if FileSize(F) = 0 then
-    raise Exception.Create('Soubor je prázdný.');
-
-  // Index = -1 means load the first record; otherwise validate range and seek
-  if Index = -1 then
-    Seek(F, 0)
-  else if (Index < 0) or (Index >= FileSize(F)) then
-    raise Exception.CreateFmt('Index %d je mimo rozsah (0..%d)', [Index, FileSize(F)-1])
-  else
-    Seek(F, Index);
-
-  Read(F, Result);
-  CloseFile(F);
-end;
-
-procedure LoadRow(const FileName: string; out Rows: TGeoRowArray);
+function LoadRow(const AFileName: string; AIndex: Integer = 0): TGeoRow;
 var
   F: File of TGeoRow;
-  RecCount,           // total records in file
-  ReadCount: Integer; // actual records read by BlockRead
 begin
-  if not FileExists(FileName) then
-    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [FileName]);
+  if not FileExists(AFileName) then
+    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [AFileName]);
 
-  AssignFile(F, FileName);
+  AssignFile(F, AFileName);
   Reset(F);
   try
-    RecCount := FileSize(F);
+    if FileSize(F) = 0 then
+      raise Exception.Create('Soubor je prázdný.');
+    if (AIndex < 0) or (AIndex >= FileSize(F)) then
+      raise Exception.CreateFmt('Index %d je mimo rozsah (0..%d)', [AIndex, FileSize(F) - 1]);
 
-    // Empty file — return an empty array
-    if RecCount <= 0 then
+    Seek(F, AIndex);
+    Read(F, Result);
+  finally
+    CloseFile(F);
+  end;
+end;
+
+function LoadRows(const AFileName: string): TGeoRowArray;
+var
+  F: File of TGeoRow;
+  Count, Done: Integer;
+begin
+  if not FileExists(AFileName) then
+    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [AFileName]);
+
+  AssignFile(F, AFileName);
+  Reset(F);
+  try
+    Count := FileSize(F);
+    SetLength(Result, Count);
+    if Count > 0 then
     begin
-      SetLength(Rows, 0);
-      Exit;
+      BlockRead(F, Result[0], Count, Done);
+      if Done <> Count then
+        raise Exception.CreateFmt('Načteno jen %d z %d záznamů.', [Done, Count]);
     end;
-
-    SetLength(Rows, RecCount);
-
-    // Bulk read: Rows[0] is the target buffer start, RecCount is how many records to read
-    BlockRead(F, Rows[0], RecCount, ReadCount);
-
-    if ReadCount <> RecCount then
-      raise Exception.CreateFmt('Načteno jen %d z %d záznamů.', [ReadCount, RecCount]);
   finally
     CloseFile(F);
   end;

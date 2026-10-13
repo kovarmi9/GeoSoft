@@ -3,6 +3,103 @@
 Tabulka řádků `TGeoRow` se seznamem použitých polí (`Fields`).
 Výpočty do ní čtou z gridu a algoritmus z ní počítá.
 
+## Ukázky
+
+### Vytvoření a uvolnění
+
+```pascal
+gdf := TGeoDataFrame.Create([Uloha, CB, X, Y, Z]);   // prázdná tabulka s vybranými poli
+...
+gdf.Free;
+```
+
+`TGeoDataFrame.Create` bez závorky vytvoří tabulku se všemi poli.
+
+### Přidání řádků
+
+```pascal
+gdf.AddRow(2);                          // dva prázdné řádky (čísla NaN)
+gdf.Rows[0].Uloha := 1;
+gdf.Rows[0].CB := '751261478500012';
+gdf.Rows[0].X := 1045986.745;
+
+gdf.AddRow(r1);                         // kopie hotového řádku r1
+
+Writeln(gdf.Count);                     // 3
+Writeln(gdf.Capacity);                  // 4
+```
+
+### Čtení
+
+```pascal
+Writeln(gdf.Rows[2].Uloha);             // 1
+
+for I := 0 to gdf.Count - 1 do
+  Writeln(gdf.Rows[I].CB);
+```
+
+### Výpis
+
+```pascal
+Writeln(gdf.Print);
+```
+
+```
+=== TGeoDataFrame ===
+Count    : 3
+Capacity : 4
+Fields   : Uloha, CB, X, Y, Z
+
+--- TGeoRow 0 ---
+Uloha: 1
+CB: 751261478500012
+X: 1045986,745
+Y: 743841,459
+Z: 450,485
+...
+```
+
+### CSV jako text
+
+```pascal
+Writeln(gdf.ToCSV);                     // oddělovač ';', desetinná tečka
+```
+
+```
+Uloha;CB;X;Y;Z
+1;"751261478500012";1045986.745;743841.459;450.485
+2;"751261478500013";1045746.745;743911.459;450.79
+```
+
+Z textu zpět do nové tabulky:
+
+```pascal
+csv := TStringList.Create;
+csv.Text := gdf.ToCSV;
+gdf2 := TGeoDataFrame.Create;
+gdf2.FromCSV(csv);                      // Fields podle hlavičky: Uloha, CB, X, Y, Z
+csv.Free;
+```
+
+### CSV soubor
+
+```pascal
+gdf.ToCSV('gdf1.csv', ';', '.');        // uloží
+gdf.ClearData;                          // Count = 0, Fields zůstane
+gdf.FromCSV('gdf1.csv', ';', '.');      // načte, Count = 3
+```
+
+Výpočty ukládají se středníkem a desetinnou čárkou: `ToCSV(Soubor, ';', ',')`.
+
+### Binární soubor
+
+```pascal
+gdf.SaveToFile('soubor.gdf');           // uloží řádky i Fields
+
+gdf3 := TGeoDataFrame.Create;
+gdf3.LoadFromFile('soubor.gdf');        // Count = 3, Fields: Uloha, CB, X, Y, Z
+```
+
 ## Řádky: Count a Capacity
 
 Řádky leží v poli `Rows`. Pole má víc místa, než je řádků:
@@ -87,3 +184,19 @@ Uloha;CB;X;Y
 - na velikosti písmen v názvech nezáleží
 - buňka, která není číslo, nechá v poli NaN
 - prázdný řádek souboru dá prázdný řádek tabulky
+
+## Binární soubor
+
+`SaveToFile(Soubor)` uloží tabulku, `LoadFromFile(Soubor)` ji načte
+zpět i s `Fields`. Soubor je řada záznamů [TGeoRow](georow.md),
+první záznam je hlavička:
+
+| pole hlavičky | hodnota |
+|---|---|
+| `Uloha` | −1 |
+| `CB` | `__HEADER__` |
+| `TypS` | `Fields` jako bitová maska (bit číslo = pořadí pole v `TGeoField`) |
+
+- uloží se jen `Count` řádků, volné místo kapacity ne
+- soubor bez hlavičky se načte celý jako data se všemi poli
+- prázdný soubor dá prázdnou tabulku

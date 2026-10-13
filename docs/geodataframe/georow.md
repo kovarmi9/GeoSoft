@@ -11,6 +11,56 @@ Unit: `src/DataStructures/GeoRow.pas`.
 | `TGeoFields` | výběr polí, např. `[CB, X, Y]` |
 | `TGeoRowArray` | pole řádků |
 
+## Ukázky
+
+### Vyplnění a čtení
+
+```pascal
+var
+  r: TGeoRow;
+begin
+  ClearGeoRow(r);                       // čísla NaN, texty '', celá čísla 0
+  r.Uloha := 1;
+  r.CB := '751261478500012';
+  r.X := 1045986.745;
+
+  if IsNan(r.Y) then
+    Writeln('Y není vyplněné');
+end;
+```
+
+### Výpis
+
+```pascal
+Writeln(PrintGeoRow(r, [CB, X, Y]));
+```
+
+```
+--- TGeoRow ---
+CB: 751261478500012
+X: 1045986,745
+Y: NAN
+```
+
+### Na text a zpět
+
+```pascal
+S := GeoFieldToText(r, X, '0.000', FS);         // '1045986,745'
+TextToGeoField(r, Y, '743841,459', FS);         // r.Y = 743841.459
+TextToGeoField(r, Z, 'abc', FS);                // není číslo, r.Z zůstane NaN
+```
+
+### Binární soubor
+
+```pascal
+SaveRow('radek.bin', r);                // přepíše soubor jedním řádkem
+SaveRow('radek.bin', r2, True);         // připíše druhý řádek
+
+r := LoadRow('radek.bin');              // první řádek
+r := LoadRow('radek.bin', 1);           // druhý řádek
+Rows := LoadRows('radek.bin');          // všechny, Length(Rows) = 2
+```
+
 ## Pole řádku
 
 | pole | typ | význam |
@@ -107,24 +157,28 @@ Y: NAN
 
 ## Binární soubor
 
+Řádky se zapíšou tak, jak leží v paměti, jeden za druhým.
+
 | volání | co dělá |
 |---|---|
-| `SaveRow(Soubor, Row)` | zapíše řádek, soubor přepíše |
-| `SaveRow(Soubor, Row, True)` | připíše řádek na konec |
-| `SaveRow(Soubor, Pole, Append)` | totéž pro pole řádků |
-| `LoadRow(Soubor)`, `LoadRow(Soubor, I)` | vrátí první, nebo `I`-tý řádek (od 0) |
-| `LoadRow(Soubor, Pole)` | načte všechny řádky |
+| `SaveRow(Soubor, Row)` | zapíše jeden řádek, soubor přepíše |
+| `SaveRow(Soubor, Row, True)` | připíše řádek na konec (soubor nemusí existovat) |
+| `SaveRows(Soubor, Pole, Append)` | totéž pro pole řádků |
+| `Row := LoadRow(Soubor)` | přečte první řádek |
+| `Row := LoadRow(Soubor, I)` | přečte řádek `I` (od 0) |
+| `Pole := LoadRows(Soubor)` | přečte všechny řádky, prázdný soubor dá prázdné pole |
 
-Soubor nemá hlavičku. Změna záznamu `TGeoRow` staré soubory znečitelní.
+Soubor se zavře vždy, i při chybě. Nemá hlavičku, takže změna záznamu
+`TGeoRow` staré soubory znečitelní.
 
 ## Výjimky
 
 | kdy | hláška |
 |---|---|
-| soubor neexistuje | Soubor "…" neexistuje. |
-| soubor je prázdný (`LoadRow(Soubor, I)`) | Soubor je prázdný. |
-| `I` mimo rozsah | Index … je mimo rozsah (0..…) |
-| soubor je kratší (`LoadRow(Soubor, Pole)`) | Načteno jen … z … záznamů. |
+| soubor neexistuje (`LoadRow`, `LoadRows`) | Soubor "…" neexistuje. |
+| soubor je prázdný (`LoadRow`) | Soubor je prázdný. |
+| `I` mimo rozsah (`LoadRow`) | Index … je mimo rozsah (0..…) |
+| soubor je kratší, než má být (`LoadRows`) | Načteno jen … z … záznamů. |
 | soubor nejde otevřít nebo zapsat | `EInOutError` |
 
 Ostatní funkce výjimky nevyhazují.

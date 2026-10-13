@@ -39,9 +39,10 @@ begin
     // Vynulování gdf1 - se všemi sloupci
 
     Writeln('Stav po defaultu');
-    Writeln('Počet polí: ',IntToStr(Length(gdf1.Rows)));
-    Writeln('Počet řádků: ',gdf1.Count);
-    Writeln('Počet alokovaných řádků: ',gdf1.Capacity);
+    Writeln('Pole (Fields): ', PrintGeoFields(gdf1.Fields));
+    Writeln('Počet řádků (Count): ', gdf1.Count);
+    Writeln('Kapacita (Capacity): ', gdf1.Capacity);
+    Writeln('Délka pole Rows (= Capacity): ', Length(gdf1.Rows));
 
     // Přidány dva řádky
     gdf1.AddRow(2);
@@ -79,6 +80,14 @@ begin
     // Přidání hotového z r1
     gdf1.AddRow(r1);
 
+    // Stav po přidání tří řádků
+    writeln('');
+    Writeln('Stav po přidání tří řádků');
+    Writeln('Pole (Fields): ', PrintGeoFields(gdf1.Fields));
+    Writeln('Počet řádků (Count): ', gdf1.Count);
+    Writeln('Kapacita (Capacity): ', gdf1.Capacity);
+    Writeln('Délka pole Rows (= Capacity): ', Length(gdf1.Rows));
+
     Writeln(sLineBreak,'Co je v gdf1 v řádku [2] na pozici Úloha?');
     writeln(gdf1.Rows[2].Uloha);
 
@@ -99,7 +108,7 @@ begin
     gdf1.ToCSV('gdf1.csv', ';', '.');
 
     // Vymazání dat
-    gdf1.ClearData();
+    gdf1.ClearData;
 
     // Výpis souboru s vymazanými daty
     Writeln('Výpis gdf1 s vymazanými daty:');
@@ -130,12 +139,12 @@ begin
     gdf2.SaveToFile('soubor.gdf');
 
     // Vyčištění
-    gdf1.ClearData();
-    gdf2.ClearData();
+    gdf1.ClearData;
+    gdf2.ClearData;
 
     // Uvolnění paměti
-    gdf1.Destroy();
-    gdf2.Destroy();
+    gdf1.Free;
+    gdf2.Free;
     csv1.Free;
 
     // Znovuvytvoření a načtení gdf ze souboru

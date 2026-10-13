@@ -103,8 +103,8 @@ Druhý parametr mění oddělovač (výchozí `', '`).
 
 ## Převod na text a zpět
 
-Jediné dvě funkce, které vyjmenovávají všechna pole. Používá je
-most grid ↔ tabulka i CSV. `AFS` určuje desetinný oddělovač.
+Převod jednoho pole na text a zpět. Používá je most grid ↔ tabulka
+i CSV. `AFS` určuje desetinný oddělovač.
 
 `GeoFieldToText(Row, Field, AFormat, AFS)`:
 

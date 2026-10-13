@@ -3,14 +3,14 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Math;
+  System.SysUtils, System.Math;
 
 const
   MAX_CB    = 15;   // point number length
   MAX_POPIS = 32;   // description length
 
 type
-  // Enum of all supported measurement fields
+  /// <summary>All fields of a row.</summary>
   TGeoField = (
     Uloha,
     CB,
@@ -30,12 +30,10 @@ type
     KK
   );
 
-  // Set of selected fields
+  /// <summary>A choice of fields, e.g. [CB, X, Y].</summary>
   TGeoFields = set of TGeoField;
 
-  // Single measurement row record.
-  // Packed on purpose: the binary file stores this record as it is,
-  // so the layout must depend only on the field types, not on the compiler.
+  /// <summary>One row of a task. Packed: the binary file stores it as it is.</summary>
   TGeoRow = packed record
     Uloha:         Integer;     // task type
     CB:            string[MAX_CB];  // point number
@@ -55,27 +53,27 @@ type
     KK:            Integer;     // quality code 0..8
   end;
 
-  // Dynamic array of rows
+  /// <summary>Array of rows.</summary>
   TGeoRowArray = array of TGeoRow;
 
-// Resets all fields of the row to zero/empty
+/// <summary>Empties the row: numbers NaN, texts '', integers 0.</summary>
 procedure ClearGeoRow(var ARow: TGeoRow);
 
 /// <summary>Readable dump of the row, one field per line.</summary>
 function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): string; overload;
 function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): string; overload;
 
-// Returns a comma-separated list of active field names
-function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string;
+/// <summary>Names of the fields, separated by ASep.</summary>
+function PrintGeoFields(const AFields: TGeoFields; const ASep: string = ', '): string;
 
-// One field of a row as text, and back. These two are the only places
-// that list all the fields.
+/// <summary>One field as text; NaN gives ''.</summary>
 function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField;
   const AFormat: string; const AFS: TFormatSettings): string;
+/// <summary>Text into one field; text that is not a number leaves the field as it is.</summary>
 procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField;
   const AText: string; const AFS: TFormatSettings);
 
-// Finds a field by its name from GeoFieldNames
+/// <summary>Finds a field by its name; case does not matter.</summary>
 function FindGeoField(const AName: string; out AField: TGeoField): Boolean;
 
 /// <summary>Writes one row to a binary file; AAppend adds it to the end.</summary>
@@ -88,8 +86,8 @@ function LoadRow(const AFileName: string; AIndex: Integer = 0): TGeoRow;
 /// <summary>Reads all rows from a binary file.</summary>
 function LoadRows(const AFileName: string): TGeoRowArray;
 
-// Field name lookup table used for CSV headers
 const
+  /// <summary>Field names for CSV and printouts.</summary>
   GeoFieldNames: array[TGeoField] of string = (
     'Uloha','CB','X','Y','Z','CBm','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka','KK'
   );
@@ -98,23 +96,23 @@ implementation
 
 procedure ClearGeoRow(var ARow: TGeoRow);
 begin
-   ARow.Uloha := 0;
-   ARow.CB := '';
-   // NaN marks a value nobody filled in
-   ARow.X := NaN ; ARow.Y := NaN; ARow.Z := NaN;
-   ARow.CBm := '';
-   ARow.Xm := NaN ; ARow.Ym := NaN; ARow.Zm := NaN;
-   ARow.TypS := 0;
-   ARow.SH := NaN;
-   ARow.SS := NaN;
-   ARow.VS := NaN;
-   ARow.VC := NaN;
-   ARow.HZ := NaN;
-   ARow.Zuhel := NaN;
-   ARow.PolarD := NaN;
-   ARow.PolarK := NaN;
-   ARow.Poznamka := '';
-   ARow.KK := 0;
+  ARow.Uloha := 0;
+  ARow.CB := '';
+  // NaN marks a value nobody filled in
+  ARow.X := NaN; ARow.Y := NaN; ARow.Z := NaN;
+  ARow.CBm := '';
+  ARow.Xm := NaN; ARow.Ym := NaN; ARow.Zm := NaN;
+  ARow.TypS := 0;
+  ARow.SH := NaN;
+  ARow.SS := NaN;
+  ARow.VS := NaN;
+  ARow.VC := NaN;
+  ARow.HZ := NaN;
+  ARow.Zuhel := NaN;
+  ARow.PolarD := NaN;
+  ARow.PolarK := NaN;
+  ARow.Poznamka := '';
+  ARow.KK := 0;
 end;
 
 // Overload that prints all fields — delegates to the field-mask overload
@@ -125,70 +123,70 @@ end;
 
 function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): string;
 var
-  f: TGeoField;
-  s: string;
+  F: TGeoField;
+  S: string;
 begin
   if ARowIndex >= 0 then
     Result := Format('--- TGeoRow %d ---', [ARowIndex]) + sLineBreak
   else
     Result := '--- TGeoRow ---' + sLineBreak;
 
-  for f := Low(TGeoField) to High(TGeoField) do
-    if f in AFields then
+  for F := Low(TGeoField) to High(TGeoField) do
+    if F in AFields then
     begin
-      case f of
-        Uloha:    s := Format('%s: %d', [GeoFieldNames[f], ARow.Uloha]);
-        CB:       s := Format('%s: %s', [GeoFieldNames[f], ARow.CB]);
-        X:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.X]);
-        Y:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Y]);
-        Z:        s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Z]);
-        CBm:      s := Format('%s: %s', [GeoFieldNames[f], ARow.CBm]);
-        Xm:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Xm]);
-        Ym:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Ym]);
-        Zm:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.Zm]);
-        TypS:     s := Format('%s: %d', [GeoFieldNames[f], ARow.TypS]);
-        SH:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.SH]);
-        SS:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.SS]);
-        VS:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.VS]);
-        VC:       s := Format('%s: %.3f', [GeoFieldNames[f], ARow.VC]);
-        HZ:       s := Format('%s: %.6f', [GeoFieldNames[f], ARow.HZ]);
-        Zuhel:    s := Format('%s: %.6f', [GeoFieldNames[f], ARow.Zuhel]);
-        PolarD:   s := Format('%s: %.3f', [GeoFieldNames[f], ARow.PolarD]);
-        PolarK:   s := Format('%s: %.3f', [GeoFieldNames[f], ARow.PolarK]);
-        Poznamka: s := Format('%s: %s', [GeoFieldNames[f], ARow.Poznamka]);
-        KK:       s := Format('%s: %d', [GeoFieldNames[f], ARow.KK]);
+      case F of
+        Uloha:    S := Format('%s: %d', [GeoFieldNames[F], ARow.Uloha]);
+        CB:       S := Format('%s: %s', [GeoFieldNames[F], ARow.CB]);
+        X:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.X]);
+        Y:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Y]);
+        Z:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Z]);
+        CBm:      S := Format('%s: %s', [GeoFieldNames[F], ARow.CBm]);
+        Xm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Xm]);
+        Ym:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Ym]);
+        Zm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Zm]);
+        TypS:     S := Format('%s: %d', [GeoFieldNames[F], ARow.TypS]);
+        SH:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.SH]);
+        SS:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.SS]);
+        VS:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.VS]);
+        VC:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.VC]);
+        HZ:       S := Format('%s: %.6f', [GeoFieldNames[F], ARow.HZ]);
+        Zuhel:    S := Format('%s: %.6f', [GeoFieldNames[F], ARow.Zuhel]);
+        PolarD:   S := Format('%s: %.3f', [GeoFieldNames[F], ARow.PolarD]);
+        PolarK:   S := Format('%s: %.3f', [GeoFieldNames[F], ARow.PolarK]);
+        Poznamka: S := Format('%s: %s', [GeoFieldNames[F], ARow.Poznamka]);
+        KK:       S := Format('%s: %d', [GeoFieldNames[F], ARow.KK]);
       end;
-      Result := Result + s + sLineBreak;
+      Result := Result + S + sLineBreak;
     end;
 end;
 
-function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string;
+function PrintGeoFields(const AFields: TGeoFields; const ASep: string = ', '): string;
 var
-  f: TGeoField;
-  first: Boolean;
+  F: TGeoField;
+  First: Boolean;
 begin
   Result := '';
-  first := True;
-  for f := Low(TGeoField) to High(TGeoField) do
-    if f in Used then
+  First := True;
+  for F := Low(TGeoField) to High(TGeoField) do
+    if F in AFields then
     begin
-      if not first then
-        Result := Result + Asep;
-      Result := Result + GeoFieldNames[f];
-      first := False;
+      if not First then
+        Result := Result + ASep;
+      Result := Result + GeoFieldNames[F];
+      First := False;
     end;
 end;
 
 // NaN gives empty text
-function FloatCell(const V: Double; const AFormat: string;
+function FloatCell(const AValue: Double; const AFormat: string;
   const AFS: TFormatSettings): string;
 begin
-  if IsNan(V) then
+  if IsNan(AValue) then
     Result := ''
   else if AFormat = '' then
-    Result := FloatToStr(V, AFS)
+    Result := FloatToStr(AValue, AFS)
   else
-    Result := FormatFloat(AFormat, V, AFS);
+    Result := FormatFloat(AFormat, AValue, AFS);
 end;
 
 function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField;

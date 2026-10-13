@@ -3,43 +3,45 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, GeoRow, Math;
+  System.SysUtils, System.Classes, System.Math, GeoRow;
 
 type
   TGeoRowArray = GeoRow.TGeoRowArray;
-  TStrArray = array of string;
 
-  // Table-like container for measurement rows with a defined field schema
+  /// <summary>Rows of one task and the fields it uses.</summary>
   TGeoDataFrame = class
-    private
+  private
     FCount: Integer;         // number of rows currently in use
     FCapacity: Integer;      // number of rows allocated
     FFields: TGeoFields;     // active field columns
     FRows: TGeoRowArray;     // row storage
 
-    procedure Reserve(Need: Integer);
+    procedure Reserve(ANeed: Integer);
     procedure SetCount(const Value: Integer);
 
-    public
+  public
+    /// <summary>Empty table with all fields.</summary>
     constructor Create; overload;
+    /// <summary>Empty table with the given fields.</summary>
     constructor Create(const AFields: TGeoFields); overload;
 
-    destructor Destroy; override;
-
-    // Exposed properties
+    /// <summary>Number of rows. Setting it adds empty rows or drops the last ones.</summary>
     property Count: Integer read FCount write SetCount;
+    /// <summary>Rows that fit before the array has to grow.</summary>
     property Capacity: Integer read FCapacity;
+    /// <summary>Fields written by Print and ToCSV.</summary>
     property Fields: TGeoFields read FFields write FFields;
-    property Rows: TGeoRowArray read FRows; // Length(Rows) is Capacity, use Count
+    /// <summary>The rows. Use Count; Length(Rows) is Capacity.</summary>
+    property Rows: TGeoRowArray read FRows;
 
-    // Clears rows only; keeps the field schema
-    procedure ClearData();
+    /// <summary>Deletes all rows; Fields stay.</summary>
+    procedure ClearData;
 
-    // Adds one empty row
-    procedure AddRow(); overload;
-    // Adds N empty rows
-    procedure AddRow(N: Integer); overload;
-    // Adds a copy of the given row
+    /// <summary>Adds one empty row.</summary>
+    procedure AddRow; overload;
+    /// <summary>Adds ACount empty rows.</summary>
+    procedure AddRow(ACount: Integer); overload;
+    /// <summary>Adds a copy of the row.</summary>
     procedure AddRow(const ARow: TGeoRow); overload;
 
     /// <summary>Readable dump of the frame.</summary>
@@ -47,35 +49,120 @@ type
 
     /// <summary>The frame as CSV text, or saved to a CSV file.</summary>
     function ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): string; overload;
-    procedure ToCSV(const FileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
+    procedure ToCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
-    // Deserialises the frame from CSV (in-memory or file)
-    procedure FromCSV(const CSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
-    procedure FromCSV(const FileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
+    /// <summary>Reads CSV lines or a CSV file; Fields come from the header.</summary>
+    procedure FromCSV(const ACSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
+    procedure FromCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
-    // Saves/loads the frame as a binary typed file (file of TGeoRow with a header record)
-    procedure SaveToFile(const FileName: string);
-    procedure LoadFromFile(const FileName: string);
+    /// <summary>Saves rows and Fields to a binary file.</summary>
+    procedure SaveToFile(const AFileName: string);
+    /// <summary>Loads a file written by SaveToFile.</summary>
+    procedure LoadFromFile(const AFileName: string);
 
   end;
 
 implementation
 
-// Forward declarations of private helper functions
-function SplitCsvLine(const ALine: string; ASep: Char): TStrArray; forward;
+type
+  TStrArray = array of string;
 
-function GeoFieldsToMask(const F: TGeoFields): LongWord; forward;
-function MaskToGeoFields(const Mask: LongWord): TGeoFields; forward;
+// Number format for CSV; the two separators must differ
+function CsvFormat(ACellSep, ADecSep: Char): TFormatSettings;
+begin
+  if ACellSep = ADecSep then
+    raise EArgumentException.CreateFmt(
+      'Oddělovač buněk "%s" se musí lišit od desetinného oddělovače "%s".',
+      [string(ACellSep), string(ADecSep)]);
+  Result := TFormatSettings.Create;
+  Result.DecimalSeparator := ADecSep;
+  Result.ThousandSeparator := #0;   // no thousands separator
+end;
 
+// Splits one CSV line into cells, respecting quoted strings and escaped quotes ("")
+function SplitCsvLine(const ALine: string; ASep: Char): TStrArray;
+var
+  I, N: Integer;     // I = current char index; N = number of stored cells
+  InQuotes: Boolean; // True while inside a quoted field
+  Ch: Char;          // current character
+  Buf: string;       // the current cell
+begin
+  SetLength(Result, 0);
+  Buf := '';
+  InQuotes := False;
+  N := 0;
+  I := 1;
 
-// -- Public --
+  while I <= Length(ALine) do
+  begin
+    Ch := ALine[I];
 
+    // Handle double-quote characters
+    if Ch = '"' then
+    begin
+      // "" inside a quoted field is an escaped quote — emit a single " and skip both chars
+      if InQuotes and (I < Length(ALine)) and (ALine[I + 1] = '"') then
+      begin
+        Buf := Buf + '"';
+        I := I + 2;
+        Continue;
+      end
+      else
+      begin
+        // Toggle in/out of quoted mode
+        InQuotes := not InQuotes;
+        I := I + 1;
+        Continue;
+      end;
+    end;
+
+    // Unquoted separator — close the current cell and start a new one
+    if (not InQuotes) and (Ch = ASep) then
+    begin
+      SetLength(Result, N + 1);
+      Result[N] := Buf;
+      N := N + 1;
+      Buf := '';
+      I := I + 1;
+      Continue;
+    end;
+
+    // Regular character — append to current cell
+    Buf := Buf + Ch;
+    I := I + 1;
+  end;
+
+  // Store the last cell
+  SetLength(Result, N + 1);
+  Result[N] := Buf;
+end;
+
+// Converts a TGeoFields set to a bitmask (one bit per enum ordinal)
+function GeoFieldsToMask(const AFields: TGeoFields): LongWord;
+var
+  F: TGeoField;
+begin
+  Result := 0;
+  for F := Low(TGeoField) to High(TGeoField) do
+    if F in AFields then
+      Result := Result or (LongWord(1) shl Ord(F));
+end;
+
+// Converts a bitmask back to a TGeoFields set
+function MaskToGeoFields(const AMask: LongWord): TGeoFields;
+var
+  F: TGeoField;
+begin
+  Result := [];
+  for F := Low(TGeoField) to High(TGeoField) do
+    if (AMask and (LongWord(1) shl Ord(F))) <> 0 then
+      Include(Result, F);
+end;
+
+// Count, Capacity and Rows start empty: Delphi zeroes every new object
 constructor TGeoDataFrame.Create;
 begin
   inherited Create;
-  FCount := 0;
-  FCapacity := 0;
-  SetLength(FRows, 0);
   FFields := [Low(TGeoField)..High(TGeoField)];
 end;
 
@@ -85,46 +172,41 @@ begin
   Fields := AFields;
 end;
 
-destructor TGeoDataFrame.Destroy;
+// Doubles capacity until it covers ANeed; no-op if already sufficient
+procedure TGeoDataFrame.Reserve(ANeed: Integer);
+var
+  Cap: Integer;
 begin
-  SetLength(FRows, 0);
-  inherited;
-end;
-
-// Doubles capacity until it covers Need; no-op if already sufficient
-procedure TGeoDataFrame.Reserve(Need: Integer);
-var cap: Integer;
-begin
-  if Need <= FCapacity then Exit;
-  cap := Math.Max(1, FCapacity);
-  while cap < Need do cap := cap * 2;
-  SetLength(FRows, cap);
-  FCapacity := cap;
+  if ANeed <= FCapacity then Exit;
+  Cap := Max(1, FCapacity);
+  while Cap < ANeed do Cap := Cap * 2;
+  SetLength(FRows, Cap);
+  FCapacity := Cap;
 end;
 
 procedure TGeoDataFrame.SetCount(const Value: Integer);
 var
-  i, OldCount: Integer;
+  I, OldCount: Integer;
 begin
   if Value < 0 then
-    raise ERangeError.CreateFmt('Invalid Count: %d', [Value]);
+    raise ERangeError.CreateFmt('Neplatný počet řádků: %d', [Value]);
 
   OldCount := FCount;
 
   if Value > FCapacity then
     Reserve(Value);
 
-  // Zero-initialise newly added rows
+  // New rows start empty
   if Value > OldCount then
   begin
-    for i := OldCount to Value - 1 do
-      ClearGeoRow(FRows[i]);
+    for I := OldCount to Value - 1 do
+      ClearGeoRow(FRows[I]);
   end
   else if Value < OldCount then
   begin
-    // Zero-out removed slots for cleanliness
-    for i := Value to OldCount - 1 do
-      ClearGeoRow(FRows[i]);
+    // Empty the dropped rows too
+    for I := Value to OldCount - 1 do
+      ClearGeoRow(FRows[I]);
   end;
 
   FCount := Value;
@@ -143,16 +225,16 @@ begin
   AddRow(1);
 end;
 
-procedure TGeoDataFrame.AddRow(N: Integer);
+procedure TGeoDataFrame.AddRow(ACount: Integer);
 var
-  i, need: Integer;
+  I, NewCount: Integer;
 begin
-  if N <= 0 then Exit;
-  need := FCount + N;
-  Reserve(need);
-  for i := FCount to need - 1 do
-    ClearGeoRow(FRows[i]);
-  FCount := need;
+  if ACount <= 0 then Exit;
+  NewCount := FCount + ACount;
+  Reserve(NewCount);
+  for I := FCount to NewCount - 1 do
+    ClearGeoRow(FRows[I]);
+  FCount := NewCount;
 end;
 
 procedure TGeoDataFrame.AddRow(const ARow: TGeoRow);
@@ -163,36 +245,27 @@ end;
 
 function TGeoDataFrame.Print: string;
 var
-  i: Integer;
+  I: Integer;
 begin
   Result := '=== TGeoDataFrame ===' + sLineBreak +
     Format('Count    : %d', [Count]) + sLineBreak +
     Format('Capacity : %d', [Capacity]) + sLineBreak +
     'Fields   : ' + PrintGeoFields(Fields) + sLineBreak;
 
-  for i := 0 to Count - 1 do
-    Result := Result + sLineBreak + PrintGeoRow(FRows[i], Fields, i);
+  for I := 0 to Count - 1 do
+    Result := Result + sLineBreak + PrintGeoRow(FRows[I], Fields, I);
 end;
 
 function TGeoDataFrame.ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): string;
 var
   Field: TGeoField;
   RowIndex: Integer;
-  Line, s: string;
+  Line, S: string;
   FormatSettings: TFormatSettings;
   Row: TGeoRow;
   CSV: TStringList;
 begin
-  if ACellSep = ADecSep then
-    raise EArgumentException.CreateFmt(
-      'Cell separator "%s" must differ from decimal separator "%s".',
-      [string(ACellSep), string(ADecSep)]
-    );
-
-  // Configure number format
-  FormatSettings := TFormatSettings.Create;
-  FormatSettings.DecimalSeparator  := ADecSep;
-  FormatSettings.ThousandSeparator := #0; // disable thousands separator
+  FormatSettings := CsvFormat(ACellSep, ADecSep);
 
   CSV := TStringList.Create;
   try
@@ -211,11 +284,11 @@ begin
           if Line <> '' then
             Line := Line + ACellSep;
 
-          s := GeoFieldToText(Row, Field, '', FormatSettings);
+          S := GeoFieldToText(Row, Field, '', FormatSettings);
           if Field in [CB, CBm, Poznamka] then
-            s := '"' + StringReplace(s, '"', '""', [rfReplaceAll]) + '"';
+            S := '"' + StringReplace(S, '"', '""', [rfReplaceAll]) + '"';
 
-          Line := Line + s;
+          Line := Line + S;
         end;
 
       CSV.Add(Line);
@@ -228,7 +301,7 @@ begin
 end;
 
 // File overload — builds the CSV text then saves it to disk
-procedure TGeoDataFrame.ToCSV(const FileName: string;
+procedure TGeoDataFrame.ToCSV(const AFileName: string;
   const ACellSep: Char; const ADecSep: Char);
 var
   CSV: TStringList;
@@ -236,46 +309,33 @@ begin
   CSV := TStringList.Create;
   try
     CSV.Text := ToCSV(ACellSep, ADecSep);
-    CSV.SaveToFile(FileName);
+    CSV.SaveToFile(AFileName);
   finally
     CSV.Free;
   end;
 end;
 
-procedure TGeoDataFrame.FromCSV(const CSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.');
+procedure TGeoDataFrame.FromCSV(const ACSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.');
 var
   FormatSettings: TFormatSettings;
-  Header: TStrArray;
+  Header, Cells: TStrArray;
   ColCount: Integer;
   ColMap: array of TGeoField;
   ColKnown: array of Boolean;
-  i, j: Integer;
-  Line, Value: string;
-  FieldsArr: TStrArray;
-  Row: TGeoRow;
+  I, J: Integer;
   Field: TGeoField;
   UsedFields: TGeoFields;
 begin
-
-  if (CSV = nil) or (CSV.Count = 0) then
+  if (ACSV = nil) or (ACSV.Count = 0) then
   begin
     ClearData;
     Exit;
   end;
 
-  if ACellSep = ADecSep then
-    raise EArgumentException.CreateFmt(
-      'Cell separator "%s" must differ from decimal separator "%s".',
-      [string(ACellSep), string(ADecSep)]
-    );
-
-  // Number format for parsing
-  FormatSettings := TFormatSettings.Create;
-  FormatSettings.DecimalSeparator  := ADecSep;
-  FormatSettings.ThousandSeparator := #0;
+  FormatSettings := CsvFormat(ACellSep, ADecSep);
 
   // Parse header row to build column-to-field mapping
-  Header := SplitCsvLine(CSV[0], ACellSep);
+  Header := SplitCsvLine(ACSV[0], ACellSep);
   ColCount := Length(Header);
   if ColCount = 0 then
   begin
@@ -287,68 +347,54 @@ begin
   SetLength(ColKnown, ColCount);
   UsedFields := [];
 
-  for j := 0 to ColCount - 1 do
+  for J := 0 to ColCount - 1 do
   begin
-    Value := Trim(Header[j]);
-    if FindGeoField(Value, Field) then
+    if FindGeoField(Trim(Header[J]), Field) then
     begin
-      ColMap[j]   := Field;
-      ColKnown[j] := True;
+      ColMap[J]   := Field;
+      ColKnown[J] := True;
       Include(UsedFields, Field);
     end
     else
-      ColKnown[j] := False;
+      ColKnown[J] := False;
   end;
 
   // Reset storage and apply the schema derived from the header
   ClearData;
   FFields := UsedFields;
-  SetCount(CSV.Count - 1);
+  SetCount(ACSV.Count - 1);
 
-  // Parse data rows
-  for i := 1 to CSV.Count - 1 do
-  begin
-    Line := CSV[i];
-    Row := FRows[i - 1];
-
-    if Line <> '' then
+  // Parse data rows straight into FRows
+  for I := 1 to ACSV.Count - 1 do
+    if ACSV[I] <> '' then
     begin
-      FieldsArr := SplitCsvLine(Line, ACellSep);
-
-      for j := 0 to High(FieldsArr) do
-        if (j < ColCount) and ColKnown[j] then
-        begin
-          Field := ColMap[j];
-          Value := FieldsArr[j];
-
-          TextToGeoField(Row, Field, Value, FormatSettings);
-        end;
+      Cells := SplitCsvLine(ACSV[I], ACellSep);
+      for J := 0 to High(Cells) do
+        if (J < ColCount) and ColKnown[J] then
+          TextToGeoField(FRows[I - 1], ColMap[J], Cells[J], FormatSettings);
     end;
-
-    FRows[i - 1] := Row;
-  end;
 end;
 
 // File overload — loads file into a string list and delegates to the in-memory version
-procedure TGeoDataFrame.FromCSV(const FileName: string;
+procedure TGeoDataFrame.FromCSV(const AFileName: string;
   const ACellSep: Char; const ADecSep: Char);
 var
   CSV: TStringList;
 begin
   CSV := TStringList.Create;
   try
-    CSV.LoadFromFile(FileName);
+    CSV.LoadFromFile(AFileName);
     FromCSV(CSV, ACellSep, ADecSep);
   finally
     CSV.Free;
   end;
 end;
 
-procedure TGeoDataFrame.SaveToFile(const FileName: string);
+procedure TGeoDataFrame.SaveToFile(const AFileName: string);
 var
   Buffer: array of TGeoRow;
   Header: TGeoRow;
-  i: Integer;
+  I: Integer;
 begin
   // Allocate buffer for header record + data rows
   SetLength(Buffer, FCount + 1);
@@ -362,21 +408,20 @@ begin
   Buffer[0] := Header;
 
   // Copy data rows into Buffer[1..FCount]
-  for i := 0 to FCount - 1 do
-    Buffer[i + 1] := FRows[i];
+  for I := 0 to FCount - 1 do
+    Buffer[I + 1] := FRows[I];
 
-  SaveRows(FileName, Buffer);
+  SaveRows(AFileName, Buffer);
 end;
 
-procedure TGeoDataFrame.LoadFromFile(const FileName: string);
+procedure TGeoDataFrame.LoadFromFile(const AFileName: string);
 var
   AllRows: TGeoRowArray;
   Header: TGeoRow;
   UsedFields: TGeoFields;
-  mask: LongWord;
-  DataCount, i: Integer;
+  First, I: Integer;
 begin
-  AllRows := LoadRows(FileName);
+  AllRows := LoadRows(AFileName);
 
   // Empty file — reset and exit
   if Length(AllRows) = 0 then
@@ -385,125 +430,24 @@ begin
     Exit;
   end;
 
-  // Default: all fields active (used when no header record is present)
-  UsedFields := [Low(TGeoField)..High(TGeoField)];
-
+  // A header record carries Fields; a file without it has all fields
   Header := AllRows[0];
-
-  if (Header.Uloha = -1) and SameText(String(Header.CB), '__HEADER__') then
+  if (Header.Uloha = -1) and SameText(string(Header.CB), '__HEADER__') then
   begin
-    // Header record found — decode the field mask
-    mask := LongWord(Header.TypS);
-    UsedFields := MaskToGeoFields(mask);
-
-    DataCount := Length(AllRows) - 1;
-
-    ClearData;
-    FFields := UsedFields;
-    SetCount(DataCount);
-
-    // Data starts at AllRows[1]
-    for i := 0 to DataCount - 1 do
-      FRows[i] := AllRows[i + 1];
+    UsedFields := MaskToGeoFields(LongWord(Header.TypS));
+    First := 1;            // data start after the header
   end
   else
   begin
-    // No header — treat the entire file as data rows
-    DataCount := Length(AllRows);
-
-    ClearData;
-    FFields := UsedFields;
-    SetCount(DataCount);
-
-    for i := 0 to DataCount - 1 do
-      FRows[i] := AllRows[i];
-  end;
-end;
-
-
-////////////////////////////////////////////////////////////////////////////////
-
-// Helper functions
-
-// Splits one CSV line into cells, respecting quoted strings and escaped quotes ("")
-function SplitCsvLine(const ALine: string; ASep: Char): TStrArray;
-var
-  i, n: Integer;     // i = current char index; n = number of stored cells
-  inQuotes: Boolean; // True while inside a quoted field
-  ch: Char;          // current character
-  buf: string;       // accumulation buffer for the current cell
-begin
-  SetLength(Result, 0);
-  buf := '';
-  inQuotes := False;
-  n := 0;
-  i := 1;
-
-  while i <= Length(ALine) do
-  begin
-    ch := ALine[i];
-
-    // Handle double-quote characters
-    if ch = '"' then
-    begin
-      // "" inside a quoted field is an escaped quote — emit a single " and skip both chars
-      if inQuotes and (i < Length(ALine)) and (ALine[i+1] = '"') then
-      begin
-        buf := buf + '"';
-        i := i + 2;
-        Continue;
-      end
-      else
-      begin
-        // Toggle in/out of quoted mode
-        inQuotes := not inQuotes;
-        i := i + 1;
-        Continue;
-      end;
-    end;
-
-    // Unquoted separator — close the current cell and start a new one
-    if (not inQuotes) and (ch = ASep) then
-    begin
-      SetLength(Result, n + 1);
-      Result[n] := buf;
-      n := n + 1;
-      buf := '';
-      i := i + 1;
-      Continue;
-    end;
-
-    // Regular character — append to current cell
-    buf := buf + ch;
-    i := i + 1;
+    UsedFields := [Low(TGeoField)..High(TGeoField)];
+    First := 0;
   end;
 
-  // Store the last cell
-  SetLength(Result, n + 1);
-  Result[n] := buf;
+  ClearData;
+  FFields := UsedFields;
+  SetCount(Length(AllRows) - First);
+  for I := 0 to Count - 1 do
+    FRows[I] := AllRows[I + First];
 end;
-
-// Converts a TGeoFields set to a bitmask (one bit per enum ordinal)
-function GeoFieldsToMask(const F: TGeoFields): LongWord;
-var
-  fld: TGeoField;
-begin
-  Result := 0;
-  for fld := Low(TGeoField) to High(TGeoField) do
-    if fld in F then
-      Result := Result or (LongWord(1) shl Ord(fld));
-end;
-
-// Converts a bitmask back to a TGeoFields set
-function MaskToGeoFields(const Mask: LongWord): TGeoFields;
-var
-  fld: TGeoField;
-begin
-  Result := [];
-  for fld := Low(TGeoField) to High(TGeoField) do
-    if (Mask and (LongWord(1) shl Ord(fld))) <> 0 then
-      Include(Result, fld);
-end;
-
 
 end.

@@ -116,7 +116,10 @@ Rows:  [ řádek 0 | řádek 1 | řádek 2 | volno ]
 | `Rows[i]` | řádek `i`, platí `0 ≤ i < Count` |
 
 !!! warning "Pozor"
-    `Length(Rows)` je kapacita, ne počet řádků. Vždy používejte `Count`.
+    `Length(Rows)` je kapacita, ne počet řádků. Totéž platí pro `High(Rows)`
+    a `for Row in Rows`, které projdou i prázdné řádky v rezervě.
+    Vždy používejte `for I := 0 to Count - 1`.
+    (Stejně funguje `TList<T>.List` v Delphi.)
 
 `Rows` jde jen číst. Hodnoty v řádku se mění přímo
 (`Rows[0].X := 1045986.745`), řádky se přidávají přes `AddRow`.

@@ -50,6 +50,5 @@ begin
   Application.CreateForm(TRectangularMeasurementsForm, RectangularMeasurementsForm);
   Application.CreateForm(TCheckMeasurementsForm, CheckMeasurementsForm);
   Application.CreateForm(TPolarMethodForm, PolarMethodForm);
-  Application.CreateForm(TSettingsForm, SettingsForm);
   Application.Run;
 end.

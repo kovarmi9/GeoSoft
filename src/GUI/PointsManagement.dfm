@@ -129,7 +129,7 @@ object PointsManagementForm: TPointsManagementForm
       Top = 0
       Width = 94
       Height = 23
-      Hint = 'Popis bodu'
+      Hint = 'ZPMZ'
       ItemIndex = 0
       MaxLength = 5
       TabOrder = 1

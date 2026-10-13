@@ -137,6 +137,10 @@ end;
 
 procedure TParcelAreaForm.CalculateClick(Sender: TObject);
 begin
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
+  Memo1.Lines.Clear;       // old area would look like a new one
+
   // The frame is the only input, so every run rebuilds it
   if not BuildFrame then
     Exit;
@@ -153,6 +157,8 @@ procedure TParcelAreaForm.SaveClick(Sender: TObject);
 var
   FileName: string;
 begin
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
   if not BuildFrame then
     Exit;
 

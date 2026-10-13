@@ -49,6 +49,7 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 3
+    OnExit = GridExit
     OnSelectCell = GridPairsSelectCell
     EnterEndBehavior = ebAddRow
     OnCellCommitted = PairCommitted

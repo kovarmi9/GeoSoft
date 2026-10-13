@@ -163,6 +163,7 @@ inherited PolarMethodForm: TPolarMethodForm
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 1
+      OnExit = GridExit
       EnterEndBehavior = ebAddRow
       OnCellCommitted = OrientationCellCommitted
       ColumnFields.Strings = (
@@ -225,6 +226,7 @@ inherited PolarMethodForm: TPolarMethodForm
       RowCount = 2
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
       TabOrder = 2
+      OnExit = GridExit
       EnterEndBehavior = ebAddRow
       OnCellCommitted = DetailCellCommitted
       ColumnFields.Strings = (

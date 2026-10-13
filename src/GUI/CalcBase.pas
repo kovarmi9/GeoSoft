@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms,
   Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
   PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable,
-  GeoRow;
+  GeoRow, GeoGrid;
 
 type
   TCalcBaseForm = class(TForm)
@@ -32,9 +32,13 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure MenuUlozitProtokolClick(Sender: TObject);
     procedure MenuNastaveniClick(Sender: TObject);
+    /// <summary>OnExit of every calculation grid; remembers a typed value.</summary>
+    procedure GridExit(Sender: TObject);
   private
     // points this form added to the list itself
     FNewPoints: TList<Int64>;
+    // grid left with a typed, unconfirmed value
+    FEditedGrid: TGeoGrid;
     // answers for points that were in the list, asked once per showing
     FAnswers: TDictionary<Int64, Integer>;
     // those points as they were before this form changed them
@@ -49,6 +53,10 @@ type
 
     /// <summary>The next run asks again about existing points.</summary>
     procedure ForgetAnswers;
+
+    /// <summary>Confirms the cell being typed in, as Enter would.
+    /// False when the value is invalid; the cursor stays in the cell.</summary>
+    function CommitEditing: Boolean;
 
     /// <summary>Finds a point or offers to add it.</summary>
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
@@ -105,6 +113,10 @@ implementation
 uses
   SettingsDialog, ExistingPoint;
 
+type
+  // InplaceEditor is protected; a descendant declared here may read it
+  TGridAccess = class(TGeoGrid);
+
 constructor TCalcBaseForm.Create(AOwner: TComponent);
 var
   W, H: Integer;
@@ -157,6 +169,35 @@ end;
 procedure TCalcBaseForm.ForgetAnswers;
 begin
   FAnswers.Clear;
+end;
+
+// The grid closes its editor right after this, so remember a typed value
+procedure TCalcBaseForm.GridExit(Sender: TObject);
+var
+  G: TGeoGrid;
+begin
+  G := Sender as TGeoGrid;
+  if G.EditorMode and TGridAccess(G).InplaceEditor.Modified then
+    FEditedGrid := G
+  else if G = FEditedGrid then
+    FEditedGrid := nil;            // the value was confirmed meanwhile
+end;
+
+// Called by the Calculate and Save buttons
+function TCalcBaseForm.CommitEditing: Boolean;
+var
+  G: TGeoGrid;
+begin
+  Result := True;
+  if FEditedGrid = nil then
+    Exit;
+
+  G := FEditedGrid;
+  FEditedGrid := nil;
+  G.EditorMode := True;            // the editor comes back with the typed text
+  Result := G.CommitCurrentCell;
+  if not Result and G.CanFocus then
+    G.SetFocus;                    // invalid value, the user fixes it
 end;
 
 // The one point list of the program

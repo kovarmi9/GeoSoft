@@ -290,6 +290,8 @@ end;
 procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
 begin
   ForgetAnswers;     // a new run asks again
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
   Memo1.Lines.Clear;
   Recompute;
 
@@ -306,6 +308,8 @@ procedure TRectangularMeasurementsForm.ButtonSaveClick(Sender: TObject);
 var
   FileName: string;
 begin
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
   Recompute;               // the file carries the computed coordinates
 

@@ -50,6 +50,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 1
+    OnExit = GridExit
     OnKeyDown = AnchorGridKeyDown
     EnterEndBehavior = ebMoveFocusNext
     OnCellCommitted = BasePointCommitted
@@ -116,6 +117,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     ParentColor = True
     TabOrder = 4
+    OnExit = GridExit
     OnKeyDown = DetailGridKeyDown
     OnSelectCell = DetailGridSelectCell
     EnterEndBehavior = ebAddRow

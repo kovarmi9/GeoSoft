@@ -33,6 +33,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
+    OnExit = GridExit
     EnterEndBehavior = ebAddRow
     OnCellCommitted = CellCommitted
     OnCellSelectable = GridCellSelectable

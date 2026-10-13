@@ -48,6 +48,7 @@ type
     FAlg: TOrthogonalMethodAlgorithm;
     FFrame: TGeoDataFrame;        // the input and the output of the run
     FRows: TArray<Integer>;       // detail grid row of each frame row, -1 = P or K
+    FDetailCB: TArray<string>;    // number each detail row was filled for
     procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
     procedure BuildFrame;
@@ -240,6 +241,20 @@ begin
         NormalizePointCell(G, ACol, ARow);
         PNum := StrToInt64Def(G.Cells[ACol, ARow], 0);
 
+        // A new number brings its own height, quality and description
+        if ARow >= Length(FDetailCB) then
+          SetLength(FDetailCB, ARow + 1);
+        if G.Cells[ACol, ARow] <> FDetailCB[ARow] then
+        begin
+          FDetailCB[ARow] := G.Cells[ACol, ARow];
+          if G.FieldToCol(Z) >= 0 then
+            G.Cells[G.FieldToCol(Z), ARow] := '';
+          if G.FieldToCol(KK) >= 0 then
+            G.Cells[G.FieldToCol(KK), ARow] := '';
+          if G.FieldToCol(Poznamka) >= 0 then
+            G.Cells[G.FieldToCol(Poznamka), ARow] := '';
+        end;
+
         if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
         begin
           P := TPointDictionary.GetInstance.GetPoint(PNum);
@@ -296,6 +311,10 @@ var
   end;
 
 begin
+  ForgetAnswers;     // a new run asks again
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
+
   // The tape has to start and end on a known point
   if not LoadBasePoint(1, P0) then
   begin
@@ -308,7 +327,6 @@ begin
     Exit;
   end;
 
-  ForgetAnswers;     // a new run asks again
   Recompute;
   if not FAlg.Baseline.Valid then
   begin
@@ -328,6 +346,9 @@ procedure TOrthogonalMethodForm.SaveClick(Sender: TObject);
 var
   FileName: string;
 begin
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
+
   // The file is made from the grids, but nothing on the form moves
   BuildFrame;
   FAlg.Calculate(FFrame);

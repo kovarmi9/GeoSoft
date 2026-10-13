@@ -31,6 +31,7 @@ inherited ParcelAreaForm: TParcelAreaForm
     RowCount = 4
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
+    OnExit = GridExit
     EnterEndBehavior = ebAddRow
     OnCellCommitted = PointCommitted
     ColumnFields.Strings = (

@@ -63,10 +63,12 @@ type
     FFrame: TGeoDataFrame;        // the input and the output of the run
     FProtocol: TPolarProtocol;
     FRows: TArray<Integer>;       // detail grid row of each frame row, -1 = elsewhere
+    FDetailCB: TArray<string>;    // number each detail row was filled for
     function  StationNo: string;
     function  FillStation: Boolean;
     function  BuildFrame: Boolean;
     procedure Recompute;
+    procedure ClearResults;
     procedure ApplyColumnsToGrids;
   protected
     procedure Loaded; override;
@@ -283,6 +285,17 @@ begin
     NormalizePointCell(G, CBCol, ARow);
     PNum := StrToInt64Def(G.Cells[CBCol, ARow], 0);
 
+    // A new number brings its own height, quality and description
+    if ARow >= Length(FDetailCB) then
+      SetLength(FDetailCB, ARow + 1);
+    if G.Cells[CBCol, ARow] <> FDetailCB[ARow] then
+    begin
+      FDetailCB[ARow] := G.Cells[CBCol, ARow];
+      SetCell(Z, '');
+      SetCell(KK, '');
+      SetCell(Poznamka, '');
+    end;
+
     // A point from the list keeps its height, quality and description,
     // the same as in the orthogonal method
     if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
@@ -463,9 +476,34 @@ begin
   ShowProtocol(Memo1.Lines);
 end;
 
+// No valid run: old results would look like new ones
+procedure TPolarMethodForm.ClearResults;
+var
+  R, CX, CY: Integer;
+begin
+  CX := GridDetail.FieldToCol(X);
+  CY := GridDetail.FieldToCol(Y);
+  for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
+  begin
+    if CX >= 0 then GridDetail.Cells[CX, R] := '';
+    if CY >= 0 then GridDetail.Cells[CY, R] := '';
+  end;
+
+  // A free station is a result as well
+  if not CheckBox1.Checked then
+  begin
+    EditStationY.Text := '';
+    EditStationX.Text := '';
+  end;
+  Memo1.Lines.Clear;
+end;
+
 procedure TPolarMethodForm.CalculateClick(Sender: TObject);
 begin
   ForgetAnswers;     // a new run asks again
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
+  ClearResults;      // old results would look like new ones
 
   // The frame is the only input, so every run rebuilds it
   if not BuildFrame then
@@ -482,6 +520,8 @@ procedure TPolarMethodForm.SaveClick(Sender: TObject);
 var
   FileName: string;
 begin
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
   if not BuildFrame then
     Exit;
   FAlg.Calculate(FFrame);

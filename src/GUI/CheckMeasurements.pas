@@ -132,7 +132,7 @@ begin
   GridPairs.Cells[0, ARow] := IntToStr(ARow);
 end;
 
-// Reads one grid row. False when the row has no pair of point numbers.
+// Clears the computed columns of one row.
 procedure TCheckMeasurementsForm.ClearComputed(ARow: Integer);
 begin
   GridPairs.Cells[COL_COMP, ARow] := '';
@@ -141,7 +141,6 @@ begin
   GridPairs.Cells[COL_PASS, ARow] := '';
 end;
 
-// Fills the computed columns right after the row is typed in.
 // Writes the results of the last run back into the computed columns
 procedure TCheckMeasurementsForm.RefreshComputed;
 var
@@ -241,6 +240,8 @@ var
   FileName: string;
   Report: string;
 begin
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
   Recompute;               // the file carries SS, so it has to be computed
 
@@ -384,8 +385,8 @@ end;
 
 procedure TCheckMeasurementsForm.CalculateClick(Sender: TObject);
 begin
-  if GridPairs.EditorMode then
-    GridPairs.EditorMode := False;
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
 
   Recompute;
   if FFrame.Count = 0 then

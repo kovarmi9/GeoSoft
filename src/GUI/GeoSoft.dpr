@@ -34,7 +34,8 @@ uses
   ProtocolPolar in '..\Utils\ProtocolPolar.pas',
   ProtocolTable in '..\Utils\ProtocolTable.pas',
   SettingsState in '..\Utils\SettingsState.pas',
-  ValidationUtils in '..\Utils\ValidationUtils.pas';
+  ValidationUtils in '..\Utils\ValidationUtils.pas',
+  ExistingPoint in '..\Utils\ExistingPoint.pas';
 
 {$R *.res}
 

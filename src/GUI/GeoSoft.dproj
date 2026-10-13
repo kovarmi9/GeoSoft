@@ -189,6 +189,7 @@
         <DCCReference Include="..\Utils\ProtocolTable.pas"/>
         <DCCReference Include="..\Utils\SettingsState.pas"/>
         <DCCReference Include="..\Utils\ValidationUtils.pas"/>
+        <DCCReference Include="..\Utils\ExistingPoint.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

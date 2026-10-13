@@ -19,8 +19,8 @@ begin
   try
     // --- Test r1 ---
 
-    // Výpis nevyplněného řádku
-    Writeln('Výpis nevyplněného řádku');
+    // Globální proměnná je jen vynulovaná (0), prázdný řádek dělá až ClearGeoRow (NaN)
+    Writeln('Výpis řádku bez ClearGeoRow (nuly z paměti, ne NaN)');
     Writeln(PrintGeoRow(r1));
 
     // Naplnění řádku

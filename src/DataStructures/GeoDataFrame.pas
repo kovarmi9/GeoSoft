@@ -52,7 +52,7 @@ type
     procedure ToCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
     /// <summary>Reads CSV lines or a CSV file; Fields come from the header.</summary>
-    procedure FromCSV(const ACSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
+    procedure FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
     procedure FromCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
     /// <summary>Saves rows and Fields to a binary file.</summary>
@@ -315,7 +315,7 @@ begin
   end;
 end;
 
-procedure TGeoDataFrame.FromCSV(const ACSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.');
+procedure TGeoDataFrame.FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = '.');
 var
   FormatSettings: TFormatSettings;
   Header, Cells: TStrArray;
@@ -362,16 +362,17 @@ begin
   // Reset storage and apply the schema derived from the header
   ClearData;
   FFields := UsedFields;
-  SetCount(ACSV.Count - 1);
+  Reserve(ACSV.Count - 1);   // room for all lines at once
 
-  // Parse data rows straight into FRows
+  // Parse data rows; empty lines are skipped
   for I := 1 to ACSV.Count - 1 do
-    if ACSV[I] <> '' then
+    if Trim(ACSV[I]) <> '' then
     begin
+      AddRow;
       Cells := SplitCsvLine(ACSV[I], ACellSep);
       for J := 0 to High(Cells) do
         if (J < ColCount) and ColKnown[J] then
-          TextToGeoField(FRows[I - 1], ColMap[J], Cells[J], FormatSettings);
+          TextToGeoField(FRows[FCount - 1], ColMap[J], Cells[J], FormatSettings);
     end;
 end;
 

@@ -123,6 +123,9 @@ begin
 
     // Vytvoření GeoDataFrame s obsahem csv1
     gdf2 := TGeoDataFrame.Create;
+    // Prázdné řádky na konci se mají přeskočit
+    csv1.Add('');
+    csv1.Add('   ');
     gdf2.FromCSV(csv1);
 
     // Kontrolní vypsání gdf2

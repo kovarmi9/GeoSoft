@@ -160,7 +160,7 @@ Cenou je paměť: nevyužitá je nejvýš polovina pole
 | `Print` | vrátí čitelný text: Count, Capacity, Fields a všechny řádky |
 | `ToCSV(';', ',')` | vrátí tabulku jako text CSV |
 | `ToCSV(Soubor, ';', ',')` | uloží CSV do souboru |
-| `FromCSV(Seznam)`, `FromCSV(Soubor)` | načte CSV, dosavadní řádky smaže |
+| `FromCSV(Seznam)`, `FromCSV(Soubor)` | načte CSV, dosavadní řádky smaže; Seznam může být i `Memo1.Lines` |
 
 ```pascal
 Writeln(Frame.Print);
@@ -186,7 +186,7 @@ Uloha;CB;X;Y
 - `Fields` se nastaví podle hlavičky, neznámé sloupce se přeskočí
 - na velikosti písmen v názvech nezáleží
 - buňka, která není číslo, nechá v poli NaN
-- prázdný řádek souboru dá prázdný řádek tabulky
+- prázdné řádky (i jen s mezerami) se přeskočí
 
 ## Binární soubor
 

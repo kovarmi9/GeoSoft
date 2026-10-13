@@ -21,7 +21,7 @@ begin
 
     // Výpis nevyplněného řádku
     Writeln('Výpis nevyplněného řádku');
-    Writeln(PrintGeoRow(r1).Text);
+    Writeln(PrintGeoRow(r1));
 
     // Naplnění řádku
     r1.Uloha := 1;
@@ -43,7 +43,7 @@ begin
 
     // Výpis vplněného řádku
     Writeln('Výpis vyplněného řádku');
-    Writeln(PrintGeoRow(r1).Text);
+    Writeln(PrintGeoRow(r1));
 
     // Uložení řádku s append = True
     SaveRow('Radek1', r1, true);
@@ -53,13 +53,13 @@ begin
 
     // Výpis vymazaného řádku
     Writeln('Výpis vymazaného řádku');
-    Writeln(PrintGeoRow(r1).Text);
+    Writeln(PrintGeoRow(r1));
 
     // Načtení prvního řádku
     r2 := LoadRow('Radek1');
 
     // Výpis načteného řádku
-    Writeln(PrintGeoRow(r2).Text);
+    Writeln(PrintGeoRow(r2));
 
   except
     on E: Exception do

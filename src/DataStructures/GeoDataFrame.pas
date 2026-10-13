@@ -42,11 +42,11 @@ type
     // Adds a copy of the given row
     procedure AddRow(const ARow: TGeoRow); overload;
 
-    // Returns a human-readable dump of the frame as a string list
-    function Print(): TStringList;
+    /// <summary>Readable dump of the frame.</summary>
+    function Print: string;
 
-    // Serialises the frame to CSV (in-memory or file)
-    function ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): TStringList; overload;
+    /// <summary>The frame as CSV text, or saved to a CSV file.</summary>
+    function ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): string; overload;
     procedure ToCSV(const FileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
     // Deserialises the frame from CSV (in-memory or file)
@@ -161,39 +161,28 @@ begin
   FRows[FCount - 1] := ARow;
 end;
 
-function TGeoDataFrame.Print(): TStringList;
+function TGeoDataFrame.Print: string;
 var
   i: Integer;
-  RowText: TStringList;
 begin
-  Result := TStringList.Create;
-  Result.Add('=== TGeoDataFrame ===');
-  Result.Add(Format('Count    : %d', [Count]));
-  Result.Add(Format('Capacity : %d', [Capacity]));
-  Result.Add('Fields   : ' + PrintGeoFields(Fields));
+  Result := '=== TGeoDataFrame ===' + sLineBreak +
+    Format('Count    : %d', [Count]) + sLineBreak +
+    Format('Capacity : %d', [Capacity]) + sLineBreak +
+    'Fields   : ' + PrintGeoFields(Fields) + sLineBreak;
 
   for i := 0 to Count - 1 do
-  begin
-    Result.Add('');
-    RowText := PrintGeoRow(FRows[i], Fields, i);
-    try
-      Result.AddStrings(RowText);
-    finally
-      RowText.Free;
-    end;
-  end;
+    Result := Result + sLineBreak + PrintGeoRow(FRows[i], Fields, i);
 end;
 
-function TGeoDataFrame.ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): TStringList;
+function TGeoDataFrame.ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): string;
 var
   Field: TGeoField;
   RowIndex: Integer;
   Line, s: string;
   FormatSettings: TFormatSettings;
   Row: TGeoRow;
+  CSV: TStringList;
 begin
-  Result := TStringList.Create;
-
   if ACellSep = ADecSep then
     raise EArgumentException.CreateFmt(
       'Cell separator "%s" must differ from decimal separator "%s".',
@@ -205,40 +194,48 @@ begin
   FormatSettings.DecimalSeparator  := ADecSep;
   FormatSettings.ThousandSeparator := #0; // disable thousands separator
 
-  // Header row
-  Result.Add(PrintGeoFields(Fields, string(ACellSep)));
+  CSV := TStringList.Create;
+  try
+    // Header row
+    CSV.Add(PrintGeoFields(Fields, string(ACellSep)));
 
-  // Data rows
-  for RowIndex := 0 to Count - 1 do
-  begin
-    Line := '';
-    Row := FRows[RowIndex];
+    // Data rows
+    for RowIndex := 0 to Count - 1 do
+    begin
+      Line := '';
+      Row := FRows[RowIndex];
 
-    for Field := Low(TGeoField) to High(TGeoField) do
-      if Field in Fields then
-      begin
-        if Line <> '' then
-          Line := Line + ACellSep;
+      for Field := Low(TGeoField) to High(TGeoField) do
+        if Field in Fields then
+        begin
+          if Line <> '' then
+            Line := Line + ACellSep;
 
-        s := GeoFieldToText(Row, Field, '', FormatSettings);
-        if Field in [CB, CBm, Poznamka] then
-          s := '"' + StringReplace(s, '"', '""', [rfReplaceAll]) + '"';
+          s := GeoFieldToText(Row, Field, '', FormatSettings);
+          if Field in [CB, CBm, Poznamka] then
+            s := '"' + StringReplace(s, '"', '""', [rfReplaceAll]) + '"';
 
-        Line := Line + s;
-      end;
+          Line := Line + s;
+        end;
 
-    Result.Add(Line);
+      CSV.Add(Line);
+    end;
+
+    Result := CSV.Text;
+  finally
+    CSV.Free;
   end;
 end;
 
-// File overload — serialises to CSV then saves to disk
+// File overload — builds the CSV text then saves it to disk
 procedure TGeoDataFrame.ToCSV(const FileName: string;
   const ACellSep: Char; const ADecSep: Char);
 var
   CSV: TStringList;
 begin
-  CSV := ToCSV(ACellSep, ADecSep);
+  CSV := TStringList.Create;
   try
+    CSV.Text := ToCSV(ACellSep, ADecSep);
     CSV.SaveToFile(FileName);
   finally
     CSV.Free;

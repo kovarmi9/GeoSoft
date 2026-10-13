@@ -85,10 +85,11 @@ begin
     // Výpis pomocí funkce
     writeln('');
     writeln('Kontrolní výpis celého GeoDataFrame:');
-    Writeln(gdf1.Print().Text);
+    Writeln(gdf1.Print);
 
     // Uloření do stringlistu CSV
-    csv1 := gdf1.ToCSV();
+    csv1 := TStringList.Create;
+    csv1.Text := gdf1.ToCSV;
 
     // Vypsání CSV
     Writeln('Výpis StringListu CSV:');
@@ -102,14 +103,14 @@ begin
 
     // Výpis souboru s vymazanými daty
     Writeln('Výpis gdf1 s vymazanými daty:');
-    Writeln(gdf1.Print().Text);
+    Writeln(gdf1.Print);
 
     // Načtení z CSV
     gdf1.FromCSV('gdf1.csv');
 
     // Výpis souboru po opětovném načtení
     Writeln('Výpis gdf1 po opětovném načtení:');
-    Writeln(gdf1.Print().Text);
+    Writeln(gdf1.Print);
 
     // Vytvoření GeoDataFrame s obsahem csv1
     gdf2 := TGeoDataFrame.Create;
@@ -117,7 +118,7 @@ begin
 
     // Kontrolní vypsání gdf2
     Writeln('Ukazka gdf2:');
-    Writeln(gdf2.Print().Text);
+    Writeln(gdf2.Print);
 
     // Úprva gdf2
     gdf2.Rows[1].X := 0;
@@ -135,6 +136,7 @@ begin
     // Uvolnění paměti
     gdf1.Destroy();
     gdf2.Destroy();
+    csv1.Free;
 
     // Znovuvytvoření a načtení gdf ze souboru
     gdf1 := TGeoDataFrame.Create;
@@ -142,7 +144,7 @@ begin
 
     // Výtisk výsledků
     Writeln('Vytištění nově načteného gdf1 ze souboru:');
-    Writeln(gdf1.Print().Text)
+    Writeln(gdf1.Print)
 
 
   except

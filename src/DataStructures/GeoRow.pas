@@ -61,10 +61,9 @@ type
 // Resets all fields of the row to zero/empty
 procedure ClearGeoRow(var ARow: TGeoRow);
 
-// Returns a formatted dump of all fields as a string list
-function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList; overload;
-// Returns a formatted dump of selected fields as a string list
-function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList; overload;
+/// <summary>Readable dump of the row, one field per line.</summary>
+function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): string; overload;
+function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): string; overload;
 
 // Returns a comma-separated list of active field names
 function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string;
@@ -117,21 +116,20 @@ begin
 end;
 
 // Overload that prints all fields — delegates to the field-mask overload
-function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): TStringList;
+function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): string;
 begin
   Result := PrintGeoRow(ARow, [Low(TGeoField)..High(TGeoField)], ARowIndex);
 end;
 
-function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): TStringList;
+function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): string;
 var
   f: TGeoField;
   s: string;
 begin
-  Result := TStringList.Create;
   if ARowIndex >= 0 then
-    Result.Add(Format('--- TGeoRow %d ---', [ARowIndex]))
+    Result := Format('--- TGeoRow %d ---', [ARowIndex]) + sLineBreak
   else
-    Result.Add('--- TGeoRow ---');
+    Result := '--- TGeoRow ---' + sLineBreak;
 
   for f := Low(TGeoField) to High(TGeoField) do
     if f in AFields then
@@ -158,7 +156,7 @@ begin
         Poznamka: s := Format('%s: %s', [GeoFieldNames[f], ARow.Poznamka]);
         KK:       s := Format('%s: %d', [GeoFieldNames[f], ARow.KK]);
       end;
-      Result.Add(s);
+      Result := Result + s + sLineBreak;
     end;
 end;
 

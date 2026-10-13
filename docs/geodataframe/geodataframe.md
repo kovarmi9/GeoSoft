@@ -52,3 +52,38 @@ Cenou je paměť: nevyužitá je nejvýš polovina pole
 | `AddRow(Row)` | přidá kopii hotového řádku |
 | `Count := N` | nastaví počet řádků (přidá prázdné nebo zahodí poslední) |
 | `ClearData` | smaže všechny řádky a uvolní paměť; `Fields` zůstane |
+
+## Výpis a CSV
+
+| metoda | co dělá |
+|---|---|
+| `Print` | vrátí čitelný text: Count, Capacity, Fields a všechny řádky |
+| `ToCSV(';', ',')` | vrátí tabulku jako text CSV |
+| `ToCSV(Soubor, ';', ',')` | uloží CSV do souboru |
+| `FromCSV(Seznam)`, `FromCSV(Soubor)` | načte CSV, dosavadní řádky smaže |
+
+```pascal
+Writeln(Frame.Print);
+Memo1.Text := Frame.ToCSV(';', ',');
+```
+
+### Zápis
+
+```
+Uloha;CB;X;Y
+1;"751261478500012";1045986,745;743841,459
+1;"751261478500013";;
+```
+
+- první řádek jsou názvy polí z `Fields`, v pořadí podle `TGeoField`
+- nevyplněné číslo (NaN) je prázdná buňka
+- `CB`, `CBm` a `Poznamka` jsou v uvozovkách, uvozovka uvnitř se zdvojí (`""`)
+- oddělovač buněk a desetinný oddělovač se musí lišit, jinak chyba
+- výpočty ukládají se středníkem a desetinnou čárkou
+
+### Načtení
+
+- `Fields` se nastaví podle hlavičky, neznámé sloupce se přeskočí
+- na velikosti písmen v názvech nezáleží
+- buňka, která není číslo, nechá v poli NaN
+- prázdný řádek souboru dá prázdný řádek tabulky

@@ -1,0 +1,36 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{328C889B-FAA2-47C3-8328-7473AD5BC662}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="GeoSoft.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="GeoSoft">
+        <MSBuild Projects="GeoSoft.dproj"/>
+    </Target>
+    <Target Name="GeoSoft:Clean">
+        <MSBuild Projects="GeoSoft.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="GeoSoft:Make">
+        <MSBuild Projects="GeoSoft.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="GeoSoft"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="GeoSoft:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="GeoSoft:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

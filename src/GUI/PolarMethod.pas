@@ -441,12 +441,13 @@ var
 begin
   FAlg.Calculate(FFrame);
 
-  // Only the detail rows belong to the grid the run writes into
-  FrameToGrid(GridDetail, FFrame, FRows, [X, Y]);
-
+  // Store first, a renumbered point goes to the grid with its new number
   for I := 0 to FFrame.Count - 1 do
     if (FRows[I] >= 0) and not IsNan(FFrame.Rows[I].X) then
       StorePoint(FFrame.Rows[I]);
+
+  // Only the detail rows belong to the grid the run writes into
+  FrameToGrid(GridDetail, FFrame, FRows, [CB, X, Y]);
 
   // A free station is a result as well, so it is shown and kept
   if FAlg.Info.Valid and FAlg.Info.FreeStation then
@@ -464,6 +465,8 @@ end;
 
 procedure TPolarMethodForm.CalculateClick(Sender: TObject);
 begin
+  ForgetAnswers;     // a new run asks again
+
   // The frame is the only input, so every run rebuilds it
   if not BuildFrame then
     Exit;

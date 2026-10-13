@@ -137,9 +137,9 @@ begin
     if Known then
     begin
       // Report the duplicate and let the user choose, the same as GEUS
-      if MessageDlg(Format('Bod %s už je v seznamu souřadnic.' + sLineBreak +
-           'Použít jeho souřadnice? (Ne = počítat ho jako nový)', [PointId(Num)]),
-           mtConfirmation, [mbYes, mbNo], 0) = mrNo then
+      if Application.MessageBox(PChar(Format('Bod %s již v seznamu existuje.' + sLineBreak +
+           'Použít jeho souřadnice? (Ne = počítat ho jako nový)', [PointId(Num)])),
+           'Dotaz', MB_YESNO or MB_ICONQUESTION) = IDNO then
       begin
         Known := False;
         FRowNew[R] := True;
@@ -257,17 +257,12 @@ begin
       // Old results would look valid if a stretch fails now
       SetCell(Y, FRows[I], '');
       SetCell(X, FRows[I], '');
-
-      if TPointDictionary.GetInstance.PointExists(
-           StrToInt64Def(string(FFrame.Rows[I].CB), 0)) then
-        FWarnings.Add(Format('Bod %s je v seznamu, ale počítá se jako nový.',
-          [FormatPointId(string(FFrame.Rows[I].CB))]));
     end;
 
   FAlg.Calculate(FFrame);
   FWarnings.AddStrings(FAlg.Warnings);
 
-  // Only computed points of a finished stretch go back to the grid
+  // Only computed points of a finished stretch go back to the grid and the list
   SetLength(Back, FFrame.Count);
   for I := 0 to High(Back) do
     Back[I] := -1;
@@ -277,12 +272,24 @@ begin
          (I <> FAlg.Segments[S].ToRow) then
         Back[I] := FRows[I];
 
-  FrameToGrid(StringGrid1, FFrame, Back, [X, Y]);
+  // Store first, a renumbered point goes to the grid with its new number
+  for I := 0 to High(Back) do
+    if (Back[I] >= 0) and not IsNan(FFrame.Rows[I].X) then
+    begin
+      StorePoint(FFrame.Rows[I]);
+      // A computed point stays computed in the next runs
+      if Length(FRowNew) <= Back[I] then
+        SetLength(FRowNew, Back[I] + 1);
+      FRowNew[Back[I]] := True;
+    end;
+
+  FrameToGrid(StringGrid1, FFrame, Back, [CB, X, Y]);
   ShowProtocol(Memo1.Lines);
 end;
 
 procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
 begin
+  ForgetAnswers;     // a new run asks again
   Memo1.Lines.Clear;
   Recompute;
 

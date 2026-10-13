@@ -25,7 +25,8 @@ type
     // Reads 1,5 and 1.5
     class function FileStrToFloat(const AText: string): Double; static;
     // TXT and CSV, one point per line
-    procedure ImportText(const FileName: string; ADelimiter: Char);
+    function ReadText(const FileName: string; ADelimiter: Char;
+      APoints: TList<TPoint>): Integer;
     procedure ExportText(const FileName: string; ADelimiter: Char);
 
     function GetValues: TEnumerable<TPoint>;
@@ -63,10 +64,11 @@ type
     procedure ExportToTXT(const FileName: string);
     /// <summary>Saves a CSV file, sorted by number.</summary>
     procedure ExportToCSV(const FileName: string);
-    /// <summary>Adds points from a TXT file, skips bad lines.</summary>
-    procedure ImportFromTXT(const FileName: string);
-    /// <summary>Adds points from a CSV file, skips bad lines.</summary>
-    procedure ImportFromCSV(const FileName: string);
+    /// <summary>Reads points of a TXT file into APoints, the list stays.
+    /// Returns the number of bad lines.</summary>
+    function ReadFromTXT(const FileName: string; APoints: TList<TPoint>): Integer;
+    /// <summary>The same for a CSV file.</summary>
+    function ReadFromCSV(const FileName: string; APoints: TList<TPoint>): Integer;
     /// <summary>Saves a .yxz or .xyz file.</summary>
     procedure ExportToBinary(const FileName: string);
     /// <summary>Opens a .yxz or .xyz file; a bad file keeps the list.</summary>
@@ -184,14 +186,14 @@ begin
   ExportText(FileName, ';');
 end;
 
-procedure TPointDictionary.ImportFromTXT(const FileName: string);
+function TPointDictionary.ReadFromTXT(const FileName: string; APoints: TList<TPoint>): Integer;
 begin
-  ImportText(FileName, #9);
+  Result := ReadText(FileName, #9, APoints);
 end;
 
-procedure TPointDictionary.ImportFromCSV(const FileName: string);
+function TPointDictionary.ReadFromCSV(const FileName: string; APoints: TList<TPoint>): Integer;
 begin
-  ImportText(FileName, ';');
+  Result := ReadText(FileName, ';', APoints);
 end;
 
 procedure TPointDictionary.ExportText(const FileName: string; ADelimiter: Char);
@@ -221,18 +223,17 @@ begin
   end;
 end;
 
-procedure TPointDictionary.ImportText(const FileName: string; ADelimiter: Char);
+// Reads one point per line, bad lines are counted
+function TPointDictionary.ReadText(const FileName: string; ADelimiter: Char;
+  APoints: TList<TPoint>): Integer;
 var
   TxtFile: TextFile;
   Line: string;
   Fields: TStringList;
   Tmp, P: TPoint;
-  Imported, Updated, Skipped: Integer;
 begin
   CheckFileError(FileName);
-  Imported := 0;
-  Updated := 0;
-  Skipped := 0;
+  Result := 0;
 
   AssignFile(TxtFile, FileName);
   Reset(TxtFile);
@@ -251,7 +252,7 @@ begin
       Fields.DelimitedText := Line;
       if Fields.Count < 6 then
       begin
-        Inc(Skipped);
+        Inc(Result);
         Continue;
       end;
       try
@@ -262,26 +263,22 @@ begin
       except
         on EConvertError do
         begin
-          Inc(Skipped);
+          Inc(Result);
           Continue;
         end;
       end;
       if P.PointNumber = 0 then      // invalid number
       begin
-        Inc(Skipped);
+        Inc(Result);
         Continue;
       end;
 
-      if PointExists(P.PointNumber) then
-        Inc(Updated);
-      AddOrUpdatePoint(P);
-      Inc(Imported);
+      APoints.Add(P);
     end;
   finally
     Fields.Free;
     CloseFile(TxtFile);
   end;
-  ReportImport(Imported, Updated, Skipped);
 end;
 
 procedure TPointDictionary.ExportToBinary(const FileName: string);

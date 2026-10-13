@@ -190,12 +190,13 @@ begin
   BuildFrame;
   FAlg.Calculate(FFrame);
 
-  // P and K carry -1, so the bridge leaves those rows alone
-  FrameToGrid(GridDetail, FFrame, FRows, [X, Y]);
-
+  // Store first, a renumbered point goes to the grid with its new number
   for I := 0 to FFrame.Count - 1 do
     if (FRows[I] >= 0) and not IsNan(FFrame.Rows[I].X) then
       StorePoint(FFrame.Rows[I]);
+
+  // P and K carry -1, so the bridge leaves those rows alone
+  FrameToGrid(GridDetail, FFrame, FRows, [CB, X, Y]);
 
   ShowProtocol(Memo1.Lines);
 end;
@@ -307,6 +308,7 @@ begin
     Exit;
   end;
 
+  ForgetAnswers;     // a new run asks again
   Recompute;
   if not FAlg.Baseline.Valid then
   begin

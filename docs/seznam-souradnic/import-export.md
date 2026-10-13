@@ -18,7 +18,9 @@ CSV má stejný řádek, jen se středníky. Textové soubory se čtou a zapisuj
 v kódování Windows (ANSI); soubor uložený v UTF-8 bude mít v popisu
 rozsypanou diakritiku.
 
-Import seznam nemaže: body přidá a body se stejným číslem přepíše.
-Na konci ohlásí počet načtených a přepsaných bodů a přeskočených chybných
+Import seznam nemaže: nejdřív přečte celý soubor, pak body přidá. U bodu,
+jehož číslo již v seznamu existuje, se zeptá: ponechat původní, uložit nový,
+průměr, nebo nové číslo; volbu lze použít pro všechny další body. Na konci
+ohlásí počet nových, přepsaných a ponechaných bodů a přeskočených chybných
 řádků. Čísla se zapisují s desetinnou čárkou, při čtení se přijme čárka
 i tečka.

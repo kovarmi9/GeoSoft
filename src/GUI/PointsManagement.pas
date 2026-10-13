@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows,
-  System.SysUtils, System.Classes,
+  System.SysUtils, System.Classes, System.Generics.Collections,
   System.Math, System.UITypes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.StdCtrls,
@@ -105,10 +105,10 @@ type
     function OpenList: Boolean;
     /// <summary>Asks to save changes. False when the user cancels.</summary>
     function AskSaveChanges: Boolean;
-    /// <summary>Saves into the open file, or asks for one.</summary>
-    procedure DoSave;
-    /// <summary>Asks for a file name and saves into it.</summary>
-    procedure SaveListAs;
+    /// <summary>Saves into the open file, or asks for one. False when not saved.</summary>
+    function DoSave: Boolean;
+    /// <summary>Asks for a file name and saves into it. False when not saved.</summary>
+    function SaveListAs: Boolean;
   end;
 
 var
@@ -117,6 +117,9 @@ var
 implementation
 
 {$R *.dfm}
+
+uses
+  ExistingPoint;
 
 const
   // The extension tells the order
@@ -339,7 +342,7 @@ begin
   if Points.PointExists(Num) then
   begin
     // Windows box, it does not reload the grid
-    Application.MessageBox(PChar(Format('Bod %.15d už v seznamu je.', [Num])),
+    Application.MessageBox(PChar(Format('Bod %.15d již v seznamu existuje.', [Num])),
       'Upozornění', MB_OK or MB_ICONWARNING);
     StringGrid1.RejectCommit;   // stay on the number to fix it
     Exit;
@@ -598,7 +601,7 @@ begin
   if not Points.Modified then Exit;
   case Application.MessageBox('Uložit změny?', 'Dotaz',
                               MB_YESNOCANCEL or MB_ICONQUESTION) of
-    IDYES:    DoSave;
+    IDYES:    Result := DoSave;   // cancelled or failed save keeps the list
     IDNO:     ;
     IDCANCEL: Result := False;
   end;
@@ -631,15 +634,15 @@ begin
     AFileName := SaveDialog1.FileName;
 end;
 
-procedure TPointsManagementForm.DoSave;
+function TPointsManagementForm.DoSave: Boolean;
 begin
   StringGrid1.CommitCurrentCell;
 
-  // A list without a file is saved as a new one
+  // List without a file is saved as a new one
   if FCurrentFile = '' then
-    SaveListAs
+    Result := SaveListAs
   else
-    WriteListFile(FCurrentFile);
+    Result := WriteListFile(FCurrentFile);
 end;
 
 procedure TPointsManagementForm.FileSaveClick(Sender: TObject);
@@ -653,7 +656,7 @@ begin
 end;
 
 // Offers the name of the open file
-procedure TPointsManagementForm.SaveListAs;
+function TPointsManagementForm.SaveListAs: Boolean;
 var
   Name, FileName: string;
 begin
@@ -663,8 +666,7 @@ begin
     Name := 'file'
   else
     Name := ChangeFileExt(ExtractFileName(FCurrentFile), '');
-  if ExecuteListSaveDialog(Name, FileName) then
-    WriteListFile(FileName);
+  Result := ExecuteListSaveDialog(Name, FileName) and WriteListFile(FileName);
 end;
 
 procedure TPointsManagementForm.FileOpenClick(Sender: TObject);
@@ -733,8 +735,16 @@ begin
   Result := True;
 end;
 
-// Adds the points of a TXT or CSV file to the list
+// Adds the points of a TXT or CSV file, asks about the existing ones
 procedure TPointsManagementForm.DoImport(AFormat: TFileFormat);
+var
+  Loaded: TList<TPoint>;
+  P, OldP, NewP: TPoint;
+  NewNum: Int64;
+  Answer: Integer;
+  ForAll, All: Boolean;
+  Skipped, Added, Overwritten, Kept: Integer;
+  Msg: string;
 begin
   // Dialog filter by format
   if AFormat = ffTXT then
@@ -744,20 +754,85 @@ begin
 
   if not OpenDialog1.Execute then Exit;
 
+  Added := 0;
+  Overwritten := 0;
+  Kept := 0;
+  Answer := ANS_KEEP;
+  ForAll := False;
+
+  Loaded := TList<TPoint>.Create;
   try
-    if AFormat = ffTXT then
-      Points.ImportFromTXT(OpenDialog1.FileName)
-    else
-      Points.ImportFromCSV(OpenDialog1.FileName);
-  except
-    on E: Exception do
-    begin
-      ShowError('Chyba při importu: ' + E.Message);
-      Exit;
+    // Read all first, a bad file leaves the list as it is
+    try
+      if AFormat = ffTXT then
+        Skipped := Points.ReadFromTXT(OpenDialog1.FileName, Loaded)
+      else
+        Skipped := Points.ReadFromCSV(OpenDialog1.FileName, Loaded);
+    except
+      on E: Exception do
+      begin
+        ShowError('Chyba při importu: ' + E.Message);
+        Exit;
+      end;
     end;
+
+    for P in Loaded do
+    begin
+      if not Points.PointExists(P.PointNumber) then
+      begin
+        Points.AddOrUpdatePoint(P);
+        Inc(Added);
+        Continue;
+      end;
+
+      // Existing point: ask, unless "for all" was ticked
+      OldP := Points.GetPoint(P.PointNumber);
+      if not ForAll then
+      begin
+        Answer := AskExistingPoint(OldP, P, True, All);
+        ForAll := All;
+      end;
+
+      case Answer of
+        ANS_NEW:
+          begin
+            Points.AddOrUpdatePoint(P);
+            Inc(Overwritten);
+          end;
+        ANS_AVERAGE:
+          begin
+            Points.AddOrUpdatePoint(AveragePoint(OldP, P));
+            Inc(Overwritten);
+          end;
+        ANS_NUMBER:
+          if AskNewNumber(NewNum) then
+          begin
+            NewP := P;
+            NewP.PointNumber := NewNum;
+            Points.AddOrUpdatePoint(NewP);
+            Inc(Added);
+          end
+          else
+            Inc(Kept);
+      else
+        Inc(Kept);                  // keep and Esc leave the old point
+      end;
+    end;
+  finally
+    Loaded.Free;
   end;
 
   RefreshGrid;
+
+  // Counts, zeros left out
+  Msg := Format('Nové body: %d.', [Added]);
+  if Overwritten > 0 then
+    Msg := Msg + Format('  Přepsané: %d.', [Overwritten]);
+  if Kept > 0 then
+    Msg := Msg + Format('  Ponechané původní: %d.', [Kept]);
+  if Skipped > 0 then
+    Msg := Msg + Format('  Přeskočené chybné řádky: %d.', [Skipped]);
+  Application.MessageBox(PChar(Msg), 'Import', MB_OK or MB_ICONINFORMATION);
 end;
 
 // Saves the list into a TXT or CSV file
@@ -775,6 +850,13 @@ begin
     SaveDialog1.DefaultExt := 'csv';
   end;
   SaveDialog1.FilterIndex := 1;   // first filter
+
+  // Name of the open list with the export extension, never the list file itself
+  if FCurrentFile = '' then
+    SaveDialog1.FileName := ''
+  else
+    SaveDialog1.FileName := ChangeFileExt(ExtractFileName(FCurrentFile),
+                                          '.' + SaveDialog1.DefaultExt);
 
   if not SaveDialog1.Execute then Exit;
 

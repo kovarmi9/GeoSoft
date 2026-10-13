@@ -35,9 +35,20 @@ type
   private
     // points this form added to the list itself
     FNewPoints: TList<Int64>;
+    // answers for points that were in the list, asked once per showing
+    FAnswers: TDictionary<Int64, Integer>;
+    // those points as they were before this form changed them
+    FOriginals: TDictionary<Int64, Point.TPoint>;
+    function Points: TPointDictionary;
   protected
     FS: TFormatSettings;
     Prot: TProtocol;          // shared by every WriteProtocol
+
+    /// <summary>A new showing asks again about existing points.</summary>
+    procedure DoShow; override;
+
+    /// <summary>The next run asks again about existing points.</summary>
+    procedure ForgetAnswers;
 
     /// <summary>Finds a point or offers to add it.</summary>
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
@@ -47,10 +58,11 @@ type
     /// <summary>The same from a number.</summary>
     function PointId(ANum: Int64): string;
 
-    /// <summary>Saves a computed point.</summary>
-    procedure StorePoint(const ARow: TGeoRow);
+    /// <summary>Saves a computed point; asks when its number is in the list.
+    /// A new number from the user is written into ARow.CB.</summary>
+    procedure StorePoint(var ARow: TGeoRow);
 
-    /// <summary>True if the point was in the list before.</summary>
+    /// <summary>True if the point was in the list and was overwritten.</summary>
     function WasInList(const ARow: TGeoRow): Boolean;
 
     /// <summary>
@@ -91,7 +103,7 @@ implementation
 {$R *.dfm}
 
 uses
-  SettingsDialog;
+  SettingsDialog, ExistingPoint;
 
 constructor TCalcBaseForm.Create(AOwner: TComponent);
 var
@@ -115,6 +127,8 @@ begin
   FS := FormatSettings;
   Prot := TProtocol.Create;
   FNewPoints := TList<Int64>.Create;
+  FAnswers := TDictionary<Int64, Integer>.Create;
+  FOriginals := TDictionary<Int64, Point.TPoint>.Create;
 
   LoadPrefix;
 
@@ -126,7 +140,29 @@ destructor TCalcBaseForm.Destroy;
 begin
   Prot.Free;
   FNewPoints.Free;
+  FAnswers.Free;
+  FOriginals.Free;
   inherited;
+end;
+
+// A new showing asks again
+procedure TCalcBaseForm.DoShow;
+begin
+  FAnswers.Clear;
+  FOriginals.Clear;
+  inherited;
+end;
+
+// Called by the Calculate buttons
+procedure TCalcBaseForm.ForgetAnswers;
+begin
+  FAnswers.Clear;
+end;
+
+// The one point list of the program
+function TCalcBaseForm.Points: TPointDictionary;
+begin
+  Result := TPointDictionary.GetInstance;
 end;
 
 function TCalcBaseForm.LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
@@ -184,26 +220,66 @@ begin
   Result := Prot.PointId(ANum);
 end;
 
-procedure TCalcBaseForm.StorePoint(const ARow: TGeoRow);
+procedure TCalcBaseForm.StorePoint(var ARow: TGeoRow);
 var
-  PNum: Int64;
+  PNum, NewNum: Int64;
+  NewP, OldP: Point.TPoint;
+  All: Boolean;                     // the calculations do not show the box
 begin
   PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
   if PNum <= 0 then
     Exit;
 
-  // Remember points this form added
-  if not TPointDictionary.GetInstance.PointExists(PNum) then
-    FNewPoints.Add(PNum);
+  NewP := Point.TPoint.Create(PNum, ARow.X, ARow.Y, ARow.Z, ARow.KK,   // NaN height becomes 0
+                              string(ARow.Poznamka));
 
-  TPointDictionary.GetInstance.AddOrUpdatePoint(
-    Point.TPoint.Create(PNum, ARow.X, ARow.Y, ARow.Z, ARow.KK,   // NaN height becomes 0
-                        string(ARow.Poznamka)));
+  // New point, or one this form computed before
+  if not Points.PointExists(PNum) or FNewPoints.Contains(PNum) then
+  begin
+    if not FNewPoints.Contains(PNum) then
+      FNewPoints.Add(PNum);
+    Points.AddOrUpdatePoint(NewP);
+    Exit;
+  end;
+
+  if not FOriginals.ContainsKey(PNum) then
+    FOriginals.Add(PNum, Points.GetPoint(PNum));
+  OldP := FOriginals[PNum];         // the point before this form changed it
+
+  // Ask once per Calculate, cell edits reuse the answer
+  if not FAnswers.ContainsKey(PNum) then
+    FAnswers.Add(PNum, AskExistingPoint(OldP, NewP, False, All));
+
+  case FAnswers[PNum] of
+    ANS_NEW:
+      Points.AddOrUpdatePoint(NewP);
+    ANS_AVERAGE:
+      Points.AddOrUpdatePoint(AveragePoint(OldP, NewP));
+    ANS_NUMBER:
+      if AskNewNumber(NewNum) then
+      begin
+        NewP.PointNumber := NewNum;
+        Points.AddOrUpdatePoint(NewP);
+        FNewPoints.Add(NewNum);
+        ARow.CB := ShortString(Format('%.15d', [NewNum]));   // the grid gets it too
+      end
+      else
+        FAnswers[PNum] := ANS_KEEP;
+  end;                              // keep and Esc leave the old point
 end;
 
 function TCalcBaseForm.WasInList(const ARow: TGeoRow): Boolean;
+var
+  PNum: Int64;
+  Answer: Integer;
 begin
-  Result := not FNewPoints.Contains(StrToInt64Def(Trim(string(ARow.CB)), 0));
+  PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
+  if FNewPoints.Contains(PNum) then
+    Exit(False);
+  // Only an overwritten point was updated
+  if FAnswers.TryGetValue(PNum, Answer) then
+    Exit((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
+  Result := True;
 end;
 
 procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);

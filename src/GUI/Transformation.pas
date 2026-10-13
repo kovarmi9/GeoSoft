@@ -77,11 +77,11 @@ begin
 
   if ACol = 2 then                         // CB do ktere -> Y, X cil
   begin
-    ColY := 3;  ColX := 4;
+    ColY := CoordColY(3);  ColX := CoordColX(3);
   end
   else if ACol = 5 then                    // CB z ktere -> Y, X zdroj
   begin
-    ColY := 6;  ColX := 7;
+    ColY := CoordColY(6);  ColX := CoordColX(6);
   end
   else
     Exit;

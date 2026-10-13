@@ -89,10 +89,16 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Height = 208
     TabStop = False
     Align = alTop
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
     Lines.Strings = (
       
         '  == 0   Ortogon'#225'ln'#237' metoda  ===================================' +
         '==================')
+    ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical
     TabOrder = 3

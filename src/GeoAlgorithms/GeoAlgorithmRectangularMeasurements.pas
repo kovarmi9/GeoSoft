@@ -208,7 +208,7 @@ begin
         if D > FClosure then
           FClosure := D;
         if D > 0.02 then
-          AddWarning(Format('Point %d: residual %.3f m at identical point.',
+          AddWarning(Format('Bod %.15d: oprava na identickém bodě %.3f m.',
             [Result[I].PointNumber, D]));
         Break;
       end;

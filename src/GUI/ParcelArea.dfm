@@ -58,6 +58,12 @@ inherited ParcelAreaForm: TParcelAreaForm
     Width = 800
     Height = 429
     Align = alBottom
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
+    ParentFont = False
     ScrollBars = ssVertical
     TabOrder = 3
     ExplicitTop = 152

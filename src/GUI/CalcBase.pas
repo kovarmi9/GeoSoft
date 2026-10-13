@@ -291,7 +291,7 @@ begin
   end;
 
   if SaveDialogProtokol.Execute then
-    Prot.Lines.SaveToFile(SaveDialogProtokol.FileName);
+    Prot.Lines.SaveToFile(SaveDialogProtokol.FileName, TEncoding.UTF8);
 end;
 
 procedure TCalcBaseForm.ApplyCoordOrderToGrids;

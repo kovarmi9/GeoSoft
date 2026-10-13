@@ -63,6 +63,12 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Width = 800
     Height = 373
     Align = alClient
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
+    ParentFont = False
     ScrollBars = ssVertical
     TabOrder = 3
   end

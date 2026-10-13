@@ -30,7 +30,7 @@ type
     property Count: Integer read FCount write SetCount;
     property Capacity: Integer read FCapacity;
     property Fields: TGeoFields read FFields write FFields;
-    property Rows: TGeoRowArray read FRows write FRows; // write via AddRow / Count / direct index
+    property Rows: TGeoRowArray read FRows; // Length(Rows) is Capacity, use Count
 
     // Clears rows only; keeps the field schema
     procedure ClearData();
@@ -304,12 +304,8 @@ begin
   end;
 
   // Reset storage and apply the schema derived from the header
-  SetLength(FRows, 0);
-  FCapacity := 0;
-  FCount := 0;
+  ClearData;
   FFields := UsedFields;
-
-  Reserve(CSV.Count - 1);
   SetCount(CSV.Count - 1);
 
   // Parse data rows

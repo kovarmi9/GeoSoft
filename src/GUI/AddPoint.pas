@@ -151,10 +151,9 @@ var
   StoredPointNumber: Int64;
   Desc: string;
 begin
-  StringGrid.Cells[COL_POINTNO, DATA_ROW] :=
-    BuildPointIdFromPrefixState(IntToStr(PointNumber));
-  StoredPointNumber :=
-    StrToInt64Def(StringGrid.Cells[COL_POINTNO, DATA_ROW], PointNumber);
+  // The caller passes the full 15-digit number
+  StoredPointNumber := PointNumber;
+  StringGrid.Cells[COL_POINTNO, DATA_ROW] := Format('%.15d', [PointNumber]);
   lblWarning.Caption :=
     Format('Bod %.15d nebyl nalezen. Přejete si jej přidat?', [StoredPointNumber]);
 

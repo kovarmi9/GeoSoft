@@ -70,7 +70,7 @@ begin
   Result := S[1];
 end;
 
-// Up to 4 digits get KU and ZPMZ, a longer number only zeros
+// Up to 4 digits get KU and ZPMZ, up to 9 only KU, a longer number only zeros
 function BuildPointId(const RawOwn, Ku6, Zpmz5: string): string;
 var
   Own: string;
@@ -82,9 +82,11 @@ begin
   ZPMZ := NormalizeNumericPrefix(Zpmz5, 5);
 
   if Length(Own) <= 4 then
-    Result := KU + ZPMZ + NormalizeNumericPrefix(Own, 4)
+    Result := KU + ZPMZ + NormalizeNumericPrefix(Own, 4)   // own number
+  else if Length(Own) <= 9 then
+    Result := KU + NormalizeNumericPrefix(Own, 9)          // ZPMZ + own number
   else
-    Result := NormalizeNumericPrefix(Own, 15);
+    Result := NormalizeNumericPrefix(Own, 15);             // full number
 end;
 
 function BuildPointIdFromPrefixState(const RawOwn: string): string;

@@ -69,13 +69,6 @@ function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: 
 // Returns a comma-separated list of active field names
 function PrintGeoFields(const Used: TGeoFields; const Asep: string = ', '): string;
 
-// An unfilled value turns into an empty cell
-function FloatCell(const V: Double): string; overload;
-function FloatCell(const V: Double; const AFS: TFormatSettings): string; overload;
-function FloatCell(const V: Double; const AFormat: string): string; overload;
-function FloatCell(const V: Double; const AFormat: string;
-  const AFS: TFormatSettings): string; overload;
-
 // One field of a row as text, and back. These two are the only places
 // that list all the fields.
 function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField;
@@ -186,30 +179,7 @@ begin
     end;
 end;
 
-function FloatCell(const V: Double): string;
-begin
-  if IsNan(V) then
-    Result := ''
-  else
-    Result := FloatToStr(V);
-end;
-
-function FloatCell(const V: Double; const AFS: TFormatSettings): string;
-begin
-  if IsNan(V) then
-    Result := ''
-  else
-    Result := FloatToStr(V, AFS);
-end;
-
-function FloatCell(const V: Double; const AFormat: string): string;
-begin
-  if IsNan(V) then
-    Result := ''
-  else
-    Result := FormatFloat(AFormat, V);
-end;
-
+// NaN gives empty text
 function FloatCell(const V: Double; const AFormat: string;
   const AFS: TFormatSettings): string;
 begin

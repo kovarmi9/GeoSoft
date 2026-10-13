@@ -23,8 +23,6 @@ type
     public
     constructor Create; overload;
     constructor Create(const AFields: TGeoFields); overload;
-    constructor Create(const CSV: TStringList; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
-    constructor Create(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
 
     destructor Destroy; override;
 
@@ -34,8 +32,6 @@ type
     property Fields: TGeoFields read FFields write FFields;
     property Rows: TGeoRowArray read FRows write FRows; // write via AddRow / Count / direct index
 
-    // Clears the entire frame including the field schema
-    procedure Clear();
     // Clears rows only; keeps the field schema
     procedure ClearData();
 
@@ -89,44 +85,6 @@ begin
   Fields := AFields;
 end;
 
-constructor TGeoDataFrame.Create(const CSV: TStringList; const ACellSep, ADecSep: Char);
-begin
-  Create;
-  FromCSV(CSV, ACellSep, ADecSep);
-end;
-
-constructor TGeoDataFrame.Create(const AFileName: string;
-  const ACellSep, ADecSep: Char);
-var
-  Ext: string;
-begin
-  Create;
-
-  if not FileExists(AFileName) then
-    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [AFileName]);
-
-  Ext := LowerCase(ExtractFileExt(AFileName));
-
-  if Ext = '.csv' then
-  begin
-    // Text CSV — use the provided separators
-    FromCSV(AFileName, ACellSep, ADecSep);
-  end
-  else
-  begin
-    // Non-CSV with custom separators is suspicious
-    if (ACellSep <> ';') or (ADecSep <> '.') then
-      raise EArgumentException.CreateFmt(
-        'Separátory ACellSep/ADecSep mají smysl jen pro CSV. ' +
-        'Soubor "%s" nemá příponu .csv (Ext = "%s").',
-        [AFileName, Ext]
-      );
-
-    // Binary typed file — separators are irrelevant
-    LoadFromFile(AFileName);
-  end;
-end;
-
 destructor TGeoDataFrame.Destroy;
 begin
   SetLength(FRows, 0);
@@ -170,12 +128,6 @@ begin
   end;
 
   FCount := Value;
-end;
-
-procedure TGeoDataFrame.Clear;
-begin
-  ClearData;
-  FFields := [];
 end;
 
 procedure TGeoDataFrame.ClearData;
@@ -310,7 +262,7 @@ begin
 
   if (CSV = nil) or (CSV.Count = 0) then
   begin
-    Clear;
+    ClearData;
     Exit;
   end;
 
@@ -330,7 +282,7 @@ begin
   ColCount := Length(Header);
   if ColCount = 0 then
   begin
-    Clear;
+    ClearData;
     Exit;
   end;
 
@@ -436,7 +388,7 @@ begin
   // Empty file — reset and exit
   if Length(AllRows) = 0 then
   begin
-    Clear;
+    ClearData;
     Exit;
   end;
 

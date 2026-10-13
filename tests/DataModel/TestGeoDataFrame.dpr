@@ -112,7 +112,8 @@ begin
     Writeln(gdf1.Print().Text);
 
     // Vytvoření GeoDataFrame s obsahem csv1
-    gdf2 := TGeoDataFrame.Create(csv1);
+    gdf2 := TGeoDataFrame.Create;
+    gdf2.FromCSV(csv1);
 
     // Kontrolní vypsání gdf2
     Writeln('Ukazka gdf2:');
@@ -128,15 +129,16 @@ begin
     gdf2.SaveToFile('soubor.gdf');
 
     // Vyčištění
-    gdf1.Clear();
-    gdf2.Clear();
+    gdf1.ClearData();
+    gdf2.ClearData();
 
     // Uvolnění paměti
     gdf1.Destroy();
     gdf2.Destroy();
 
     // Znovuvytvoření a načtení gdf ze souboru
-    gdf1 := TGeoDataFrame.Create('soubor.gdf');
+    gdf1 := TGeoDataFrame.Create;
+    gdf1.LoadFromFile('soubor.gdf');
 
     // Výtisk výsledků
     Writeln('Vytištění nově načteného gdf1 ze souboru:');

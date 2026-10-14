@@ -32,11 +32,12 @@ type
   TOrthogonalMethodForm = class(TCalcBaseForm)
     GridBaseline: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
-    Panel2: TPanel;
     PanelSave: TPanel;
     Memo1: TMemo;
     Button1: TButton;
     Save: TButton;
+    ButtonLoad: TButton;
+    ButtonReset: TButton;
     procedure AnchorGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);
@@ -57,6 +58,7 @@ type
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
     procedure WriteProtocol(ALines: TStrings); override;
+    procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -110,17 +112,18 @@ end;
 
 function TOrthogonalMethodForm.LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
 var
-  num: Int64;
+  PointNumber: Int64;
 begin
   Result := False;
-  num := StrToInt64Def(GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], -1);
-  if num = 0 then
+  PointNumber := StrToInt64Def(
+    GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], -1);
+  if PointNumber = 0 then
   begin
     ShowMessage(Format('Zadejte číslo bodu v řádku %s.',
       [GridBaseline.Cells[0, R]]));
     Exit;
   end;
-  if not LookupPoint(num, P) then Exit;
+  if not LookupPoint(PointNumber, P) then Exit;
   FillRowFromPoint(GridBaseline, R, P);
   Result := True;
 end;
@@ -142,19 +145,19 @@ var
 
   procedure AddBaseline(AGridRow: Integer);
   var
-    PNum: Int64;
-    P: Point.TPoint;
+    PointNumber: Int64;
+    ListPoint: Point.TPoint;
   begin
     GridBaseline.GetGeoRow(AGridRow, Row);
 
-    PNum := StrToInt64Def(Trim(string(Row.CB)), 0);
-    if TPointDictionary.GetInstance.PointExists(PNum) then
+    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+    if TPointDictionary.GetInstance.PointExists(PointNumber) then
     begin
       // The list decides, the cell only shows it
-      P := TPointDictionary.GetInstance.GetPoint(PNum);
-      Row.X := P.X;  Row.Y := P.Y;  Row.Z := P.Z;
+      ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
+      Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
       // A given point brings its own quality, the toolbar is for new ones
-      Row.KK := P.Quality;
+      Row.KK := ListPoint.Quality;
     end
     else
     begin
@@ -205,7 +208,7 @@ end;
 
 procedure TOrthogonalMethodForm.BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
-  P: Point.TPoint;
+  ListPoint: Point.TPoint;
 begin
   // Enter on an empty tape cell means zero, the user confirmed it
   if ((ACol = GridBaseline.FieldToCol(Xm)) or
@@ -216,7 +219,7 @@ begin
   // An empty cell is a row not filled in yet, not a mistake
   if (ACol = GridBaseline.FieldToCol(CB)) and
      (Trim(GridBaseline.Cells[ACol, ARow]) <> '') and
-     not LoadBasePoint(ARow, P) then
+     not LoadBasePoint(ARow, ListPoint) then
   begin
     GridBaseline.RejectCommit;
     Exit;
@@ -229,53 +232,53 @@ end;
 
 procedure TOrthogonalMethodForm.DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
-  G: TGeoFieldsGrid;
+  Grid: TGeoFieldsGrid;
   PNum: Int64;
-  P: Point.TPoint;
+  ListPoint: Point.TPoint;
 begin
-  G := GridDetail;
-  if (ARow < G.FixedRows) or (ACol < G.FixedCols) then Exit;
+  Grid := GridDetail;
+  if (ARow < Grid.FixedRows) or (ACol < Grid.FixedCols) then Exit;
 
-  case G.ColToField(ACol) of
+  case Grid.ColToField(ACol) of
     CB:
       begin
-        NormalizePointCell(G, ACol, ARow);
-        PNum := StrToInt64Def(G.Cells[ACol, ARow], 0);
+        NormalizePointCell(Grid, ACol, ARow);
+        PNum := StrToInt64Def(Grid.Cells[ACol, ARow], 0);
 
         // A new number brings its own height, quality and description
         if ARow >= Length(FDetailCB) then
           SetLength(FDetailCB, ARow + 1);
-        if G.Cells[ACol, ARow] <> FDetailCB[ARow] then
+        if Grid.Cells[ACol, ARow] <> FDetailCB[ARow] then
         begin
-          FDetailCB[ARow] := G.Cells[ACol, ARow];
-          if G.FieldToCol(Z) >= 0 then
-            G.Cells[G.FieldToCol(Z), ARow] := '';
-          if G.FieldToCol(KK) >= 0 then
-            G.Cells[G.FieldToCol(KK), ARow] := '';
-          if G.FieldToCol(Poznamka) >= 0 then
-            G.Cells[G.FieldToCol(Poznamka), ARow] := '';
+          FDetailCB[ARow] := Grid.Cells[ACol, ARow];
+          if Grid.FieldToCol(Z) >= 0 then
+            Grid.Cells[Grid.FieldToCol(Z), ARow] := '';
+          if Grid.FieldToCol(KK) >= 0 then
+            Grid.Cells[Grid.FieldToCol(KK), ARow] := '';
+          if Grid.FieldToCol(Poznamka) >= 0 then
+            Grid.Cells[Grid.FieldToCol(Poznamka), ARow] := '';
         end;
 
         if (PNum <> 0) and TPointDictionary.GetInstance.PointExists(PNum) then
         begin
-          P := TPointDictionary.GetInstance.GetPoint(PNum);
-          FillRowFromPoint(G, ARow, P);
+          ListPoint := TPointDictionary.GetInstance.GetPoint(PNum);
+          FillRowFromPoint(Grid, ARow, ListPoint);
         end;
       end;
 
     Xm, Ym:
       // Enter on an empty tape cell means zero, the same as for P and K
-      if Trim(G.Cells[ACol, ARow]) = '' then
-        G.Cells[ACol, ARow] := '0';
+      if Trim(Grid.Cells[ACol, ARow]) = '' then
+        Grid.Cells[ACol, ARow] := '0';
   else
     Exit;       // Z or the note moves no coordinate
   end;
 
   // The toolbar only prefills an empty cell, what is typed there wins
-  if Trim(G.Cells[G.FieldToCol(Poznamka), ARow]) = '' then
-    G.Cells[G.FieldToCol(Poznamka), ARow] := Trim(GPointPrefix.Popis);
-  if Trim(G.Cells[G.FieldToCol(KK), ARow]) = '' then
-    G.Cells[G.FieldToCol(KK), ARow] := Trim(GPointPrefix.KK);
+  if Trim(Grid.Cells[Grid.FieldToCol(Poznamka), ARow]) = '' then
+    Grid.Cells[Grid.FieldToCol(Poznamka), ARow] := Trim(GPointPrefix.Popis);
+  if Trim(Grid.Cells[Grid.FieldToCol(KK), ARow]) = '' then
+    Grid.Cells[Grid.FieldToCol(KK), ARow] := Trim(GPointPrefix.KK);
 
   Recompute;
 end;
@@ -300,7 +303,7 @@ end;
 
 procedure TOrthogonalMethodForm.Button1Click(Sender: TObject);
 var
-  P0, K0: Point.TPoint;
+  StartPoint, EndPoint: Point.TPoint;
 
   // The message names a row, so leave the cursor standing in it
   procedure FocusRow(ARow: Integer);
@@ -317,12 +320,12 @@ begin
     Exit;            // the typed value is invalid
 
   // The tape has to start and end on a known point
-  if not LoadBasePoint(1, P0) then
+  if not LoadBasePoint(1, StartPoint) then
   begin
     FocusRow(1);
     Exit;
   end;
-  if not LoadBasePoint(2, K0) then
+  if not LoadBasePoint(2, EndPoint) then
   begin
     FocusRow(2);
     Exit;
@@ -352,7 +355,6 @@ begin
 
   // The file is made from the grids, but nothing on the form moves
   BuildFrame;
-  FAlg.Calculate(FFrame);
 
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
   FFrame.ToCSV(FileName, ';', ',');
@@ -361,12 +363,41 @@ begin
     [FFrame.Count, sLineBreak, FileName]));
 end;
 
+// The first two rows are P and K
+procedure TOrthogonalMethodForm.LoadFrame(AFrame: TGeoDataFrame;
+  ABad: TStrings);
+var
+  I, R: Integer;
+begin
+  Memo1.Clear;
+  ClearGrid(GridBaseline, 3);
+  ClearGrid(GridDetail, GridDetail.FixedRows + AFrame.Count + 1);
+  SetLength(FDetailCB, 0);
+  SetLength(FDetailCB, GridDetail.RowCount);
+
+  for I := 0 to Min(AFrame.Count, 2) - 1 do
+    PutRow(GridBaseline, I + 1, AFrame.Rows[I], I, ABad);
+
+  R := GridDetail.FixedRows;
+  for I := 2 to AFrame.Count - 1 do
+    if PutRow(GridDetail, R, AFrame.Rows[I], I, ABad) then
+    begin
+      // Do not fill this number again
+      FDetailCB[R] := GridDetail.Cells[GridDetail.FieldToCol(CB), R];
+      Inc(R);
+    end;
+  GridDetail.RowCount := R + 1;
+
+  // Výpočet unlocks it
+  GridDetail.Enabled := False;
+end;
+
 // The whole protocol is rewritten after every computed row, so an edited
 // row replaces its old line instead of adding a second one.
 procedure TOrthogonalMethodForm.WriteProtocol(ALines: TStrings);
 var
   I, N: Integer;
-  B: TBaselineInfo;
+  Baseline: TBaselineInfo;
   Tail: string;
 
   // One line of either point table, wherever the row comes from
@@ -378,8 +409,8 @@ var
   end;
 
 begin
-  B := FAlg.Baseline;
-  if not B.Valid then
+  Baseline := FAlg.Baseline;
+  if not Baseline.Valid then
   begin
     ALines.Clear;
     Exit;
@@ -394,9 +425,9 @@ begin
   PointLine('K:', FFrame.Rows[1]);
   Prot.Line;
 
-  Prot.Text('Odchylka = ' + Num(B.Diff, 3) +
-            '    Mezní KK[3] = ' + Num(B.Tolerance, 3));
-  if B.Diff > B.Tolerance then
+  Prot.Text('Odchylka = ' + Num(Baseline.Diff, 3) +
+            '    Mezní KK[3] = ' + Num(Baseline.Tolerance, 3));
+  if Baseline.Diff > Baseline.Tolerance then
     Prot.Text('CHYBA: Odchylka délky pásky překračuje mezní hodnotu!');
 
   Prot.Text('');

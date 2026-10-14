@@ -46,6 +46,8 @@ type
     PanelCalculate: TPanel;
     Calculate: TButton;
     Save: TButton;
+    ButtonLoad: TButton;
+    ButtonReset: TButton;
     Memo1: TMemo;
     Label1: TLabel;
     Label2: TLabel;
@@ -75,6 +77,7 @@ type
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
     procedure WriteProtocol(ALines: TStrings); override;
+    procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -182,28 +185,28 @@ end;
 // True when the station can be used.
 function TPolarMethodForm.FillStation: Boolean;
 var
-  Num: Int64;
-  Pt: Point.TPoint;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
 begin
   EditStationNo.Text := StationNo;
   EditStationY.Text := '';
   EditStationX.Text := '';
   EditStationZ.Text := '';
 
-  Num := StrToInt64Def(EditStationNo.Text, 0);
-  Result := Num <> 0;
+  PointNumber := StrToInt64Def(EditStationNo.Text, 0);
+  Result := PointNumber <> 0;
   if not Result or not CheckBox1.Checked then
     Exit;
 
-  Result := LookupPoint(Num, Pt);
+  Result := LookupPoint(PointNumber, ListPoint);
   if not Result then
     Exit;
 
-  EditStationY.Text := FloatToStr(Pt.Y, FS);
-  EditStationX.Text := FloatToStr(Pt.X, FS);
-  EditStationZ.Text := FloatToStr(Pt.Z, FS);
-  EditStationKK.Text := IntToStr(Pt.Quality);
-  EditStationPopis.Text := string(Pt.Description);
+  EditStationY.Text := FloatToStr(ListPoint.Y, FS);
+  EditStationX.Text := FloatToStr(ListPoint.X, FS);
+  EditStationZ.Text := FloatToStr(ListPoint.Z, FS);
+  EditStationKK.Text := IntToStr(ListPoint.Quality);
+  EditStationPopis.Text := string(ListPoint.Description);
 end;
 
 procedure TPolarMethodForm.EditStationNoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -230,67 +233,67 @@ end;
 // LookupPoint offers AddPoint when the point is unknown.
 procedure TPolarMethodForm.OrientationCellCommitted(Sender: TObject; ACol, ARow: Integer);
 var
-  G: TGeoFieldsGrid;
-  CBCol, C: Integer;
-  num: Int64;
-  pt: Point.TPoint;
+  Grid: TGeoFieldsGrid;
+  PointNumberCol, Col: Integer;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
 begin
-  G := GridOrientation;
-  CBCol := G.FieldToCol(CB);
-  if (ACol <> CBCol) or (ARow < G.FixedRows) then Exit;
+  Grid := GridOrientation;
+  PointNumberCol := Grid.FieldToCol(CB);
+  if (ACol <> PointNumberCol) or (ARow < Grid.FixedRows) then Exit;
 
-  NormalizePointCell(G, CBCol, ARow);
-  num := StrToInt64Def(Trim(G.Cells[CBCol, ARow]), 0);
-  if num = 0 then Exit;
+  NormalizePointCell(Grid, PointNumberCol, ARow);
+  PointNumber := StrToInt64Def(Trim(Grid.Cells[PointNumberCol, ARow]), 0);
+  if PointNumber = 0 then Exit;
 
-  if not LookupPoint(num, pt) then Exit;
+  if not LookupPoint(PointNumber, ListPoint) then Exit;
 
-  G.Cells[G.FieldToCol(Y), ARow] := FloatToStr(pt.Y, FS);
-  G.Cells[G.FieldToCol(X), ARow] := FloatToStr(pt.X, FS);
-  G.Cells[G.FieldToCol(Z), ARow] := FloatToStr(pt.Z, FS);
+  Grid.Cells[Grid.FieldToCol(Y), ARow] := FloatToStr(ListPoint.Y, FS);
+  Grid.Cells[Grid.FieldToCol(X), ARow] := FloatToStr(ListPoint.X, FS);
+  Grid.Cells[Grid.FieldToCol(Z), ARow] := FloatToStr(ListPoint.Z, FS);
 
   // The settings may hide these two
-  C := G.FieldToCol(KK);
-  if C >= 0 then
-    G.Cells[C, ARow] := IntToStr(pt.Quality);
-  C := G.FieldToCol(Poznamka);
-  if C >= 0 then
-    G.Cells[C, ARow] := string(pt.Description);
+  Col := Grid.FieldToCol(KK);
+  if Col >= 0 then
+    Grid.Cells[Col, ARow] := IntToStr(ListPoint.Quality);
+  Col := Grid.FieldToCol(Poznamka);
+  if Col >= 0 then
+    Grid.Cells[Col, ARow] := string(ListPoint.Description);
 end;
 
 procedure TPolarMethodForm.DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
 var
-  G: TGeoFieldsGrid;
-  CBCol, PozCol, KKCol: Integer;
-  PNum: Int64;
-  P: Point.TPoint;
+  Grid: TGeoFieldsGrid;
+  PointNumberCol, PozCol, KKCol: Integer;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
 
   // The settings may hide the column
   procedure SetCell(F: TGeoField; const S: string);
   begin
-    if G.FieldToCol(F) >= 0 then
-      G.Cells[G.FieldToCol(F), ARow] := S;
+    if Grid.FieldToCol(F) >= 0 then
+      Grid.Cells[Grid.FieldToCol(F), ARow] := S;
   end;
 
 begin
-  G := GridDetail;
-  if ARow < G.FixedRows then Exit;
+  Grid := GridDetail;
+  if ARow < Grid.FixedRows then Exit;
 
-  CBCol  := G.FieldToCol(CB);
-  PozCol := G.FieldToCol(Poznamka);
-  KKCol  := G.FieldToCol(KK);
+  PointNumberCol  := Grid.FieldToCol(CB);
+  PozCol := Grid.FieldToCol(Poznamka);
+  KKCol  := Grid.FieldToCol(KK);
 
-  if ACol = CBCol then
+  if ACol = PointNumberCol then
   begin
-    NormalizePointCell(G, CBCol, ARow);
-    PNum := StrToInt64Def(G.Cells[CBCol, ARow], 0);
+    NormalizePointCell(Grid, PointNumberCol, ARow);
+    PointNumber := StrToInt64Def(Grid.Cells[PointNumberCol, ARow], 0);
 
     // A new number brings its own height, quality and description
     if ARow >= Length(FDetailCB) then
       SetLength(FDetailCB, ARow + 1);
-    if G.Cells[CBCol, ARow] <> FDetailCB[ARow] then
+    if Grid.Cells[PointNumberCol, ARow] <> FDetailCB[ARow] then
     begin
-      FDetailCB[ARow] := G.Cells[CBCol, ARow];
+      FDetailCB[ARow] := Grid.Cells[PointNumberCol, ARow];
       SetCell(Z, '');
       SetCell(KK, '');
       SetCell(Poznamka, '');
@@ -298,34 +301,35 @@ begin
 
     // A point from the list keeps its height, quality and description,
     // the same as in the orthogonal method
-    if (PNum <> 0) and TPointDictionary.GetInstance.PointExists(PNum) then
+    if (PointNumber <> 0) and
+       TPointDictionary.GetInstance.PointExists(PointNumber) then
     begin
-      P := TPointDictionary.GetInstance.GetPoint(PNum);
-      SetCell(Y, FloatToStr(P.Y, FS));
-      SetCell(X, FloatToStr(P.X, FS));
-      SetCell(Z, FloatToStr(P.Z, FS));
-      SetCell(KK, IntToStr(P.Quality));
-      SetCell(Poznamka, string(P.Description));
+      ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
+      SetCell(Y, FloatToStr(ListPoint.Y, FS));
+      SetCell(X, FloatToStr(ListPoint.X, FS));
+      SetCell(Z, FloatToStr(ListPoint.Z, FS));
+      SetCell(KK, IntToStr(ListPoint.Quality));
+      SetCell(Poznamka, string(ListPoint.Description));
     end;
   end;
 
   // The toolbar only prefills an empty cell, what is typed there wins
-  if (PozCol >= 0) and (Trim(G.Cells[PozCol, ARow]) = '') then
-    G.Cells[PozCol, ARow] := Trim(GPointPrefix.Popis);
-  if (KKCol >= 0) and (Trim(G.Cells[KKCol, ARow]) = '') then
-    G.Cells[KKCol, ARow] := Trim(GPointPrefix.KK);
+  if (PozCol >= 0) and (Trim(Grid.Cells[PozCol, ARow]) = '') then
+    Grid.Cells[PozCol, ARow] := Trim(GPointPrefix.Popis);
+  if (KKCol >= 0) and (Trim(Grid.Cells[KKCol, ARow]) = '') then
+    Grid.Cells[KKCol, ARow] := Trim(GPointPrefix.KK);
 end;
 
 // The station, the orientations, then the detail points.
 // False, with a message, when a given point is not in the list.
 function TPolarMethodForm.BuildFrame: Boolean;
 var
-  R, C: Integer;
+  R, KKCol: Integer;
   Row: TGeoRow;
-  Num: Int64;
-  P: Point.TPoint;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
   FreeMode: Boolean;
-  Err: string;
+  Msg: string;
 
   // Every frame row remembers its detail grid row, -1 for the rest
   procedure Add(AGridRow: Integer);
@@ -338,28 +342,28 @@ var
 
   procedure AddStation;
   var
-    No: string;
+    StationNumber: string;
   begin
     ClearGeoRow(Row);
-    No := StationNo;
-    Row.CB := ShortString(No);
-    Num := StrToInt64Def(No, 0);
+    StationNumber := StationNo;
+    Row.CB := ShortString(StationNumber);
+    PointNumber := StrToInt64Def(StationNumber, 0);
 
-    if Num = 0 then
-      Err := 'Zadejte číslo stanoviska.'
-    else if TPointDictionary.GetInstance.PointExists(Num) then
+    if PointNumber = 0 then
+      Msg := 'Zadejte číslo stanoviska.'
+    else if TPointDictionary.GetInstance.PointExists(PointNumber) then
     begin
       // The list decides, a free station takes all but its place, which
       // is what the run determines
-      P := TPointDictionary.GetInstance.GetPoint(Num);
+      ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
       if not FreeMode then
       begin
-        Row.X := P.X;
-        Row.Y := P.Y;
+        Row.X := ListPoint.X;
+        Row.Y := ListPoint.Y;
       end;
-      Row.Z := P.Z;
-      Row.KK := P.Quality;
-      Row.Poznamka := P.Description;
+      Row.Z := ListPoint.Z;
+      Row.KK := ListPoint.Quality;
+      Row.Poznamka := ListPoint.Description;
     end
     else if FreeMode then
     begin
@@ -369,7 +373,8 @@ var
     end
     else
       // Without coordinates it would turn into a free station
-      Err := Format('Stanovisko %s není v seznamu souřadnic.', [No]);
+      Msg := Format('Stanovisko %s není v seznamu souřadnic.',
+        [StationNumber]);
 
     // The height marks the station, so it is never empty
     if not TryStrToFloat(Trim(EditStationVS.Text), Row.VS, FS) then
@@ -384,23 +389,23 @@ var
     for I := GridOrientation.FixedRows to GridOrientation.RowCount - 1 do
     begin
       GridOrientation.GetGeoRow(I, Row);
-      Num := StrToInt64Def(Trim(string(Row.CB)), 0);
-      if Num = 0 then
+      PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+      if PointNumber = 0 then
         Continue;
 
       // Without coordinates it would look like a detail point
-      if not TPointDictionary.GetInstance.PointExists(Num) then
+      if not TPointDictionary.GetInstance.PointExists(PointNumber) then
       begin
-        if Err = '' then
-          Err := Format('Orientace %s není v seznamu souřadnic.',
+        if Msg = '' then
+          Msg := Format('Orientace %s není v seznamu souřadnic.',
             [Trim(string(Row.CB))]);
         Continue;
       end;
 
-      P := TPointDictionary.GetInstance.GetPoint(Num);
-      Row.X := P.X;  Row.Y := P.Y;  Row.Z := P.Z;
-      Row.KK := P.Quality;
-      Row.Poznamka := P.Description;
+      ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
+      Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
+      Row.KK := ListPoint.Quality;
+      Row.Poznamka := ListPoint.Description;
 
       // The height marks the target, so it is never empty
       if IsNan(Row.VC) then
@@ -414,13 +419,13 @@ begin
   FFrame.ClearData;
   SetLength(FRows, 0);
   FreeMode := not CheckBox1.Checked;
-  Err := '';
+  Msg := '';
 
   AddStation;
   AddOrientations;
 
   // The detail points are what the run computes
-  C := GridDetail.FieldToCol(KK);
+  KKCol := GridDetail.FieldToCol(KK);
   for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
     GridDetail.GetGeoRow(R, Row);
@@ -428,7 +433,7 @@ begin
       Continue;
 
     // A typed quality wins, the toolbar fills the rest
-    if (C < 0) or (Trim(GridDetail.Cells[C, R]) = '') then
+    if (KKCol < 0) or (Trim(GridDetail.Cells[KKCol, R]) = '') then
       Row.KK := StrToIntDef(Trim(GPointPrefix.KK), 0);
     // An old result read from the grid would look like an orientation
     Row.X := NaN;  Row.Y := NaN;
@@ -441,16 +446,16 @@ begin
     Add(R);
   end;
 
-  Result := Err = '';
+  Result := Msg = '';
   if not Result then
-    ShowMessage(Err);
+    ShowMessage(Msg);
 end;
 
 // Runs on the frame BuildFrame has just made
 procedure TPolarMethodForm.Recompute;
 var
   I: Integer;
-  St: TGeoRow;
+  Station: TGeoRow;
 begin
   FAlg.Calculate(FFrame);
 
@@ -465,12 +470,12 @@ begin
   // A free station is a result as well, so it is shown and kept
   if FAlg.Info.Valid and FAlg.Info.FreeStation then
   begin
-    St := FFrame.Rows[0];
-    EditStationY.Text := FormatFloat('0.00', St.Y, FS);
-    EditStationX.Text := FormatFloat('0.00', St.X, FS);
-    EditStationKK.Text := IntToStr(St.KK);
-    EditStationPopis.Text := string(St.Poznamka);
-    StorePoint(St);
+    Station := FFrame.Rows[0];
+    EditStationY.Text := FormatFloat('0.00', Station.Y, FS);
+    EditStationX.Text := FormatFloat('0.00', Station.X, FS);
+    EditStationKK.Text := IntToStr(Station.KK);
+    EditStationPopis.Text := string(Station.Poznamka);
+    StorePoint(Station);
   end;
 
   ShowProtocol(Memo1.Lines);
@@ -479,14 +484,14 @@ end;
 // No valid run: old results would look like new ones
 procedure TPolarMethodForm.ClearResults;
 var
-  R, CX, CY: Integer;
+  R, ColX, ColY: Integer;
 begin
-  CX := GridDetail.FieldToCol(X);
-  CY := GridDetail.FieldToCol(Y);
+  ColX := GridDetail.FieldToCol(X);
+  ColY := GridDetail.FieldToCol(Y);
   for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
-    if CX >= 0 then GridDetail.Cells[CX, R] := '';
-    if CY >= 0 then GridDetail.Cells[CY, R] := '';
+    if ColX >= 0 then GridDetail.Cells[ColX, R] := '';
+    if ColY >= 0 then GridDetail.Cells[ColY, R] := '';
   end;
 
   // A free station is a result as well
@@ -514,8 +519,7 @@ begin
     ShowMessage(Trim(FAlg.Warnings.Text));
 end;
 
-// Dumps the frame into CSV. The file is computed, but nothing on the form
-// moves.
+// Saves the input only
 procedure TPolarMethodForm.SaveClick(Sender: TObject);
 var
   FileName: string;
@@ -524,21 +528,66 @@ begin
     Exit;            // the typed value is invalid
   if not BuildFrame then
     Exit;
-  FAlg.Calculate(FFrame);
-
-  // Without a result the file would have no coordinates
-  if not FAlg.Info.Valid and
-     (MessageDlg('Výpočet se nepodařil:' + sLineBreak +
-        Trim(FAlg.Warnings.Text) + sLineBreak + sLineBreak +
-        'Uložit zápisník bez výsledků?',
-        mtWarning, [mbYes, mbNo], 0) <> mrYes) then
-    Exit;
 
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
   FFrame.ToCSV(FileName, ';', ',');
 
   ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
     [FFrame.Count, sLineBreak, FileName]));
+end;
+
+// Row 0 is the station. With X it is an orientation, without X a detail point
+procedure TPolarMethodForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
+var
+  I, OrientRow, DetailRow: Integer;
+  Row: TGeoRow;
+begin
+  Memo1.Clear;
+  ClearGrid(GridOrientation, GridOrientation.FixedRows + AFrame.Count + 1);
+  ClearGrid(GridDetail, GridDetail.FixedRows + AFrame.Count + 1);
+  SetLength(FDetailCB, 0);
+  SetLength(FDetailCB, GridDetail.RowCount);
+  if AFrame.Count = 0 then
+  begin
+    EditStationNo.Text := '';
+    EditStationVS.Text := '';
+    EditStationKK.Text := '';
+    EditStationPopis.Text := '';
+    FillStation;
+    Exit;
+  end;
+
+  // Station, X means fixed
+  Row := AFrame.Rows[0];
+  EditStationNo.Text := string(Row.CB);
+  EditStationVS.Text := FloatToStr(Row.VS, FS);
+  CheckBox1.OnClick := nil;           // no second FillStation
+  try
+    CheckBox1.Checked := not IsNan(Row.X);
+  finally
+    CheckBox1.OnClick := CheckBox1Click;
+  end;
+  CheckBox1Click(CheckBox1);          // fill the station
+
+  OrientRow := GridOrientation.FixedRows;
+  DetailRow := GridDetail.FixedRows;
+  for I := 1 to AFrame.Count - 1 do
+  begin
+    Row := AFrame.Rows[I];
+    if not IsNan(Row.X) then
+    begin
+      if PutRow(GridOrientation, OrientRow, Row, I, ABad) then
+        Inc(OrientRow);
+    end
+    else if PutRow(GridDetail, DetailRow, Row, I, ABad) then
+    begin
+      FDetailCB[DetailRow] :=
+        GridDetail.Cells[GridDetail.FieldToCol(CB), DetailRow];
+      Inc(DetailRow);
+    end;
+  end;
+  GridOrientation.RowCount := OrientRow + 1;
+  GridDetail.RowCount := DetailRow + 1;
 end;
 
 // TPolarProtocol writes it, the form only adds which points were in the

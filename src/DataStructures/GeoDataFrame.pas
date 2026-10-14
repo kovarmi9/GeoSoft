@@ -329,6 +329,7 @@ var
   I, J: Integer;
   Field: TGeoField;
   UsedFields: TGeoFields;
+  S: string;
 begin
   if (ACSV = nil) or (ACSV.Count = 0) then
   begin
@@ -376,7 +377,13 @@ begin
       Cells := SplitCsvLine(ACSV[I], ACellSep);
       for J := 0 to High(Cells) do
         if (J < ColCount) and ColKnown[J] then
-          TextToGeoField(FRows[FCount - 1], ColMap[J], Cells[J], FS);
+        begin
+          S := Cells[J];
+          // Accept a dot too, not in the note
+          if ColMap[J] <> Poznamka then
+            S := StringReplace(S, '.', ADecSep, [rfReplaceAll]);
+          TextToGeoField(FRows[FCount - 1], ColMap[J], S, FS);
+        end;
     end;
 end;
 

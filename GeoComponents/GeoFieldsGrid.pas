@@ -117,6 +117,11 @@ type
     procedure SetGeoRow(ARow: Integer; const GRow: TGeoRow);
     procedure GetGeoRow(ARow: Integer; out GRow: TGeoRow);
 
+    /// <summary>
+    /// Checks a row like typing does. Returns '' or the bad value.
+    /// </summary>
+    function CheckGeoRow(const GRow: TGeoRow): string;
+
   published
     // Row headers are free for the form to use
     property RowHeaders;
@@ -565,6 +570,24 @@ begin
     F := FColToField[I];
     C := FixedCols + I;
     TextToGeoField(GRow, F, Cells[C, ARow], FormatSettings);
+  end;
+end;
+
+function TGeoFieldsGrid.CheckGeoRow(const GRow: TGeoRow): string;
+var
+  I: Integer;
+  F: TGeoField;
+  S: string;
+begin
+  Result := '';
+  for I := 0 to High(FColToField) do
+  begin
+    F := FColToField[I];
+    S := GeoFieldToText(GRow, F, '', FormatSettings);
+    if S = '' then
+      Continue;                  // empty is OK
+    if not ValidateText(FColumnFilters[I], S) then
+      Exit(Cells[FixedCols + I, 0] + ' = ' + S);   // column header
   end;
 end;
 

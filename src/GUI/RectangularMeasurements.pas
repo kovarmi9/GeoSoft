@@ -18,9 +18,12 @@ type
   TRectangularMeasurementsForm = class(TCalcBaseForm)
     StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
+    Splitter1: TSplitter;
     PanelCalculate: TPanel;
     ButtonCalculate: TButton;
     ButtonSave: TButton;
+    ButtonLoad: TButton;
+    ButtonReset: TButton;
     procedure FormCreate(Sender: TObject);
     procedure ButtonCalculateClick(Sender: TObject);
     procedure ButtonSaveClick(Sender: TObject);
@@ -42,6 +45,7 @@ type
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
+    procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -75,12 +79,12 @@ end;
 
 procedure TRectangularMeasurementsForm.FormCreate(Sender: TObject);
 var
-  D: TColumnFilterData;
+  FilterData: TColumnFilterData;
 begin
   // Left turn is written as a negative length
-  D := GeoFieldColumns[SH].Filter;
-  D.HasMinValue := False;
-  StringGrid1.SetColumnFilterData(SH, D);
+  FilterData := GeoFieldColumns[SH].Filter;
+  FilterData.HasMinValue := False;
+  StringGrid1.SetColumnFilterData(SH, FilterData);
 end;
 
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
@@ -102,14 +106,14 @@ end;
 // Fills the row after its point number was committed
 procedure TRectangularMeasurementsForm.FillRow(const R: Integer);
 var
-  Num: Int64;
-  P: Point.TPoint;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
   CBText: string;
   Known: Boolean;
 begin
   CBText := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
-  Num := StrToInt64Def(CBText, -1);
-  if Num = 0 then Exit;
+  PointNumber := StrToInt64Def(CBText, -1);
+  if PointNumber = 0 then Exit;
 
   // Only a new number refills the row, so user edits survive
   if Length(FRowCB) <= R then
@@ -123,7 +127,7 @@ begin
   if R = StringGrid1.FixedRows then
   begin
     // The chain has to start on a known point
-    Known := LookupPoint(Num, P);
+    Known := LookupPoint(PointNumber, ListPoint);
     if not Known then
     begin
       StringGrid1.RejectCommit;
@@ -133,20 +137,21 @@ begin
   end
   else
   begin
-    Known := TPointDictionary.GetInstance.PointExists(Num);
+    Known := TPointDictionary.GetInstance.PointExists(PointNumber);
     if Known then
     begin
       // Report the duplicate and let the user choose, the same as GEUS
       if Application.MessageBox(PChar(Format(
         'Bod %s již v seznamu existuje.' + sLineBreak +
         'Použít jeho souřadnice? (Ne = počítat ho jako nový)',
-        [PointId(Num)])), 'Dotaz', MB_YESNO or MB_ICONQUESTION) = IDNO then
+        [PointId(PointNumber)])), 'Dotaz',
+        MB_YESNO or MB_ICONQUESTION) = IDNO then
       begin
         Known := False;
         FRowNew[R] := True;
       end
       else
-        P := TPointDictionary.GetInstance.GetPoint(Num);
+        ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
     end;
   end;
 
@@ -154,10 +159,10 @@ begin
 
   if Known then
   begin
-    SetCell(Y, R, FormatFloat('0.00', P.Y, FS));
-    SetCell(X, R, FormatFloat('0.00', P.X, FS));
-    SetCell(KK, R, IntToStr(P.Quality));
-    SetCell(Poznamka, R, string(P.Description));
+    SetCell(Y, R, FormatFloat('0.00', ListPoint.Y, FS));
+    SetCell(X, R, FormatFloat('0.00', ListPoint.X, FS));
+    SetCell(KK, R, IntToStr(ListPoint.Quality));
+    SetCell(Poznamka, R, string(ListPoint.Description));
   end
   else
   begin
@@ -209,8 +214,8 @@ end;
 procedure TRectangularMeasurementsForm.BuildFrame;
 var
   I, GridRow: Integer;
-  Num: Int64;
-  P: Point.TPoint;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
   IsGiven: Boolean;
 begin
   GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI, FRows);
@@ -218,20 +223,20 @@ begin
   for I := 0 to FFrame.Count - 1 do
   begin
     GridRow := FRows[I];
-    Num := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
+    PointNumber := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
 
     // A listed point is given, unless the user said it is a new one
-    IsGiven := TPointDictionary.GetInstance.PointExists(Num)
+    IsGiven := TPointDictionary.GetInstance.PointExists(PointNumber)
       and not ((GridRow <= High(FRowNew)) and FRowNew[GridRow]);
 
     if IsGiven then
     begin
       // The list decides, the cell can be edited
-      P := TPointDictionary.GetInstance.GetPoint(Num);
-      FFrame.Rows[I].X := P.X;
-      FFrame.Rows[I].Y := P.Y;
-      SetCell(Y, GridRow, FormatFloat('0.00', P.Y, FS));
-      SetCell(X, GridRow, FormatFloat('0.00', P.X, FS));
+      ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
+      FFrame.Rows[I].X := ListPoint.X;
+      FFrame.Rows[I].Y := ListPoint.Y;
+      SetCell(Y, GridRow, FormatFloat('0.00', ListPoint.Y, FS));
+      SetCell(X, GridRow, FormatFloat('0.00', ListPoint.X, FS));
     end
     else
     begin
@@ -313,7 +318,7 @@ begin
   if not CommitEditing then
     Exit;            // the typed value is invalid
   FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  Recompute;               // the file carries the computed coordinates
+  BuildFrame;              // input only
 
   if FFrame.Count = 0 then
   begin
@@ -326,55 +331,87 @@ begin
     [FFrame.Count, sLineBreak, FileName]));
 end;
 
+// Puts the loaded rows into the grid
+procedure TRectangularMeasurementsForm.LoadFrame(AFrame: TGeoDataFrame;
+  ABad: TStrings);
+var
+  I, R: Integer;
+begin
+  // Forget the old job
+  Memo1.Clear;
+  FWarnings.Clear;
+  ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
+  SetLength(FRowCB, 0);
+  SetLength(FRowNew, 0);
+  SetLength(FRowCB, StringGrid1.RowCount);
+  SetLength(FRowNew, StringGrid1.RowCount);
+
+  R := StringGrid1.FixedRows;
+  for I := 0 to AFrame.Count - 1 do
+    if PutRow(StringGrid1, R, AFrame.Rows[I], I, ABad) then
+    begin
+      // Do not ask again for this number
+      FRowCB[R] := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
+      // Empty X means a new point
+      FRowNew[R] := IsNan(AFrame.Rows[I].X);
+      Inc(R);
+    end;
+
+  // One empty row at the end
+  StringGrid1.RowCount := R + 1;
+  RecalcLocal;
+end;
+
 procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);
 var
   S, I: Integer;
-  Seg: TSegmentInfo;
+  Segment: TSegmentInfo;
   Row: TGeoRow;
-  Pt: Point.TPoint;
+  ListPoint: Point.TPoint;
   Kind, Dist: string;
 begin
   Prot.Title(ALines, 'Konstrukční oměrné');
 
   for S := 0 to High(FAlg.Segments) do
   begin
-    Seg := FAlg.Segments[S];
+    Segment := FAlg.Segments[S];
 
     Prot.Text(Format('Úsek %d: %s → %s', [S + 1,
-      FormatPointId(string(FFrame.Rows[Seg.FromRow].CB)),
-      FormatPointId(string(FFrame.Rows[Seg.ToRow].CB))]));
+      FormatPointId(string(FFrame.Rows[Segment.FromRow].CB)),
+      FormatPointId(string(FFrame.Rows[Segment.ToRow].CB))]));
 
     Prot.Table(['Č.', 'Číslo bodu', 'Délka', CoordNames, 'Typ'],
                [ColWNo, ColWPoint, ColWDist, ColWPair, ColWFlag]);
 
-    for I := Seg.FromRow to Seg.ToRow do
+    for I := Segment.FromRow to Segment.ToRow do
     begin
       Row := FFrame.Rows[I];
 
       // The notebook marks the given points by position: first and last
-      if (I = Seg.FromRow) or (I = Seg.ToRow) then
+      if (I = Segment.FromRow) or (I = Segment.ToRow) then
         Kind := 'daný'
       else
         Kind := 'vypočtený';
 
       // the first point of a stretch has no length in front of it
-      if I = Seg.FromRow then
+      if I = Segment.FromRow then
         Dist := ''
       else
         Dist := Num(Row.SH);
 
-      Pt.X := Row.X;
-      Pt.Y := Row.Y;
+      ListPoint.X := Row.X;
+      ListPoint.Y := Row.Y;
 
-      Prot.Row([IntToStr(I - Seg.FromRow + 1), FormatPointId(string(Row.CB)),
-                Dist, CoordPair(Pt), Kind]);
+      Prot.Row([IntToStr(I - Segment.FromRow + 1),
+                FormatPointId(string(Row.CB)),
+                Dist, CoordPair(ListPoint), Kind]);
     end;
 
     Prot.Text('');
-    Prot.Text('Měřená délka = ' + Num(Seg.MeasDist) +
-              '    Vypočtená délka = ' + Num(Seg.CalcDist));
-    Prot.Text('Odchylka = ' + Num(Abs(Seg.CalcDist - Seg.MeasDist)));
-    Prot.Text('Uzávěr = ' + Num(Seg.Closure, 3) + ' m');
+    Prot.Text('Měřená délka = ' + Num(Segment.MeasDist) +
+              '    Vypočtená délka = ' + Num(Segment.CalcDist));
+    Prot.Text('Odchylka = ' + Num(Abs(Segment.CalcDist - Segment.MeasDist)));
+    Prot.Text('Uzávěr = ' + Num(Segment.Closure, 3) + ' m');
     Prot.Text('');
   end;
 

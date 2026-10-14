@@ -131,6 +131,14 @@
     Top = 152
     object MenuUloha: TMenuItem
       Caption = #218'loha'
+      object MenuReset: TMenuItem
+        Caption = 'Resetovat zad'#225'n'#237'...'
+        OnClick = MenuResetClick
+      end
+      object MenuNacistZapisnik: TMenuItem
+        Caption = 'Na'#269#237'st z'#225'pisn'#237'k...'
+        OnClick = MenuNacistZapisnikClick
+      end
       object MenuUlozitProtokol: TMenuItem
         Caption = 'Ulo'#382'it protokol...'
         OnClick = MenuUlozitProtokolClick
@@ -150,5 +158,12 @@
     Title = 'Ulo'#382'it protokol'
     Left = 704
     Top = 200
+  end
+  object OpenDialogZapisnik: TOpenDialog
+    DefaultExt = '.csv'
+    Filter = 'CSV soubor (*.csv)|*.csv'
+    Title = 'Na'#269#237'st z'#225'pisn'#237'k'
+    Left = 704
+    Top = 248
   end
 end

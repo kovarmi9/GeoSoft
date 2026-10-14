@@ -100,4 +100,14 @@ inherited TransformationForm: TTransformationForm
       24
       24)
   end
+  inherited MainMenu1: TMainMenu
+    inherited MenuUloha: TMenuItem
+      inherited MenuReset: TMenuItem
+        Visible = False
+      end
+      inherited MenuNacistZapisnik: TMenuItem
+        Visible = False
+      end
+    end
+  end
 end

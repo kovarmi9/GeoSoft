@@ -1,20 +1,7 @@
 inherited PolarMethodForm: TPolarMethodForm
   Caption = 'Pol'#225'rn'#237' metoda'
-  StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
-    inherited ComboBoxKU: TComboBox
-      StyleElements = [seFont, seClient, seBorder]
-    end
-    inherited ComboBoxZPMZ: TComboBox
-      StyleElements = [seFont, seClient, seBorder]
-    end
-    inherited ComboBoxKK: TComboBox
-      StyleElements = [seFont, seClient, seBorder]
-    end
-    inherited ComboBoxPopis: TComboBox
-      StyleElements = [seFont, seClient, seBorder]
-    end
     object ToolButton4: TToolButton
       Left = 402
       Top = 0
@@ -37,10 +24,46 @@ inherited PolarMethodForm: TPolarMethodForm
     Left = 0
     Top = 35
     Width = 800
-    Height = 546
+    Height = 509
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
+    object Label1: TLabel
+      Left = 0
+      Top = 52
+      Width = 800
+      Height = 15
+      Align = alTop
+      Caption = 'Orientace'
+    end
+    object Splitter1: TSplitter
+      Left = 0
+      Top = 167
+      Width = 800
+      Height = 5
+      Cursor = crVSplit
+      Align = alTop
+      MinSize = 60
+      ExplicitWidth = 675
+    end
+    object Label2: TLabel
+      Left = 0
+      Top = 172
+      Width = 800
+      Height = 15
+      Align = alTop
+      Caption = 'Podrobn'#233' body'
+    end
+    object Splitter2: TSplitter
+      Left = 0
+      Top = 323
+      Width = 800
+      Height = 5
+      Cursor = crVSplit
+      Align = alBottom
+      MinSize = 60
+      ExplicitWidth = 675
+    end
     object PanelStation: TPanel
       Left = 0
       Top = 0
@@ -144,15 +167,6 @@ inherited PolarMethodForm: TPolarMethodForm
         Text = ''
       end
     end
-    object Label1: TLabel
-      Left = 0
-      Top = 52
-      Width = 800
-      Height = 15
-      Align = alTop
-      Caption = 'Orientace'
-      ExplicitWidth = 51
-    end
     object GridOrientation: TGeoFieldsGrid
       Left = 0
       Top = 67
@@ -180,7 +194,7 @@ inherited PolarMethodForm: TPolarMethodForm
         'PolarK=Kolmice'
         'KK=K'#243'd kvality'
         'Poznamka=Popis')
-      ReadOnlyFields = [X, Y, Z, KK, Poznamka]
+      ReadOnlyFields = [X, Y, Z, Poznamka, KK]
       ColWidths = (
         64
         88
@@ -196,25 +210,6 @@ inherited PolarMethodForm: TPolarMethodForm
         87
         87
         87)
-    end
-    object Splitter1: TSplitter
-      Left = 0
-      Top = 167
-      Width = 800
-      Height = 5
-      Cursor = crVSplit
-      Align = alTop
-      ExplicitWidth = 675
-      MinSize = 60
-    end
-    object Label2: TLabel
-      Left = 0
-      Top = 172
-      Width = 800
-      Height = 15
-      Align = alTop
-      Caption = 'Podrobn'#233' body'
-      ExplicitWidth = 82
     end
     object GridDetail: TGeoFieldsGrid
       Left = 0
@@ -260,51 +255,9 @@ inherited PolarMethodForm: TPolarMethodForm
         87
         87)
     end
-    object PanelCalculate: TPanel
-      Left = 0
-      Top = 330
-      Width = 800
-      Height = 30
-      Align = alBottom
-      BevelOuter = bvNone
-      TabOrder = 3
-      DesignSize = (
-        800
-        30)
-      object Calculate: TButton
-        Left = 636
-        Top = 2
-        Width = 75
-        Height = 25
-        Anchors = [akTop, akRight]
-        Caption = 'V'#253'po'#269'et'
-        TabOrder = 0
-        OnClick = CalculateClick
-      end
-      object Save: TButton
-        Left = 717
-        Top = 2
-        Width = 75
-        Height = 25
-        Anchors = [akTop, akRight]
-        Caption = 'Ulo'#382'it'
-        TabOrder = 1
-        OnClick = SaveClick
-      end
-    end
-    object Splitter2: TSplitter
-      Left = 0
-      Top = 360
-      Width = 800
-      Height = 5
-      Cursor = crVSplit
-      Align = alBottom
-      ExplicitWidth = 675
-      MinSize = 60
-    end
     object Memo1: TMemo
       Left = 0
-      Top = 365
+      Top = 328
       Width = 800
       Height = 181
       TabStop = False
@@ -319,6 +272,62 @@ inherited PolarMethodForm: TPolarMethodForm
       ScrollBars = ssBoth
       TabOrder = 4
       WordWrap = False
+    end
+  end
+  object PanelCalculate: TPanel [3]
+    Left = 0
+    Top = 544
+    Width = 800
+    Height = 37
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 3
+    object Calculate: TButton
+      AlignWithMargins = True
+      Left = 707
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
+      Caption = 'V'#253'po'#269'et'
+      TabOrder = 2
+      OnClick = CalculateClick
+    end
+    object Save: TButton
+      AlignWithMargins = True
+      Left = 611
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
+      Caption = 'Ulo'#382'it'
+      TabOrder = 1
+      OnClick = SaveClick
+    end
+    object ButtonLoad: TButton
+      AlignWithMargins = True
+      Left = 515
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
+      Caption = 'Na'#269#237'st...'
+      TabOrder = 0
+      OnClick = MenuNacistZapisnikClick
+    end
+    object ButtonReset: TButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 90
+      Height = 31
+      Hint = 'Vyma'#382'e zad'#225'n'#237' v tomto okn'#283', seznam sou'#345'adnic z'#367'stane.'
+      Align = alLeft
+      Caption = 'Resetovat'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = MenuResetClick
     end
   end
 end

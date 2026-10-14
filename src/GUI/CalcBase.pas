@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms,
   Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
   PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable,
-  GeoRow, GeoGrid;
+  GeoRow, GeoGrid, GeoFieldsGrid, GeoDataFrame;
 
 type
   TCalcBaseForm = class(TForm)
@@ -26,12 +26,17 @@ type
     ComboBoxKK: TComboBox;
     ComboBoxPopis: TComboBox;
     StatusBar1: TStatusBar;
+    MenuNacistZapisnik: TMenuItem;
+    OpenDialogZapisnik: TOpenDialog;
+    MenuReset: TMenuItem;
     procedure PrefixComboExit(Sender: TObject);
     procedure PrefixComboChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
     procedure FormDeactivate(Sender: TObject);
     procedure MenuUlozitProtokolClick(Sender: TObject);
     procedure MenuNastaveniClick(Sender: TObject);
+    procedure MenuNacistZapisnikClick(Sender: TObject);
+    procedure MenuResetClick(Sender: TObject);
     /// <summary>OnExit of each calculation grid, keeps a typed value.</summary>
     procedure GridExit(Sender: TObject);
   private
@@ -44,6 +49,10 @@ type
     // those points as they were before this form changed them
     FOriginals: TDictionary<Int64, Point.TPoint>;
     function Points: TPointDictionary;
+    /// <summary>Forgets the last job.</summary>
+    procedure ForgetJob;
+    /// <summary>Empties the form.</summary>
+    procedure ResetNotebook;
   protected
     FS: TFormatSettings;
     Prot: TProtocol;          // shared by every WriteProtocol
@@ -92,6 +101,17 @@ type
     /// </summary>
     procedure WriteProtocol(ALines: TStrings); virtual;
 
+    /// <summary>Puts loaded rows into the grids. Bad rows go to ABad.</summary>
+    procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); virtual;
+
+    /// <summary>Empties the data cells and sets the row count.</summary>
+    procedure ClearGrid(AGrid: TGeoGrid; ARowCount: Integer);
+
+    /// <summary>Puts one row into the grid. A bad row goes to ABad.
+    /// AIndex is the row in the file.</summary>
+    function PutRow(AGrid: TGeoFieldsGrid; ARow: Integer;
+      const GRow: TGeoRow; AIndex: Integer; ABad: TStrings): Boolean;
+
     /// <summary>Calls WriteProtocol without letting the memo flicker.</summary>
     procedure ShowProtocol(ALines: TStrings);
 
@@ -119,19 +139,19 @@ type
 
 constructor TCalcBaseForm.Create(AOwner: TComponent);
 var
-  W, H: Integer;
+  NewWidth, NewHeight: Integer;
 begin
   inherited Create(AOwner);
 
   // Smart sizing: 75% of screen, clamped to reasonable range
-  W := MulDiv(Screen.WorkAreaWidth, 75, 100);
-  H := MulDiv(Screen.WorkAreaHeight, 75, 100);
-  if W > 1200 then W := 1200;
-  if H > 900 then H := 900;
-  if W < Constraints.MinWidth then W := Constraints.MinWidth;
-  if H < Constraints.MinHeight then H := Constraints.MinHeight;
-  ClientWidth := W;
-  ClientHeight := H;
+  NewWidth := MulDiv(Screen.WorkAreaWidth, 75, 100);
+  NewHeight := MulDiv(Screen.WorkAreaHeight, 75, 100);
+  if NewWidth > 1200 then NewWidth := 1200;
+  if NewHeight > 900 then NewHeight := 900;
+  if NewWidth < Constraints.MinWidth then NewWidth := Constraints.MinWidth;
+  if NewHeight < Constraints.MinHeight then NewHeight := Constraints.MinHeight;
+  ClientWidth := NewWidth;
+  ClientHeight := NewHeight;
 
   // Grids and edits speak the same language as the grid component, which
   // takes the decimal separator from Windows. The protocol does not - it
@@ -174,30 +194,31 @@ end;
 // The grid closes its editor right after this, so remember a typed value
 procedure TCalcBaseForm.GridExit(Sender: TObject);
 var
-  G: TGeoGrid;
+  Grid: TGeoGrid;
 begin
-  G := Sender as TGeoGrid;
-  if G.EditorMode and TGridAccess(G).InplaceEditor.Modified then
-    FEditedGrid := G
-  else if G = FEditedGrid then
+  Grid := Sender as TGeoGrid;
+  if Grid.EditorMode and TGridAccess(Grid).InplaceEditor.Modified then
+    FEditedGrid := Grid
+  else if Grid = FEditedGrid then
     FEditedGrid := nil;            // the value was confirmed meanwhile
 end;
 
 // Called by the Calculate and Save buttons
 function TCalcBaseForm.CommitEditing: Boolean;
 var
-  G: TGeoGrid;
+  Grid: TGeoGrid;
 begin
   Result := True;
   if FEditedGrid = nil then
     Exit;
 
-  G := FEditedGrid;
+  Grid := FEditedGrid;
   FEditedGrid := nil;
-  G.EditorMode := True;            // the editor comes back with the typed text
-  Result := G.CommitCurrentCell;
-  if not Result and G.CanFocus then
-    G.SetFocus;                    // invalid value, the user fixes it
+  // the editor comes back with the typed text
+  Grid.EditorMode := True;
+  Result := Grid.CommitCurrentCell;
+  if not Result and Grid.CanFocus then
+    Grid.SetFocus;                    // invalid value, the user fixes it
 end;
 
 // The one point list of the program
@@ -208,7 +229,7 @@ end;
 
 function TCalcBaseForm.LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
 var
-  dlg: TAddPointForm;
+  Dialog: TAddPointForm;
 begin
   if TPointDictionary.GetInstance.PointExists(PointNo) then
   begin
@@ -217,12 +238,12 @@ begin
     Exit;
   end;
 
-  dlg := TAddPointForm.Create(Self);
+  Dialog := TAddPointForm.Create(Self);
   try
     // True after OK
-    Result := dlg.Execute(PointNo, pt);
+    Result := Dialog.Execute(PointNo, pt);
   finally
-    dlg.Free;
+    Dialog.Free;
   end;
 end;
 
@@ -263,64 +284,66 @@ end;
 
 procedure TCalcBaseForm.StorePoint(var ARow: TGeoRow);
 var
-  PNum, NewNum: Int64;
-  NewP, OldP: Point.TPoint;
+  PointNumber, NewPointNumber: Int64;
+  NewPoint, OldPoint: Point.TPoint;
   All: Boolean;                     // the calculations do not show the box
 begin
-  PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
-  if PNum = 0 then
+  PointNumber := StrToInt64Def(Trim(string(ARow.CB)), 0);
+  if PointNumber = 0 then
     Exit;
 
   // NaN height becomes 0
-  NewP := Point.TPoint.Create(PNum, ARow.X, ARow.Y, ARow.Z, ARow.KK,
+  NewPoint := Point.TPoint.Create(PointNumber, ARow.X, ARow.Y, ARow.Z, ARow.KK,
                               string(ARow.Poznamka));
 
   // New point, or one this form computed before
-  if not Points.PointExists(PNum) or FNewPoints.Contains(PNum) then
+  if not Points.PointExists(PointNumber) or
+     FNewPoints.Contains(PointNumber) then
   begin
-    if not FNewPoints.Contains(PNum) then
-      FNewPoints.Add(PNum);
-    Points.AddOrUpdatePoint(NewP);
+    if not FNewPoints.Contains(PointNumber) then
+      FNewPoints.Add(PointNumber);
+    Points.AddOrUpdatePoint(NewPoint);
     Exit;
   end;
 
-  if not FOriginals.ContainsKey(PNum) then
-    FOriginals.Add(PNum, Points.GetPoint(PNum));
-  OldP := FOriginals[PNum];         // the point before this form changed it
+  if not FOriginals.ContainsKey(PointNumber) then
+    FOriginals.Add(PointNumber, Points.GetPoint(PointNumber));
+  // the point before this form changed it
+  OldPoint := FOriginals[PointNumber];
 
   // Ask once per Calculate, cell edits reuse the answer
-  if not FAnswers.ContainsKey(PNum) then
-    FAnswers.Add(PNum, AskExistingPoint(OldP, NewP, False, All));
+  if not FAnswers.ContainsKey(PointNumber) then
+    FAnswers.Add(PointNumber, AskExistingPoint(OldPoint, NewPoint, False, All));
 
-  case FAnswers[PNum] of
+  case FAnswers[PointNumber] of
     ANS_NEW:
-      Points.AddOrUpdatePoint(NewP);
+      Points.AddOrUpdatePoint(NewPoint);
     ANS_AVERAGE:
-      Points.AddOrUpdatePoint(AveragePoint(OldP, NewP));
+      Points.AddOrUpdatePoint(AveragePoint(OldPoint, NewPoint));
     ANS_NUMBER:
-      if AskNewNumber(NewNum) then
+      if AskNewNumber(NewPointNumber) then
       begin
-        NewP.PointNumber := NewNum;
-        Points.AddOrUpdatePoint(NewP);
-        FNewPoints.Add(NewNum);
+        NewPoint.PointNumber := NewPointNumber;
+        Points.AddOrUpdatePoint(NewPoint);
+        FNewPoints.Add(NewPointNumber);
         // the grid gets it too
-        ARow.CB := ShortString(Format('%.15d', [NewNum]));
+        ARow.CB := ShortString(Format('%.15d', [NewPointNumber]));
       end
       else
-        FAnswers[PNum] := ANS_KEEP;
+        FAnswers[PointNumber] := ANS_KEEP;
   end;                              // keep and Esc leave the old point
 end;
 
 function TCalcBaseForm.WasInList(const ARow: TGeoRow): Boolean;
 var
-  PNum: Int64;
+  PointNumber: Int64;
   Answer: Integer;
 begin
-  PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
-  if FNewPoints.Contains(PNum) then
+  PointNumber := StrToInt64Def(Trim(string(ARow.CB)), 0);
+  if FNewPoints.Contains(PointNumber) then
     Exit(False);
   // Only an overwritten point was updated
-  if FAnswers.TryGetValue(PNum, Answer) then
+  if FAnswers.TryGetValue(PointNumber, Answer) then
     Exit((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
   Result := True;
 end;
@@ -351,6 +374,105 @@ procedure TCalcBaseForm.MenuNastaveniClick(Sender: TObject);
 begin
   if TSettingsForm.Execute then
     ApplySettings;
+end;
+
+// Skips bad rows and lists them
+procedure TCalcBaseForm.MenuNacistZapisnikClick(Sender: TObject);
+var
+  Frame: TGeoDataFrame;
+  Bad: TStringList;
+begin
+  // Uložit saves here
+  OpenDialogZapisnik.InitialDir := ExtractFilePath(Application.ExeName);
+  if not OpenDialogZapisnik.Execute then
+    Exit;
+
+  Frame := TGeoDataFrame.Create;
+  Bad := TStringList.Create;
+  try
+    try
+      Frame.FromCSV(OpenDialogZapisnik.FileName);
+    except
+      on E: Exception do
+      begin
+        ShowMessage('Zápisník nejde načíst:' + sLineBreak + E.Message);
+        Exit;
+      end;
+    end;
+    ForgetJob;                 // a new job
+    LoadFrame(Frame, Bad);
+    if Bad.Count > 0 then
+      ShowMessage(Format('Přeskočeno %d řádků:', [Bad.Count]) +
+        sLineBreak + Bad.Text);
+  finally
+    Bad.Free;
+    Frame.Free;
+  end;
+end;
+
+// Asks first, Enter means No
+procedure TCalcBaseForm.MenuResetClick(Sender: TObject);
+begin
+  if Application.MessageBox(
+    PChar('Smaže se všechno, co je v tomto okně zadané, i protokol.' +
+      sLineBreak + 'Seznam souřadnic, lišta předčíslí a nastavení ' +
+      'zůstanou beze změny.'),
+    'Resetovat zadání?', MB_YESNO or MB_ICONQUESTION or MB_DEFBUTTON2)
+    <> IDYES then
+    Exit;
+  ResetNotebook;
+end;
+
+procedure TCalcBaseForm.ForgetJob;
+begin
+  ForgetAnswers;
+  FOriginals.Clear;
+  // Ask again before overwriting a point
+  FNewPoints.Clear;
+end;
+
+procedure TCalcBaseForm.ResetNotebook;
+var
+  Empty: TGeoDataFrame;
+  Bad: TStringList;
+begin
+  ForgetJob;
+  Empty := TGeoDataFrame.Create;
+  Bad := TStringList.Create;
+  try
+    LoadFrame(Empty, Bad);     // empty file, empty form
+  finally
+    Bad.Free;
+    Empty.Free;
+  end;
+end;
+
+procedure TCalcBaseForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
+begin
+  ShowMessage('Tato úloha zatím načítání neumí.');
+end;
+
+procedure TCalcBaseForm.ClearGrid(AGrid: TGeoGrid; ARowCount: Integer);
+var
+  R, C: Integer;
+begin
+  AGrid.RowCount := ARowCount;
+  for R := AGrid.FixedRows to AGrid.RowCount - 1 do
+    for C := AGrid.FixedCols to AGrid.ColCount - 1 do
+      AGrid.Cells[C, R] := '';
+end;
+
+function TCalcBaseForm.PutRow(AGrid: TGeoFieldsGrid; ARow: Integer;
+  const GRow: TGeoRow; AIndex: Integer; ABad: TStrings): Boolean;
+var
+  Msg: string;
+begin
+  Msg := AGrid.CheckGeoRow(GRow);
+  Result := Msg = '';
+  if Result then
+    AGrid.SetGeoRow(ARow, GRow)
+  else
+    ABad.Add(Format('řádek %d: %s', [AIndex + 1, Msg]));
 end;
 
 procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);

@@ -17,30 +17,9 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       StyleElements = [seFont, seClient, seBorder]
     end
   end
-  object Panel2: TPanel [1]
+  object GridBaseline: TGeoFieldsGrid [1]
     Left = 0
     Top = 35
-    Width = 800
-    Height = 40
-    Align = alTop
-    TabOrder = 2
-    DesignSize = (
-      800
-      40)
-    object Button1: TButton
-      Left = 708
-      Top = 9
-      Width = 75
-      Height = 25
-      Anchors = [akRight, akBottom]
-      Caption = 'V'#253'po'#269'et'
-      TabOrder = 0
-      OnClick = Button1Click
-    end
-  end
-  object GridBaseline: TGeoFieldsGrid [2]
-    Left = 0
-    Top = 75
     Width = 800
     Height = 81
     Align = alTop
@@ -83,9 +62,9 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       24
       24)
   end
-  object Memo1: TMemo [3]
+  object Memo1: TMemo [2]
     Left = 0
-    Top = 156
+    Top = 116
     Width = 800
     Height = 208
     TabStop = False
@@ -104,11 +83,11 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     ScrollBars = ssVertical
     TabOrder = 3
   end
-  object GridDetail: TGeoFieldsGrid [4]
+  object GridDetail: TGeoFieldsGrid [3]
     Left = 0
-    Top = 364
+    Top = 324
     Width = 800
-    Height = 187
+    Height = 220
     Align = alClient
     Enabled = False
     ColCount = 9
@@ -148,30 +127,64 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       24
       24)
   end
-  object PanelSave: TPanel [5]
+  object PanelSave: TPanel [4]
     Left = 0
-    Top = 570
+    Top = 544
     Width = 800
-    Height = 30
+    Height = 37
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 5
-    DesignSize = (
-      800
-      30)
+    object Button1: TButton
+      AlignWithMargins = True
+      Left = 707
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
+      Caption = 'V'#253'po'#269'et'
+      TabOrder = 2
+      OnClick = Button1Click
+    end
     object Save: TButton
-      Left = 588
-      Top = 6
-      Width = 75
-      Height = 25
-      Anchors = [akTop, akRight]
+      AlignWithMargins = True
+      Left = 611
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
       Caption = 'Ulo'#382'it'
-      TabOrder = 0
+      TabOrder = 1
       OnClick = SaveClick
+    end
+    object ButtonLoad: TButton
+      AlignWithMargins = True
+      Left = 515
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
+      Caption = 'Na'#269#237'st...'
+      TabOrder = 0
+      OnClick = MenuNacistZapisnikClick
+    end
+    object ButtonReset: TButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 90
+      Height = 31
+      Hint = 'Vyma'#382'e zad'#225'n'#237' v tomto okn'#283', seznam sou'#345'adnic z'#367'stane.'
+      Align = alLeft
+      Caption = 'Resetovat'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = MenuResetClick
     end
   end
   inherited StatusBar1: TStatusBar
-    Top = 551
-    ExplicitTop = 551
+    Top = 581
+    ExplicitTop = 581
   end
 end

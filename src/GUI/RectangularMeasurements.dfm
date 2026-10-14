@@ -20,15 +20,16 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     end
   end
   inherited StatusBar1: TStatusBar
-    Top = 536
-    ExplicitTop = 536
+    Top = 579
+    ExplicitTop = 579
   end
   object StringGrid1: TGeoFieldsGrid [2]
     Left = 0
     Top = 35
     Width = 800
-    Height = 128
+    Height = 200
     Align = alTop
+    Constraints.MinHeight = 80
     ColCount = 9
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
@@ -60,9 +61,9 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   end
   object Memo1: TMemo [3]
     Left = 0
-    Top = 163
+    Top = 238
     Width = 800
-    Height = 373
+    Height = 304
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
@@ -73,36 +74,69 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     ScrollBars = ssVertical
     TabOrder = 3
   end
-  object PanelCalculate: TPanel [4]
+  object Splitter1: TSplitter [4]
     Left = 0
-    Top = 555
+    Top = 235
     Width = 800
-    Height = 43
+    Height = 3
+    Cursor = crVSplit
+    Align = alTop
+    MinSize = 80
+  end
+  object PanelCalculate: TPanel [5]
+    Left = 0
+    Top = 542
+    Width = 800
+    Height = 37
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 4
-    DesignSize = (
-      800
-      43)
     object ButtonCalculate: TButton
-      Left = 572
-      Top = 6
-      Width = 75
-      Height = 25
-      Anchors = [akTop, akRight]
+      AlignWithMargins = True
+      Left = 707
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
       Caption = 'V'#253'po'#269'et'
-      TabOrder = 0
+      TabOrder = 2
       OnClick = ButtonCalculateClick
     end
     object ButtonSave: TButton
-      Left = 682
-      Top = 6
-      Width = 75
-      Height = 25
-      Anchors = [akTop, akRight]
+      AlignWithMargins = True
+      Left = 611
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
       Caption = 'Ulo'#382'it'
       TabOrder = 1
       OnClick = ButtonSaveClick
+    end
+    object ButtonLoad: TButton
+      AlignWithMargins = True
+      Left = 515
+      Top = 3
+      Width = 90
+      Height = 31
+      Align = alRight
+      Caption = 'Na'#269#237'st...'
+      TabOrder = 0
+      OnClick = MenuNacistZapisnikClick
+    end
+    object ButtonReset: TButton
+      AlignWithMargins = True
+      Left = 3
+      Top = 3
+      Width = 90
+      Height = 31
+      Hint = 'Vyma'#382'e zad'#225'n'#237' v tomto okn'#283', seznam sou'#345'adnic z'#367'stane.'
+      Align = alLeft
+      Caption = 'Resetovat'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = MenuResetClick
     end
   end
 end

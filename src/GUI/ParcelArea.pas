@@ -21,6 +21,8 @@ type
     PanelCalculate: TPanel;
     Calculate: TButton;
     Save: TButton;
+    ButtonLoad: TButton;
+    ButtonReset: TButton;
     procedure CalculateClick(Sender: TObject);
     procedure SaveClick(Sender: TObject);
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -33,6 +35,7 @@ type
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
+    procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -71,16 +74,19 @@ end;
 
 procedure TParcelAreaForm.FillFromDict(const R: Integer);
 var
-  num: Int64;
-  P: Point.TPoint;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
 begin
-  num := StrToInt64Def(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], -1);
-  if num = 0 then Exit;
+  PointNumber := StrToInt64Def(
+    StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], -1);
+  if PointNumber = 0 then Exit;
 
-  if LookupPoint(num, P) then
+  if LookupPoint(PointNumber, ListPoint) then
   begin
-    StringGrid1.Cells[StringGrid1.FieldToCol(Y), R] := FloatToStr(P.Y, FS);
-    StringGrid1.Cells[StringGrid1.FieldToCol(X), R] := FloatToStr(P.X, FS);
+    StringGrid1.Cells[StringGrid1.FieldToCol(Y), R] :=
+      FloatToStr(ListPoint.Y, FS);
+    StringGrid1.Cells[StringGrid1.FieldToCol(X), R] :=
+      FloatToStr(ListPoint.X, FS);
   end;
 end;
 
@@ -104,9 +110,9 @@ end;
 function TParcelAreaForm.BuildFrame: Boolean;
 var
   R: Integer;
-  Num: Int64;
+  PointNumber: Int64;
   Row: TGeoRow;
-  P: Point.TPoint;
+  ListPoint: Point.TPoint;
 begin
   Result := True;
   FFrame.ClearData;
@@ -114,11 +120,11 @@ begin
   for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
   begin
     StringGrid1.GetGeoRow(R, Row);
-    Num := StrToInt64Def(Trim(string(Row.CB)), 0);
-    if Num = 0 then
+    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+    if PointNumber = 0 then
       Continue;
 
-    if not TPointDictionary.GetInstance.PointExists(Num) then
+    if not TPointDictionary.GetInstance.PointExists(PointNumber) then
     begin
       ShowMessage(Format('Bod %s není v seznamu souřadnic.',
         [Trim(string(Row.CB))]));
@@ -127,10 +133,10 @@ begin
     end;
 
     // The list decides, the cells only show it
-    P := TPointDictionary.GetInstance.GetPoint(Num);
+    ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
     Row.Uloha := ULOHA_VYMERA;
-    Row.X := P.X;
-    Row.Y := P.Y;
+    Row.X := ListPoint.X;
+    Row.Y := ListPoint.Y;
     FFrame.AddRow(Row);
   end;
 end;
@@ -167,6 +173,25 @@ begin
 
   ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
     [FFrame.Count, sLineBreak, FileName]));
+end;
+
+// Every row is a corner
+procedure TParcelAreaForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
+var
+  I, R: Integer;
+begin
+  Memo1.Clear;
+  ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
+
+  R := StringGrid1.FixedRows;
+  for I := 0 to AFrame.Count - 1 do
+    if PutRow(StringGrid1, R, AFrame.Rows[I], I, ABad) then
+    begin
+      StringGrid1.Cells[0, R] := IntToStr(R);   // row number
+      Inc(R);
+    end;
+  StringGrid1.Cells[0, R] := '';     // no number on the empty row
+  StringGrid1.RowCount := R + 1;
 end;
 
 // TAreaProtocol writes it

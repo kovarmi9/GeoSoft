@@ -7,8 +7,7 @@
 uses
   System.SysUtils,
   System.Classes,
-  GeoRow in '..\..\src\DataStructures\GeoRow.pas',
-  GeoDataFrame in '..\..\src\DataStructures\GeoDataFrame.pas';
+  GeoRow in '..\..\src\DataStructures\GeoRow.pas';
 
 var
   r1, r2: TGeoRow;
@@ -19,7 +18,7 @@ begin
   try
     // --- Test r1 ---
 
-    // Globální proměnná je jen vynulovaná (0), prázdný řádek dělá až ClearGeoRow (NaN)
+    // Globální proměnná má nuly, NaN dá až ClearGeoRow
     Writeln('Výpis řádku bez ClearGeoRow (nuly z paměti, ne NaN)');
     Writeln(PrintGeoRow(r1));
 
@@ -45,8 +44,13 @@ begin
     Writeln('Výpis vyplněného řádku');
     Writeln(PrintGeoRow(r1));
 
-    // Uložení řádku s append = True
-    SaveRow('Radek1', r1, true);
+    // Uložení řádku: soubor se přepíše jedním řádkem
+    SaveRow('Radek1', r1);
+
+    // Připsání druhého řádku na konec souboru
+    r2 := r1;
+    r2.CB := 'druhy';
+    SaveRow('Radek1', r2, True);
 
     // Vyčištění řádku
     ClearGeoRow(r1);
@@ -55,11 +59,14 @@ begin
     Writeln('Výpis vymazaného řádku');
     Writeln(PrintGeoRow(r1));
 
-    // Načtení prvního řádku
-    r2 := LoadRow('Radek1');
+    // Načtení obou řádků podle indexu
+    Writeln('Načtený řádek 0 (CB ahoj)');
+    Writeln(PrintGeoRow(LoadRow('Radek1', 0)));
+    Writeln('Načtený řádek 1 (CB druhy)');
+    Writeln(PrintGeoRow(LoadRow('Radek1', 1)));
 
-    // Výpis načteného řádku
-    Writeln(PrintGeoRow(r2));
+    // Načtení všech řádků najednou
+    Writeln('Počet řádků v souboru: ', Length(LoadRows('Radek1')));
 
   except
     on E: Exception do

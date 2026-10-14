@@ -49,7 +49,9 @@ begin
 
     gdf1.Rows[0].Uloha := 1;
     gdf1.Rows[0].CB := '751261478500012';
-    gdf1.Rows[0].X := 1045986.745;  gdf1.Rows[0].Y := 743841.459;  gdf1.Rows[0].Z := 450.485;
+    gdf1.Rows[0].X := 1045986.745;
+    gdf1.Rows[0].Y := 743841.459;
+    gdf1.Rows[0].Z := 450.485;
     gdf1.Rows[0].Xm := 1000;  gdf1.Rows[0].Ym := 5000;  gdf1.Rows[0].Zm := 0;
     gdf1.Rows[0].TypS := 1;
     gdf1.Rows[0].SH := 104.456;
@@ -64,7 +66,9 @@ begin
 
     gdf1.Rows[1].Uloha := 2;
     gdf1.Rows[1].CB := '751261478500013';
-    gdf1.Rows[1].X := 1045746.745;  gdf1.Rows[1].Y := 743911.459;  gdf1.Rows[1].Z := 450.790;
+    gdf1.Rows[1].X := 1045746.745;
+    gdf1.Rows[1].Y := 743911.459;
+    gdf1.Rows[1].Z := 450.790;
     gdf1.Rows[1].Xm := 1600;  gdf1.Rows[1].Ym := 5400;  gdf1.Rows[1].Zm := 0.2;
     gdf1.Rows[1].TypS := 2;
     gdf1.Rows[1].SH := 105.456;
@@ -105,7 +109,7 @@ begin
     Writeln(csv1.Text);
 
     // Uložení do souboru CSV
-    gdf1.ToCSV('gdf1.csv', ';', '.');
+    gdf1.ToCSV('gdf1.csv');
 
     // Vymazání dat
     gdf1.ClearData;
@@ -156,7 +160,8 @@ begin
 
     // Výtisk výsledků
     Writeln('Vytištění nově načteného gdf1 ze souboru:');
-    Writeln(gdf1.Print)
+    Writeln(gdf1.Print);
+    gdf1.Free;
 
 
   except

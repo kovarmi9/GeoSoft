@@ -12,7 +12,7 @@ body vypočtené.
 - **Ortogonální metoda**: měřická přímka a podrobné body
 - **Konstrukční oměrné**: výpočet bodů z řetězce délek
 - **Kontrolní oměrné**: porovnání měřených délek s vypočtenými
-- **Výpočet výměry**: plocha parcely ze souřadnic lomových bodů
+- **Výpočet výměr**: plocha parcely ze souřadnic lomových bodů
 - **Protokol**: každý výpočet vytvoří protokol, který lze uložit
 
 ## Základní konvence

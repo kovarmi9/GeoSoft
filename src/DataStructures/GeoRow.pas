@@ -6,7 +6,7 @@ uses
   System.SysUtils, System.Math;
 
 const
-  MAX_CB    = 15;   // point number length
+  MAX_CB    = 16;   // point number length: 15 digits and a minus sign
   MAX_POPIS = 32;   // description length
 
 type
@@ -33,24 +33,24 @@ type
   /// <summary>A choice of fields, e.g. [CB, X, Y].</summary>
   TGeoFields = set of TGeoField;
 
-  /// <summary>One row of a task. Packed: the binary file stores it as it is.</summary>
+  /// <summary>One measurement of a task.</summary>
   TGeoRow = packed record
-    Uloha:         Integer;     // task type
-    CB:            string[MAX_CB];  // point number
-    X, Y, Z:       Double;      // global coordinates
-    CBm:           string[MAX_CB];  // source point number
-    Xm, Ym, Zm:    Double;      // local coordinates
-    TypS:          Integer;     // distance type
-    SH:            Double;      // horizontal distance
-    SS:            Double;      // slope distance
-    VS:            Double;      // instrument height
-    VC:            Double;      // target height
-    HZ:            Double;      // horizontal angle [gon]
-    Zuhel:         Double;      // zenith angle [gon] — named Zuhel to avoid collision with Z coordinate
-    PolarD:        Double;      // polar offset (domerek)
-    PolarK:        Double;      // polar perpendicular (kolmice)
+    Uloha:         Integer;           // task type
+    CB:            string[MAX_CB];    // point number
+    X, Y, Z:       Double;            // global coordinates
+    CBm:           string[MAX_CB];    // source point number
+    Xm, Ym, Zm:    Double;            // local coordinates
+    TypS:          Integer;           // distance type
+    SH:            Double;            // horizontal distance
+    SS:            Double;            // slope distance
+    VS:            Double;            // instrument height
+    VC:            Double;            // target height
+    HZ:            Double;            // horizontal angle [gon]
+    Zuhel:         Double;            // zenith angle [gon]
+    PolarD:        Double;            // polar offset (domerek)
+    PolarK:        Double;            // polar perpendicular (kolmice)
     Poznamka:      string[MAX_POPIS]; // note
-    KK:            Integer;     // quality code 0..8
+    KK:            Integer;           // quality code 0..8
   end;
 
   /// <summary>Array of rows.</summary>
@@ -61,33 +61,32 @@ procedure ClearGeoRow(var ARow: TGeoRow);
 
 /// <summary>Readable dump of the row, one field per line.</summary>
 function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): string; overload;
+/// <summary>Readable dump of the chosen fields of the row.</summary>
 function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): string; overload;
 
 /// <summary>Names of the fields, separated by ASep.</summary>
 function PrintGeoFields(const AFields: TGeoFields; const ASep: string = ', '): string;
 
-/// <summary>One field as text; NaN gives ''.</summary>
-function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField;
-  const AFormat: string; const AFS: TFormatSettings): string;
-/// <summary>Text into one field; text that is not a number leaves the field as it is.</summary>
-procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField;
-  const AText: string; const AFS: TFormatSettings);
+/// <summary>One field as text. NaN gives ''.</summary>
+function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField; const AFormat: string; const AFS: TFormatSettings): string;
+/// <summary>Text into one field. Non-number text keeps the field.</summary>
+procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField; const AText: string; const AFS: TFormatSettings);
 
-/// <summary>Finds a field by its name; case does not matter.</summary>
+/// <summary>Finds a field by its name. Case does not matter.</summary>
 function FindGeoField(const AName: string; out AField: TGeoField): Boolean;
 
-/// <summary>Writes one row to a binary file; AAppend adds it to the end.</summary>
+/// <summary>Writes one row to a file. AAppend adds it at the end.</summary>
 procedure SaveRow(const AFileName: string; const ARow: TGeoRow; AAppend: Boolean = False);
-/// <summary>Writes rows to a binary file; AAppend adds them to the end.</summary>
+/// <summary>Writes rows to a file. AAppend adds them at the end.</summary>
 procedure SaveRows(const AFileName: string; const ARows: array of TGeoRow; AAppend: Boolean = False);
 
-/// <summary>Reads one row from a binary file, the first one by default.</summary>
+/// <summary>Reads row AIndex from a file, the first one by default.</summary>
 function LoadRow(const AFileName: string; AIndex: Integer = 0): TGeoRow;
-/// <summary>Reads all rows from a binary file.</summary>
+/// <summary>Reads all rows from a file.</summary>
 function LoadRows(const AFileName: string): TGeoRowArray;
 
 const
-  /// <summary>Field names for CSV and printouts.</summary>
+  /// <summary>Field names for CSV and printouts, in TGeoField order.</summary>
   GeoFieldNames: array[TGeoField] of string = (
     'Uloha','CB','X','Y','Z','CBm','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka','KK'
   );
@@ -115,13 +114,13 @@ begin
   ARow.KK := 0;
 end;
 
-// Overload that prints all fields — delegates to the field-mask overload
-function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): string;
+// Overload that prints all fields - calls the field-mask overload
+function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer): string;
 begin
   Result := PrintGeoRow(ARow, [Low(TGeoField)..High(TGeoField)], ARowIndex);
 end;
 
-function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): string;
+function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer): string;
 var
   F: TGeoField;
   S: string;
@@ -160,7 +159,7 @@ begin
     end;
 end;
 
-function PrintGeoFields(const AFields: TGeoFields; const ASep: string = ', '): string;
+function PrintGeoFields(const AFields: TGeoFields; const ASep: string): string;
 var
   F: TGeoField;
   First: Boolean;
@@ -178,8 +177,7 @@ begin
 end;
 
 // NaN gives empty text
-function FloatCell(const AValue: Double; const AFormat: string;
-  const AFS: TFormatSettings): string;
+function FloatCell(const AValue: Double; const AFormat: string; const AFS: TFormatSettings): string;
 begin
   if IsNan(AValue) then
     Result := ''
@@ -189,8 +187,7 @@ begin
     Result := FormatFloat(AFormat, AValue, AFS);
 end;
 
-function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField;
-  const AFormat: string; const AFS: TFormatSettings): string;
+function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField; const AFormat: string; const AFS: TFormatSettings): string;
 begin
   case AField of
     Uloha:    Result := IntToStr(ARow.Uloha);
@@ -217,14 +214,14 @@ begin
 end;
 
 // Text that is not a number leaves the field alone, so an empty cell stays NaN
-procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField;
-  const AText: string; const AFS: TFormatSettings);
+procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField; const AText: string; const AFS: TFormatSettings);
 var
   S: string;
+  N: Integer;
 begin
   S := Trim(AText);
   case AField of
-    Uloha:    TryStrToInt(S, ARow.Uloha);
+    Uloha:    if TryStrToInt(S, N) then ARow.Uloha := N;
     CB:       ARow.CB := ShortString(Copy(S, 1, MAX_CB));
     X:        TryStrToFloat(S, ARow.X, AFS);
     Y:        TryStrToFloat(S, ARow.Y, AFS);
@@ -233,7 +230,7 @@ begin
     Xm:       TryStrToFloat(S, ARow.Xm, AFS);
     Ym:       TryStrToFloat(S, ARow.Ym, AFS);
     Zm:       TryStrToFloat(S, ARow.Zm, AFS);
-    TypS:     TryStrToInt(S, ARow.TypS);
+    TypS:     if TryStrToInt(S, N) then ARow.TypS := N;
     SH:       TryStrToFloat(S, ARow.SH, AFS);
     SS:       TryStrToFloat(S, ARow.SS, AFS);
     VS:       TryStrToFloat(S, ARow.VS, AFS);
@@ -243,7 +240,7 @@ begin
     PolarD:   TryStrToFloat(S, ARow.PolarD, AFS);
     PolarK:   TryStrToFloat(S, ARow.PolarK, AFS);
     Poznamka: ARow.Poznamka := ShortString(Copy(S, 1, MAX_POPIS));
-    KK:       TryStrToInt(S, ARow.KK);
+    KK:       if TryStrToInt(S, N) then ARow.KK := N;
   end;
 end;
 
@@ -260,15 +257,35 @@ begin
     end;
 end;
 
-procedure SaveRow(const AFileName: string; const ARow: TGeoRow; AAppend: Boolean = False);
+type
+  TGeoRowFile = File of TGeoRow;
+
+// Opens an existing file for reading only, so read-only files open too
+procedure OpenForReading(var F: TGeoRowFile; const AFileName: string);
+var
+  OldMode: Byte;
+begin
+  if not FileExists(AFileName) then
+    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [AFileName]);
+
+  AssignFile(F, AFileName);
+  OldMode := FileMode;
+  FileMode := fmOpenRead;      // Reset opens by the global FileMode
+  try
+    Reset(F);
+  finally
+    FileMode := OldMode;
+  end;
+end;
+
+procedure SaveRow(const AFileName: string; const ARow: TGeoRow; AAppend: Boolean);
 begin
   SaveRows(AFileName, [ARow], AAppend);
 end;
 
-procedure SaveRows(const AFileName: string; const ARows: array of TGeoRow;
-  AAppend: Boolean = False);
+procedure SaveRows(const AFileName: string; const ARows: array of TGeoRow; AAppend: Boolean);
 var
-  F: File of TGeoRow;
+  F: TGeoRowFile;
 begin
   AssignFile(F, AFileName);
   if AAppend and FileExists(AFileName) then
@@ -284,20 +301,17 @@ begin
   end;
 end;
 
-function LoadRow(const AFileName: string; AIndex: Integer = 0): TGeoRow;
+function LoadRow(const AFileName: string; AIndex: Integer): TGeoRow;
 var
-  F: File of TGeoRow;
+  F: TGeoRowFile;
 begin
-  if not FileExists(AFileName) then
-    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [AFileName]);
-
-  AssignFile(F, AFileName);
-  Reset(F);
+  OpenForReading(F, AFileName);
   try
     if FileSize(F) = 0 then
       raise Exception.Create('Soubor je prázdný.');
     if (AIndex < 0) or (AIndex >= FileSize(F)) then
-      raise Exception.CreateFmt('Index %d je mimo rozsah (0..%d)', [AIndex, FileSize(F) - 1]);
+      raise Exception.CreateFmt('Index %d je mimo rozsah (0..%d).',
+        [AIndex, FileSize(F) - 1]);
 
     Seek(F, AIndex);
     Read(F, Result);
@@ -308,14 +322,10 @@ end;
 
 function LoadRows(const AFileName: string): TGeoRowArray;
 var
-  F: File of TGeoRow;
+  F: TGeoRowFile;
   Count, Done: Integer;
 begin
-  if not FileExists(AFileName) then
-    raise Exception.CreateFmt('Soubor "%s" neexistuje.', [AFileName]);
-
-  AssignFile(F, AFileName);
-  Reset(F);
+  OpenForReading(F, AFileName);
   try
     Count := FileSize(F);
     SetLength(Result, Count);
@@ -323,7 +333,8 @@ begin
     begin
       BlockRead(F, Result[0], Count, Done);
       if Done <> Count then
-        raise Exception.CreateFmt('Načteno jen %d z %d záznamů.', [Done, Count]);
+        raise Exception.CreateFmt('Načteno jen %d z %d záznamů.',
+          [Done, Count]);
     end;
   finally
     CloseFile(F);

@@ -6,8 +6,6 @@ uses
   System.SysUtils, System.Classes, System.Math, GeoRow;
 
 type
-  TGeoRowArray = GeoRow.TGeoRowArray;
-
   /// <summary>Rows of one task and the fields it uses.</summary>
   TGeoDataFrame = class
   private
@@ -25,16 +23,16 @@ type
     /// <summary>Empty table with the given fields.</summary>
     constructor Create(const AFields: TGeoFields); overload;
 
-    /// <summary>Number of rows. Setting it adds empty rows or drops the last ones.</summary>
+    /// <summary>Number of rows. Setting it adds or drops rows.</summary>
     property Count: Integer read FCount write SetCount;
     /// <summary>Rows that fit before the array has to grow.</summary>
     property Capacity: Integer read FCapacity;
     /// <summary>Fields written by Print and ToCSV.</summary>
     property Fields: TGeoFields read FFields write FFields;
-    /// <summary>The rows. Use Count; Length(Rows) is Capacity.</summary>
+    /// <summary>The rows. Use Count, not Length(Rows).</summary>
     property Rows: TGeoRowArray read FRows;
 
-    /// <summary>Deletes all rows; Fields stay.</summary>
+    /// <summary>Deletes all rows. Fields stay.</summary>
     procedure ClearData;
 
     /// <summary>Adds one empty row.</summary>
@@ -47,13 +45,16 @@ type
     /// <summary>Readable dump of the frame.</summary>
     function Print: string;
 
-    /// <summary>The frame as CSV text, or saved to a CSV file.</summary>
-    function ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): string; overload;
-    procedure ToCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
+    /// <summary>The frame as CSV text.</summary>
+    function ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = ','): string; overload;
+    /// <summary>Saves the frame to a CSV file.</summary>
+    procedure ToCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = ','); overload;
 
-    /// <summary>Reads CSV lines or a CSV file; Fields come from the header.</summary>
-    procedure FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
-    procedure FromCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = '.'); overload;
+    /// <summary>Reads CSV lines. Fields come from the header.
+    /// Takes any TStrings, e.g. a TStringList or Memo1.Lines.</summary>
+    procedure FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = ','); overload;
+    /// <summary>Reads a CSV file. Fields come from the header.</summary>
+    procedure FromCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = ','); overload;
 
     /// <summary>Saves rows and Fields to a binary file.</summary>
     procedure SaveToFile(const AFileName: string);
@@ -67,22 +68,23 @@ implementation
 type
   TStrArray = array of string;
 
-// Number format for CSV; the two separators must differ
+// Number format for CSV. The two separators must differ
 function CsvFormat(ACellSep, ADecSep: Char): TFormatSettings;
 begin
   if ACellSep = ADecSep then
     raise EArgumentException.CreateFmt(
-      'Oddělovač buněk "%s" se musí lišit od desetinného oddělovače "%s".',
+      'Oddělovač buněk "%s" se musí lišit ' +
+      'od desetinného oddělovače "%s".',
       [string(ACellSep), string(ADecSep)]);
   Result := TFormatSettings.Create;
   Result.DecimalSeparator := ADecSep;
   Result.ThousandSeparator := #0;   // no thousands separator
 end;
 
-// Splits one CSV line into cells, respecting quoted strings and escaped quotes ("")
+// Splits one CSV line into cells, handles quotes and ""
 function SplitCsvLine(const ALine: string; ASep: Char): TStrArray;
 var
-  I, N: Integer;     // I = current char index; N = number of stored cells
+  I, N: Integer;     // I = current char index, N = number of stored cells
   InQuotes: Boolean; // True while inside a quoted field
   Ch: Char;          // current character
   Buf: string;       // the current cell
@@ -100,7 +102,7 @@ begin
     // Handle double-quote characters
     if Ch = '"' then
     begin
-      // "" inside a quoted field is an escaped quote — emit a single " and skip both chars
+      // "" inside quotes means one " in the cell
       if InQuotes and (I < Length(ALine)) and (ALine[I + 1] = '"') then
       begin
         Buf := Buf + '"';
@@ -116,7 +118,7 @@ begin
       end;
     end;
 
-    // Unquoted separator — close the current cell and start a new one
+    // Unquoted separator - close the current cell and start a new one
     if (not InQuotes) and (Ch = ASep) then
     begin
       SetLength(Result, N + 1);
@@ -127,7 +129,7 @@ begin
       Continue;
     end;
 
-    // Regular character — append to current cell
+    // Regular character - append to current cell
     Buf := Buf + Ch;
     I := I + 1;
   end;
@@ -172,7 +174,7 @@ begin
   Fields := AFields;
 end;
 
-// Doubles capacity until it covers ANeed; no-op if already sufficient
+// Doubles capacity until it covers ANeed. Does nothing if it already does
 procedure TGeoDataFrame.Reserve(ANeed: Integer);
 var
   Cap: Integer;
@@ -238,9 +240,12 @@ begin
 end;
 
 procedure TGeoDataFrame.AddRow(const ARow: TGeoRow);
+var
+  Row: TGeoRow;
 begin
+  Row := ARow;     // ARow may point into FRows, which AddRow(1) can move
   AddRow(1);
-  FRows[FCount - 1] := ARow;
+  FRows[FCount - 1] := Row;
 end;
 
 function TGeoDataFrame.Print: string;
@@ -256,16 +261,16 @@ begin
     Result := Result + sLineBreak + PrintGeoRow(FRows[I], Fields, I);
 end;
 
-function TGeoDataFrame.ToCSV(const ACellSep: Char = ';'; const ADecSep: Char = '.'): string;
+function TGeoDataFrame.ToCSV(const ACellSep: Char; const ADecSep: Char): string;
 var
   Field: TGeoField;
   RowIndex: Integer;
   Line, S: string;
-  FormatSettings: TFormatSettings;
+  FS: TFormatSettings;
   Row: TGeoRow;
   CSV: TStringList;
 begin
-  FormatSettings := CsvFormat(ACellSep, ADecSep);
+  FS := CsvFormat(ACellSep, ADecSep);
 
   CSV := TStringList.Create;
   try
@@ -284,7 +289,7 @@ begin
           if Line <> '' then
             Line := Line + ACellSep;
 
-          S := GeoFieldToText(Row, Field, '', FormatSettings);
+          S := GeoFieldToText(Row, Field, '', FS);
           if Field in [CB, CBm, Poznamka] then
             S := '"' + StringReplace(S, '"', '""', [rfReplaceAll]) + '"';
 
@@ -300,9 +305,8 @@ begin
   end;
 end;
 
-// File overload — builds the CSV text then saves it to disk
-procedure TGeoDataFrame.ToCSV(const AFileName: string;
-  const ACellSep: Char; const ADecSep: Char);
+// File overload - builds the CSV text and saves it
+procedure TGeoDataFrame.ToCSV(const AFileName: string; const ACellSep: Char; const ADecSep: Char);
 var
   CSV: TStringList;
 begin
@@ -315,9 +319,9 @@ begin
   end;
 end;
 
-procedure TGeoDataFrame.FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = '.');
+procedure TGeoDataFrame.FromCSV(const ACSV: TStrings; const ACellSep: Char; const ADecSep: Char);
 var
-  FormatSettings: TFormatSettings;
+  FS: TFormatSettings;
   Header, Cells: TStrArray;
   ColCount: Integer;
   ColMap: array of TGeoField;
@@ -332,16 +336,11 @@ begin
     Exit;
   end;
 
-  FormatSettings := CsvFormat(ACellSep, ADecSep);
+  FS := CsvFormat(ACellSep, ADecSep);
 
   // Parse header row to build column-to-field mapping
   Header := SplitCsvLine(ACSV[0], ACellSep);
   ColCount := Length(Header);
-  if ColCount = 0 then
-  begin
-    ClearData;
-    Exit;
-  end;
 
   SetLength(ColMap, ColCount);
   SetLength(ColKnown, ColCount);
@@ -359,12 +358,17 @@ begin
       ColKnown[J] := False;
   end;
 
+  // A wrong cell separator leaves the whole header as one unknown name
+  if UsedFields = [] then
+    raise Exception.Create('Hlavička CSV neobsahuje žádné známé pole. ' +
+      'Zkontrolujte oddělovač buněk.');
+
   // Reset storage and apply the schema derived from the header
   ClearData;
   FFields := UsedFields;
   Reserve(ACSV.Count - 1);   // room for all lines at once
 
-  // Parse data rows; empty lines are skipped
+  // Parse data rows, skip empty lines
   for I := 1 to ACSV.Count - 1 do
     if Trim(ACSV[I]) <> '' then
     begin
@@ -372,13 +376,12 @@ begin
       Cells := SplitCsvLine(ACSV[I], ACellSep);
       for J := 0 to High(Cells) do
         if (J < ColCount) and ColKnown[J] then
-          TextToGeoField(FRows[FCount - 1], ColMap[J], Cells[J], FormatSettings);
+          TextToGeoField(FRows[FCount - 1], ColMap[J], Cells[J], FS);
     end;
 end;
 
-// File overload — loads file into a string list and delegates to the in-memory version
-procedure TGeoDataFrame.FromCSV(const AFileName: string;
-  const ACellSep: Char; const ADecSep: Char);
+// File overload - loads the file and calls the version above
+procedure TGeoDataFrame.FromCSV(const AFileName: string; const ACellSep: Char; const ADecSep: Char);
 var
   CSV: TStringList;
 begin
@@ -393,7 +396,7 @@ end;
 
 procedure TGeoDataFrame.SaveToFile(const AFileName: string);
 var
-  Buffer: array of TGeoRow;
+  Buffer: TGeoRowArray;
   Header: TGeoRow;
   I: Integer;
 begin
@@ -402,8 +405,8 @@ begin
 
   // Header record at Buffer[0] encodes the active field mask
   ClearGeoRow(Header);
-  Header.Uloha := -1;                                // sentinel: marks this record as a header
-  Header.CB    := '__HEADER__';                      // readable marker for verification
+  Header.Uloha := -1;                                // marks the header
+  Header.CB    := '__HEADER__';                      // readable marker
   Header.TypS  := Integer(GeoFieldsToMask(FFields)); // bitmask of active fields
 
   Buffer[0] := Header;
@@ -424,14 +427,14 @@ var
 begin
   AllRows := LoadRows(AFileName);
 
-  // Empty file — reset and exit
+  // Empty file - reset and exit
   if Length(AllRows) = 0 then
   begin
     ClearData;
     Exit;
   end;
 
-  // A header record carries Fields; a file without it has all fields
+  // A header record carries Fields. A file without it has all fields
   Header := AllRows[0];
   if (Header.Uloha = -1) and SameText(string(Header.CB), '__HEADER__') then
   begin

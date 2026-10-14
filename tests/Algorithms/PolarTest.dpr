@@ -3,79 +3,77 @@
 {$APPTYPE CONSOLE}
 
 uses
-  SysUtils,
-  GeoAlgorithmBase,
-  GeoAlgorithmPolar in '..\..\src\GeoAlgorithms\GeoAlgorithmPolar.pas',
-  Point;
+  System.SysUtils,
+  GeoRow,
+  GeoDataFrame,
+  GeoAlgorithmPolar in '..\..\src\GeoAlgorithms\GeoAlgorithmPolar.pas';
 
 var
-  M, R: TPointsArray;           // měřená data a výsledky
-  A, B: TPoint;
-  Orientace: TOrientations;
-  i: Integer;
+  A, B, D1, D2: TGeoRow;
+  Frame: TGeoDataFrame;
   Alg: TPolarMethodAlgorithm;
+  I: Integer;
 begin
+  // A - fixed station
+  ClearGeoRow(A);
+  A.Uloha := ULOHA_POLARNI;
+  A.CB := '1000';
+  A.X := 0;
+  A.Y := 0;
+  A.VS := 0;              // instrument height
+
+  // B - orientation point
+  ClearGeoRow(B);
+  B.Uloha := ULOHA_POLARNI;
+  B.CB := '1001';
+  B.X := 10;
+  B.Y := 10;
+  B.VC := 0;              // target height
+  B.HZ := 50;             // direction [gon]
+
+  // Detail point 1
+  ClearGeoRow(D1);
+  D1.Uloha := ULOHA_POLARNI;
+  D1.CB := '2001';
+  D1.VC := 0;
+  D1.HZ := 50;
+  D1.SH := 10;            // horizontal distance [m]
+
+  // Detail point 2
+  ClearGeoRow(D2);
+  D2.Uloha := ULOHA_POLARNI;
+  D2.CB := '2002';
+  D2.VC := 0;
+  D2.HZ := 100;
+  D2.SH := 10;
+
+  // Station first, then orientations, then detail points
+  Frame := TGeoDataFrame.Create([Uloha, CB, X, Y, VS, VC, HZ, SH]);
+  Alg := TPolarMethodAlgorithm.Create;
   try
-    // Stanovisko A
-    A.PointNumber := 1000;
-    A.X := 0.0;
-    A.Y := 0.0;
-    A.Z := 0.0;
-    A.Description := 'Stanovisko A';
-    A.Quality := 1;
-
-    // Orientační bod B
-    B.PointNumber := 1001;
-    B.X := 10.0;
-    B.Y := 10.0;
-    B.Z := 0.0;
-    B.Description := 'Orientační bod B';
-    B.Quality := 1;
-
-    // Nastavení orientace
-    SetLength(Orientace, 1);
-    Orientace[0].B := B;
-    Orientace[0].psi_B := 50.0; // ψ_B v gonech
-
-    // Měřená data
-    SetLength(M, 2);
-
-    // Bod 1
-    M[0].PointNumber := 2001;
-    M[0].X := 50.0; // ψ na bod 1 [gon]
-    M[0].Y := 10.0; // délka [m]
-    M[0].Z := 0.0;
-    M[0].Description := 'bod 1';
-    M[0].Quality := 0;
-
-    // Bod 2
-    M[1].PointNumber := 2002;
-    M[1].X := 100.0; // ψ na bod 2 [gon]
-    M[1].Y := 10.0;  // délka [m]
-    M[1].Z := 0.0;
-    M[1].Description := 'bod 2';
-    M[1].Quality := 0;
-
-    // Nastavení parametrů a výpočet
-    Alg := TPolarMethodAlgorithm.Create(A, Orientace);
     try
-      R := Alg.Calculate(M);
-    finally
-      Alg.Free;
-    end;
+      Frame.AddRow(A);
+      Frame.AddRow(B);
+      Frame.AddRow(D1);
+      Frame.AddRow(D2);
 
-    // Výpis výsledků
-    Writeln('Výsledné souřadnice podrobných bodů:');
-    for i := 0 to High(R) do
-    begin
-      Writeln(Format('Bod %d: X = %.3f, Y = %.3f, Z = %.3f, Popis: %s',
-        [R[i].PointNumber, R[i].X, R[i].Y, R[i].Z, R[i].Description]));
-    end;
+      Alg.Calculate(Frame);
 
-    Readln;
-  except
-    on E: Exception do
-      Writeln(E.ClassName, ': ', E.Message);
+      Writeln(Format('Platný: %s, orientací: %d, orientační posun: %.4f gon',
+        [BoolToStr(Alg.Info.Valid, True), Alg.Info.OrientCount,
+         Alg.Info.Shift]));
+      Writeln('Varování: ', Alg.Warnings.Count);
+      for I := 0 to Alg.Warnings.Count - 1 do
+        Writeln('  ', Alg.Warnings[I]);
+      Writeln(Frame.Print);
+    except
+      on E: Exception do
+        Writeln(E.ClassName, ': ', E.Message);
+    end;
+  finally
+    Alg.Free;
+    Frame.Free;
   end;
+  Writeln('Hotovo. Enter...');
+  Readln;
 end.
-

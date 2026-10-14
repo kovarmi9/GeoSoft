@@ -9,6 +9,15 @@
         <Projects Include="OrthogonalTest.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="AreaTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CheckTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="RectTest.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\GUI\GeoSoft.dproj">
             <Dependencies/>
         </Projects>
@@ -38,6 +47,33 @@
     <Target Name="OrthogonalTest:Make">
         <MSBuild Projects="OrthogonalTest.dproj" Targets="Make"/>
     </Target>
+    <Target Name="AreaTest">
+        <MSBuild Projects="AreaTest.dproj"/>
+    </Target>
+    <Target Name="AreaTest:Clean">
+        <MSBuild Projects="AreaTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="AreaTest:Make">
+        <MSBuild Projects="AreaTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CheckTest">
+        <MSBuild Projects="CheckTest.dproj"/>
+    </Target>
+    <Target Name="CheckTest:Clean">
+        <MSBuild Projects="CheckTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CheckTest:Make">
+        <MSBuild Projects="CheckTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="RectTest">
+        <MSBuild Projects="RectTest.dproj"/>
+    </Target>
+    <Target Name="RectTest:Clean">
+        <MSBuild Projects="RectTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RectTest:Make">
+        <MSBuild Projects="RectTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="GeoSoft">
         <MSBuild Projects="..\GUI\GeoSoft.dproj"/>
     </Target>
@@ -48,13 +84,13 @@
         <MSBuild Projects="..\GUI\GeoSoft.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="PolarTest;OrthogonalTest;GeoSoft"/>
+        <CallTarget Targets="PolarTest;OrthogonalTest;AreaTest;CheckTest;RectTest;GeoSoft"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;GeoSoft:Clean"/>
+        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;AreaTest:Clean;CheckTest:Clean;RectTest:Clean;GeoSoft:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;GeoSoft:Make"/>
+        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;AreaTest:Make;CheckTest:Make;RectTest:Make;GeoSoft:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

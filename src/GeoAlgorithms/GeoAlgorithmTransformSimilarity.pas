@@ -3,9 +3,9 @@
 // Similarity transformation (4-parameter, variable scale).
 // Model:  X' = X0 + lambda1*x - lambda2*y
 //         Y' = Y0 + lambda2*x + lambda1*y
-// Where:  omega = ArcTan2(lambda2, lambda1)  — rotation angle [rad]
-//         Q     = sqrt(lambda1^2 + lambda2^2) — uniform scale factor
-// Preserves angles; allows rotation, uniform scaling, and translation.
+// Where:  omega = ArcTan2(lambda2, lambda1)  - rotation angle [rad]
+//         Q     = sqrt(lambda1^2 + lambda2^2) - uniform scale factor
+// Preserves angles, allows rotation, uniform scaling, and translation.
 // Parameters are computed via centroid reduction and a closed-form solution.
 
 interface
@@ -14,7 +14,7 @@ uses
   Math, SysUtils, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase;
 
 type
-  // Similarity (Helmert) coordinate transformation — rotation + uniform scale + translation
+  // Similarity (Helmert) transformation - rotation, scale, translation
   TSimilarityTransformation = class(TTransformationAlgorithm)
   private
     FLambda1, FLambda2: Double; // intermediate lambda parameters
@@ -96,7 +96,7 @@ begin
 
   // Derive rotation, scale, and translation from lambda values
   FOmega := ArcTan2(FLambda2, FLambda1);
-  FQ := Sqrt(Sqr(FLambda1) + Sqr(FLambda2)); // scale factor differs from 1 in similarity
+  FQ := Sqrt(Sqr(FLambda1) + Sqr(FLambda2)); // scale, may differ from 1
   FX0 := CentroidXG - FLambda1 * CentroidXL + FLambda2 * CentroidYL;
   FY0 := CentroidYG - FLambda1 * CentroidYL - FLambda2 * CentroidXL;
 end;

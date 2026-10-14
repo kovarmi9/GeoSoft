@@ -32,7 +32,7 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure MenuUlozitProtokolClick(Sender: TObject);
     procedure MenuNastaveniClick(Sender: TObject);
-    /// <summary>OnExit of every calculation grid; remembers a typed value.</summary>
+    /// <summary>OnExit of each calculation grid, keeps a typed value.</summary>
     procedure GridExit(Sender: TObject);
   private
     // points this form added to the list itself
@@ -55,7 +55,7 @@ type
     procedure ForgetAnswers;
 
     /// <summary>Confirms the cell being typed in, as Enter would.
-    /// False when the value is invalid; the cursor stays in the cell.</summary>
+    /// False when the value is invalid, the cursor stays in the cell.</summary>
     function CommitEditing: Boolean;
 
     /// <summary>Finds a point or offers to add it.</summary>
@@ -66,16 +66,16 @@ type
     /// <summary>The same from a number.</summary>
     function PointId(ANum: Int64): string;
 
-    /// <summary>Saves a computed point; asks when its number is in the list.
+    /// <summary>Saves a computed point, asks when its number is in the list.
     /// A new number from the user is written into ARow.CB.</summary>
     procedure StorePoint(var ARow: TGeoRow);
 
-    /// <summary>True if the point was in the list and was overwritten.</summary>
+    /// <summary>True if a point from the list was overwritten.</summary>
     function WasInList(const ARow: TGeoRow): Boolean;
 
     /// <summary>
     /// Descendants override this to set the column order of their grids.
-    /// A field grid and a pair of edits check the order themselves; a plain
+    /// A field grid and a pair of edits check the order themselves, a plain
     /// grid cannot, so that form has to remember what it already applied.
     /// </summary>
     procedure ApplyCoordOrderToGrids; virtual;
@@ -114,7 +114,7 @@ uses
   SettingsDialog, ExistingPoint;
 
 type
-  // InplaceEditor is protected; a descendant declared here may read it
+  // InplaceEditor is protected, a descendant declared here may read it
   TGridAccess = class(TGeoGrid);
 
 constructor TCalcBaseForm.Create(AOwner: TComponent);
@@ -271,7 +271,8 @@ begin
   if PNum <= 0 then
     Exit;
 
-  NewP := Point.TPoint.Create(PNum, ARow.X, ARow.Y, ARow.Z, ARow.KK,   // NaN height becomes 0
+  // NaN height becomes 0
+  NewP := Point.TPoint.Create(PNum, ARow.X, ARow.Y, ARow.Z, ARow.KK,
                               string(ARow.Poznamka));
 
   // New point, or one this form computed before
@@ -302,7 +303,8 @@ begin
         NewP.PointNumber := NewNum;
         Points.AddOrUpdatePoint(NewP);
         FNewPoints.Add(NewNum);
-        ARow.CB := ShortString(Format('%.15d', [NewNum]));   // the grid gets it too
+        // the grid gets it too
+        ARow.CB := ShortString(Format('%.15d', [NewNum]));
       end
       else
         FAnswers[PNum] := ANS_KEEP;
@@ -337,12 +339,12 @@ end;
 
 procedure TCalcBaseForm.ApplyCoordOrderToGrids;
 begin
-  // nothing here; see the descendants
+  // nothing here, see the descendants
 end;
 
 procedure TCalcBaseForm.ApplySettings;
 begin
-  // nothing here; see the descendants
+  // nothing here, see the descendants
 end;
 
 procedure TCalcBaseForm.MenuNastaveniClick(Sender: TObject);
@@ -353,7 +355,7 @@ end;
 
 procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);
 begin
-  // nothing here; see the descendants
+  // nothing here, see the descendants
 end;
 
 procedure TCalcBaseForm.ShowProtocol(ALines: TStrings);

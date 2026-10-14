@@ -31,7 +31,8 @@ type
     class function ClampQuality(const AText: string; ADefault: Integer): Integer; static;
     class function ReadDefaultQuality: Integer; static;
   public
-    /// <summary>Asks for the missing point and saves it. False after Cancel.</summary>
+    /// <summary>Asks for the missing point and saves it.
+    /// False on Cancel.</summary>
     function Execute(PointNumber: Int64; out NewP: TPoint): Boolean;
   end;
 
@@ -44,7 +45,7 @@ implementation
 
 const
   COL_POINTNO = 0;
-  // First of Y, X; see CoordColY
+  // First of Y, X, see CoordColY
   COL_COORD   = 1;
   COL_Z       = 3;
   COL_QUALITY = 4;
@@ -61,23 +62,27 @@ procedure TAddPointForm.FormCreate(Sender: TObject);
     StringGrid.ColumnFilters[AIndex].OnInvalidCommit := ciaBlock;
   end;
 
+var
+  Filter: TColumnFilter;
 begin
   Coord(COL_COORD);
   Coord(COL_COORD + 1);
   Coord(COL_Z);
 
-  StringGrid.ColumnFilters[COL_QUALITY].DataType         := cdtInteger;
-  StringGrid.ColumnFilters[COL_QUALITY].MaxLength        := 1;
-  StringGrid.ColumnFilters[COL_QUALITY].HasMinValue      := True;
-  StringGrid.ColumnFilters[COL_QUALITY].MinValue         := TValidationUtils.MinQuality;
-  StringGrid.ColumnFilters[COL_QUALITY].HasMaxValue      := True;
-  StringGrid.ColumnFilters[COL_QUALITY].MaxValue         := TValidationUtils.MaxQuality;
-  StringGrid.ColumnFilters[COL_QUALITY].OnInvalidCommit  := ciaBlock;
-  StringGrid.ColumnFilters[COL_QUALITY].OnGetDefaultText := GetQualityDefault;
+  Filter := StringGrid.ColumnFilters[COL_QUALITY];
+  Filter.DataType         := cdtInteger;
+  Filter.MaxLength        := 1;
+  Filter.HasMinValue      := True;
+  Filter.MinValue         := TValidationUtils.MinQuality;
+  Filter.HasMaxValue      := True;
+  Filter.MaxValue         := TValidationUtils.MaxQuality;
+  Filter.OnInvalidCommit  := ciaBlock;
+  Filter.OnGetDefaultText := GetQualityDefault;
 
-  StringGrid.ColumnFilters[COL_DESC].DataType         := cdtNone;
-  StringGrid.ColumnFilters[COL_DESC].MaxLength        := TValidationUtils.MaxDescriptionLength;
-  StringGrid.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
+  Filter := StringGrid.ColumnFilters[COL_DESC];
+  Filter.DataType         := cdtNone;
+  Filter.MaxLength        := TValidationUtils.MaxDescriptionLength;
+  Filter.OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X
   FGridOrder := coYX;
@@ -127,7 +132,8 @@ begin
   if not Result then
     Exit;
 
-  Application.MessageBox(PChar(Format('Pole %s musí obsahovat platné číslo.', [AName])),
+  Application.MessageBox(
+    PChar(Format('Pole %s musí obsahovat platné číslo.', [AName])),
     'Chyba', MB_OK or MB_ICONERROR);
   StringGrid.Col        := ACol;
   StringGrid.EditorMode := True;
@@ -177,9 +183,10 @@ begin
 
   // Ask before overwriting
   if TPointDictionary.GetInstance.PointExists(NewP.PointNumber) then
-    if Application.MessageBox(PChar(Format('Bod %.15d již existuje. Chcete ho přepsat?',
-                              [NewP.PointNumber])),
-                              'Dotaz', MB_YESNO or MB_ICONQUESTION) <> IDYES then
+    if Application.MessageBox(
+      PChar(Format('Bod %.15d již existuje. Chcete ho přepsat?',
+        [NewP.PointNumber])),
+      'Dotaz', MB_YESNO or MB_ICONQUESTION) <> IDYES then
     begin
       Result := False;
       Exit;

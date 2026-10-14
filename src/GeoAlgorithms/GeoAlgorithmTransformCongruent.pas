@@ -3,7 +3,7 @@
 // Congruent transformation (4-parameter, fixed scale Q = 1).
 // Model:  X' = X0 + cos(omega)*x - sin(omega)*y
 //         Y' = Y0 + sin(omega)*x + cos(omega)*y
-// Preserves shape and size; only rotation and translation are estimated.
+// Preserves shape and size, only rotation and translation are estimated.
 // Parameters are computed via centroid reduction and a closed-form solution.
 
 interface
@@ -12,11 +12,11 @@ uses
   Math, SysUtils, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase;
 
 type
-  // Congruent (rigid-body) coordinate transformation — rotation + translation only
+  // Congruent (rigid-body) transformation - rotation + translation only
   TCongruentTransformation = class(TTransformationAlgorithm)
   private
-    FLambda1, FLambda2: Double; // intermediate lambda parameters from centroid solution
-    FOmega, FQ: Double;         // rotation angle [rad] and scale factor (always 1)
+    FLambda1, FLambda2: Double; // lambda parameters from the centroids
+    FOmega, FQ: Double;         // rotation [rad] and scale (always 1)
     FX0, FY0: Double;           // translation parameters
   protected
     procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); override;

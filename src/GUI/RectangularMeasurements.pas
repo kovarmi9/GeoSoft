@@ -137,9 +137,10 @@ begin
     if Known then
     begin
       // Report the duplicate and let the user choose, the same as GEUS
-      if Application.MessageBox(PChar(Format('Bod %s již v seznamu existuje.' + sLineBreak +
-           'Použít jeho souřadnice? (Ne = počítat ho jako nový)', [PointId(Num)])),
-           'Dotaz', MB_YESNO or MB_ICONQUESTION) = IDNO then
+      if Application.MessageBox(PChar(Format(
+        'Bod %s již v seznamu existuje.' + sLineBreak +
+        'Použít jeho souřadnice? (Ne = počítat ho jako nový)',
+        [PointId(Num)])), 'Dotaz', MB_YESNO or MB_ICONQUESTION) = IDNO then
       begin
         Known := False;
         FRowNew[R] := True;
@@ -199,7 +200,8 @@ begin
   end;
 
   // The walk is cumulative, so any change redraws all rows
-  if (ACol = StringGrid1.FieldToCol(CB)) or (ACol = StringGrid1.FieldToCol(SH)) then
+  if (ACol = StringGrid1.FieldToCol(CB)) or
+    (ACol = StringGrid1.FieldToCol(SH)) then
     RecalcLocal;
 end;
 

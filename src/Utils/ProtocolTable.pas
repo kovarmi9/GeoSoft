@@ -1,7 +1,7 @@
 ﻿unit ProtocolTable;
 
 // Text tables for calculation protocols. Title starts one, Finish ends it.
-// Table declares the captions and the widths once; the header, the line
+// Table declares the captions and the widths once, the header, the line
 // under it and every Row then use them. Values are strings, use Num for a
 // number.
 //
@@ -51,7 +51,7 @@ type
     function FormatPointId(const S: string): string;
     function PointId(ANum: Int64): string;
 
-    // Where the protocol was written; nil before the first Title
+    // Where the protocol was written, nil before the first Title
     property Lines: TStrings read FLines;
   end;
 
@@ -91,7 +91,7 @@ function TProtocol.FormatPointId(const S: string): string;
 var
   N: string;
 begin
-  // %.15d pads with zeros; %015d would pad with spaces in Delphi
+  // %.15d pads with zeros, %015d would pad with spaces in Delphi
   N := Format('%.15d', [StrToInt64Def(Trim(S), 0)]);
   Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
 end;

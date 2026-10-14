@@ -27,17 +27,17 @@ type
   end;
 
   /// <summary>
-  /// Field-driven grid. Assigning GeoFields rebuilds columns, headers and filters.
+  /// Field-driven grid. Setting GeoFields rebuilds columns, headers, filters.
   /// </summary>
   TGeoFieldsGrid = class(TGeoGrid)
   private
     FGeoFields: TGeoFields;
-    FColumnData: array[TGeoField] of TGeoFieldColumn;  // per-instance field definitions
-    FColToField: array of TGeoField;                   // data-column index -> TGeoField
-    FColumnFilters: TColumnFilters;                    // one per data column
-    FFieldOrder: TArray<TGeoField>;                    // wanted order; empty = TGeoField order
-    FColumnFields: TStrings;                         // order as field names
-    FReadOnlyFields: TGeoFields;                       // the program fills these
+    FColumnData: array[TGeoField] of TGeoFieldColumn;  // settings of each field
+    FColToField: array of TGeoField;                   // column -> field
+    FColumnFilters: TColumnFilters;                    // one per column
+    FFieldOrder: TArray<TGeoField>;                    // empty = default order
+    FColumnFields: TStrings;                           // fields as names
+    FReadOnlyFields: TGeoFields;                       // filled by the program
 
     procedure SetGeoFields(const Value: TGeoFields);
     procedure SetColumnFields(const Value: TStrings);
@@ -139,7 +139,7 @@ type
 
     /// <summary>
     /// Fields the program fills. The cursor skips their columns and they
-    /// cannot be clicked or edited; writing from code still works.
+    /// cannot be clicked or edited, writing from code still works.
     /// </summary>
     property ReadOnlyFields: TGeoFields
       read FReadOnlyFields write SetReadOnlyFields;
@@ -207,7 +207,7 @@ begin
 end;
 
 // One line per column: 'FieldName' or 'FieldName=Caption'.
-// Line order is column order; an empty list leaves GeoFields in charge.
+// Line order is column order, an empty list leaves GeoFields in charge.
 procedure TGeoFieldsGrid.ApplyColumnFields;
 var
   I, N, P: Integer;
@@ -440,7 +440,7 @@ begin
   Filter := GetColumnFilter(Col - FixedCols);
   if Filter = nil then
   begin
-    // No filter — default commit
+    // No filter - default commit
     inherited;
     Exit;
   end;
@@ -453,7 +453,7 @@ begin
     Cells[Col, Row] := Text
   else
   begin
-    // Chování při neplatném vstupu — stejný mechanismus jako TGeoPointsGrid
+    // Chování při neplatném vstupu - stejný mechanismus jako TGeoPointsGrid
     case Filter.OnInvalidCommit of
       ciaBeepAndClear:
       begin

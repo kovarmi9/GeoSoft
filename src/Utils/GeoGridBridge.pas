@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, GeoRow, GeoDataFrame, GeoFieldsGrid;
 
-// Copies grid rows into frame, and tells which grid row each frame row came from
+// Copies grid rows into frame, tells which grid row each frame row came from
 procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
   AUloha: Integer; out ARows: TArray<Integer>);
 

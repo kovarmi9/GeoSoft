@@ -17,10 +17,12 @@ const
 function AskExistingPoint(const AOld, ANew: Point.TPoint; AForAll: Boolean;
   out AAll: Boolean): Integer;
 
-/// <summary>Asks for a free point number; a short one gets the toolbar prefix.</summary>
+/// <summary>Asks for a free point number.
+/// A short one gets the toolbar prefix.</summary>
 function AskNewNumber(out ANum: Int64): Boolean;
 
-/// <summary>Average of Y, X, Z; quality and description from the new point.</summary>
+/// <summary>Average of Y, X, Z.
+/// Quality and description come from the new point.</summary>
 function AveragePoint(const AOld, ANew: Point.TPoint): Point.TPoint;
 
 implementation
@@ -43,9 +45,11 @@ begin
   Dlg := TTaskDialog.Create(nil);
   try
     Dlg.Caption  := 'Bod již v seznamu existuje';
-    Dlg.Title    := Format('Bod %.15d již v seznamu existuje.', [ANew.PointNumber]);
+    Dlg.Title    := Format('Bod %.15d již v seznamu existuje.',
+                           [ANew.PointNumber]);
     Dlg.Text     := Format('dY = %.3f m   dX = %.3f m   dZ = %.3f m'#13#10 +
-                           'Dxy = %.3f m', [dY, dX, dZ, Sqrt(dY * dY + dX * dX)]);
+                           'Dxy = %.3f m',
+                           [dY, dX, dZ, Sqrt(dY * dY + dX * dX)]);
     Dlg.MainIcon := tdiWarning;
     Dlg.CommonButtons := [];
     Dlg.Flags := [tfAllowDialogCancellation];   // Esc = keep
@@ -67,7 +71,8 @@ begin
     Btn.ModalResult := ANS_NUMBER;
 
     Dlg.Execute;
-    Result := Dlg.ModalResult;     // Esc gives mrCancel, the caller keeps the point
+    // Esc gives mrCancel, the caller keeps the point
+    Result := Dlg.ModalResult;
     AAll   := tfVerificationFlagChecked in Dlg.Flags;
   finally
     Dlg.Free;
@@ -87,7 +92,8 @@ begin
       Application.MessageBox('Neplatné číslo bodu.', 'Upozornění',
         MB_OK or MB_ICONWARNING)
     else if TPointDictionary.GetInstance.PointExists(ANum) then
-      Application.MessageBox(PChar(Format('Bod %.15d již v seznamu existuje.', [ANum])),
+      Application.MessageBox(
+        PChar(Format('Bod %.15d již v seznamu existuje.', [ANum])),
         'Upozornění', MB_OK or MB_ICONWARNING)
     else
       Exit(True);

@@ -47,7 +47,7 @@ type
   private
     FAlg: TOrthogonalMethodAlgorithm;
     FFrame: TGeoDataFrame;        // the input and the output of the run
-    FRows: TArray<Integer>;       // detail grid row of each frame row, -1 = P or K
+    FRows: TArray<Integer>;       // grid row of each frame row, -1 = P or K
     FDetailCB: TArray<string>;    // number each detail row was filled for
     procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
@@ -116,7 +116,8 @@ begin
   num := StrToInt64Def(GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], -1);
   if num <= 0 then
   begin
-    ShowMessage(Format('Zadejte číslo bodu v řádku %s.', [GridBaseline.Cells[0, R]]));
+    ShowMessage(Format('Zadejte číslo bodu v řádku %s.',
+      [GridBaseline.Cells[0, R]]));
     Exit;
   end;
   if not LookupPoint(num, P) then Exit;

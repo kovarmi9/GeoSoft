@@ -17,7 +17,7 @@ const
   ULOHA_KONSTRUKCNI = 4;
 
 type
-  // One computed stretch; rows are indexes into the frame
+  // One computed stretch, rows are indexes into the frame
   TSegmentInfo = record
     FromRow, ToRow: Integer;
     Closure:  Double;
@@ -40,10 +40,10 @@ type
     // Local coordinates from the signed chain, no transformation
     procedure BuildLocalPoints(const AChain: TPointsArray);
 
-    // AChain — one stretch:
+    // AChain - one stretch:
     //   PointNumber = point ID
     //   X = signed distance FROM previous point TO this point
-    //       (+ right, - left in the field; first point = 0)
+    //       (+ right, - left in the field, first point = 0)
     // IdenticalPoints must hold the two given ends before the call.
     function TransformChain(const AChain: TPointsArray): TPointsArray;
   public
@@ -64,7 +64,7 @@ type
 
     /// <summary>
     /// A given point is one that already has coordinates. During a run
-    /// the computed ones are empty; afterwards the protocol tells them
+    /// the computed ones are empty, afterwards the protocol tells them
     /// apart by the stretch boundaries, as the notebook does.
     /// </summary>
     class function IsGiven(const ARow: TGeoRow): Boolean;
@@ -188,7 +188,8 @@ begin
       end;
 
   if IdCount < 2 then
-    raise Exception.Create('Jsou potřeba alespoň 2 body se známými souřadnicemi.');
+    raise Exception.Create(
+      'Jsou potřeba alespoň 2 body se známými souřadnicemi.');
 
   Transform := TCongruentTransformation.Create;
   try
@@ -224,7 +225,7 @@ begin
   N := ATo - AFrom + 1;
   if N < 3 then Exit;            // two given points side by side
 
-  Head := Format('Úsek %s–%s: ',
+  Head := Format('Úsek %s-%s: ',
     [string(AFrame.Rows[AFrom].CB), string(AFrame.Rows[ATo].CB)]);
 
   SetLength(Chain, N);
@@ -275,8 +276,10 @@ begin
   Seg.FromRow  := AFrom;
   Seg.ToRow    := ATo;
   Seg.Closure  := FClosure;
-  Seg.MeasDist := Sqrt(Sqr(Loc[N - 1].X - Loc[0].X) + Sqr(Loc[N - 1].Y - Loc[0].Y));
-  Seg.CalcDist := Sqrt(Sqr(Ident[1].X - Ident[0].X) + Sqr(Ident[1].Y - Ident[0].Y));
+  Seg.MeasDist := Sqrt(Sqr(Loc[N - 1].X - Loc[0].X) +
+    Sqr(Loc[N - 1].Y - Loc[0].Y));
+  Seg.CalcDist := Sqrt(Sqr(Ident[1].X - Ident[0].X) +
+    Sqr(Ident[1].Y - Ident[0].Y));
 
   // Given points keep their own coordinates
   for I := 0 to N - 1 do

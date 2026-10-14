@@ -66,7 +66,7 @@ begin
   SwapGridColumns(StringGrid1, 8, 9);      // dY      / dX
 end;
 
-// Fills the coordinates from the list; a missing point is offered via AddPoint.
+// Fills the coordinates from the list, a missing point is offered via AddPoint.
 procedure TTransformationForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   Num: Int64;

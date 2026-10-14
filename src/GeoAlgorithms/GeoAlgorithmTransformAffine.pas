@@ -44,7 +44,7 @@ type
   TMatrix = array of array of Double;
   TVector = array of Double;
 
-// Gauss-Jordan matrix inversion; raises an exception if the matrix is singular
+// Gauss-Jordan matrix inversion, raises an exception if the matrix is singular
 function InvertMatrix(const M: TMatrix): TMatrix;
 var
   N, i, j, k: Integer;
@@ -67,7 +67,8 @@ begin
   for i := 0 to N - 1 do
   begin
     if Abs(Aug[i][i]) < 1e-12 then
-      raise Exception.Create('Matice je singulární - identické body jsou v degenerované poloze.');
+      raise Exception.Create('Matice je singulární - identické body jsou ' +
+        'v degenerované poloze.');
 
     for j := 0 to N - 1 do
     begin
@@ -87,7 +88,7 @@ begin
       Aug[i][j] := Aug[i][j] / Aug[i][i];
   end;
 
-  // Extract the right half — that is the inverse
+  // Extract the right half - that is the inverse
   SetLength(Result, N, N);
   for i := 0 to N - 1 do
     for j := 0 to N - 1 do
@@ -131,7 +132,7 @@ begin
       Result[j][i] := M[i][j];
 end;
 
-// Builds the design matrix A and observation vector L, then solves via normal equations:
+// Builds design matrix A and vector L, then solves the normal equations:
 // Params = (A^T * A)^-1 * A^T * L
 procedure TAffineTransformation.EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray);
 var

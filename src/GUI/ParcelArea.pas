@@ -84,7 +84,7 @@ begin
   end;
 end;
 
-// Fills coordinates from the list; a missing point is offered via AddPoint.
+// Fills coordinates from the list, a missing point is offered via AddPoint.
 // The first column carries the row number.
 procedure TParcelAreaForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin

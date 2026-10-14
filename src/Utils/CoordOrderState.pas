@@ -1,6 +1,7 @@
 ﻿unit CoordOrderState;
 
-// Order of Y and X on screen and in text files. Default Y, X, kept only for this run.
+// Order of Y and X on screen and in text files.
+// Default Y, X, kept only for this run.
 // It never changes the fields: TPoint.X is always X.
 
 interface
@@ -29,7 +30,7 @@ function CoordNames(AWidth: Integer = ColWCoord): string;
 function CoordPair(const P: Point.TPoint; AWidth: Integer = ColWCoord;
   ADecimals: Integer = 2): string;
 
-/// <summary>Column of Y; the pair starts at AFirstCol.</summary>
+/// <summary>Column of Y, the pair starts at AFirstCol.</summary>
 function CoordColY(AFirstCol: Integer): Integer;
 /// <summary>Column of X, see CoordColY.</summary>
 function CoordColX(AFirstCol: Integer): Integer;
@@ -40,7 +41,7 @@ procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
 /// <summary>Moves the Y and X boxes.</summary>
 procedure ApplyCoordOrder(AYCtrl, AXCtrl: TWinControl);
 
-/// <summary>Column order from the designer; keeps the content.</summary>
+/// <summary>Column order from the designer, keeps the content.</summary>
 procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields);
 
 implementation
@@ -129,7 +130,8 @@ begin
   begin
     Pts := TGeoPointsGrid(AGrid);
 
-    if (ACol1 < Pts.ColumnHeaders.Count) and (ACol2 < Pts.ColumnHeaders.Count) then
+    if (ACol1 < Pts.ColumnHeaders.Count) and
+      (ACol2 < Pts.ColumnHeaders.Count) then
     begin
       S := Pts.ColumnHeaders[ACol1];
       Pts.ColumnHeaders[ACol1] := Pts.ColumnHeaders[ACol2];

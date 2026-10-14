@@ -71,7 +71,7 @@ type
     function ReadFromCSV(const FileName: string; APoints: TList<TPoint>): Integer;
     /// <summary>Saves a .yxz or .xyz file.</summary>
     procedure ExportToBinary(const FileName: string);
-    /// <summary>Opens a .yxz or .xyz file; a bad file keeps the list.</summary>
+    /// <summary>Opens a .yxz or .xyz file, a bad file keeps the list.</summary>
     procedure LoadFromBinary(const FileName: string);
 
     /// <summary>Order by extension, others refused.</summary>

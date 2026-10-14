@@ -233,6 +233,7 @@ initialization
 
   SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(32));
 
-  SetField(KK,       'Kód kvality',       cdtInteger, MakeIntegerRange(1, 0, 8));
+  SetField(KK,       'Kód kvality',       cdtInteger,
+    MakeIntegerRange(1, 0, 8));
 
 end.

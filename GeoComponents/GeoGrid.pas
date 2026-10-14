@@ -31,7 +31,7 @@ type
 
   /// <summary>
   /// Asks the form about one cell. Set ASelectable to False for a cell that
-  /// is not for typing; it is drawn grey and the cursor skips it.
+  /// is not for typing, it is drawn grey and the cursor skips it.
   /// </summary>
   TCellSelectableEvent = procedure(Sender: TObject; ACol, ARow: Integer;
     var ASelectable: Boolean) of object;
@@ -100,7 +100,7 @@ type
     procedure MoveToNextCell(PressedKey: Word; Shift: TShiftState); virtual;
 
     /// <summary>
-    /// Descendants can refuse a cell; the cursor never lands there and no
+    /// Descendants can refuse a cell, the cursor never lands there and no
     /// editor opens on it. Default: every cell is selectable, unless
     /// OnCellSelectable says otherwise.
     /// </summary>
@@ -117,18 +117,18 @@ type
 
     /// <summary>
     /// Next cell to the right the cursor may land on, wrapping to the next
-    /// row. False at the end of the grid; ACol and ARow are then undefined.
+    /// row. False at the end of the grid, ACol and ARow are then undefined.
     /// </summary>
     function NextSelectable(var ACol, ARow: Integer): Boolean;
 
     /// <summary>
     /// Previous cell to the left the cursor may land on, wrapping to the
-    /// end of the row above. False at the first cell; ACol and ARow are
+    /// end of the row above. False at the first cell, ACol and ARow are
     /// then undefined.
     /// </summary>
     function PrevSelectable(var ACol, ARow: Integer): Boolean;
 
-    /// <summary>Esc in the editor: drop what was typed, keep the cell.</summary>
+    /// <summary>Esc in the editor, drops the typed text.</summary>
     procedure CancelEdit;
 
     /// <summary>
@@ -137,7 +137,7 @@ type
     /// </summary>
     function MoveToPrevCell(AOpenEditor: Boolean): Boolean;
 
-    /// <summary>Hands the focus to the next or previous control on the form.</summary>
+    /// <summary>Moves the focus to the next or previous control.</summary>
     procedure LeaveGrid(ABackwards: Boolean);
 
     /// <summary>
@@ -148,7 +148,7 @@ type
     /// </summary>
     procedure CommitCell; virtual;
 
-    /// <summary>Fires before every cell change — calls CommitCell.</summary>
+    /// <summary>Fires before every cell change - calls CommitCell.</summary>
     function SelectCell(ACol, ARow: Integer): Boolean; override;
 
     /// <summary>Apply header texts to grid.</summary>
@@ -157,10 +157,10 @@ type
     /// <summary>Called after component is loaded (DFM).</summary>
     procedure Loaded; override;
 
-    /// <summary>Keeps the check box states in step with the row count.</summary>
+    /// <summary>Keeps check box states in step with the rows.</summary>
     procedure SizeChanged(OldColCount, OldRowCount: Longint); override;
 
-    /// <summary>A click in the check box column toggles instead of selecting.</summary>
+    /// <summary>A click in the check box column toggles the box.</summary>
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
       X, Y: Integer); override;
 
@@ -207,7 +207,7 @@ type
     property OnCheckChanged: TNotifyEvent
       read FOnCheckChanged write FOnCheckChanged;
 
-    /// <summary>What happens when Enter or Tab is pressed on the last cell.</summary>
+    /// <summary>What Enter or Tab does on the last cell.</summary>
     property EnterEndBehavior: TEnterEndBehavior
       read FEnterEndBehavior write FEnterEndBehavior
       default ebStayOnLastCell;
@@ -236,7 +236,7 @@ const
 
 { TGeoInplaceEdit }
 
-// Blocks Enter (#13) so the built-in editor cannot close before validation runs.
+// Blocks Enter (#13), the editor must not close before the check.
 // Navigation is handled entirely by KeyDown.
 procedure TGeoInplaceEdit.KeyPress(var Key: Char);
 begin
@@ -333,7 +333,7 @@ begin
     DrawCheckBox(ARow, Rect);
 end;
 
-// Every key the grid answers itself; the inplace editor forwards them here
+// Every key the grid answers itself, the inplace editor forwards them here
 procedure TGeoGrid.KeyDown(var Key: Word; Shift: TShiftState);
 var
   C, D: Integer;
@@ -372,7 +372,8 @@ begin
 
   // Arrows must skip locked columns, or the cursor stops dead on them
   // Shift extends the selection and Ctrl scrolls, both belong to the ancestor
-  if ((Key = VK_LEFT) or (Key = VK_RIGHT)) and not EditorMode and (Shift = []) then
+  if ((Key = VK_LEFT) or (Key = VK_RIGHT)) and not EditorMode and
+    (Shift = []) then
   begin
     if Key = VK_LEFT then D := -1 else D := 1;
     C := Col + D;
@@ -384,14 +385,14 @@ begin
 
   if (Key = VK_RETURN) or (Key = VK_TAB) then
   begin
-    // Validate before moving — block the key if commit fails
+    // Validate before moving - block the key if commit fails
     if not CommitCurrentCell then
     begin
       Key := 0;
       Exit;
     end;
 
-    // Shift means backwards; at the first cell Tab leaves, Enter stays
+    // Shift means backwards, at the first cell Tab leaves, Enter stays
     if ssShift in Shift then
     begin
       if not MoveToPrevCell(Key = VK_RETURN) and (Key = VK_TAB) then
@@ -487,7 +488,7 @@ end;
 
 procedure TGeoGrid.LeaveGrid(ABackwards: Boolean);
 begin
-  // PostMessage defers the focus change until this event is handled;
+  // PostMessage defers the focus change until this event is handled,
   // WM_NEXTDLGCTL moves focus forward or backward
   PostMessage(GetParentForm(Self).Handle, WM_NEXTDLGCTL, Ord(ABackwards), 0);
 end;
@@ -508,7 +509,7 @@ begin
   if EditorMode then
     EditorMode := False;
 
-  // Next cell the cursor may land on; refused columns are skipped
+  // Next cell the cursor may land on, refused columns are skipped
   C := Col;
   R := Row;
   if NextSelectable(C, R) then
@@ -517,7 +518,7 @@ begin
   // Handle movement at the last cell
   else
   begin
-    // Tab is a form key, so at the edge it always leaves; Enter obeys the setting
+    // Tab is a form key and always leaves at the edge, Enter obeys the setting
     if PressedKey = VK_TAB then
       EndBehavior := ebMoveFocusNext
     else
@@ -583,7 +584,7 @@ begin
     FLastCommitFailed := False;
     CommitCell;
 
-    // CommitCell failed — block the move and reopen the editor
+    // CommitCell failed - block the move and reopen the editor
     if FLastCommitFailed then
     begin
       FLastCommitFailed := False;

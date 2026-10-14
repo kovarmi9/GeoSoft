@@ -2,8 +2,8 @@
 
 // Abstract base for coordinate transformation algorithms.
 // A transformation is a two-step process:
-//   1. ComputeParametersFromPoints — estimate the key and measure its fit
-//   2. Calculate                   — apply the estimated transform to new points
+//   1. ComputeParametersFromPoints - estimate the key and measure its fit
+//   2. Calculate                   - apply the transform to new points
 
 interface
 
@@ -22,7 +22,7 @@ type
   TPointResiduals = array of TPointResidual;
 
   // Where one point falls against the mean coordinate error of its
-  // accuracy class. Uxy = 2 * Mxy; mbUnknown means the class has no
+  // accuracy class. Uxy = 2 * Mxy, mbUnknown means the class has no
   // value yet, so nothing may be claimed about the point.
   TMxyBand = (mbUnknown, mbWithinMxy, mbWithin2Mxy, mbOver2Mxy);
 
@@ -33,7 +33,7 @@ type
     FResiduals: TPointResiduals;
     FSumVV: Double;
   protected
-    // Estimates transformation parameters using matched local and global control points
+    // Estimates the parameters from matched local and global points
     procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); virtual; abstract;
   public
     /// <summary>

@@ -81,7 +81,7 @@ type
       read FOnGetDefaultText write FOnGetDefaultText;
 
   published
-    /// <summary>Column index (read-only, derived from collection position).</summary>
+    /// <summary>Column index, read-only, given by the position.</summary>
     property Column: Integer read GetColumn stored False;
 
     /// <summary>Data type accepted by this column.</summary>
@@ -100,7 +100,7 @@ type
     property HasMinValue: Boolean
       read FHasMinValue write SetHasMinValue default False;
 
-    /// <summary>Lower bound for numeric value (used when HasMinValue = True).</summary>
+    /// <summary>Lowest value, used when HasMinValue is True.</summary>
     property MinValue: Double
       read FMinValue write SetMinValue;
 
@@ -108,7 +108,7 @@ type
     property HasMaxValue: Boolean
       read FHasMaxValue write SetHasMaxValue default False;
 
-    /// <summary>Upper bound for numeric value (used when HasMaxValue = True).</summary>
+    /// <summary>Highest value, used when HasMaxValue is True.</summary>
     property MaxValue: Double
       read FMaxValue write SetMaxValue;
 
@@ -121,8 +121,8 @@ type
       read FDecimalPlaces write SetDecimalPlaces default -1;
 
     /// <summary>
-    /// True  — an empty cell is a valid value and stays empty.
-    /// False — an empty cell in a numeric column becomes '0' on commit.
+    /// True  - an empty cell is a valid value and stays empty.
+    /// False - an empty cell in a numeric column becomes '0' on commit.
     /// </summary>
     property AllowEmpty: Boolean
       read FAllowEmpty write SetAllowEmpty default False;
@@ -136,8 +136,8 @@ type
 
     /// <summary>
     /// Controls what happens when commit validation fails.
-    ///   ciaBlock        — beep + keep cell content, cursor stays (default)
-    ///   ciaBeepAndClear — beep + clear cell, cursor moves on
+    ///   ciaBlock        - beep + keep cell content, cursor stays (default)
+    ///   ciaBeepAndClear - beep + clear cell, cursor moves on
     /// </summary>
     property OnInvalidCommit: TCommitInvalidAction
       read FOnInvalidCommit write SetOnInvalidCommit
@@ -170,7 +170,7 @@ type
     /// <summary>Append a new filter item at the end.</summary>
     function Add: TColumnFilter;
 
-    /// <summary>Grow or shrink the collection to match exact column count.</summary>
+    /// <summary>Grows or shrinks the collection to the column count.</summary>
     procedure EnsureCount(AColCount: Integer);
 
     property Items[Index: Integer]: TColumnFilter
@@ -205,7 +205,7 @@ function ValidateText(AFilter: TColumnFilter;
 function TryCommitText(AFilter: TColumnFilter;
                        var AText: string): Boolean;
 
-/// <summary>Returns the filter for the given column, or nil if not found.</summary>
+/// <summary>The filter of the column, or nil if there is none.</summary>
 function ResolveFilter(AFilters: TColumnFilters;
                        AColumn: Integer): TColumnFilter;
 
@@ -256,7 +256,7 @@ begin
     FWrapAt          := Src.FWrapAt;
     FReadOnly        := Src.FReadOnly;
     FOnInvalidCommit := Src.FOnInvalidCommit;
-    // FOnGetDefaultText is not copied — it must be assigned in code, not in the form designer
+    // FOnGetDefaultText is not copied, it is set in code, not in the designer
     Changed(False);
   end
   else
@@ -795,7 +795,7 @@ begin
   if Key < #32 then
     Exit;
 
-  // Length cap — once reached, block any printable input
+  // Length cap - once reached, block any printable input
   if (AFilter.MaxLength > 0) and (Length(AText) >= AFilter.MaxLength) then
   begin
     Key := #0;

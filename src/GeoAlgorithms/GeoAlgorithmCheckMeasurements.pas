@@ -1,6 +1,6 @@
 ﻿unit GeoAlgorithmCheckMeasurements;
 
-// Check measurements (kontrolni omerne) — KatV § 81 point 8.
+// Check measurements (kontrolni omerne) - KatV § 81 point 8.
 // Compares a distance measured in the field with the distance from coordinates.
 // A row with no measured length is valid, not an error: KatV annex 17.11 allows
 // it and the computed value is then reported in round brackets.
@@ -43,7 +43,7 @@ type
     /// </summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
-    /// <summary>Horizontal distance from the coordinates, NaN without them.</summary>
+    /// <summary>Distance from the coordinates, NaN without them.</summary>
     class function ComputedDistance(const ARow: TGeoRow): Double;
 
     /// <summary>Derives what is shown from one row. No state is kept.</summary>
@@ -103,12 +103,14 @@ begin
       Continue;
 
     if R.Computed < MIN_DIST then
-      AddWarning(Format('Oměrná %d (body %s - %s): body mají shodné souřadnice.',
+      AddWarning(Format(
+        'Oměrná %d (body %s - %s): body mají shodné souřadnice.',
         [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm)]));
 
     if R.HasMeasured and not R.Passed then
-      AddWarning(Format('Oměrná %d (body %s - %s): rozdíl %.3f m překračuje mezní ' +
-        'odchylku %.3f m - příloha, bod 13.5 katastrální vyhlášky',
+      AddWarning(Format('Oměrná %d (body %s - %s): rozdíl %.3f m ' +
+        'překračuje mezní odchylku %.3f m - příloha, bod 13.5 ' +
+        'katastrální vyhlášky',
         [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm),
          R.Diff, R.Tolerance]));
   end;

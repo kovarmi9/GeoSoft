@@ -25,8 +25,8 @@ uses
   GeoAlgorithmPolar,
   ProtocolPolar,
   PointsUtilsSingleton,
-  PointPrefixState, CoordOrderState, ProtocolTable, GeoGrid, Vcl.Mask, Vcl.Menus,
-  SettingsState;
+  PointPrefixState, CoordOrderState, ProtocolTable, GeoGrid, Vcl.Mask,
+  Vcl.Menus, SettingsState;
 
 type
   TPolarMethodForm = class(TCalcBaseForm)
@@ -62,7 +62,7 @@ type
     FAlg: TPolarMethodAlgorithm;
     FFrame: TGeoDataFrame;        // the input and the output of the run
     FProtocol: TPolarProtocol;
-    FRows: TArray<Integer>;       // detail grid row of each frame row, -1 = elsewhere
+    FRows: TArray<Integer>;       // grid row of each frame row, -1 = elsewhere
     FDetailCB: TArray<string>;    // number each detail row was filled for
     function  StationNo: string;
     function  FillStation: Boolean;
@@ -121,7 +121,7 @@ begin
   ApplyColumnsToGrids;
 end;
 
-// The grids list every column; what is not computed yet or not asked for
+// The grids list every column, what is not computed yet or not asked for
 // stays hidden
 procedure TPolarMethodForm.ApplyColumnsToGrids;
 var
@@ -178,7 +178,7 @@ begin
     Result := BuildPointIdFromPrefixState(Result);
 end;
 
-// Only a fixed station is looked up; a free one is what the run computes.
+// Only a fixed station is looked up, a free one is what the run computes.
 // True when the station can be used.
 function TPolarMethodForm.FillStation: Boolean;
 var
@@ -349,7 +349,7 @@ var
       Err := 'Zadejte číslo stanoviska.'
     else if TPointDictionary.GetInstance.PointExists(Num) then
     begin
-      // The list decides; a free station takes all but its place, which
+      // The list decides, a free station takes all but its place, which
       // is what the run determines
       P := TPointDictionary.GetInstance.GetPoint(Num);
       if not FreeMode then
@@ -541,7 +541,7 @@ begin
     [FFrame.Count, sLineBreak, FileName]));
 end;
 
-// TPolarProtocol writes it; the form only adds which points were in the
+// TPolarProtocol writes it, the form only adds which points were in the
 // list before the run
 procedure TPolarMethodForm.WriteProtocol(ALines: TStrings);
 var

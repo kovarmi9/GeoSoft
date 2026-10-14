@@ -19,7 +19,7 @@ const
   BASELINE_ROWS = 2;
 
 type
-  // What the whole measuring line says; one frame row cannot hold it
+  // What the whole measuring line says, one frame row cannot hold it
   TBaselineInfo = record
     Valid:     Boolean;
     L:         Double;   // length from the tape
@@ -49,8 +49,8 @@ const
   MAX_OFFSET_ABS   = 30.0;  // absolute max perpendicular offset [m]
   MAX_OFFSET_RATIO = 0.75;  // max offset as fraction of baseline length
   WARN_RATIO       = 0.50;  // soft warning threshold for offset/L ratio
-  MAX_STRETCH_WARN = 0.005; // 0.5 % — tape stretching warning
-  MAX_STRETCH_ERR  = 0.020; // 2.0 % — tape stretching suspected blunder
+  MAX_STRETCH_WARN = 0.005; // 0.5 % - tape stretching warning
+  MAX_STRETCH_ERR  = 0.020; // 2.0 % - tape stretching suspected blunder
 
 class function TOrthogonalMethodAlgorithm.TaskCode: Integer;
 begin
@@ -62,7 +62,7 @@ var
   P, K: TGeoRow;        // the measuring line, rows 0 and 1
   dx, dy: Double;       // S-JTSK vector P→K
   dS, dQ: Double;       // tape vector P→K scaled to S-JTSK
-  sP, qP: Double;       // connection point P — tape coords in S-JTSK
+  sP, qP: Double;       // connection point P - tape coords in S-JTSK
   j: Double;            // denominator dS² + dQ²
   A, B: Double;         // Helmert coefficients
   si, qi: Double;       // detail point tape coords in S-JTSK
@@ -123,11 +123,12 @@ begin
   FBaseline.Stretch   := Lg / L - 1;
 
   if FBaseline.Diff > FBaseline.Tolerance then
-    AddWarning(Format('Odchylka délky pásky %.3f m překračuje mezní hodnotu %.3f m',
-      [FBaseline.Diff, FBaseline.Tolerance]));
+    AddWarning(Format('Odchylka délky pásky %.3f m překračuje mezní ' +
+      'hodnotu %.3f m', [FBaseline.Diff, FBaseline.Tolerance]));
 
   if Abs(FBaseline.Stretch) > MAX_STRETCH_ERR then
-    AddWarning(Format('Napínání pásky %.1f %% - podezření na hrubou chybu (mezní hodnota %.1f %%)',
+    AddWarning(Format('Napínání pásky %.1f %% - podezření na hrubou chybu ' +
+      '(mezní hodnota %.1f %%)',
       [Abs(FBaseline.Stretch) * 100, MAX_STRETCH_ERR * 100]))
   else if Abs(FBaseline.Stretch) > MAX_STRETCH_WARN then
     AddWarning(Format('Napínání pásky %.1f %% překračuje mezní hodnotu %.1f %%',
@@ -164,22 +165,24 @@ begin
 
     // Extension beyond P or K
     if offS < -L / 3 then
-      AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení za bodem P o %.3f m ' +
-        '(max. L/3 = %.3f m) - bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění',
+      AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
+        'za bodem P o %.3f m (max. L/3 = %.3f m) - bod 10.2 j) vyhlášky ' +
+        '31/1995 Sb. v platném znění',
         [PtNo, Abs(offS) - L / 3, L / 3]))
     else if offS > 4 * L / 3 then
-      AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení za bodem K o %.3f m ' +
-        '(max. L/3 = %.3f m) - bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění',
+      AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
+        'za bodem K o %.3f m (max. L/3 = %.3f m) - bod 10.2 j) vyhlášky ' +
+        '31/1995 Sb. v platném znění',
         [PtNo, offS - 4 * L / 3, L / 3]));
 
     // Perpendicular offset checks
     if Abs(offQ) > qMax then
-      AddWarning(Format('Bod %s: délka kolmice je větší než povolených %.1f m ' +
-        '- bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění',
+      AddWarning(Format('Bod %s: délka kolmice je větší než povolených ' +
+        '%.1f m - bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění',
         [PtNo, qMax]))
     else if Abs(offQ) / L > WARN_RATIO then
-      AddWarning(Format('Bod %s: kolmice/přímka = %.2f - přibližuje se mezní hodnotě %.2f',
-        [PtNo, Abs(offQ) / L, MAX_OFFSET_RATIO]));
+      AddWarning(Format('Bod %s: kolmice/přímka = %.2f - přibližuje se ' +
+        'mezní hodnotě %.2f', [PtNo, Abs(offQ) / L, MAX_OFFSET_RATIO]));
 
     AFrame.Rows[i].X := P.X + A * offS - B * offQ;
     AFrame.Rows[i].Y := P.Y + B * offS + A * offQ;

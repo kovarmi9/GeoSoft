@@ -23,11 +23,11 @@ type
 
     /// <summary>Validates the point number, returns 0 if invalid.</summary>
     class function ValidatePointNumber(const APointNumber: Int64): Int64; static;
-    /// <summary>Validates the coordinate, returns 0.0 if infinite or NaN.</summary>
+    /// <summary>Validates the coordinate, 0.0 if infinite or NaN.</summary>
     class function ValidateCoordinate(const ACoordinate: Double): Double; static;
     /// <summary>Validates the quality, returns 0 if invalid.</summary>
     class function ValidateQuality(const AQuality: Integer): Integer; static;
-    /// <summary>Validates the description, truncates to 32 characters.</summary>
+    /// <summary>Validates the description, cuts it to 32 characters.</summary>
     class function ValidateDescription(const ADescription: string): string; static;
   end;
 

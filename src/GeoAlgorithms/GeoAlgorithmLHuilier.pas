@@ -1,8 +1,9 @@
 ﻿unit GeoAlgorithmLHuilier;
 
 // Výpočet plochy pomocí L'Huillierových vzorců (rozklad na lichoběžníky).
-// Algebraicky shodné se shoelace vzorcem; výsledek bere Abs(), takže
-// nezávisí na směru číslování lomových bodů (po/proti směru hodinových ručiček).
+// Algebraicky shodné se shoelace vzorcem, výsledek bere Abs(), takže
+// nezávisí na směru číslování lomových bodů (po i proti směru
+// hodinových ručiček).
 
 interface
 
@@ -20,7 +21,7 @@ type
   public
     class function TaskCode: Integer; override;
 
-    // Every row is a corner of the polygon; X and Y are read, nothing is
+    // Every row is a corner of the polygon, X and Y are read, nothing is
     // written. The area goes to Area [m²].
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -58,7 +59,7 @@ begin
   FArea := Abs(sum) / 2;
 
   if FArea < 1e-6 then
-    AddWarning('Plocha je nulová — body mohou být kolineární.');
+    AddWarning('Plocha je nulová - body mohou být kolineární.');
 end;
 
 end.

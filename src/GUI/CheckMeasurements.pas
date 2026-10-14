@@ -261,7 +261,7 @@ begin
   Report := Format('Uloženo %d oměrných do souboru%s%s',
     [FFrame.Count, sLineBreak, FileName]);
   if Missing > 0 then
-    Report := Report + Format('%s%s%d bez souřadnic — chybí bod v seznamu.',
+    Report := Report + Format('%s%s%d bez souřadnic - chybí bod v seznamu.',
       [sLineBreak, sLineBreak, Missing]);
   ShowMessage(Report);
 end;

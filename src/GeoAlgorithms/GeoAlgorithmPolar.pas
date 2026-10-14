@@ -385,17 +385,17 @@ begin
       SumPDfi := SumPDfi + P * Sqr(R.Dfi);
 
       if Abs(R.Dfi) > MEZNI_DFI then
-        AddWarning(Format('Orientace %s: odchylka or. posunu dfi = %.4f g překračuje ' +
-          'mezní hodnotu %.2f g - bod 10.2 vyhlášky 31/1995 Sb. v platném znění',
-          [PtNo, R.Dfi, MEZNI_DFI]));
+        AddWarning(Format('Orientace %s: odchylka or. posunu dfi = %.4f g ' +
+          'překračuje mezní hodnotu %.2f g - bod 10.2 vyhlášky 31/1995 Sb. ' +
+          'v platném znění', [PtNo, R.Dfi, MEZNI_DFI]));
     end;
 
     if not IsNan(R.Ds) then
     begin
       Limit := 0.012 * Sqrt(R.Dg) + 0.10;
       if Abs(R.Ds) > Limit then
-        AddWarning(Format('Orientace %s: odchylka délky ds = %.3f m překračuje ' +
-          'mezní hodnotu %.3f m', [PtNo, R.Ds, Limit]));
+        AddWarning(Format('Orientace %s: odchylka délky ds = %.3f m ' +
+          'překračuje mezní hodnotu %.3f m', [PtNo, R.Ds, Limit]));
     end;
   end;
 
@@ -422,8 +422,9 @@ begin
     AFrame.Rows[I].Y := St.Y + D * Sin(Sigma);
 
     if (AMaxDist > 0) and (D > AMaxDist) then
-      AddWarning(Format('Bod %s: délka rajónu %.1f m je větší než nejvzdálenější ' +
-        'orientace %.1f m - bod 4.3.2.2.2 Návodu pro obnovu katastrálního operátu',
+      AddWarning(Format('Bod %s: délka rajónu %.1f m je větší než ' +
+        'nejvzdálenější orientace %.1f m - bod 4.3.2.2.2 Návodu pro ' +
+        'obnovu katastrálního operátu',
         [Trim(string(AFrame.Rows[I].CB)), D, AMaxDist]));
   end;
 end;

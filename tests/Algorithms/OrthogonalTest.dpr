@@ -23,7 +23,7 @@ begin
     P.Quality := 1;
     P.Description := 'P';
 
-    // K – koncový bod měřické přímky
+    // K - koncový bod měřické přímky
     K.PointNumber := 5200;
     K.X := 6;
     K.Y := 6;

@@ -27,7 +27,7 @@ function BuildPointIdFromPrefixState(const RawOwn: string): string;
 /// <summary>Digits only, cut or padded with zeros to Width.</summary>
 function NormalizeNumericPrefix(const Value: string; Width: Integer): string;
 
-/// <summary>Full point number in the cell; no digits, no change.</summary>
+/// <summary>Full point number in the cell, no digits, no change.</summary>
 procedure NormalizePointCell(AGrid: TStringGrid; ACol, ARow: Integer);
 
 implementation

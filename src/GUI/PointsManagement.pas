@@ -9,7 +9,8 @@ uses
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids, Vcl.Menus,
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.StdCtrls,
   PointsUtilsSingleton, Point, CoordOrderState,
-  GeoGrid, GeoPointsGrid, GeoColumnValidation, PointPrefixState, ValidationUtils;
+  GeoGrid, GeoPointsGrid, GeoColumnValidation, PointPrefixState,
+  ValidationUtils;
 
 type
   TFileFormat = (ffTXT, ffCSV);
@@ -101,13 +102,16 @@ type
   public
     /// <summary>Asks for a file and starts an empty list in it.</summary>
     function CreateNewList: Boolean;
-    /// <summary>Asks for a file and loads it; the open list stays if it fails.</summary>
+    /// <summary>Asks for a file and loads it.
+    /// On failure the open list stays.</summary>
     function OpenList: Boolean;
     /// <summary>Asks to save changes. False when the user cancels.</summary>
     function AskSaveChanges: Boolean;
-    /// <summary>Saves into the open file, or asks for one. False when not saved.</summary>
+    /// <summary>Saves into the open file, or asks for one.
+    /// False when not saved.</summary>
     function DoSave: Boolean;
-    /// <summary>Asks for a file name and saves into it. False when not saved.</summary>
+    /// <summary>Asks for a file name and saves into it.
+    /// False when not saved.</summary>
     function SaveListAs: Boolean;
   end;
 
@@ -123,10 +127,11 @@ uses
 
 const
   // The extension tells the order
-  LIST_FILTER = 'Seznam souřadnic v pořadí Y, X (*.yxz)|*.yxz|Seznam souřadnic v pořadí X, Y (*.xyz)|*.xyz';
+  LIST_FILTER = 'Seznam souřadnic v pořadí Y, X (*.yxz)|*.yxz|' +
+    'Seznam souřadnic v pořadí X, Y (*.xyz)|*.xyz';
 
   COL_POINTNO = 0;
-  // First of Y, X; see CoordColY
+  // First of Y, X, see CoordColY
   COL_COORD   = 1;
   COL_Z       = 3;
   COL_QUALITY = 4;
@@ -145,30 +150,35 @@ procedure TPointsManagementForm.FormCreate(Sender: TObject);
     StringGrid1.ColumnFilters[AIndex].OnGetDefaultText := GetZeroDefault;
   end;
 
+var
+  Filter: TColumnFilter;
 begin
   // Point number: digits only, empty deletes
-  StringGrid1.ColumnFilters[COL_POINTNO].DataType   := cdtInteger;
-  StringGrid1.ColumnFilters[COL_POINTNO].MaxLength  := TValidationUtils.PointNumberDigits;
-  StringGrid1.ColumnFilters[COL_POINTNO].AllowEmpty := True;
+  Filter := StringGrid1.ColumnFilters[COL_POINTNO];
+  Filter.DataType   := cdtInteger;
+  Filter.MaxLength  := TValidationUtils.PointNumberDigits;
+  Filter.AllowEmpty := True;
 
   Coord(COL_COORD);       // Y
   Coord(COL_COORD + 1);   // X
   Coord(COL_Z);
 
   // Quality 0-8
-  StringGrid1.ColumnFilters[COL_QUALITY].DataType         := cdtInteger;
-  StringGrid1.ColumnFilters[COL_QUALITY].MaxLength        := 1;
-  StringGrid1.ColumnFilters[COL_QUALITY].HasMinValue      := True;
-  StringGrid1.ColumnFilters[COL_QUALITY].MinValue         := TValidationUtils.MinQuality;
-  StringGrid1.ColumnFilters[COL_QUALITY].HasMaxValue      := True;
-  StringGrid1.ColumnFilters[COL_QUALITY].MaxValue         := TValidationUtils.MaxQuality;
-  StringGrid1.ColumnFilters[COL_QUALITY].OnInvalidCommit  := ciaBlock;
-  StringGrid1.ColumnFilters[COL_QUALITY].OnGetDefaultText := GetQualityDefault;
+  Filter := StringGrid1.ColumnFilters[COL_QUALITY];
+  Filter.DataType         := cdtInteger;
+  Filter.MaxLength        := 1;
+  Filter.HasMinValue      := True;
+  Filter.MinValue         := TValidationUtils.MinQuality;
+  Filter.HasMaxValue      := True;
+  Filter.MaxValue         := TValidationUtils.MaxQuality;
+  Filter.OnInvalidCommit  := ciaBlock;
+  Filter.OnGetDefaultText := GetQualityDefault;
 
   // Description
-  StringGrid1.ColumnFilters[COL_DESC].DataType         := cdtNone;
-  StringGrid1.ColumnFilters[COL_DESC].MaxLength        := TValidationUtils.MaxDescriptionLength;
-  StringGrid1.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
+  Filter := StringGrid1.ColumnFilters[COL_DESC];
+  Filter.DataType         := cdtNone;
+  Filter.MaxLength        := TValidationUtils.MaxDescriptionLength;
+  Filter.OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X
   FGridOrder := coYX;
@@ -240,7 +250,8 @@ begin
   for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
     StringGrid1.Rows[R].Clear;
 
-  StringGrid1.RowCount := Points.GetPointCount + 2;  // header + data + one empty row
+  // header + data + one empty row
+  StringGrid1.RowCount := Points.GetPointCount + 2;
   SetLength(FRowPoint, 0);
   ClearSelection;
   FAnchor := StringGrid1.FixedRows;
@@ -342,7 +353,8 @@ begin
   if Points.PointExists(Num) then
   begin
     // Windows box, it does not reload the grid
-    Application.MessageBox(PChar(Format('Bod %.15d již v seznamu existuje.', [Num])),
+    Application.MessageBox(
+      PChar(Format('Bod %.15d již v seznamu existuje.', [Num])),
       'Upozornění', MB_OK or MB_ICONWARNING);
     StringGrid1.RejectCommit;   // stay on the number to fix it
     Exit;
@@ -355,7 +367,7 @@ begin
     Points.RemovePoint(Old);   // renumbered, the old one goes
 end;
 
-// Saves the row; empty cells keep old values
+// Saves the row, empty cells keep old values
 procedure TPointsManagementForm.StoreRow(ARow: Integer);
 var
   P:           TPoint;
@@ -504,7 +516,7 @@ begin
             (StringGrid1.Col = COL_POINTNO);
 end;
 
-// Selection like in Explorer; Col is still the old one
+// Selection like in Explorer, Col is still the old one
 procedure TPointsManagementForm.GridSelectCell(Sender: TObject;
   ACol, ARow: Integer; var CanSelect: Boolean);
 var
@@ -551,7 +563,7 @@ procedure TPointsManagementForm.UpdateStatusBar;
 begin
   Caption := 'Seznam souřadnic';
   if FCurrentFile <> '' then
-    Caption := Caption + ' — ' + ExtractFileName(FCurrentFile);
+    Caption := Caption + ' - ' + ExtractFileName(FCurrentFile);
   if Points.Modified then
     Caption := Caption + '*';
 

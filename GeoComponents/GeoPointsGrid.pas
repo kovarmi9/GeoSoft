@@ -38,7 +38,7 @@ type
     /// <summary>Collection of validation filters.</summary>
     FColumnFilters: TColumnFilters;
 
-    /// <summary>Returns number of data columns (excluding fixed columns).</summary>
+    /// <summary>Number of data columns, without fixed columns.</summary>
     function DataColumnCount: Integer;
 
     /// <summary>Returns filter for given grid column.</summary>
@@ -70,7 +70,7 @@ type
 
     /// <summary>
     /// Validates and commits cell value.
-    /// On failure sets FLastCommitFailed (inherited) when ciaBlock is active —
+    /// On failure sets FLastCommitFailed (inherited) when ciaBlock is active -
     /// TGeoGrid.SelectCell then blocks navigation automatically.
     /// </summary>
     procedure CommitCell; override;
@@ -234,7 +234,8 @@ var
   DefaultHandled: Boolean;
 begin
   // Skip header cells and cells without active editor
-  if IsHeaderCell(Col, Row) or not EditorMode or not Assigned(InplaceEditor) then
+  if IsHeaderCell(Col, Row) or not EditorMode or
+    not Assigned(InplaceEditor) then
   begin
     inherited;
     Exit;
@@ -247,7 +248,7 @@ begin
     Exit;
   end;
 
-  // Reset před validací — FLastCommitFailed je zděděný z TGeoGrid
+  // Reset před validací - FLastCommitFailed je zděděný z TGeoGrid
   FLastCommitFailed := False;
 
   Text := InplaceEditor.Text;
@@ -273,7 +274,7 @@ begin
     case Filter.OnInvalidCommit of
       ciaBeepAndClear:
       begin
-        // Clear cell + notify — cursor moves on normally
+        // Clear cell + notify - cursor moves on normally
         Cells[Col, Row]    := '';
         InplaceEditor.Text := '';
         MessageBeep(MB_ICONWARNING);

@@ -87,6 +87,10 @@ begin
     Result := KU + NormalizeNumericPrefix(Own, 9)          // ZPMZ + own number
   else
     Result := NormalizeNumericPrefix(Own, 15);             // full number
+
+  // A minus sign stays in front of the whole number
+  if Copy(Trim(RawOwn), 1, 1) = '-' then
+    Result := '-' + Result;
 end;
 
 function BuildPointIdFromPrefixState(const RawOwn: string): string;

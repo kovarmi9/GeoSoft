@@ -153,11 +153,16 @@ procedure TPointsManagementForm.FormCreate(Sender: TObject);
 var
   Filter: TColumnFilter;
 begin
-  // Point number: digits only, empty deletes
+  // Point number: digits and a minus sign, empty deletes
   Filter := StringGrid1.ColumnFilters[COL_POINTNO];
   Filter.DataType   := cdtInteger;
-  Filter.MaxLength  := TValidationUtils.PointNumberDigits;
+  Filter.MaxLength  := TValidationUtils.PointNumberDigits + 1;   // and a minus sign
   Filter.AllowEmpty := True;
+  // 16 digits without a minus sign would not fit
+  Filter.HasMinValue := True;
+  Filter.MinValue    := -TValidationUtils.MaxPointNumber;
+  Filter.HasMaxValue := True;
+  Filter.MaxValue    := TValidationUtils.MaxPointNumber;
 
   Coord(COL_COORD);       // Y
   Coord(COL_COORD + 1);   // X
@@ -318,7 +323,7 @@ begin
 
   if ACol = COL_POINTNO then
     NumberCommitted(ARow)
-  else if RowPoint(ARow) > 0 then
+  else if RowPoint(ARow) <> 0 then
     StoreRow(ARow);         // the row is a point, so this is an edit
 
   FShownChanges := Points.ChangeCount;   // no reload needed
@@ -334,7 +339,7 @@ begin
   if Trim(StringGrid1.Cells[COL_POINTNO, ARow]) = '' then
   begin
     // Empty number: ask to delete
-    if Old > 0 then
+    if Old <> 0 then
     begin
       StringGrid1.Cells[COL_POINTNO, ARow] := Format('%.15d', [Old]);
       SelectOnly(ARow);
@@ -363,7 +368,7 @@ begin
   SetRowPoint(ARow, Num);
   StoreRow(ARow);           // save under the new number
 
-  if Old > 0 then
+  if Old <> 0 then
     Points.RemovePoint(Old);   // renumbered, the old one goes
 end;
 
@@ -420,7 +425,7 @@ end;
 function TPointsManagementForm.NumberMissing: Boolean;
 begin
   Result := False;
-  if RowPoint(StringGrid1.Row) > 0 then
+  if RowPoint(StringGrid1.Row) <> 0 then
     Exit;                   // the row is a point already
 
   // Only when the grid has focus

@@ -88,7 +88,7 @@ begin
     if not InputQuery('Nové číslo bodu', 'Číslo bodu:', S) then
       Exit(False);
     ANum := StrToInt64Def(BuildPointIdFromPrefixState(S), 0);
-    if ANum <= 0 then
+    if ANum = 0 then
       Application.MessageBox('Neplatné číslo bodu.', 'Upozornění',
         MB_OK or MB_ICONWARNING)
     else if TPointDictionary.GetInstance.PointExists(ANum) then

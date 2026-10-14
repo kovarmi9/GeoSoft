@@ -75,7 +75,7 @@ var
   P: Point.TPoint;
 begin
   num := StrToInt64Def(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], -1);
-  if num <= 0 then Exit;
+  if num = 0 then Exit;
 
   if LookupPoint(num, P) then
   begin
@@ -115,7 +115,7 @@ begin
   begin
     StringGrid1.GetGeoRow(R, Row);
     Num := StrToInt64Def(Trim(string(Row.CB)), 0);
-    if Num <= 0 then
+    if Num = 0 then
       Continue;
 
     if not TPointDictionary.GetInstance.PointExists(Num) then

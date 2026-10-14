@@ -109,7 +109,7 @@ var
 begin
   CBText := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
   Num := StrToInt64Def(CBText, -1);
-  if Num <= 0 then Exit;
+  if Num = 0 then Exit;
 
   // Only a new number refills the row, so user edits survive
   if Length(FRowCB) <= R then

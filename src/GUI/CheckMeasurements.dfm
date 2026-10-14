@@ -65,6 +65,26 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
       'Pozn'#225'mka')
     ColumnFilters = <
       item
+        DataType = cdtInteger
+        MaxLength = 16
+        HasMinValue = True
+        MinValue = -999999999999999.000000000000000000
+        HasMaxValue = True
+        MaxValue = 999999999999999.000000000000000000
+      end
+      item
+        DataType = cdtInteger
+        MaxLength = 16
+        HasMinValue = True
+        MinValue = -999999999999999.000000000000000000
+        HasMaxValue = True
+        MaxValue = 999999999999999.000000000000000000
+      end
+      item
+        DataType = cdtExpression
+        DecimalPlaces = 3
+        AllowEmpty = True
+        OnInvalidCommit = ciaBeepAndClear
       end
       item
       end
@@ -75,10 +95,7 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
       item
       end
       item
-      end
-      item
-      end
-      item
+        MaxLength = 32
       end>
     ColWidths = (
       40

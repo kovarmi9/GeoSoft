@@ -35,7 +35,7 @@ implementation
 
 class function TValidationUtils.ValidatePointNumber(const APointNumber: Int64): Int64;
 begin
-  if (APointNumber > 0) and (APointNumber <= MaxPointNumber) then
+  if (APointNumber <> 0) and (Abs(APointNumber) <= MaxPointNumber) then
     Result := APointNumber
   else
     Result := 0;

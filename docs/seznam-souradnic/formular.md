@@ -6,7 +6,7 @@ Po návratu z jiného okna se tabulka znovu načte jen tehdy, když se
 seznam mezitím změnil, třeba výpočtem; rozepsaná buňka tak zůstane.
 
 - **Nový bod** vznikne zadáním čísla do prázdného posledního řádku.
-  Číslo bodu přijímá jen číslice, nejvýš 15. Číslo do 4 číslic se doplní
+  Číslo bodu přijímá jen číslice, nejvýš 15, a mínus na začátku. Číslo do 4 číslic se doplní
   o KÚ a ZPMZ z lišty, číslo do 9 číslic jen o KÚ. Enter na prázdné buňce doplní souřadnici nulou,
   kód kvality a popis z lišty.
 - **Přečíslování** – přepsáním čísla v řádku; číslo, které v seznamu už je,

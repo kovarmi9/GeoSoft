@@ -147,6 +147,16 @@ begin
 end;
 
 /// <summary>
+/// Point number: 15 digits and a minus sign, may be empty.
+/// </summary>
+function MakePointNumber: TColumnFilterData;
+begin
+  // The length lets the minus sign in, the range keeps 16 digits out
+  Result := MakeIntegerRange(16, -999999999999999, 999999999999999);
+  Result.AllowEmpty := True;
+end;
+
+/// <summary>
 /// Angle in gon: no limits, the value wraps into 0..400.
 /// </summary>
 function MakeGon(ADecimalPlaces: Integer): TColumnFilterData;
@@ -197,7 +207,7 @@ end;
 initialization
   SetField(Uloha,    'Úloha',             cdtInteger, MakeInteger(2));
 
-  SetField(CB,       'Číslo bodu',        cdtInteger, MakeInteger(15, True));
+  SetField(CB,       'Číslo bodu',        cdtInteger, MakePointNumber);
 
   SetField(X,        'X',                 cdtExpression, MakeFloat(3));
 
@@ -205,7 +215,7 @@ initialization
 
   SetField(Z,        'Z',                 cdtExpression, MakeFloat(3));
 
-  SetField(CBm,      'Číslo bodu zdroj',  cdtInteger, MakeInteger(15, True));
+  SetField(CBm,      'Číslo bodu zdroj',  cdtInteger, MakePointNumber);
 
   SetField(Xm,       'Xm',                cdtExpression, MakeFloat(3));
 

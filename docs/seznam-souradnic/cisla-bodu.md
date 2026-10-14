@@ -6,6 +6,8 @@ Uživatel obvykle píše jen vlastní číslo, zbytek se doplní z lišty.
 Příklad: KÚ 123456, ZPMZ 00078, uživatel napíše `12` → `123456000780012`.
 Číslo s 5 až 9 číslicemi dostane jen KÚ: `500012` → `123456000500012`.
 Číslo s 10 a více číslicemi se bere celé, jen se doplní nulami na 15.
+Číslo bodu může být i záporné: `-12` → `-123456000780012`. Mínus zůstává
+před celým číslem. Číslo 0 znamená „žádný bod“.
 
 Hodnoty lišty (KÚ, ZPMZ, KK a popis) drží globální záznam `GPointPrefix`
 (unit `PointPrefixState.pas`). Sdílí ho všechna okna a platí jen do konce

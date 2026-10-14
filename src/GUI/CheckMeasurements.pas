@@ -42,7 +42,6 @@ type
     FAlg: TCheckMeasurementsAlgorithm;
     FFrame: TGeoDataFrame;
     FRows: TArray<Integer>;   // grid row each frame row came from
-    procedure SetupValidations;
     procedure BuildFrame;
     procedure RefreshComputed;
     procedure Recompute;
@@ -67,7 +66,8 @@ begin
   FAlg := TCheckMeasurementsAlgorithm.Create;
   FFrame := TGeoDataFrame.Create(
     [Uloha, CB, X, Y, CBm, Xm, Ym, SH, SS, KK, Poznamka]);
-  SetupValidations;
+  // Column filters are set in the designer. The measured length may stay
+  // empty, KatV annex 17.11
 end;
 
 destructor TCheckMeasurementsForm.Destroy;
@@ -75,24 +75,6 @@ begin
   FFrame.Free;
   FAlg.Free;
   inherited;
-end;
-
-procedure TCheckMeasurementsForm.SetupValidations;
-begin
-  // filter index = grid column - FixedCols
-  GridPairs.ColumnFilters[0].DataType := cdtInteger;   // Z bodu
-  GridPairs.ColumnFilters[1].DataType := cdtInteger;   // Na bod
-
-  with GridPairs.ColumnFilters[2] do                   // Měřená
-  begin
-    DataType        := cdtExpression;
-    DecimalPlaces   := 3;
-    // KatV annex 17.11 - a length that was not measured stays empty
-    AllowEmpty      := True;
-    OnInvalidCommit := ciaBeepAndClear;
-  end;
-
-  GridPairs.ColumnFilters[7].MaxLength := 32;          // Poznámka
 end;
 
 // A new row continues the chain, so its "from" repeats the "to" of the row
@@ -120,7 +102,7 @@ begin
     NormalizePointCell(GridPairs, ACol, ARow);
 
     num := StrToInt64Def(Trim(GridPairs.Cells[ACol, ARow]), 0);
-    if num > 0 then
+    if num <> 0 then
       LookupPoint(num, pt);
   end;
 

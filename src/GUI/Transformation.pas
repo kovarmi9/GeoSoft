@@ -88,7 +88,7 @@ begin
 
   NormalizePointCell(StringGrid1, ACol, ARow);
   Num := StrToInt64Def(Trim(StringGrid1.Cells[ACol, ARow]), -1);
-  if Num <= 0 then Exit;
+  if Num = 0 then Exit;
 
   if LookupPoint(Num, P) then
   begin

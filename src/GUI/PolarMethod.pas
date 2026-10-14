@@ -191,7 +191,7 @@ begin
   EditStationZ.Text := '';
 
   Num := StrToInt64Def(EditStationNo.Text, 0);
-  Result := Num > 0;
+  Result := Num <> 0;
   if not Result or not CheckBox1.Checked then
     Exit;
 
@@ -241,7 +241,7 @@ begin
 
   NormalizePointCell(G, CBCol, ARow);
   num := StrToInt64Def(Trim(G.Cells[CBCol, ARow]), 0);
-  if num <= 0 then Exit;
+  if num = 0 then Exit;
 
   if not LookupPoint(num, pt) then Exit;
 
@@ -298,7 +298,7 @@ begin
 
     // A point from the list keeps its height, quality and description,
     // the same as in the orthogonal method
-    if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
+    if (PNum <> 0) and TPointDictionary.GetInstance.PointExists(PNum) then
     begin
       P := TPointDictionary.GetInstance.GetPoint(PNum);
       SetCell(Y, FloatToStr(P.Y, FS));
@@ -345,7 +345,7 @@ var
     Row.CB := ShortString(No);
     Num := StrToInt64Def(No, 0);
 
-    if Num <= 0 then
+    if Num = 0 then
       Err := 'Zadejte číslo stanoviska.'
     else if TPointDictionary.GetInstance.PointExists(Num) then
     begin
@@ -385,7 +385,7 @@ var
     begin
       GridOrientation.GetGeoRow(I, Row);
       Num := StrToInt64Def(Trim(string(Row.CB)), 0);
-      if Num <= 0 then
+      if Num = 0 then
         Continue;
 
       // Without coordinates it would look like a detail point
@@ -424,7 +424,7 @@ begin
   for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
     GridDetail.GetGeoRow(R, Row);
-    if StrToInt64Def(Trim(string(Row.CB)), 0) <= 0 then
+    if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
       Continue;
 
     // A typed quality wins, the toolbar fills the rest

@@ -89,11 +89,15 @@ end;
 
 function TProtocol.FormatPointId(const S: string): string;
 var
-  N: string;
+  N: Int64;
+  D: string;
 begin
+  N := StrToInt64Def(Trim(S), 0);
   // %.15d pads with zeros, %015d would pad with spaces in Delphi
-  N := Format('%.15d', [StrToInt64Def(Trim(S), 0)]);
-  Result := Copy(N, 1, 6) + ' ' + Copy(N, 7, 5) + ' ' + Copy(N, 12, 4);
+  D := Format('%.15d', [Abs(N)]);
+  Result := Copy(D, 1, 6) + ' ' + Copy(D, 7, 5) + ' ' + Copy(D, 12, 4);
+  if N < 0 then
+    Result := '-' + Result;
 end;
 
 function TProtocol.PointId(ANum: Int64): string;

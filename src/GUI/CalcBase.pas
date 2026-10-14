@@ -268,7 +268,7 @@ var
   All: Boolean;                     // the calculations do not show the box
 begin
   PNum := StrToInt64Def(Trim(string(ARow.CB)), 0);
-  if PNum <= 0 then
+  if PNum = 0 then
     Exit;
 
   // NaN height becomes 0

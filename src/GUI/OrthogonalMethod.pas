@@ -114,7 +114,7 @@ var
 begin
   Result := False;
   num := StrToInt64Def(GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], -1);
-  if num <= 0 then
+  if num = 0 then
   begin
     ShowMessage(Format('Zadejte číslo bodu v řádku %s.',
       [GridBaseline.Cells[0, R]]));
@@ -174,7 +174,7 @@ begin
   for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
     GridDetail.GetGeoRow(R, Row);
-    if StrToInt64Def(Trim(string(Row.CB)), 0) <= 0 then
+    if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
       Continue;
 
     // An old result read from the grid would look like a fresh one
@@ -256,7 +256,7 @@ begin
             G.Cells[G.FieldToCol(Poznamka), ARow] := '';
         end;
 
-        if (PNum > 0) and TPointDictionary.GetInstance.PointExists(PNum) then
+        if (PNum <> 0) and TPointDictionary.GetInstance.PointExists(PNum) then
         begin
           P := TPointDictionary.GetInstance.GetPoint(PNum);
           FillRowFromPoint(G, ARow, P);

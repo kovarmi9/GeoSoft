@@ -681,13 +681,15 @@ end;
 
 function ValidateIntegerText(const AText: string): Boolean;
 var
-  Ch: Char;
+  I: Integer;
 begin
   Result := False;
-  if AText = '' then
+  if (AText = '') or (AText = '-') then
     Exit;
-  for Ch in AText do
-    if not CharInSet(Ch, ['0'..'9']) then
+  for I := 1 to Length(AText) do
+    // A minus sign only in front
+    if not CharInSet(AText[I], ['0'..'9'])
+      and not ((AText[I] = '-') and (I = 1)) then
       Exit;
   Result := True;
 end;
@@ -737,8 +739,13 @@ end;
 
 procedure FilterIntegerKey(const AText: string; var Key: Char);
 begin
-  if not CharInSet(Key, ['0'..'9']) then
-    Key := #0;
+  if CharInSet(Key, ['0'..'9']) then
+    Exit;
+
+  if (Key = '-') and (AText = '') then
+    Exit;
+
+  Key := #0;
 end;
 
 procedure FilterFloatKey(const AText: string; var Key: Char);

@@ -17,12 +17,6 @@ type
     MenuFileNew: TMenuItem;
     Vypocty: TMenuItem;
     MenuFileOpen: TMenuItem;
-    Polrnmetoda1: TMenuItem;
-    Ortogonlnmetoda1: TMenuItem;
-    ransformace1: TMenuItem;
-    Pokus1: TMenuItem;
-    Polrnmetodanov1: TMenuItem;
-    Konstruknomrn1: TMenuItem;
     MenuView: TMenuItem;
     MenuShowList: TMenuItem;
     MenuSep1: TMenuItem;
@@ -30,20 +24,38 @@ type
     MenuSaveListAs: TMenuItem;
     YX2XY: TToggleSwitch;
     MenuNastaveni: TMenuItem;
+    MenuOrthogonalMethod: TMenuItem;
+    MenuPolarMethod: TMenuItem;
+    MenuLineAdjustment: TMenuItem;
+    MenuLineIntersection: TMenuItem;
+    MenuRectangularMeasurements: TMenuItem;
+    MenuDistanceIntersection: TMenuItem;
+    MenuForwardIntersection: TMenuItem;
+    MenuRectangularAdjustment: TMenuItem;
+    MenuResection: TMenuItem;
+    MenuCheckMeasurements: TMenuItem;
+    MenuTransformation: TMenuItem;
+    MenuParcelArea: TMenuItem;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
-    procedure Polrnmetoda1Click(Sender: TObject);
-    procedure Ortogonlnmetoda1Click(Sender: TObject);
-    procedure TransformationClick(Sender: TObject);
-    procedure RectangularMeasurementsClick(Sender: TObject);
-    procedure CheckMeasurementsClick(Sender: TObject);
-    procedure Polrnmetodanov1Click(Sender: TObject);
     procedure YX2XYClick(Sender: TObject);
     procedure MenuShowListClick(Sender: TObject);
     procedure MenuSaveListClick(Sender: TObject);
     procedure MenuSaveListAsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure MenuNastaveniClick(Sender: TObject);
+    procedure MenuOrthogonalMethodClick(Sender: TObject);
+    procedure MenuPolarMethodClick(Sender: TObject);
+    procedure MenuLineAdjustmentClick(Sender: TObject);
+    procedure MenuLineIntersectionClick(Sender: TObject);
+    procedure MenuRectangularMeasurementsClick(Sender: TObject);
+    procedure MenuDistanceIntersectionClick(Sender: TObject);
+    procedure MenuForwardIntersectionClick(Sender: TObject);
+    procedure MenuRectangularAdjustmentClick(Sender: TObject);
+    procedure MenuResectionClick(Sender: TObject);
+    procedure MenuCheckMeasurementsClick(Sender: TObject);
+    procedure MenuTransformationClick(Sender: TObject);
+    procedure MenuParcelAreaClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -59,7 +71,8 @@ implementation
 
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState,
-  SettingsDialog;
+  SettingsDialog, LineAdjustment, LineIntersection, DistanceIntersection,
+  ForwardIntersection, RectangularAdjustment, Resection;
 
 // File menu: picks a list file and shows it
 procedure TForm1.MenuFileOpenClick(Sender: TObject);
@@ -103,34 +116,65 @@ begin
     PointsManagementForm.Show;
 end;
 
-procedure TForm1.Polrnmetoda1Click(Sender: TObject);
+// Calculations menu, in the order of the task codes
+procedure TForm1.MenuOrthogonalMethodClick(Sender: TObject);
 begin
-ParcelAreaForm.Show;
+  OrthogonalMethodForm.Show;
 end;
 
-procedure TForm1.Polrnmetodanov1Click(Sender: TObject);
+procedure TForm1.MenuPolarMethodClick(Sender: TObject);
 begin
-PolarMethodForm.Show;
+  PolarMethodForm.Show;
 end;
 
-procedure TForm1.Ortogonlnmetoda1Click(Sender: TObject);
+procedure TForm1.MenuLineAdjustmentClick(Sender: TObject);
 begin
-OrthogonalMethodForm.Show;
+  LineAdjustmentForm.Show;
 end;
 
-procedure TForm1.TransformationClick(Sender: TObject);
+procedure TForm1.MenuLineIntersectionClick(Sender: TObject);
 begin
-TransformationForm.Show;
+  LineIntersectionForm.Show;
 end;
 
-procedure TForm1.RectangularMeasurementsClick(Sender: TObject);
+procedure TForm1.MenuRectangularMeasurementsClick(Sender: TObject);
 begin
   RectangularMeasurementsForm.Show;
 end;
 
-procedure TForm1.CheckMeasurementsClick(Sender: TObject);
+procedure TForm1.MenuDistanceIntersectionClick(Sender: TObject);
+begin
+  DistanceIntersectionForm.Show;
+end;
+
+procedure TForm1.MenuForwardIntersectionClick(Sender: TObject);
+begin
+  ForwardIntersectionForm.Show;
+end;
+
+procedure TForm1.MenuRectangularAdjustmentClick(Sender: TObject);
+begin
+  RectangularAdjustmentForm.Show;
+end;
+
+procedure TForm1.MenuResectionClick(Sender: TObject);
+begin
+  ResectionForm.Show;
+end;
+
+procedure TForm1.MenuCheckMeasurementsClick(Sender: TObject);
 begin
   CheckMeasurementsForm.Show;
+end;
+
+procedure TForm1.MenuTransformationClick(Sender: TObject);
+begin
+  TransformationForm.Show;
+end;
+
+procedure TForm1.MenuParcelAreaClick(Sender: TObject);
+begin
+  ParcelAreaForm.Show;
 end;
 
 // Switch off = Y, X (cadastre order, the default). Switch on = X, Y.

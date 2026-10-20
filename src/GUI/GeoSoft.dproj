@@ -190,6 +190,30 @@
         <DCCReference Include="..\Utils\SettingsState.pas"/>
         <DCCReference Include="..\Utils\ValidationUtils.pas"/>
         <DCCReference Include="..\Utils\ExistingPoint.pas"/>
+        <DCCReference Include="LineAdjustment.pas">
+            <Form>LineAdjustmentForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="LineIntersection.pas">
+            <Form>LineIntersectionForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="DistanceIntersection.pas">
+            <Form>DistanceIntersectionForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="ForwardIntersection.pas">
+            <Form>ForwardIntersectionForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="RectangularAdjustment.pas">
+            <Form>RectangularAdjustmentForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="Resection.pas">
+            <Form>ResectionForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

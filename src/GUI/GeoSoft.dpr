@@ -35,7 +35,13 @@ uses
   ProtocolTable in '..\Utils\ProtocolTable.pas',
   SettingsState in '..\Utils\SettingsState.pas',
   ValidationUtils in '..\Utils\ValidationUtils.pas',
-  ExistingPoint in '..\Utils\ExistingPoint.pas';
+  ExistingPoint in '..\Utils\ExistingPoint.pas',
+  LineAdjustment in 'LineAdjustment.pas' {LineAdjustmentForm},
+  LineIntersection in 'LineIntersection.pas' {LineIntersectionForm},
+  DistanceIntersection in 'DistanceIntersection.pas' {DistanceIntersectionForm},
+  ForwardIntersection in 'ForwardIntersection.pas' {ForwardIntersectionForm},
+  RectangularAdjustment in 'RectangularAdjustment.pas' {RectangularAdjustmentForm},
+  Resection in 'Resection.pas' {ResectionForm};
 
 {$R *.res}
 
@@ -50,5 +56,11 @@ begin
   Application.CreateForm(TRectangularMeasurementsForm, RectangularMeasurementsForm);
   Application.CreateForm(TCheckMeasurementsForm, CheckMeasurementsForm);
   Application.CreateForm(TPolarMethodForm, PolarMethodForm);
+  Application.CreateForm(TLineAdjustmentForm, LineAdjustmentForm);
+  Application.CreateForm(TLineIntersectionForm, LineIntersectionForm);
+  Application.CreateForm(TDistanceIntersectionForm, DistanceIntersectionForm);
+  Application.CreateForm(TForwardIntersectionForm, ForwardIntersectionForm);
+  Application.CreateForm(TRectangularAdjustmentForm, RectangularAdjustmentForm);
+  Application.CreateForm(TResectionForm, ResectionForm);
   Application.Run;
 end.

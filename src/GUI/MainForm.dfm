@@ -3236,29 +3236,53 @@ object Form1: TForm1
     end
     object Vypocty: TMenuItem
       Caption = 'V'#253'po'#269'ty'
-      object Polrnmetodanov1: TMenuItem
-        Caption = 'Pol'#225'rn'#237' metoda'
-        OnClick = Polrnmetodanov1Click
-      end
-      object Ortogonlnmetoda1: TMenuItem
+      object MenuOrthogonalMethod: TMenuItem
         Caption = 'Ortogon'#225'ln'#237' metoda'
-        OnClick = Ortogonlnmetoda1Click
+        OnClick = MenuOrthogonalMethodClick
       end
-      object ransformace1: TMenuItem
-        Caption = 'Transformace'
-        OnClick = TransformationClick
+      object MenuPolarMethod: TMenuItem
+        Caption = 'Pol'#225'rn'#237' metoda'
+        OnClick = MenuPolarMethodClick
       end
-      object Konstruknomrn1: TMenuItem
+      object MenuLineAdjustment: TMenuItem
+        Caption = 'Vyrovn'#225'n'#237' do p'#345#237'mky'
+        OnClick = MenuLineAdjustmentClick
+      end
+      object MenuLineIntersection: TMenuItem
+        Caption = 'Pr'#367'se'#269#237'k p'#345#237'mek'
+        OnClick = MenuLineIntersectionClick
+      end
+      object MenuRectangularMeasurements: TMenuItem
         Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233
-        OnClick = RectangularMeasurementsClick
+        OnClick = MenuRectangularMeasurementsClick
       end
-      object Pokus1: TMenuItem
+      object MenuDistanceIntersection: TMenuItem
+        Caption = 'Prot'#237'n'#225'n'#237' z d'#233'lek'
+        OnClick = MenuDistanceIntersectionClick
+      end
+      object MenuForwardIntersection: TMenuItem
+        Caption = 'Prot'#237'n'#225'n'#237' ze sm'#283'r'#367
+        OnClick = MenuForwardIntersectionClick
+      end
+      object MenuRectangularAdjustment: TMenuItem
+        Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233' s vyrovn'#225'n'#237'm'
+        OnClick = MenuRectangularAdjustmentClick
+      end
+      object MenuResection: TMenuItem
+        Caption = 'Prot'#237'n'#225'n'#237' zp'#283't'
+        OnClick = MenuResectionClick
+      end
+      object MenuCheckMeasurements: TMenuItem
         Caption = 'Kontroln'#237' om'#283'rn'#233
-        OnClick = CheckMeasurementsClick
+        OnClick = MenuCheckMeasurementsClick
       end
-      object Polrnmetoda1: TMenuItem
+      object MenuTransformation: TMenuItem
+        Caption = 'Transformace'
+        OnClick = MenuTransformationClick
+      end
+      object MenuParcelArea: TMenuItem
         Caption = 'V'#253'po'#269'et v'#253'm'#283'r'
-        OnClick = Polrnmetoda1Click
+        OnClick = MenuParcelAreaClick
       end
     end
     object MenuNastaveni: TMenuItem

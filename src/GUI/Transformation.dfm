@@ -1,5 +1,5 @@
 inherited TransformationForm: TTransformationForm
-  Caption = 'V'#253'po'#269'et transformace'
+  Caption = 'Transformace'
   StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate
   TextHeight = 15

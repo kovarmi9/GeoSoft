@@ -18,11 +18,6 @@ type
   TParcelAreaForm = class(TCalcBaseForm)
     StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
-    PanelCalculate: TPanel;
-    Calculate: TButton;
-    Save: TButton;
-    ButtonLoad: TButton;
-    ButtonReset: TButton;
     procedure CalculateClick(Sender: TObject);
     procedure SaveClick(Sender: TObject);
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);

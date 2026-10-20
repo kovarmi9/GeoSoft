@@ -30,15 +30,10 @@ type
   TCheckMeasurementsForm = class(TCalcBaseForm)
     Memo1: TMemo;
     GridPairs: TGeoPointsGrid;
-    PanelCalculate: TPanel;
-    Calculate: TButton;
-    ButtonSave: TButton;
-    ButtonLoad: TButton;
-    ButtonReset: TButton;
     procedure CalculateClick(Sender: TObject);
     procedure GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer;
       var CanSelect: Boolean);
-    procedure ButtonSaveClick(Sender: TObject);
+    procedure SaveClick(Sender: TObject);
     procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TCheckMeasurementsAlgorithm;
@@ -224,7 +219,7 @@ begin
   end;
 end;
 
-procedure TCheckMeasurementsForm.ButtonSaveClick(Sender: TObject);
+procedure TCheckMeasurementsForm.SaveClick(Sender: TObject);
 var
   I, Missing: Integer;
   FileName: string;

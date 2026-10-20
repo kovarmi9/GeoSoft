@@ -83,60 +83,12 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Align = alTop
     MinSize = 80
   end
-  object PanelCalculate: TPanel [5]
-    Left = 0
-    Top = 542
-    Width = 800
-    Height = 37
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 4
-    object ButtonCalculate: TButton
-      AlignWithMargins = True
-      Left = 707
-      Top = 3
-      Width = 90
-      Height = 31
-      Align = alRight
-      Caption = 'V'#253'po'#269'et'
-      TabOrder = 2
-      OnClick = ButtonCalculateClick
+  inherited PanelButtons: TPanel
+    inherited ButtonCalculate: TButton
+      OnClick = CalculateClick
     end
-    object ButtonSave: TButton
-      AlignWithMargins = True
-      Left = 611
-      Top = 3
-      Width = 90
-      Height = 31
-      Align = alRight
-      Caption = 'Ulo'#382'it'
-      TabOrder = 1
-      OnClick = ButtonSaveClick
-    end
-    object ButtonLoad: TButton
-      AlignWithMargins = True
-      Left = 515
-      Top = 3
-      Width = 90
-      Height = 31
-      Align = alRight
-      Caption = 'Na'#269#237'st...'
-      TabOrder = 0
-      OnClick = MenuNacistZapisnikClick
-    end
-    object ButtonReset: TButton
-      AlignWithMargins = True
-      Left = 3
-      Top = 3
-      Width = 90
-      Height = 31
-      Hint = 'Vyma'#382'e zad'#225'n'#237' v tomto okn'#283', seznam sou'#345'adnic z'#367'stane.'
-      Align = alLeft
-      Caption = 'Resetovat'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 3
-      OnClick = MenuResetClick
+    inherited ButtonSave: TButton
+      OnClick = SaveClick
     end
   end
 end

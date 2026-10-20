@@ -32,12 +32,7 @@ type
   TOrthogonalMethodForm = class(TCalcBaseForm)
     GridBaseline: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
-    PanelSave: TPanel;
     Memo1: TMemo;
-    Button1: TButton;
-    Save: TButton;
-    ButtonLoad: TButton;
-    ButtonReset: TButton;
     procedure AnchorGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);

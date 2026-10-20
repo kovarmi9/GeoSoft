@@ -100,6 +100,9 @@ inherited TransformationForm: TTransformationForm
       24
       24)
   end
+  inherited PanelButtons: TPanel
+    Visible = False
+  end
   inherited MainMenu1: TMainMenu
     inherited MenuUloha: TMenuItem
       inherited MenuReset: TMenuItem

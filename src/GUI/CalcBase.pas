@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, System.Generics.Collections,
-  Vcl.Controls, Vcl.Forms,
+  Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls,
   Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
   PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable,
   GeoRow, GeoGrid, GeoFieldsGrid, GeoDataFrame;
@@ -29,6 +29,11 @@ type
     MenuNacistZapisnik: TMenuItem;
     OpenDialogZapisnik: TOpenDialog;
     MenuReset: TMenuItem;
+    PanelButtons: TPanel;
+    ButtonCalculate: TButton;
+    ButtonSave: TButton;
+    ButtonLoad: TButton;
+    ButtonReset: TButton;
     procedure PrefixComboExit(Sender: TObject);
     procedure PrefixComboChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -37,6 +42,8 @@ type
     procedure MenuNastaveniClick(Sender: TObject);
     procedure MenuNacistZapisnikClick(Sender: TObject);
     procedure MenuResetClick(Sender: TObject);
+    procedure ButtonCalculateClick(Sender: TObject);
+    procedure ButtonSaveClick(Sender: TObject);
     /// <summary>OnExit of each calculation grid, keeps a typed value.</summary>
     procedure GridExit(Sender: TObject);
   private
@@ -433,6 +440,18 @@ begin
     Bad.Free;
     Frame.Free;
   end;
+end;
+
+// A form that can compute assigns its own OnClick in the designer
+procedure TCalcBaseForm.ButtonCalculateClick(Sender: TObject);
+begin
+  ShowMessage('Tato úloha zatím neumí výpočet.');
+end;
+
+// The same for saving the notebook
+procedure TCalcBaseForm.ButtonSaveClick(Sender: TObject);
+begin
+  ShowMessage('Tato úloha zatím neumí uložit zápisník.');
 end;
 
 // Asks first, Enter means No

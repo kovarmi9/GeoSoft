@@ -19,14 +19,9 @@ type
     StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
     Splitter1: TSplitter;
-    PanelCalculate: TPanel;
-    ButtonCalculate: TButton;
-    ButtonSave: TButton;
-    ButtonLoad: TButton;
-    ButtonReset: TButton;
     procedure FormCreate(Sender: TObject);
-    procedure ButtonCalculateClick(Sender: TObject);
-    procedure ButtonSaveClick(Sender: TObject);
+    procedure CalculateClick(Sender: TObject);
+    procedure SaveClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
       var ASelectable: Boolean);
@@ -294,7 +289,7 @@ begin
   ShowProtocol(Memo1.Lines);
 end;
 
-procedure TRectangularMeasurementsForm.ButtonCalculateClick(Sender: TObject);
+procedure TRectangularMeasurementsForm.CalculateClick(Sender: TObject);
 begin
   ForgetAnswers;     // a new run asks again
   if not CommitEditing then
@@ -311,7 +306,7 @@ begin
 end;
 
 // Dumps the frame into CSV
-procedure TRectangularMeasurementsForm.ButtonSaveClick(Sender: TObject);
+procedure TRectangularMeasurementsForm.SaveClick(Sender: TObject);
 var
   FileName: string;
 begin

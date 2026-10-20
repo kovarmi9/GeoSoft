@@ -127,60 +127,12 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       24
       24)
   end
-  object PanelSave: TPanel [4]
-    Left = 0
-    Top = 544
-    Width = 800
-    Height = 37
-    Align = alBottom
-    BevelOuter = bvNone
-    TabOrder = 5
-    object Button1: TButton
-      AlignWithMargins = True
-      Left = 707
-      Top = 3
-      Width = 90
-      Height = 31
-      Align = alRight
-      Caption = 'V'#253'po'#269'et'
-      TabOrder = 2
+  inherited PanelButtons: TPanel
+    inherited ButtonCalculate: TButton
       OnClick = Button1Click
     end
-    object Save: TButton
-      AlignWithMargins = True
-      Left = 611
-      Top = 3
-      Width = 90
-      Height = 31
-      Align = alRight
-      Caption = 'Ulo'#382'it'
-      TabOrder = 1
+    inherited ButtonSave: TButton
       OnClick = SaveClick
-    end
-    object ButtonLoad: TButton
-      AlignWithMargins = True
-      Left = 515
-      Top = 3
-      Width = 90
-      Height = 31
-      Align = alRight
-      Caption = 'Na'#269#237'st...'
-      TabOrder = 0
-      OnClick = MenuNacistZapisnikClick
-    end
-    object ButtonReset: TButton
-      AlignWithMargins = True
-      Left = 3
-      Top = 3
-      Width = 90
-      Height = 31
-      Hint = 'Vyma'#382'e zad'#225'n'#237' v tomto okn'#283', seznam sou'#345'adnic z'#367'stane.'
-      Align = alLeft
-      Caption = 'Resetovat'
-      ParentShowHint = False
-      ShowHint = True
-      TabOrder = 3
-      OnClick = MenuResetClick
     end
   end
   inherited StatusBar1: TStatusBar

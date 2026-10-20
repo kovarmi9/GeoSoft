@@ -43,11 +43,6 @@ type
     GridDetail: TGeoFieldsGrid;
     Splitter1: TSplitter;
     Splitter2: TSplitter;
-    PanelCalculate: TPanel;
-    Calculate: TButton;
-    Save: TButton;
-    ButtonLoad: TButton;
-    ButtonReset: TButton;
     Memo1: TMemo;
     Label1: TLabel;
     Label2: TLabel;

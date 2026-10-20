@@ -3285,6 +3285,9 @@ object Form1: TForm1
         OnClick = MenuParcelAreaClick
       end
     end
+    object MenuLevelling: TMenuItem
+      Caption = 'Nivelace'
+    end
     object MenuNastaveni: TMenuItem
       Caption = 'Nastaven'#237
       OnClick = MenuNastaveniClick

@@ -24,6 +24,7 @@ type
     MenuSaveListAs: TMenuItem;
     YX2XY: TToggleSwitch;
     MenuNastaveni: TMenuItem;
+    MenuLevelling: TMenuItem;
     MenuOrthogonalMethod: TMenuItem;
     MenuPolarMethod: TMenuItem;
     MenuLineAdjustment: TMenuItem;

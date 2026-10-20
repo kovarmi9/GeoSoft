@@ -10,7 +10,8 @@ uses
   Vcl.Grids,
   Vcl.Graphics,
   Vcl.Controls,
-  Vcl.Forms;
+  Vcl.Forms,
+  GeoColumnValidation;
 type
 
   /// <summary>
@@ -93,6 +94,9 @@ type
     /// <summary>Custom drawing (headers centered + bold).</summary>
     procedure DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); override;
 
+    /// <summary>Filter of a column, nil when it has none.</summary>
+    function CellFilter(ACol: Integer): TColumnFilter; virtual;
+
     /// <summary>Intercept Enter/Tab navigation.</summary>
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
 
@@ -168,6 +172,9 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor  Destroy; override;
 
+    /// <summary>The cell as shown: a number rounded by its filter.</summary>
+    function DisplayText(ACol, ARow: Integer): string;
+
     /// <summary>Column header captions. Published by descendants.</summary>
     property ColumnHeaders: TStrings
       read FColumnHeaders write SetColumnHeaders;
@@ -229,6 +236,9 @@ type
   end;
 
 implementation
+
+uses
+  System.SysUtils;
 
 const
   // Pale grey - a locked cell must still read as data, not as a header
@@ -293,6 +303,26 @@ begin
   Result := not IsHeaderCell(ACol, ARow);
 end;
 
+// The descendants have the filters
+function TGeoGrid.CellFilter(ACol: Integer): TColumnFilter;
+begin
+  Result := nil;
+end;
+
+// The cell keeps the full value, only what is shown is rounded
+function TGeoGrid.DisplayText(ACol, ARow: Integer): string;
+var
+  Filter: TColumnFilter;
+  Value: Double;
+begin
+  Result := Cells[ACol, ARow];
+  Filter := CellFilter(ACol);
+  if (Filter <> nil) and (Filter.DecimalPlaces >= 0) and
+     (Filter.DataType in [cdtFloat, cdtExpression]) and
+     TryStrToFloat(Result, Value) then
+    Result := FormatDouble(Value, Filter.DecimalPlaces);
+end;
+
 function TGeoGrid.CreateEditor: TInplaceEdit;
 begin
   Result := TGeoInplaceEdit.Create(Self);
@@ -303,6 +333,7 @@ procedure TGeoGrid.DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawSt
 var
   S: string;
   TextX, TextY: Integer;
+  TextArea: TRect;
 begin
   if IsHeaderCell(ACol, ARow) then
   begin
@@ -326,7 +357,24 @@ begin
     // A cell the cursor cannot reach is not for typing - show it
     if not CellSelectable(ACol, ARow) then
       Canvas.Brush.Color := clReadOnlyCell;
-    inherited DrawCell(ACol, ARow, Rect, State);
+    S := DisplayText(ACol, ARow);
+    // A form that paints cells itself takes DisplayText on its own
+    if (S = Cells[ACol, ARow]) or Assigned(OnDrawCell) then
+      inherited DrawCell(ACol, ARow, Rect, State)
+    else
+    begin
+      // Delphi would draw the full value, so draw the rounded one here
+      DefaultTextDrawing := False;
+      try
+        inherited DrawCell(ACol, ARow, Rect, State);
+      finally
+        DefaultTextDrawing := True;
+      end;
+      TextArea := Rect;
+      TextArea.Inflate(-1, -1);
+      Canvas.TextRect(TextArea, TextArea.Left + 5,
+        TextArea.Top + (TextArea.Height - Canvas.TextHeight(S)) div 2, S);
+    end;
   end;
 
   if ACol = FCheckColumn then

@@ -31,11 +31,45 @@ object SettingsForm: TSettingsForm
         Caption = 'M'#283#345#237'tko d'#233'lek'
       end
       object EditScale: TEdit
-        Left = 140
+        Left = 240
         Top = 14
         Width = 100
         Height = 23
         TabOrder = 0
+      end
+      object LabelLengthDecimals: TLabel
+        Left = 12
+        Top = 52
+        Width = 190
+        Height = 15
+        Caption = 'Desetinn'#225' m'#237'sta d'#233'lek a sou'#345'adnic'
+      end
+      object LabelAngleDecimals: TLabel
+        Left = 12
+        Top = 86
+        Width = 118
+        Height = 15
+        Caption = 'Desetinn'#225' m'#237'sta '#250'hl'#367
+      end
+      object SpinLengthDecimals: TSpinEdit
+        Left = 240
+        Top = 48
+        Width = 60
+        Height = 24
+        MaxValue = 6
+        MinValue = 0
+        TabOrder = 1
+        Value = 2
+      end
+      object SpinAngleDecimals: TSpinEdit
+        Left = 240
+        Top = 82
+        Width = 60
+        Height = 24
+        MaxValue = 8
+        MinValue = 0
+        TabOrder = 2
+        Value = 4
       end
     end
     object TabTasks: TTabSheet

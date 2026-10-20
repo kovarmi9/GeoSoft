@@ -425,8 +425,8 @@ begin
   PointLine('K:', FFrame.Rows[1]);
   Prot.Line;
 
-  Prot.Text('Odchylka = ' + Num(Baseline.Diff, 3) +
-            '    Mezní KK[3] = ' + Num(Baseline.Tolerance, 3));
+  Prot.Text('Odchylka = ' + Num(Baseline.Diff) +
+            '    Mezní KK[3] = ' + Num(Baseline.Tolerance));
   if Baseline.Diff > Baseline.Tolerance then
     Prot.Text('CHYBA: Odchylka délky pásky překračuje mezní hodnotu!');
 

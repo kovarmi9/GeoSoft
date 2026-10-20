@@ -215,7 +215,7 @@ inherited PolarMethodForm: TPolarMethodForm
       Left = 0
       Top = 187
       Width = 800
-      Height = 143
+      Height = 136
       Align = alClient
       ColCount = 14
       RowCount = 2
@@ -270,7 +270,7 @@ inherited PolarMethodForm: TPolarMethodForm
       ParentFont = False
       ReadOnly = True
       ScrollBars = ssBoth
-      TabOrder = 4
+      TabOrder = 3
       WordWrap = False
     end
   end

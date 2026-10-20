@@ -123,7 +123,7 @@ implementation
 {$R *.dfm}
 
 uses
-  ExistingPoint;
+  ExistingPoint, SettingsState;
 
 const
   // The extension tells the order
@@ -145,7 +145,6 @@ procedure TPointsManagementForm.FormCreate(Sender: TObject);
   procedure Coord(AIndex: Integer);
   begin
     StringGrid1.ColumnFilters[AIndex].DataType         := cdtExpression;
-    StringGrid1.ColumnFilters[AIndex].DecimalPlaces    := 3;
     StringGrid1.ColumnFilters[AIndex].OnInvalidCommit  := ciaBlock;
     StringGrid1.ColumnFilters[AIndex].OnGetDefaultText := GetZeroDefault;
   end;
@@ -228,7 +227,15 @@ end;
 
 // Back in the window: reload only what changed
 procedure TPointsManagementForm.FormActivate(Sender: TObject);
+var
+  I: Integer;
 begin
+  // Y, X and Z by the settings, a calculation form may have changed them
+  for I := COL_COORD to COL_Z do
+    StringGrid1.ColumnFilters[I - StringGrid1.FixedCols].DecimalPlaces :=
+      GSettings.LengthDecimals;
+  StringGrid1.Invalidate;
+
   LoadPrefix;
   ApplyCoordOrderToGrid;
   if Points.ChangeCount <> FShownChanges then
@@ -295,7 +302,8 @@ begin
     StringGrid1.Canvas.Font.Color  := clWindowText;
   end;
   StringGrid1.Canvas.FillRect(Rect);
-  StringGrid1.Canvas.TextRect(Rect, Rect.Left + 4, Rect.Top + 2, StringGrid1.Cells[ACol, ARow]);
+  StringGrid1.Canvas.TextRect(Rect, Rect.Left + 4, Rect.Top + 2,
+    StringGrid1.DisplayText(ACol, ARow));
 end;
 
 // New rows have no point yet

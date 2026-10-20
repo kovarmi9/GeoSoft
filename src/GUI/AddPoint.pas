@@ -43,6 +43,9 @@ implementation
 
 {$R *.dfm}
 
+uses
+  SettingsState;
+
 const
   COL_POINTNO = 0;
   // First of Y, X, see CoordColY
@@ -58,7 +61,8 @@ procedure TAddPointForm.FormCreate(Sender: TObject);
   procedure Coord(AIndex: Integer);
   begin
     StringGrid.ColumnFilters[AIndex].DataType        := cdtExpression;
-    StringGrid.ColumnFilters[AIndex].DecimalPlaces   := 3;
+    StringGrid.ColumnFilters[AIndex].DecimalPlaces   :=
+      GSettings.LengthDecimals;
     StringGrid.ColumnFilters[AIndex].OnInvalidCommit := ciaBlock;
   end;
 

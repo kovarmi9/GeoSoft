@@ -29,6 +29,7 @@ type
     MenuSaveList: TMenuItem;
     MenuSaveListAs: TMenuItem;
     YX2XY: TToggleSwitch;
+    MenuNastaveni: TMenuItem;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
     procedure Polrnmetoda1Click(Sender: TObject);
@@ -42,6 +43,7 @@ type
     procedure MenuSaveListClick(Sender: TObject);
     procedure MenuSaveListAsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure MenuNastaveniClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -56,13 +58,21 @@ implementation
 {$R *.dfm}
 
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
-  CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState;
+  CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState,
+  SettingsDialog;
 
 // File menu: picks a list file and shows it
 procedure TForm1.MenuFileOpenClick(Sender: TObject);
 begin
   if PointsManagementForm.OpenList then
     PointsManagementForm.Show;
+end;
+
+// The calculation forms and the list take the settings over when they are
+// shown again
+procedure TForm1.MenuNastaveniClick(Sender: TObject);
+begin
+  TSettingsForm.Execute;
 end;
 
 // View menu: brings the list window up with whatever is loaded

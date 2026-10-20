@@ -209,37 +209,37 @@ initialization
 
   SetField(CB,       'Číslo bodu',        cdtInteger, MakePointNumber);
 
-  SetField(X,        'X',                 cdtExpression, MakeFloat(3));
+  SetField(X,        'X',                 cdtExpression, MakeFloat(2));
 
-  SetField(Y,        'Y',                 cdtExpression, MakeFloat(3));
+  SetField(Y,        'Y',                 cdtExpression, MakeFloat(2));
 
-  SetField(Z,        'Z',                 cdtExpression, MakeFloat(3));
+  SetField(Z,        'Z',                 cdtExpression, MakeFloat(2));
 
   SetField(CBm,      'Číslo bodu zdroj',  cdtInteger, MakePointNumber);
 
-  SetField(Xm,       'Xm',                cdtExpression, MakeFloat(3));
+  SetField(Xm,       'Xm',                cdtExpression, MakeFloat(2));
 
-  SetField(Ym,       'Ym',                cdtExpression, MakeFloat(3));
+  SetField(Ym,       'Ym',                cdtExpression, MakeFloat(2));
 
-  SetField(Zm,       'Zm',                cdtExpression, MakeFloat(3));
+  SetField(Zm,       'Zm',                cdtExpression, MakeFloat(2));
 
   SetField(TypS,     'Typ délky',         cdtInteger, MakeInteger(1));
 
-  SetField(SH,       'Vodorovná délka',   cdtExpression, MakeMin(0, 3));
+  SetField(SH,       'Vodorovná délka',   cdtExpression, MakeMin(0, 2));
 
-  SetField(SS,       'Šikmá délka',       cdtExpression, MakeMin(0, 3));
+  SetField(SS,       'Šikmá délka',       cdtExpression, MakeMin(0, 2));
 
-  SetField(VS,       'Výška přístroje',   cdtExpression, MakeFloat(3));
+  SetField(VS,       'Výška přístroje',   cdtExpression, MakeFloat(2));
 
-  SetField(VC,       'Výška cíle',        cdtExpression, MakeFloat(3));
+  SetField(VC,       'Výška cíle',        cdtExpression, MakeFloat(2));
 
-  SetField(HZ,       'HZ úhel [g]',       cdtExpression, MakeGon(6));
+  SetField(HZ,       'HZ úhel [g]',       cdtExpression, MakeGon(4));
 
-  SetField(Zuhel,    'Zenitový úhel [g]', cdtExpression, MakeRange(0, 400, 6));
+  SetField(Zuhel,    'Zenitový úhel [g]', cdtExpression, MakeRange(0, 400, 4));
 
-  SetField(PolarD,   'Polární doměrek',   cdtExpression, MakeFloat(3));
+  SetField(PolarD,   'Polární doměrek',   cdtExpression, MakeFloat(2));
 
-  SetField(PolarK,   'Polární kolmice',   cdtExpression, MakeFloat(3));
+  SetField(PolarK,   'Polární kolmice',   cdtExpression, MakeFloat(2));
 
   SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(32));
 

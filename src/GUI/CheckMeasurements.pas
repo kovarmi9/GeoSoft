@@ -51,6 +51,7 @@ type
   protected
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
+    procedure ApplyDecimals; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -62,6 +63,9 @@ var
 implementation
 
 {$R *.dfm}
+
+uses
+  SettingsState;
 
 constructor TCheckMeasurementsForm.Create(AOwner: TComponent);
 begin
@@ -146,12 +150,12 @@ begin
       Continue;
     end;
 
-    GridPairs.Cells[COL_COMP, R] := FormatFloat('0.000', Check.Computed, FS);
+    GridPairs.Cells[COL_COMP, R] := FloatToStr(Check.Computed, FS);
 
     if Check.HasMeasured then
     begin
-      GridPairs.Cells[COL_DIFF, R] := FormatFloat('0.000', Check.Diff, FS);
-      GridPairs.Cells[COL_TOL, R]  := FormatFloat('0.000', Check.Tolerance, FS);
+      GridPairs.Cells[COL_DIFF, R] := FloatToStr(Check.Diff, FS);
+      GridPairs.Cells[COL_TOL, R]  := FloatToStr(Check.Tolerance, FS);
       if Check.Passed then
         GridPairs.Cells[COL_PASS, R] := 'ANO'
       else
@@ -250,6 +254,18 @@ begin
     Report := Report + Format('%s%s%d bez souřadnic - chybí bod v seznamu.',
       [sLineBreak, sLineBreak, Missing]);
   ShowMessage(Report);
+end;
+
+// Measured, from coordinates, difference and limit are lengths
+procedure TCheckMeasurementsForm.ApplyDecimals;
+var
+  I: Integer;
+begin
+  inherited;
+  for I := COL_MEAS to COL_TOL do
+    GridPairs.ColumnFilters[I - GridPairs.FixedCols].DecimalPlaces :=
+      GSettings.LengthDecimals;
+  GridPairs.Invalidate;
 end;
 
 // One row is one pair
@@ -383,9 +399,9 @@ begin
 
       if Check.Passed then Verdict := 'ANO' else Verdict := 'NE';
       Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
-                PointId(PointNumberTo), Num(Check.Measured, 3),
-                Num(Check.Computed, 3), Num(Check.Diff, 3),
-                Num(Check.Tolerance, 3), Verdict]);
+                PointId(PointNumberTo), Num(Check.Measured),
+                Num(Check.Computed), Num(Check.Diff),
+                Num(Check.Tolerance), Verdict]);
     end
     else
     begin
@@ -393,7 +409,7 @@ begin
       // KatV annex 17.11 - a value that was not measured goes in brackets
       Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
                 PointId(PointNumberTo), '-',
-                '(' + Num(Check.Computed, 3) + ')', '-', '-', 'neměřeno']);
+                '(' + Num(Check.Computed) + ')', '-', '-', 'neměřeno']);
     end;
 
     Note := string(FFrame.Rows[I].Poznamka);
@@ -404,7 +420,7 @@ begin
   Prot.Line;
   Prot.Text('Měřených oměrných: ' + IntToStr(Measured) +
             '    Nevyhovuje: ' + IntToStr(Failed) +
-            '    Největší rozdíl: ' + Num(MaxDiff, 3) + ' m');
+            '    Největší rozdíl: ' + Num(MaxDiff) + ' m');
 
   if ComputedOnly > 0 then
     Prot.Text('Neměřených, uvedených ze souřadnic v závorkách: ' +

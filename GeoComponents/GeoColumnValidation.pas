@@ -113,9 +113,8 @@ type
       read FMaxValue write SetMaxValue;
 
     /// <summary>
-    /// Decimal places applied on commit for Float / Expression.
-    ///   -1 = no formatting
-    ///    0..N = force exactly N decimals
+    /// Decimal places shown for Float / Expression, the cell keeps the
+    /// full value. -1 = show the value as it is.
     /// </summary>
     property DecimalPlaces: Integer
       read FDecimalPlaces write SetDecimalPlaces default -1;
@@ -204,6 +203,10 @@ function ValidateText(AFilter: TColumnFilter;
 /// </summary>
 function TryCommitText(AFilter: TColumnFilter;
                        var AText: string): Boolean;
+
+/// <summary>A number with ADecimals places, -1 = all of them. Half rounds
+/// up, 0,125 gives 0,13.</summary>
+function FormatDouble(AValue: Double; ADecimals: Integer): string;
 
 /// <summary>The filter of the column, or nil if there is none.</summary>
 function ResolveFilter(AFilters: TColumnFilters;
@@ -891,15 +894,14 @@ begin
         Wrap(AFilter, V);
         if not CheckValueBounds(AFilter, V) then
           Exit(False);
-        AText := FormatDouble(V, AFilter.DecimalPlaces);
+        AText := FloatToStr(V);     // full value, the grid rounds the drawing
       end;
 
     cdtFloat:
-      if (AFilter.DecimalPlaces >= 0) and
-         TryStrToFloat(AText, V, FormatSettings) then
+      if TryStrToFloat(AText, V, FormatSettings) then
       begin
         Wrap(AFilter, V);
-        AText := FormatDouble(V, AFilter.DecimalPlaces);
+        AText := FloatToStr(V);
       end;
   end;
 end;

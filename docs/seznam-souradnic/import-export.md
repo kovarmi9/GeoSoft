@@ -4,7 +4,8 @@ Seznam lze vyměňovat s jinými programy přes textové soubory: TXT
 (hodnoty oddělené tabulátorem) a CSV (oddělené středníkem). Řádek
 obsahuje číslo bodu, dvě souřadnice, výšku, kód kvality a popis.
 Pořadí souřadnic se řídí přepínačem Y, X / X, Y v programu.
-Souřadnice a výška se zapisují na 3 desetinná místa.
+Souřadnice a výška se zapisují na tolik desetinných míst, kolik je
+v Nastavení u délek a souřadnic (výchozí 2).
 Body jsou v souboru seřazené podle čísla. Při importu projde každý bod
 validací; řádek s neplatným číslem bodu se přeskočí.
 

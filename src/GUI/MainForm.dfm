@@ -3261,5 +3261,9 @@ object Form1: TForm1
         OnClick = Polrnmetoda1Click
       end
     end
+    object MenuNastaveni: TMenuItem
+      Caption = 'Nastaven'#237
+      OnClick = MenuNastaveniClick
+    end
   end
 end

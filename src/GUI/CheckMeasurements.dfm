@@ -87,10 +87,13 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
         OnInvalidCommit = ciaBeepAndClear
       end
       item
+        DataType = cdtFloat
       end
       item
+        DataType = cdtFloat
       end
       item
+        DataType = cdtFloat
       end
       item
       end

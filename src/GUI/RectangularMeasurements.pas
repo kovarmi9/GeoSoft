@@ -159,8 +159,8 @@ begin
 
   if Known then
   begin
-    SetCell(Y, R, FormatFloat('0.00', ListPoint.Y, FS));
-    SetCell(X, R, FormatFloat('0.00', ListPoint.X, FS));
+    SetCell(Y, R, FloatToStr(ListPoint.Y, FS));
+    SetCell(X, R, FloatToStr(ListPoint.X, FS));
     SetCell(KK, R, IntToStr(ListPoint.Quality));
     SetCell(Poznamka, R, string(ListPoint.Description));
   end
@@ -235,8 +235,8 @@ begin
       ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
       FFrame.Rows[I].X := ListPoint.X;
       FFrame.Rows[I].Y := ListPoint.Y;
-      SetCell(Y, GridRow, FormatFloat('0.00', ListPoint.Y, FS));
-      SetCell(X, GridRow, FormatFloat('0.00', ListPoint.X, FS));
+      SetCell(Y, GridRow, FloatToStr(ListPoint.Y, FS));
+      SetCell(X, GridRow, FloatToStr(ListPoint.X, FS));
     end
     else
     begin
@@ -411,7 +411,7 @@ begin
     Prot.Text('Měřená délka = ' + Num(Segment.MeasDist) +
               '    Vypočtená délka = ' + Num(Segment.CalcDist));
     Prot.Text('Odchylka = ' + Num(Abs(Segment.CalcDist - Segment.MeasDist)));
-    Prot.Text('Uzávěr = ' + Num(Segment.Closure, 3) + ' m');
+    Prot.Text('Uzávěr = ' + Num(Segment.Closure) + ' m');
     Prot.Text('');
   end;
 

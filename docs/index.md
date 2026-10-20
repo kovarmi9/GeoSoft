@@ -23,6 +23,9 @@ krátké číslo, například `12`, a program doplní předčíslí z lišty v o
 
 **Jednotky.** Délky a souřadnice v metrech, úhly v gonech.
 
+**Desetinná místa.** Program počítá v plné přesnosti, počet zobrazených
+desetinných míst se mění v okně [Nastavení](nastaveni.md).
+
 **Desetinná čárka.** Na obrazovce se používá oddělovač podle nastavení
 Windows, v protokolu a v souborech vždy čárka. Při čtení souborů program
 přijme čárku i tečku.

@@ -56,12 +56,18 @@ type
   end;
 
 function Pad(const AText: string; AWidth: Integer): string;
-function Num(AValue: Double; ADecimals: Integer = 2): string;
+/// <summary>A length, coordinate or area, -1 = the setting.</summary>
+function Num(AValue: Double; ADecimals: Integer = -1): string;
+/// <summary>An angle in gon, by the setting.</summary>
+function Ang(AValue: Double): string;
 
 var
   ProtFormat: TFormatSettings;   // decimal comma in every protocol
 
 implementation
+
+uses
+  SettingsState;
 
 // Puts the text into a column AWidth wide, minus width means left aligned
 function Pad(const AText: string; AWidth: Integer): string;
@@ -76,13 +82,21 @@ begin
   // NaN means nobody filled the value in, so the column stays blank
   if IsNan(AValue) then
     Exit('');
+  if ADecimals < 0 then
+    ADecimals := GSettings.LengthDecimals;
 
+  // Half rounds up, the same as the grids
   Result := FloatToStrF(AValue, ffFixed, 18, ADecimals, ProtFormat);
 
   // A value rounded away to -0,000 looks like an error in the protocol
   Zero := FloatToStrF(0, ffFixed, 18, ADecimals, ProtFormat);
   if Result = '-' + Zero then
     Result := Zero;
+end;
+
+function Ang(AValue: Double): string;
+begin
+  Result := Num(AValue, GSettings.AngleDecimals);
 end;
 
 { TProtocol }

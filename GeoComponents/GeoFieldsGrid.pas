@@ -52,6 +52,7 @@ type
 
   protected
     function CellSelectable(ACol, ARow: Integer): Boolean; override;
+    function CellFilter(ACol: Integer): TColumnFilter; override;
     function GeoFieldsStored: Boolean;
     function CreateEditor: TInplaceEdit; override;
     procedure Loaded; override;
@@ -116,6 +117,9 @@ type
 
     procedure SetGeoRow(ARow: Integer; const GRow: TGeoRow);
     procedure GetGeoRow(ARow: Integer; out GRow: TGeoRow);
+
+    /// <summary>Decimal places shown for the given fields.</summary>
+    procedure SetFieldDecimals(const AFields: TGeoFields; APlaces: Integer);
 
     /// <summary>
     /// Checks a row like typing does. Returns '' or the bad value.
@@ -510,6 +514,24 @@ begin
   FColumnData[F].DisplayName := ADisplayName;
   if F in FGeoFields then
     RefreshHeaders;
+end;
+
+// Filters start at the first data column
+function TGeoFieldsGrid.CellFilter(ACol: Integer): TColumnFilter;
+begin
+  Result := GetColumnFilter(ACol - FixedCols);
+end;
+
+// Only the places change, the rest of each column stays as it is
+procedure TGeoFieldsGrid.SetFieldDecimals(const AFields: TGeoFields;
+  APlaces: Integer);
+var
+  F: TGeoField;
+begin
+  for F in AFields do
+    FColumnData[F].Filter.DecimalPlaces := APlaces;
+  RefreshFilters;
+  Invalidate;
 end;
 
 procedure TGeoFieldsGrid.SetColumnFilterData(F: TGeoField;

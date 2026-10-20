@@ -4,7 +4,8 @@ interface
 
 uses
   System.SysUtils, System.Classes, System.UITypes, Vcl.Controls, Vcl.Forms,
-  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Dialogs, GeoColumnValidation, SettingsState;
+  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Dialogs, Vcl.Samples.Spin,
+  GeoColumnValidation, SettingsState;
 
 type
   TSettingsForm = class(TForm)
@@ -12,6 +13,10 @@ type
     TabCalc: TTabSheet;
     LabelScale: TLabel;
     EditScale: TEdit;
+    LabelLengthDecimals: TLabel;
+    LabelAngleDecimals: TLabel;
+    SpinLengthDecimals: TSpinEdit;
+    SpinAngleDecimals: TSpinEdit;
     TabTasks: TTabSheet;
     GroupPolar: TGroupBox;
     CheckPolarTargetHeight: TCheckBox;
@@ -43,6 +48,8 @@ begin
     F.CheckPolarTargetHeight.Checked := GSettings.Polar.ShowTargetHeight;
     F.CheckPolarDescription.Checked  := GSettings.Polar.ShowDescription;
     F.CheckPolarCongruent.Checked    := GSettings.Polar.Congruent;
+    F.SpinLengthDecimals.Value := GSettings.LengthDecimals;
+    F.SpinAngleDecimals.Value  := GSettings.AngleDecimals;
 
     Result := F.ShowModal = mrOk;
     if not Result then
@@ -53,6 +60,8 @@ begin
     GSettings.Polar.ShowTargetHeight := F.CheckPolarTargetHeight.Checked;
     GSettings.Polar.ShowDescription  := F.CheckPolarDescription.Checked;
     GSettings.Polar.Congruent       := F.CheckPolarCongruent.Checked;
+    GSettings.LengthDecimals := F.SpinLengthDecimals.Value;
+    GSettings.AngleDecimals  := F.SpinAngleDecimals.Value;
   finally
     F.Free;
   end;

@@ -95,6 +95,10 @@ type
     /// </summary>
     procedure ApplySettings; virtual;
 
+    /// <summary>Shows the decimals of GSettings in every field grid.
+    /// A form with a plain grid adds its own columns.</summary>
+    procedure ApplyDecimals; virtual;
+
     /// <summary>
     /// Writes the whole protocol into ALines, starting with Prot.Title and
     /// ending with Prot.Finish. Every calculation form overrides it.
@@ -131,7 +135,12 @@ implementation
 {$R *.dfm}
 
 uses
-  SettingsDialog, ExistingPoint;
+  SettingsDialog, ExistingPoint, SettingsState;
+
+const
+  // Fields shown with the length and the angle decimals
+  LENGTH_FIELDS = [X, Y, Z, Xm, Ym, Zm, SH, SS, VS, VC, PolarD, PolarK];
+  ANGLE_FIELDS  = [HZ, Zuhel];
 
 type
   // InplaceEditor is protected, a descendant declared here may read it
@@ -372,8 +381,24 @@ end;
 
 procedure TCalcBaseForm.MenuNastaveniClick(Sender: TObject);
 begin
-  if TSettingsForm.Execute then
-    ApplySettings;
+  if not TSettingsForm.Execute then
+    Exit;
+  ApplySettings;
+  ApplyDecimals;
+end;
+
+procedure TCalcBaseForm.ApplyDecimals;
+var
+  I: Integer;
+  Grid: TGeoFieldsGrid;
+begin
+  for I := 0 to ComponentCount - 1 do
+    if Components[I] is TGeoFieldsGrid then
+    begin
+      Grid := TGeoFieldsGrid(Components[I]);
+      Grid.SetFieldDecimals(LENGTH_FIELDS, GSettings.LengthDecimals);
+      Grid.SetFieldDecimals(ANGLE_FIELDS, GSettings.AngleDecimals);
+    end;
 end;
 
 // Skips bad rows and lists them
@@ -494,6 +519,7 @@ procedure TCalcBaseForm.FormActivate(Sender: TObject);
 begin
   LoadPrefix;
   ApplySettings;            // columns first, then their order
+  ApplyDecimals;
   ApplyCoordOrderToGrids;
 end;
 

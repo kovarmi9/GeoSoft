@@ -9,11 +9,11 @@ uses
 procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
   AUloha: Integer; out ARows: TArray<Integer>);
 
-// Writes the listed fields back into the grid.
-// A row with ARows[i] < 0 is skipped.
+// Writes the listed fields back into the grid, in full, the grid rounds
+// what it shows. A row with ARows[i] < 0 is skipped.
 procedure FrameToGrid(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
   const ARows: TArray<Integer>; const AFields: TGeoFields;
-  const AFormat: string = '0.00');
+  const AFormat: string = '');
 
 implementation
 

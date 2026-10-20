@@ -471,8 +471,11 @@ begin
   if FAlg.Info.Valid and FAlg.Info.FreeStation then
   begin
     Station := FFrame.Rows[0];
-    EditStationY.Text := FormatFloat('0.00', Station.Y, FS);
-    EditStationX.Text := FormatFloat('0.00', Station.X, FS);
+    // The edits only show the result, so they are rounded here
+    EditStationY.Text :=
+      FloatToStrF(Station.Y, ffFixed, 18, GSettings.LengthDecimals, FS);
+    EditStationX.Text :=
+      FloatToStrF(Station.X, ffFixed, 18, GSettings.LengthDecimals, FS);
     EditStationKK.Text := IntToStr(Station.KK);
     EditStationPopis.Text := string(Station.Poznamka);
     StorePoint(Station);

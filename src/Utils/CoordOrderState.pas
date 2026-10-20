@@ -28,7 +28,7 @@ function CoordNames(AWidth: Integer = ColWCoord): string;
 
 /// <summary>Both coordinates as text.</summary>
 function CoordPair(const P: Point.TPoint; AWidth: Integer = ColWCoord;
-  ADecimals: Integer = 2): string;
+  ADecimals: Integer = -1): string;
 
 /// <summary>Column of Y, the pair starts at AFirstCol.</summary>
 function CoordColY(AFirstCol: Integer): Integer;

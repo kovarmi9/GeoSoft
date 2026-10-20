@@ -137,8 +137,8 @@ begin
       Verdict := 'Mxy neurčeno';
     end;
 
-    FTable.Row([FTable.PointId(Fit[I].PointNumber), Num(Fit[I].Vy, 3),
-                Num(Fit[I].Vx, 3), Num(Fit[I].Sxy, 3), Verdict]);
+    FTable.Row([FTable.PointId(Fit[I].PointNumber), Num(Fit[I].Vy),
+                Num(Fit[I].Vx), Num(Fit[I].Sxy), Verdict]);
   end;
 
   FTable.Line;
@@ -171,15 +171,15 @@ begin
     Res := TPolarMethodAlgorithm.ResultOf(St, Row, FAlg.Info.Shift, FAlg.Scale);
 
     // What was not measured stays blank
-    FTable.Row([FTable.FormatPointId(string(Row.CB)), Num(Row.HZ, 4),
-                Num(Row.SH, 3), Num(Res.Dfi, 4), Num(Res.Ds, 3)]);
+    FTable.Row([FTable.FormatPointId(string(Row.CB)), Ang(Row.HZ),
+                Num(Row.SH), Ang(Res.Dfi), Num(Res.Ds)]);
   end;
 
   FTable.Line;
   FTable.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  FTable.Text('Or. posun = ' + Num(FAlg.Info.Shift, 4) +
-              ' g    Střední chyba or. pos. = ' + Num(FAlg.Info.ShiftError, 4) +
-              ' g    Mezní = ' + Num(MEZNI_DFI) + ' g');
+  FTable.Text('Or. posun = ' + Ang(FAlg.Info.Shift) +
+              ' g    Střední chyba or. pos. = ' + Ang(FAlg.Info.ShiftError) +
+              ' g    Mezní = ' + Ang(MEZNI_DFI) + ' g');
 end;
 
 procedure TPolarProtocol.WriteDetails(const AUpdated: TArray<Boolean>);
@@ -205,8 +205,8 @@ begin
     else
       Tail := '';
 
-    FTable.Row([FTable.FormatPointId(string(Row.CB)), Num(Row.HZ, 4),
-                Num(Row.SH, 3), Pair(Row)], Tail);
+    FTable.Row([FTable.FormatPointId(string(Row.CB)), Ang(Row.HZ),
+                Num(Row.SH), Pair(Row)], Tail);
   end;
 end;
 

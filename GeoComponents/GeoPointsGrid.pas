@@ -62,6 +62,9 @@ type
     /// <summary>Create custom inplace editor.</summary>
     function CreateEditor: TInplaceEdit; override;
 
+    /// <summary>The filter of a grid column, for the rounded drawing.</summary>
+    function CellFilter(ACol: Integer): TColumnFilter; override;
+
     /// <summary>Called after component is loaded from DFM.</summary>
     procedure Loaded; override;
 
@@ -174,6 +177,11 @@ begin
   // Ensure filter collection matches column count
   if FColumnFilters <> nil then
     FColumnFilters.EnsureCount(DataColumnCount);
+end;
+
+function TGeoPointsGrid.CellFilter(ACol: Integer): TColumnFilter;
+begin
+  Result := FilterForCol(ACol);
 end;
 
 function TGeoPointsGrid.FilterForCol(ACol: Integer): TColumnFilter;

@@ -83,6 +83,9 @@ type
 
 implementation
 
+uses
+  SettingsState;
+
 var
   CommaFormat: TFormatSettings;   // files use a comma
   DotFormat: TFormatSettings;     // reading also accepts a dot
@@ -202,7 +205,9 @@ var
   Key: Int64;
   P: TPoint;
   C1, C2: Double;
+  Places: Integer;
 begin
+  Places := GSettings.LengthDecimals;   // the same as the screen
   AssignFile(TxtFile, FileName);
   Rewrite(TxtFile);
   try
@@ -212,9 +217,9 @@ begin
       CoordRead(P, C1, C2);
       WriteLn(TxtFile,
         Format('%.15d', [P.PointNumber]) + ADelimiter +
-        Format('%.3f', [C1], CommaFormat) + ADelimiter +
-        Format('%.3f', [C2], CommaFormat) + ADelimiter +
-        Format('%.3f', [P.Z], CommaFormat) + ADelimiter +
+        FloatToStrF(C1, ffFixed, 18, Places, CommaFormat) + ADelimiter +
+        FloatToStrF(C2, ffFixed, 18, Places, CommaFormat) + ADelimiter +
+        FloatToStrF(P.Z, ffFixed, 18, Places, CommaFormat) + ADelimiter +
         IntToStr(P.Quality) + ADelimiter +
         string(P.Description));
     end;

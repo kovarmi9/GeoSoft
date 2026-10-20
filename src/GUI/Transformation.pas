@@ -33,6 +33,9 @@ implementation
 
 {$R *.dfm}
 
+uses
+  SettingsState;
+
 procedure TTransformationForm.FormCreate(Sender: TObject);
 begin
   SetupValidations;
@@ -48,7 +51,8 @@ procedure TTransformationForm.SetupValidations;
   procedure Coord(AFilter: Integer);
   begin
     StringGrid1.ColumnFilters[AFilter].DataType      := cdtExpression;
-    StringGrid1.ColumnFilters[AFilter].DecimalPlaces := 3;
+    StringGrid1.ColumnFilters[AFilter].DecimalPlaces :=
+      GSettings.LengthDecimals;
   end;
 
 begin

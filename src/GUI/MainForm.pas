@@ -37,6 +37,7 @@ type
     MenuCheckMeasurements: TMenuItem;
     MenuTransformation: TMenuItem;
     MenuParcelArea: TMenuItem;
+    N2: TMenuItem;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
     procedure YX2XYClick(Sender: TObject);
@@ -57,6 +58,7 @@ type
     procedure MenuCheckMeasurementsClick(Sender: TObject);
     procedure MenuTransformationClick(Sender: TObject);
     procedure MenuParcelAreaClick(Sender: TObject);
+    procedure N2Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -171,6 +173,11 @@ end;
 procedure TForm1.MenuTransformationClick(Sender: TObject);
 begin
   TransformationForm.Show;
+end;
+
+procedure TForm1.N2Click(Sender: TObject);
+begin
+  ResectionForm.Show;
 end;
 
 procedure TForm1.MenuParcelAreaClick(Sender: TObject);

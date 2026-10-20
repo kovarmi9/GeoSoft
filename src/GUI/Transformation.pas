@@ -6,24 +6,20 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin, Vcl.ExtCtrls,
-  Vcl.Grids, PointPrefixState, Point, System.Types,
-  CoordOrderState, GeoGrid, GeoPointsGrid, GeoColumnValidation,
-  CalcBase, Vcl.Menus;
+  Vcl.Grids, PointPrefixState, Point, PointsUtilsSingleton, GeoRow,
+  CoordOrderState, GeoGrid, GeoFieldsGrid, CalcBase, Vcl.Menus;
 
 type
   TTransformationForm = class(TCalcBaseForm)
-    StringGrid1: TGeoPointsGrid;
     ComboBox1: TComboBox;
     StaticText2: TStaticText;
-    procedure FormCreate(Sender: TObject);
-    procedure StringGrid1SelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    Grid: TGeoFieldsGrid;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
   private
-    FGridOrder: TCoordOrder;   // order the columns are laid out in now
-    procedure SetupValidations;
+    procedure FillFromList(ARow: Integer; ANumberField, AYField,
+      AXField: TGeoField; const APoint: Point.TPoint);
   protected
     procedure ApplyCoordOrderToGrids; override;
-  public
   end;
 
 var
@@ -33,84 +29,68 @@ implementation
 
 {$R *.dfm}
 
-uses
-  SettingsState;
-
-procedure TTransformationForm.FormCreate(Sender: TObject);
-begin
-  SetupValidations;
-
-  // The designer lays the coordinate columns out as Y, X - the cadastre order
-  FGridOrder := coYX;
-end;
-
-// Column filters. Filter index = grid column - FixedCols, and FixedCols is 2
-// here: column 0 is the row number and column 1 the check box.
-procedure TTransformationForm.SetupValidations;
-
-  procedure Coord(AFilter: Integer);
-  begin
-    StringGrid1.ColumnFilters[AFilter].DataType      := cdtExpression;
-    StringGrid1.ColumnFilters[AFilter].DecimalPlaces :=
-      GSettings.LengthDecimals;
-  end;
-
-begin
-  Coord(1);  Coord(2);    // Y, X cil
-  Coord(4);  Coord(5);    // Y, X zdroj
-  StringGrid1.ColumnFilters[9].MaxLength := 32;    // Popis
-end;
-
+// Y, X, the source pair and dY, dX follow the switch
 procedure TTransformationForm.ApplyCoordOrderToGrids;
 begin
-  if FGridOrder = GCoordOrder then Exit;   // a plain grid cannot tell by itself
-  FGridOrder := GCoordOrder;
-  SwapGridColumns(StringGrid1, 3, 4);      // Y cil   / X cil
-  SwapGridColumns(StringGrid1, 6, 7);      // Y zdroj / X zdroj
-  SwapGridColumns(StringGrid1, 8, 9);      // dY      / dX
+  ApplyColumns(Grid, []);
 end;
 
-// Fills the coordinates from the list, a missing point is offered via AddPoint.
-procedure TTransformationForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
-var
-  Num: Int64;
-  P: Point.TPoint;
-  ColY, ColX: Integer;
+// Writes the number and the coordinates of a point into a row
+procedure TTransformationForm.FillFromList(ARow: Integer; ANumberField,
+  AYField, AXField: TGeoField; const APoint: Point.TPoint);
 begin
-  if ARow < StringGrid1.FixedRows then Exit;
+  Grid.Cells[Grid.FieldToCol(ANumberField), ARow] :=
+    Format('%.15d', [APoint.PointNumber]);
+  Grid.Cells[Grid.FieldToCol(AYField), ARow] := FloatToStr(APoint.Y, FS);
+  Grid.Cells[Grid.FieldToCol(AXField), ARow] := FloatToStr(APoint.X, FS);
+end;
 
-  if ACol = 2 then                         // CB do ktere -> Y, X cil
-  begin
-    ColY := CoordColY(3);  ColX := CoordColX(3);
-  end
-  else if ACol = 5 then                    // CB z ktere -> Y, X zdroj
-  begin
-    ColY := CoordColY(6);  ColX := CoordColX(6);
-  end
-  else
+// A target number fills its coordinates and suggests the source point
+// -n, when the list has it. A source number fills only the source.
+procedure TTransformationForm.PointCommitted(Sender: TObject;
+  ACol, ARow: Integer);
+var
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
+  Points: TPointDictionary;
+  NewRow: Boolean;
+begin
+  if ARow < Grid.FixedRows then
     Exit;
+  Points := TPointDictionary.GetInstance;
 
-  NormalizePointCell(StringGrid1, ACol, ARow);
-  Num := StrToInt64Def(Trim(StringGrid1.Cells[ACol, ARow]), -1);
-  if Num = 0 then Exit;
-
-  if LookupPoint(Num, P) then
+  if ACol = Grid.FieldToCol(CB) then
   begin
-    StringGrid1.Cells[ColY, ARow] := FloatToStr(P.Y);
-    StringGrid1.Cells[ColX, ARow] := FloatToStr(P.X);
+    NormalizePointCell(Grid, ACol, ARow);
+    PointNumber := StrToInt64Def(Trim(Grid.Cells[ACol, ARow]), 0);
+    if PointNumber = 0 then
+      Exit;
+
+    // Only a row without coordinates is new, a corrected one keeps its box
+    NewRow := Trim(Grid.Cells[Grid.FieldToCol(Y), ARow]) = '';
+
+    if LookupPoint(PointNumber, ListPoint) then
+      FillFromList(ARow, CB, Y, X, ListPoint);
+
+    // GEUS keeps the other system under the negative number,
+    // a number typed by the user is never replaced
+    if (Trim(Grid.Cells[Grid.FieldToCol(CBm), ARow]) = '') and
+       Points.PointExists(-PointNumber) then
+      FillFromList(ARow, CBm, Ym, Xm, Points.GetPoint(-PointNumber));
+
+    if NewRow then
+      Grid.Checked[ARow] := True;        // a new point goes into the key
+  end
+  else if ACol = Grid.FieldToCol(CBm) then
+  begin
+    NormalizePointCell(Grid, ACol, ARow);
+    PointNumber := StrToInt64Def(Trim(Grid.Cells[ACol, ARow]), 0);
+    // The source may be typed in by hand, so no question when it is missing
+    if (PointNumber <> 0) and Points.PointExists(PointNumber) then
+      FillFromList(ARow, CBm, Ym, Xm, Points.GetPoint(PointNumber));
   end;
 
-  StringGrid1.Cells[0, ARow] := IntToStr(ARow);
-end;
-
-procedure TTransformationForm.StringGrid1SelectCell(Sender: TObject;
-  ACol, ARow: Integer; var CanSelect: Boolean);
-begin
-  CanSelect := True;
-  if ACol in [2..7, 11] then
-    StringGrid1.Options := StringGrid1.Options + [goEditing]
-  else
-    StringGrid1.Options := StringGrid1.Options - [goEditing];
+  Grid.Cells[0, ARow] := IntToStr(ARow);   // row number
 end;
 
 end.

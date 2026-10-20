@@ -1,7 +1,6 @@
 inherited TransformationForm: TTransformationForm
   Caption = 'Transformace'
   StyleElements = [seFont, seClient, seBorder]
-  OnCreate = FormCreate
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
     ButtonHeight = 19
@@ -53,7 +52,7 @@ inherited TransformationForm: TTransformationForm
     ExplicitLeft = 8
     ExplicitTop = 573
   end
-  object StringGrid1: TGeoPointsGrid [2]
+  object Grid: TGeoFieldsGrid [2]
     Left = 0
     Top = 35
     Width = 800
@@ -62,39 +61,37 @@ inherited TransformationForm: TTransformationForm
     ColCount = 12
     FixedCols = 2
     RowCount = 3
-    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goTabs, goFixedRowDefAlign]
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
-    OnSelectCell = StringGrid1SelectCell
+    OnExit = GridExit
     EnterEndBehavior = ebAddRow
     OnCellCommitted = PointCommitted
     CheckColumn = 1
-    ColumnHeaders.Strings = (
-      ''
-      ''
-      #268'B do kter'#233
-      'Y c'#237'l'
-      'X c'#237'l'
-      #268'B z kter'#233
-      'Y zdroj'
-      'X zdroj'
-      'dY'
-      'dX'
-      'uP'
-      'Popis')
-    ExplicitHeight = 494
+    ColumnFields.Strings = (
+      'CB='#268'B do kter'#233
+      'Y=Yc'#237'l'
+      'X=Xc'#237'l'
+      'CBm='#268'B z kter'#233
+      'Ym=Yzdroj'
+      'Xm=Xzdroj'
+      'Vx=dX'
+      'Vy=dY'
+      'Sxy=Up'
+      'Poznamka=Popis')
+    ReadOnlyFields = [Vx, Vy, Sxy]
     ColWidths = (
       30
+      30
+      130
       90
-      80
-      80
       90
-      80
-      80
-      80
-      80
-      80
-      80
-      80)
+      130
+      90
+      90
+      60
+      60
+      60
+      150)
     RowHeights = (
       24
       24

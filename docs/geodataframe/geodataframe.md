@@ -23,7 +23,7 @@ používá. Unit `src/DataStructures/GeoDataFrame.pas`.
 - `Create([Uloha, CB, X, Y])` vytvoří prázdnou tabulku s vybranými poli, `Free` ji uvolní
 - `AddRow(Row)` přidá kopii řádku, `ClearData` smaže všechny řádky
 - `Rows[I].X := 1045986.745` změní hodnotu v řádku
-- řádek má vždy všech 20 polí, do CSV a výpisu jdou jen pole z `Fields`
+- řádek má vždy všech 24 polí, do CSV a výpisu jdou jen pole z `Fields`
 - `Print` vypíše tabulku pro ladění
 
 ## CSV a soubor

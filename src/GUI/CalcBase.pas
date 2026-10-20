@@ -146,7 +146,8 @@ uses
 
 const
   // Fields shown with the length and the angle decimals
-  LENGTH_FIELDS = [X, Y, Z, Xm, Ym, Zm, SH, SS, VS, VC, PolarD, PolarK];
+  LENGTH_FIELDS = [X, Y, Z, Xm, Ym, Zm, SH, SS, VS, VC, PolarD, PolarK,
+    Vy, Vx, Vz, Sxy];
   ANGLE_FIELDS  = [HZ, Zuhel];
 
 type

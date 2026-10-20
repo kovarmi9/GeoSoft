@@ -27,7 +27,9 @@ type
     PolarD,
     PolarK,
     Poznamka,
-    KK
+    KK,
+    Vy, Vx, Vz,
+    Sxy
   );
 
   /// <summary>A choice of fields, e.g. [CB, X, Y].</summary>
@@ -51,6 +53,8 @@ type
     PolarK:        Double;            // polar perpendicular (kolmice)
     Poznamka:      string[MAX_POPIS]; // note
     KK:            Integer;           // quality code 0..8
+    Vy, Vx, Vz:    Double;            // given minus computed position
+    Sxy:           Double;            // mean coordinate error, sqrt((Vy^2 + Vx^2) / 2)
   end;
 
   /// <summary>Array of rows.</summary>
@@ -88,7 +92,8 @@ function LoadRows(const AFileName: string): TGeoRowArray;
 const
   /// <summary>Field names for CSV and printouts, in TGeoField order.</summary>
   GeoFieldNames: array[TGeoField] of string = (
-    'Uloha','CB','X','Y','Z','CBm','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK','Poznamka','KK'
+    'Uloha','CB','X','Y','Z','CBm','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK',
+    'Poznamka','KK','Vy','Vx','Vz','Sxy'
   );
 
 implementation
@@ -112,6 +117,8 @@ begin
   ARow.PolarK := NaN;
   ARow.Poznamka := '';
   ARow.KK := 0;
+  ARow.Vy := NaN; ARow.Vx := NaN; ARow.Vz := NaN;
+  ARow.Sxy := NaN;
 end;
 
 // Overload that prints all fields - calls the field-mask overload
@@ -154,6 +161,10 @@ begin
         PolarK:   S := Format('%s: %.3f', [GeoFieldNames[F], ARow.PolarK]);
         Poznamka: S := Format('%s: %s', [GeoFieldNames[F], ARow.Poznamka]);
         KK:       S := Format('%s: %d', [GeoFieldNames[F], ARow.KK]);
+        Vy:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Vy]);
+        Vx:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Vx]);
+        Vz:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Vz]);
+        Sxy:      S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Sxy]);
       end;
       Result := Result + S + sLineBreak;
     end;
@@ -210,6 +221,10 @@ begin
     PolarK:   Result := FloatCell(ARow.PolarK, AFormat, AFS);
     Poznamka: Result := string(ARow.Poznamka);
     KK:       Result := IntToStr(ARow.KK);
+    Vy:       Result := FloatCell(ARow.Vy, AFormat, AFS);
+    Vx:       Result := FloatCell(ARow.Vx, AFormat, AFS);
+    Vz:       Result := FloatCell(ARow.Vz, AFormat, AFS);
+    Sxy:      Result := FloatCell(ARow.Sxy, AFormat, AFS);
   end;
 end;
 
@@ -241,6 +256,10 @@ begin
     PolarK:   TryStrToFloat(S, ARow.PolarK, AFS);
     Poznamka: ARow.Poznamka := ShortString(Copy(S, 1, MAX_POPIS));
     KK:       if TryStrToInt(S, N) then ARow.KK := N;
+    Vy:       TryStrToFloat(S, ARow.Vy, AFS);
+    Vx:       TryStrToFloat(S, ARow.Vx, AFS);
+    Vz:       TryStrToFloat(S, ARow.Vz, AFS);
+    Sxy:      TryStrToFloat(S, ARow.Sxy, AFS);
   end;
 end;
 

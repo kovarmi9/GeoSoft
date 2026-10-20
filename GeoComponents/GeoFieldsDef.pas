@@ -246,4 +246,12 @@ initialization
   SetField(KK,       'Kód kvality',       cdtInteger,
     MakeIntegerRange(1, 0, 8));
 
+  SetField(Vy,       'dY',                cdtFloat, MakeFloat(2));
+
+  SetField(Vx,       'dX',                cdtFloat, MakeFloat(2));
+
+  SetField(Vz,       'dZ',                cdtFloat, MakeFloat(2));
+
+  SetField(Sxy,      'Sxy',               cdtFloat, MakeFloat(2));
+
 end.

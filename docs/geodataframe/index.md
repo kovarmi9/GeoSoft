@@ -2,7 +2,7 @@
 
 Výpočty ukládají data do dvou typů:
 
-- [Řádek TGeoRow](georow.md) – jedno měření, vždy všech 20 polí
+- [Řádek TGeoRow](georow.md) – jedno měření, vždy všech 24 polí
 - [Tabulka TGeoDataFrame](geodataframe.md) – řádky jedné úlohy a výběr polí, která úloha používá
 
 Tabulka se naplní z gridu, algoritmus počítá přímo v jejích řádcích a výsledky

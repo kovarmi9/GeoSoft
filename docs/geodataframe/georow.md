@@ -1,7 +1,7 @@
 # Řádek TGeoRow
 
 Řádek představuje jedno měření. Všechny úlohy používají stejný řádek
-se stejnými 20 poli, liší se jen kódem úlohy (`Uloha`) a tím, která pole vyplní.
+se stejnými 24 poli, liší se jen kódem úlohy (`Uloha`) a tím, která pole vyplní.
 Unit `src/DataStructures/GeoRow.pas`.
 
 ## Pole
@@ -21,13 +21,15 @@ Unit `src/DataStructures/GeoRow.pas`.
 | `PolarK` | `Double` | polární kolmice [m] |
 | `Poznamka` | `string[32]` | poznámka |
 | `KK` | `Integer` | kód kvality 0–8 |
+| `Vy`, `Vx`, `Vz` | `Double` | oprava: daná minus vypočtená poloha a výška [m] |
+| `Sxy` | `Double` | střední souřadnicová chyba bodu, √((Vy² + Vx²) / 2) [m] |
 
 ## Práce s řádkem
 
 - `ClearGeoRow(Row)` vymaže řádek: čísla NaN, texty prázdné, celá čísla 0
 - `IsNan(Row.X)` pozná nevyplněné číslo, porovnání s nulou nestačí
 - číslo bodu má nejvýš 16 znaků, poznámka 32, delší text se zkrátí
-- pořadí polí je dáno výčtem `TGeoField` (`Uloha` = 0 … `KK` = 19)
+- pořadí polí je dáno výčtem `TGeoField` (`Uloha` = 0 … `Sxy` = 23)
 - `GeoFieldToText(Row, X, '0.000', FS)` vrátí pole jako text, NaN dá prázdný text
 - `TextToGeoField(Row, Y, '743841,459', FS)` zapíše text do pole, co není číslo, pole nezmění
 - `FindGeoField('x', F)` najde pole podle názvu, na velikosti písmen nezáleží

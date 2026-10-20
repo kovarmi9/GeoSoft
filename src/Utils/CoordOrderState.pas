@@ -261,6 +261,7 @@ begin
 
   Swap(Y, X);
   Swap(Ym, Xm);
+  Swap(Vy, Vx);
 
   // Unchanged, nothing to do
   if AGrid.GeoFields = Fields then

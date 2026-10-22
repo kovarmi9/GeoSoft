@@ -13,6 +13,7 @@ type
     FCapacity: Integer;      // number of rows allocated
     FFields: TGeoFields;     // active field columns
     FRows: TGeoRowArray;     // row storage
+    FLines: TArray<Integer>; // line in the file of each row
 
     procedure Reserve(ANeed: Integer);
     procedure SetCount(const Value: Integer);
@@ -31,6 +32,8 @@ type
     property Fields: TGeoFields read FFields write FFields;
     /// <summary>The rows. Use Count, not Length(Rows).</summary>
     property Rows: TGeoRowArray read FRows;
+    /// <summary>Line in the file of each row, only after FromCSV.</summary>
+    property Lines: TArray<Integer> read FLines;
 
     /// <summary>Deletes all rows. Fields stay.</summary>
     procedure ClearData;
@@ -51,10 +54,13 @@ type
     procedure ToCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = ','); overload;
 
     /// <summary>Reads CSV lines. Fields come from the header.
-    /// Takes any TStrings, e.g. a TStringList or Memo1.Lines.</summary>
-    procedure FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = ','); overload;
+    /// Takes any TStrings, e.g. a TStringList or Memo1.Lines.
+    /// A row with a non-number cell is left out, see ABad.</summary>
+    procedure FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = ',';
+      ABad: TStrings = nil); overload;
     /// <summary>Reads a CSV file. Fields come from the header.</summary>
-    procedure FromCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = ','); overload;
+    procedure FromCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = ',';
+      ABad: TStrings = nil); overload;
 
     /// <summary>Saves rows and Fields to a binary file.</summary>
     procedure SaveToFile(const AFileName: string);
@@ -217,6 +223,7 @@ end;
 procedure TGeoDataFrame.ClearData;
 begin
   SetLength(FRows, 0);
+  FLines := nil;
   FCount := 0;
   FCapacity := 0;
   // FFields is intentionally kept
@@ -319,7 +326,7 @@ begin
   end;
 end;
 
-procedure TGeoDataFrame.FromCSV(const ACSV: TStrings; const ACellSep: Char; const ADecSep: Char);
+procedure TGeoDataFrame.FromCSV(const ACSV: TStrings; const ACellSep: Char; const ADecSep: Char; ABad: TStrings);
 var
   FS: TFormatSettings;
   Header, Cells: TStrArray;
@@ -329,7 +336,8 @@ var
   I, J: Integer;
   Field: TGeoField;
   UsedFields: TGeoFields;
-  S: string;
+  S, Bad: string;
+  Number: Double;
 begin
   if (ACSV = nil) or (ACSV.Count = 0) then
   begin
@@ -374,6 +382,7 @@ begin
     if Trim(ACSV[I]) <> '' then
     begin
       AddRow;
+      Bad := '';
       Cells := SplitCsvLine(ACSV[I], ACellSep);
       for J := 0 to High(Cells) do
         if (J < ColCount) and ColKnown[J] then
@@ -383,19 +392,33 @@ begin
           if ColMap[J] <> Poznamka then
             S := StringReplace(S, '.', ADecSep, [rfReplaceAll]);
           TextToGeoField(FRows[FCount - 1], ColMap[J], S, FS);
+          // Only the point numbers and the note are text
+          if not (ColMap[J] in [CB, CBm, Poznamka]) and (Trim(S) <> '') and
+             not TryStrToFloat(Trim(S), Number, FS) and (Bad = '') then
+            Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
         end;
+
+      // A cell that is no number leaves the whole row out
+      if Bad <> '' then
+      begin
+        Count := Count - 1;
+        if Assigned(ABad) then
+          ABad.Add(Format('řádek %d: %s', [I + 1, Bad]));
+      end
+      else
+        FLines := FLines + [I + 1];    // the header is line 1
     end;
 end;
 
 // File overload - loads the file and calls the version above
-procedure TGeoDataFrame.FromCSV(const AFileName: string; const ACellSep: Char; const ADecSep: Char);
+procedure TGeoDataFrame.FromCSV(const AFileName: string; const ACellSep: Char; const ADecSep: Char; ABad: TStrings);
 var
   CSV: TStringList;
 begin
   CSV := TStringList.Create;
   try
     CSV.LoadFromFile(AFileName);
-    FromCSV(CSV, ACellSep, ADecSep);
+    FromCSV(CSV, ACellSep, ADecSep, ABad);
   finally
     CSV.Free;
   end;

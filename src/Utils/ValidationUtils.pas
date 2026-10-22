@@ -38,6 +38,10 @@ type
     class function MxyBand(const ASxy, AMxy: Double): TMxyBand; static;
     /// <summary>Band as the protocols print it.</summary>
     class function MxyBandText(const ABand: TMxyBand): string; static;
+    /// <summary>Limit ud of a length difference [m], NaN if none.</summary>
+    class function LengthLimit(const ALength: Double; const AQuality: Integer): Double; static;
+    /// <summary>Quality code of the less accurate point, 0 if unknown.</summary>
+    class function LowerQuality(const AFirst, ASecond: Integer): Integer; static;
   end;
 
 implementation
@@ -109,6 +113,30 @@ begin
   else
     Result := 'Mxy neurčeno';
   end;
+end;
+
+// KatV 13.2, 13.6: ud = 2 md, md = k (d + 12) / (d + 20), k = √2 mxy
+class function TValidationUtils.LengthLimit(const ALength: Double;
+  const AQuality: Integer): Double;
+begin
+  Result := 2 * Sqrt(2) * MxyOfQuality(AQuality) *
+    (ALength + 12) / (ALength + 20);
+end;
+
+// KatV 13.6, the larger mxy, codes 1 and 2 are no detail points
+class function TValidationUtils.LowerQuality(const AFirst,
+  ASecond: Integer): Integer;
+begin
+  if (AFirst = 0) or (ASecond = 0) then
+    Result := 0
+  else if IsNan(MxyOfQuality(AFirst)) then
+    Result := ASecond
+  else if IsNan(MxyOfQuality(ASecond)) then
+    Result := AFirst
+  else if MxyOfQuality(AFirst) >= MxyOfQuality(ASecond) then
+    Result := AFirst
+  else
+    Result := ASecond;
 end;
 
 end.

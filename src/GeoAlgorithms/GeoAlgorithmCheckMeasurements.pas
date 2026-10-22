@@ -1,22 +1,20 @@
 ﻿unit GeoAlgorithmCheckMeasurements;
 
 // Check measurements (kontrolni omerne) - KatV § 81 point 8.
-// Compares a distance measured in the field with the distance from coordinates.
+// Compares a distance measured in the field, reduced by Scale, with the
+// distance from coordinates, limit by KatV annex 13.5 and 13.6.
 // A row with no measured length is valid, not an error: KatV annex 17.11 allows
 // it and the computed value is then reported in round brackets.
 
 interface
 
 uses
-  System.SysUtils, Math, GeoRow, GeoDataFrame, GeoAlgorithmBase;
+  System.SysUtils, Math, GeoRow, GeoDataFrame, GeoAlgorithmBase,
+  ValidationUtils;
 
 const
   // Task code from the survey notebook convention
   ULOHA_KONTROLNI = 9;
-
-  // Distance tolerance for quality code 3: 0.012 * sqrt(d) + 0.10 [m]
-  TOL_COEF = 0.012;
-  TOL_BASE = 0.10;
 
   MIN_DIST = 0.001;  // below this the points are treated as identical
 
@@ -27,8 +25,8 @@ type
     HasMeasured: Boolean;
     Measured:    Double;
     Computed:    Double;
-    Diff:        Double;
-    Tolerance:   Double;
+    Diff:        Double;   // reduced measured minus computed
+    Tolerance:   Double;   // ud, NaN without a quality code
     Passed:      Boolean;
   end;
 
@@ -47,7 +45,8 @@ type
     class function ComputedDistance(const ARow: TGeoRow): Double;
 
     /// <summary>Derives what is shown from one row. No state is kept.</summary>
-    class function ResultOf(const ARow: TGeoRow): TCheckResult;
+    class function ResultOf(const ARow: TGeoRow;
+      AScale: Double): TCheckResult;
   end;
 
 implementation
@@ -66,8 +65,10 @@ begin
     Result := Sqrt(Sqr(ARow.Xm - ARow.X) + Sqr(ARow.Ym - ARow.Y));
 end;
 
-class function TCheckMeasurementsAlgorithm.ResultOf(
-  const ARow: TGeoRow): TCheckResult;
+class function TCheckMeasurementsAlgorithm.ResultOf(const ARow: TGeoRow;
+  AScale: Double): TCheckResult;
+var
+  Reduced: Double;
 begin
   Result := Default(TCheckResult);
 
@@ -81,10 +82,16 @@ begin
   if not Result.HasMeasured then
     Exit;
 
+  // Into the map the length goes reduced by the scale
+  Reduced := ARow.SH * AScale;
+
   Result.Measured  := ARow.SH;
-  Result.Diff      := ARow.SH - ARow.SS;
-  Result.Tolerance := TOL_COEF * Sqrt(ARow.SS) + TOL_BASE;
-  Result.Passed    := Abs(Result.Diff) <= Result.Tolerance;
+  Result.Diff      := Reduced - ARow.SS;
+  // KatV 13.6, d is the longer of the two lengths
+  Result.Tolerance :=
+    TValidationUtils.LengthLimit(Max(Reduced, ARow.SS), ARow.KK);
+  // KatV 13.5, less than ud
+  Result.Passed    := Abs(Result.Diff) < Result.Tolerance;
 end;
 
 procedure TCheckMeasurementsAlgorithm.Calculate(AFrame: TGeoDataFrame);
@@ -98,7 +105,7 @@ begin
   begin
     AFrame.Rows[i].SS := ComputedDistance(AFrame.Rows[i]);
 
-    R := ResultOf(AFrame.Rows[i]);
+    R := ResultOf(AFrame.Rows[i], Scale);
     if not R.Found then
       Continue;
 
@@ -107,9 +114,13 @@ begin
         'Oměrná %d (body %s - %s): body mají shodné souřadnice.',
         [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm)]));
 
-    if R.HasMeasured and not R.Passed then
+    if R.HasMeasured and IsNan(R.Tolerance) then
+      AddWarning(Format('Oměrná %d (body %s - %s): mezní rozdíl ' +
+        'neurčen, chybí kód kvality bodu.',
+        [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm)]))
+    else if R.HasMeasured and not R.Passed then
       AddWarning(Format('Oměrná %d (body %s - %s): rozdíl %.3f m ' +
-        'překračuje mezní odchylku %.3f m - příloha, bod 13.5 ' +
+        'není menší než mezní rozdíl %.3f m - příloha, bod 13.5 ' +
         'katastrální vyhlášky',
         [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm),
          R.Diff, R.Tolerance]));

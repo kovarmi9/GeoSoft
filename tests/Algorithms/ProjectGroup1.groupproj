@@ -21,6 +21,9 @@
         <Projects Include="TransformTest.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="ScaleTest.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\..\src\GUI\GeoSoft.dproj">
             <Dependencies/>
         </Projects>
@@ -86,6 +89,15 @@
     <Target Name="TransformTest:Make">
         <MSBuild Projects="TransformTest.dproj" Targets="Make"/>
     </Target>
+    <Target Name="ScaleTest">
+        <MSBuild Projects="ScaleTest.dproj"/>
+    </Target>
+    <Target Name="ScaleTest:Clean">
+        <MSBuild Projects="ScaleTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ScaleTest:Make">
+        <MSBuild Projects="ScaleTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="GeoSoft">
         <MSBuild Projects="..\..\src\GUI\GeoSoft.dproj"/>
     </Target>
@@ -96,13 +108,13 @@
         <MSBuild Projects="..\..\src\GUI\GeoSoft.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="PolarTest;OrthogonalTest;AreaTest;CheckTest;RectTest;TransformTest;GeoSoft"/>
+        <CallTarget Targets="PolarTest;OrthogonalTest;AreaTest;CheckTest;RectTest;TransformTest;ScaleTest;GeoSoft"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;AreaTest:Clean;CheckTest:Clean;RectTest:Clean;TransformTest:Clean;GeoSoft:Clean"/>
+        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;AreaTest:Clean;CheckTest:Clean;RectTest:Clean;TransformTest:Clean;ScaleTest:Clean;GeoSoft:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;AreaTest:Make;CheckTest:Make;RectTest:Make;TransformTest:Make;GeoSoft:Make"/>
+        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;AreaTest:Make;CheckTest:Make;RectTest:Make;TransformTest:Make;ScaleTest:Make;GeoSoft:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

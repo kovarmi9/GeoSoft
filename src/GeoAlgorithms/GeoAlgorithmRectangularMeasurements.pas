@@ -10,11 +10,15 @@ interface
 
 uses
   System.SysUtils, System.Classes, Math, GeoAlgorithmBase,
-  GeoAlgorithmTransformCongruent, Point, GeoRow, GeoDataFrame;
+  GeoAlgorithmTransformCongruent, Point, GeoRow, GeoDataFrame,
+  ValidationUtils;
 
 const
   // Task code from the survey notebook convention
   ULOHA_KONSTRUKCNI = 4;
+
+  // Older technology rules, points between the two given ones
+  MAX_INTERMEDIATE = 8;
 
 type
   // One computed stretch, rows are indexes into the frame
@@ -23,6 +27,7 @@ type
     Closure:  Double;
     MeasDist: Double;   // from the local walk
     CalcDist: Double;   // from the given coordinates
+    Limit:    Double;   // ud of the difference, NaN without quality
   end;
 
   TSegmentArray = array of TSegmentInfo;
@@ -208,9 +213,6 @@ begin
                   Sqr(Result[I].Y - FIdenticalPoints[J].Y));
         if D > FClosure then
           FClosure := D;
-        if D > 0.02 then
-          AddWarning(Format('Bod %.15d: oprava na identickém bodě %.3f m.',
-            [Result[I].PointNumber, D]));
         Break;
       end;
 end;
@@ -221,6 +223,7 @@ var
   Chain, Ident, Res, Loc: TPointsArray;
   Seg: TSegmentInfo;
   Head: string;
+  NoLength: Boolean;
 begin
   N := ATo - AFrom + 1;
   if N < 3 then Exit;            // two given points side by side
@@ -228,6 +231,11 @@ begin
   Head := Format('Úsek %s-%s: ',
     [string(AFrame.Rows[AFrom].CB), string(AFrame.Rows[ATo].CB)]);
 
+  if N - 2 > MAX_INTERMEDIATE then
+    AMsgs.Add(Head + Format('%d mezilehlých bodů, obvykle nejvýš %d.',
+      [N - 2, MAX_INTERMEDIATE]));
+
+  NoLength := False;
   SetLength(Chain, N);
   for I := 0 to N - 1 do
   begin
@@ -236,11 +244,22 @@ begin
       Chain[I].X := 0            // the walk starts here
     else
     begin
-      Chain[I].X := AFrame.Rows[AFrom + I].SH;
+      // Into the map the length goes reduced by the scale
+      Chain[I].X := AFrame.Rows[AFrom + I].SH * Scale;
       if IsNan(Chain[I].X) then
+      begin
         AMsgs.Add(Head + Format('bod %s nemá délku.',
           [string(AFrame.Rows[AFrom + I].CB)]));
+        NoLength := True;
+      end;
     end;
+  end;
+
+  // A missing length would put the point onto the previous one
+  if NoLength then
+  begin
+    AMsgs.Add(Head + 'úsek se nepočítá.');
+    Exit;
   end;
 
   SetLength(Ident, 2);
@@ -280,6 +299,18 @@ begin
     Sqr(Loc[N - 1].Y - Loc[0].Y));
   Seg.CalcDist := Sqrt(Sqr(Ident[1].X - Ident[0].X) +
     Sqr(Ident[1].Y - Ident[0].Y));
+
+  // KatV 13.5, the end with the lower accuracy decides
+  Seg.Limit := TValidationUtils.LengthLimit(
+    Max(Seg.MeasDist, Seg.CalcDist),
+    TValidationUtils.LowerQuality(AFrame.Rows[AFrom].KK,
+      AFrame.Rows[ATo].KK));
+
+  if not IsNan(Seg.Limit) and
+     (Abs(Seg.CalcDist - Seg.MeasDist) >= Seg.Limit) then
+    AMsgs.Add(Head + Format('odchylka délky %.3f m není menší ' +
+      'než mezní rozdíl %.3f m.',
+      [Abs(Seg.CalcDist - Seg.MeasDist), Seg.Limit]));
 
   // Given points keep their own coordinates
   for I := 0 to N - 1 do

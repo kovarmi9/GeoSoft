@@ -6,8 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, System.UITypes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls, Vcl.WinXCtrls,
-  GeoGrid, GeoPointsGrid;
+  Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
+  GeoGrid, GeoPointsGrid, Vcl.ExtCtrls;
 
 type
   TForm1 = class(TForm)
@@ -22,7 +22,6 @@ type
     MenuSep1: TMenuItem;
     MenuSaveList: TMenuItem;
     MenuSaveListAs: TMenuItem;
-    YX2XY: TToggleSwitch;
     MenuNastaveni: TMenuItem;
     MenuLevelling: TMenuItem;
     MenuOrthogonalMethod: TMenuItem;
@@ -40,7 +39,6 @@ type
     MenuTechnicalLevelling: TMenuItem;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
-    procedure YX2XYClick(Sender: TObject);
     procedure MenuShowListClick(Sender: TObject);
     procedure MenuSaveListClick(Sender: TObject);
     procedure MenuSaveListAsClick(Sender: TObject);
@@ -73,7 +71,7 @@ implementation
 {$R *.dfm}
 
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
-  CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState,
+  CheckMeasurements, PolarMethod, PointsManagement,
   SettingsDialog, LineAdjustment, LineIntersection, DistanceIntersection,
   ForwardIntersection, RectangularAdjustment, Resection, Levelling;
 
@@ -183,16 +181,6 @@ end;
 procedure TForm1.MenuParcelAreaClick(Sender: TObject);
 begin
   ParcelAreaForm.Show;
-end;
-
-// Switch off = Y, X (cadastre order, the default). Switch on = X, Y.
-// Grids pick the new order up in their FormActivate.
-procedure TForm1.YX2XYClick(Sender: TObject);
-begin
-  if YX2XY.State = tssOn then
-    GCoordOrder := coXY
-  else
-    GCoordOrder := coYX;
 end;
 
 end.

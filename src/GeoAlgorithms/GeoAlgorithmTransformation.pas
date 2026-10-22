@@ -111,7 +111,7 @@ end;
 
 procedure TTransformationFrameAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
-  I, N: Integer;
+  I, N, Redundancy: Integer;
   Row: TGeoRow;
   Key: TTransformationAlgorithm;
   LocalPoints, GlobalPoints: TPointsArray;
@@ -201,8 +201,12 @@ begin
       FInfo.Scale := TSimilarityTransformation(Key).Q;
 
     // Mean error, only written, the affine key has none
-    if (FKind <> ttAffine) and (N > 2) then
-      FInfo.MeanError := Sqrt(Key.SumVV / (2 * N - 4));
+    if FKind = ttCongruent then
+      Redundancy := 2 * N - 3       // shifts and rotation
+    else
+      Redundancy := 2 * N - 4;      // and the scale
+    if (FKind <> ttAffine) and (Redundancy > 0) then
+      FInfo.MeanError := Sqrt(Key.SumVV / Redundancy);
 
     CheckCircle(AFrame, GlobalPoints);
     FInfo.Valid := True;

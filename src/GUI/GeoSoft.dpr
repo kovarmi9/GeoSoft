@@ -23,6 +23,7 @@ uses
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
   GeoAlgorithmTransformation in '..\GeoAlgorithms\GeoAlgorithmTransformation.pas',
+  GeoAlgorithmScale in '..\GeoAlgorithms\GeoAlgorithmScale.pas',
   SettingsDialog in 'SettingsDialog.pas' {SettingsForm},
   GeoDataFrame in '..\DataStructures\GeoDataFrame.pas',
   GeoRow in '..\DataStructures\GeoRow.pas',

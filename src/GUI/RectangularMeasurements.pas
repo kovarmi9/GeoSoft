@@ -39,6 +39,7 @@ type
     procedure Recompute;
   protected
     procedure ApplyCoordOrderToGrids; override;
+    procedure ApplySettings; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -52,6 +53,9 @@ var
 implementation
 
 {$R *.dfm}
+
+uses
+  SettingsState;
 
 const
   CSV_NAME = 'konstrukcni_omerne.csv';   // saved next to exe
@@ -85,6 +89,11 @@ end;
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
 begin
   ApplyColumns(StringGrid1, []);
+end;
+
+procedure TRectangularMeasurementsForm.ApplySettings;
+begin
+  FAlg.Scale := GSettings.Scale;
 end;
 
 // Writes one value by field, when the grid shows it
@@ -230,6 +239,7 @@ begin
       ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
       FFrame.Rows[I].X := ListPoint.X;
       FFrame.Rows[I].Y := ListPoint.Y;
+      FFrame.Rows[I].KK := ListPoint.Quality;   // for the length limit
       SetCell(Y, GridRow, FloatToStr(ListPoint.Y, FS));
       SetCell(X, GridRow, FloatToStr(ListPoint.X, FS));
     end
@@ -363,9 +373,12 @@ var
   Segment: TSegmentInfo;
   Row: TGeoRow;
   ListPoint: Point.TPoint;
-  Kind, Dist: string;
+  Kind, Dist, Verdict: string;
+  Difference: Double;
 begin
   Prot.Title(ALines, 'Konstrukční oměrné');
+  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
+  Prot.Text('');
 
   for S := 0 to High(FAlg.Segments) do
   begin
@@ -405,7 +418,15 @@ begin
     Prot.Text('');
     Prot.Text('Měřená délka = ' + Num(Segment.MeasDist) +
               '    Vypočtená délka = ' + Num(Segment.CalcDist));
-    Prot.Text('Odchylka = ' + Num(Abs(Segment.CalcDist - Segment.MeasDist)));
+    // KatV 13.5, the difference has to be less than ud
+    Difference := Abs(Segment.CalcDist - Segment.MeasDist);
+    if IsNan(Segment.Limit) then
+      Verdict := 'Mezní rozdíl neurčen, chybí kód kvality'
+    else if Difference < Segment.Limit then
+      Verdict := 'Mezní rozdíl = ' + Num(Segment.Limit) + '    vyhovuje'
+    else
+      Verdict := 'Mezní rozdíl = ' + Num(Segment.Limit) + '    nevyhovuje';
+    Prot.Text('Odchylka = ' + Num(Difference) + '    ' + Verdict);
     Prot.Text('Uzávěr = ' + Num(Segment.Closure) + ' m');
     Prot.Text('');
   end;

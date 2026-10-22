@@ -107,7 +107,7 @@ begin
     FTable.Text('ODCHYLKY TRANSFORMACE (Helmertova, q = ' +
                 Num(FAlg.Info.Q, 7) + ')');
   FTable.Table(['Číslo bodu', 'Vy', 'Vx', 'Sxy', ''],
-               [ColWPoint, 8, 8, 8, -12]);
+               [ColWPoint, LengthWidth(8), LengthWidth(8), LengthWidth(8), -12]);
 
   for I := 0 to High(Fit) do
   begin
@@ -140,7 +140,8 @@ begin
   FTable.Text('');
   FTable.Text('ORIENTACE');
   FTable.Table(['Číslo bodu', 'Směr [g]', 'Délka [m]', 'dfi [g]', 'ds [m]'],
-               [ColWPoint, ColWDist, ColWDist, 8, 8]);
+               [ColWPoint, AngleWidth(10), ColWDist, AngleWidth(8),
+                LengthWidth(8)]);
 
   for I := 1 to FAlg.Info.OrientCount do
   begin
@@ -171,7 +172,7 @@ begin
   FTable.Text('');
   FTable.Text('PODROBNÉ BODY');
   FTable.Table(['Číslo bodu', 'Směr [g]', 'Délka [m]', CoordNames],
-               [ColWPoint, ColWDist, ColWDist, ColWPair]);
+               [ColWPoint, AngleWidth(10), ColWDist, ColWPair]);
 
   for I := FAlg.Info.OrientCount + 1 to FFrame.Count - 1 do
   begin

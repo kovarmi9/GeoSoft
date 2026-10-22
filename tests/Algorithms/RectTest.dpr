@@ -4,6 +4,7 @@
 
 uses
   System.SysUtils,
+  System.Math,
   GeoRow,
   GeoDataFrame,
   GeoAlgorithmRectangularMeasurements;
@@ -29,8 +30,9 @@ begin
   for I := 0 to High(Alg.Segments) do
   begin
     Seg := Alg.Segments[I];
-    Writeln(Format('  Úsek %d: měřená %.3f m, vypočtená %.3f m, uzávěr %.3f m',
-      [I + 1, Seg.MeasDist, Seg.CalcDist, Seg.Closure]));
+    Writeln(Format('  Úsek %d: měřená %.3f m, vypočtená %.3f m, ' +
+      'uzávěr %.3f m, mezní rozdíl %.3f m',
+      [I + 1, Seg.MeasDist, Seg.CalcDist, Seg.Closure, Seg.Limit]));
   end;
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
@@ -44,6 +46,7 @@ begin
   P101.CB := '101';
   P101.X := 0;
   P101.Y := 0;
+  P101.KK := 3;
 
   // 1 - computed corner, 100 m from 101
   ClearGeoRow(P1);
@@ -57,6 +60,7 @@ begin
   P102.CB := '102';
   P102.X := 100;
   P102.Y := 100;
+  P102.KK := 3;
   P102.SH := -100.01;
 
   Frame := TGeoDataFrame.Create([Uloha, CB, X, Y, SH]);
@@ -66,9 +70,18 @@ begin
       // 1. Right angle, expected corner 1 in X 0.00, Y 100.00
       RunChain('Pravý úhel (očekáváno bod 1: X 0,00, Y 100,00):');
 
-      // 2. The given end is 0.1 m off, expected corrections over 0.02 m
+      // 2. The given end is 0,1 m off, still within ud
       P102.X := 100.1;
-      RunChain('Daný bod 102 posunutý o 0,1 m (očekáváno varování):');
+      RunChain('Daný bod 102 posunutý o 0,1 m (očekáváno bez varování):');
+
+      // 3. The given end is 0,6 m off, over ud
+      P102.X := 100.6;
+      RunChain('Daný bod 102 posunutý o 0,6 m (očekáváno varování):');
+
+      // 4. No length to the corner, the stretch stops
+      P102.X := 100;
+      P1.SH := NaN;
+      RunChain('Bod 1 bez délky (očekáváno úsek se nepočítá):');
     except
       on E: Exception do
         Writeln(E.ClassName, ': ', E.Message);

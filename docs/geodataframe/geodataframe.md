@@ -29,5 +29,5 @@ používá. Unit `src/DataStructures/GeoDataFrame.pas`.
 ## CSV a soubor
 
 - `ToCSV(Soubor)` uloží tabulku do CSV se středníkem a desetinnou čárkou (český Excel)
-- `FromCSV(Soubor)` ji načte zpět a `Fields` nastaví podle hlavičky, neznámé sloupce a prázdné řádky přeskočí
+- `FromCSV(Soubor)` ji načte zpět a `Fields` nastaví podle hlavičky, neznámé sloupce a prázdné řádky přeskočí. Řádek s buňkou, která není číslo, vynechá a vypíše do `ABad`; `Lines` drží číslo řádku v souboru
 - `SaveToFile(Soubor)` a `LoadFromFile(Soubor)` uloží a načtou tabulku i s výběrem polí do binárního souboru

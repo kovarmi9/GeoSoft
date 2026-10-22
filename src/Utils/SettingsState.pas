@@ -11,8 +11,15 @@ type
     Congruent:        Boolean;  // else Helmert
   end;
 
+  // Place the scale was determined for, as typed
+  TScalePlace = record
+    PointNumber: string;
+    Y, X, Height: string;
+  end;
+
   TSettings = record
     Scale: Double;              // length scale
+    ScalePlace: TScalePlace;
     LengthDecimals: Integer;    // shown places of lengths and coordinates
     AngleDecimals: Integer;     // shown places of angles
     Polar: TPolarSettings;

@@ -24,11 +24,10 @@ procedure CoordRead(const P: Point.TPoint; out AFirst, ASecond: Double);
 procedure CoordWrite(var P: Point.TPoint; const AFirst, ASecond: Double);
 
 /// <summary>Captions Y and X in the current order.</summary>
-function CoordNames(AWidth: Integer = ColWCoord): string;
+function CoordNames: string;
 
 /// <summary>Both coordinates as text.</summary>
-function CoordPair(const P: Point.TPoint; AWidth: Integer = ColWCoord;
-  ADecimals: Integer = -1): string;
+function CoordPair(const P: Point.TPoint; ADecimals: Integer = -1): string;
 
 /// <summary>Column of Y, the pair starts at AFirstCol.</summary>
 function CoordColY(AFirstCol: Integer): Integer;
@@ -74,22 +73,21 @@ begin
   end;
 end;
 
-function CoordNames(AWidth: Integer): string;
+function CoordNames: string;
 begin
   if GCoordOrder = coYX then
-    Result := Pad('Y', AWidth) + ColGap + Pad('X', AWidth)
+    Result := Pad('Y', ColWCoord) + ColGap + Pad('X', ColWCoord)
   else
-    Result := Pad('X', AWidth) + ColGap + Pad('Y', AWidth);
+    Result := Pad('X', ColWCoord) + ColGap + Pad('Y', ColWCoord);
 end;
 
-function CoordPair(const P: Point.TPoint; AWidth: Integer;
-  ADecimals: Integer): string;
+function CoordPair(const P: Point.TPoint; ADecimals: Integer): string;
 var
   First, Second: Double;
 begin
   CoordRead(P, First, Second);
-  Result := Pad(Num(First, ADecimals), AWidth) + ColGap +
-            Pad(Num(Second, ADecimals), AWidth);
+  Result := Pad(Num(First, ADecimals), ColWCoord) + ColGap +
+            Pad(Num(Second, ADecimals), ColWCoord);
 end;
 
 function CoordColY(AFirstCol: Integer): Integer;
@@ -218,7 +216,7 @@ var
         Exit(J);
   end;
 
-  // Puts the pair in the switch order
+  // Puts the pair in the set order
   procedure Swap(AY, AX: TGeoField);
   var
     IY, IX: Integer;

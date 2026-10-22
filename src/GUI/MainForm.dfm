@@ -3192,16 +3192,6 @@ object Form1: TForm1
     Caption = 'ToolBar1'
     TabOrder = 0
   end
-  object YX2XY: TToggleSwitch
-    Left = 736
-    Top = 200
-    Width = 73
-    Height = 20
-    DoubleBuffered = False
-    ParentDoubleBuffered = False
-    TabOrder = 1
-    OnClick = YX2XYClick
-  end
   object MainMenu1: TMainMenu
     Left = 584
     Top = 192

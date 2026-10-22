@@ -63,6 +63,7 @@ type
   protected
     FS: TFormatSettings;
     Prot: TProtocol;          // shared by every WriteProtocol
+    FLoadLines: TArray<Integer>;   // line in the file of each loaded row
 
     /// <summary>A new showing asks again about existing points.</summary>
     procedure DoShow; override;
@@ -401,6 +402,7 @@ begin
     Exit;
   ApplySettings;
   ApplyDecimals;
+  ApplyCoordOrderToGrids;
 end;
 
 procedure TCalcBaseForm.ApplyDecimals;
@@ -432,7 +434,7 @@ begin
   Bad := TStringList.Create;
   try
     try
-      Frame.FromCSV(OpenDialogZapisnik.FileName);
+      Frame.FromCSV(OpenDialogZapisnik.FileName, ';', ',', Bad);
     except
       on E: Exception do
       begin
@@ -441,6 +443,7 @@ begin
       end;
     end;
     ForgetJob;                 // a new job
+    FLoadLines := Frame.Lines;
     LoadFrame(Frame, Bad);
     if Bad.Count > 0 then
       ShowMessage(Format('Přeskočeno %d řádků:', [Bad.Count]) +
@@ -525,7 +528,7 @@ begin
   if Result then
     AGrid.SetGeoRow(ARow, GRow)
   else
-    ABad.Add(Format('řádek %d: %s', [AIndex + 1, Msg]));
+    ABad.Add(Format('řádek %d: %s', [FLoadLines[AIndex], Msg]));
 end;
 
 procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);

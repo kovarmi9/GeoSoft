@@ -18,6 +18,7 @@ begin
   // 1. Points 1 (0, 0) and 2 (0, 10), measured 10.02 m, small difference
   ClearGeoRow(M1);
   M1.Uloha := ULOHA_KONTROLNI;
+  M1.KK := 3;              // worse quality code of the pair
   M1.CB := '1';
   M1.X := 0;
   M1.Y := 0;
@@ -29,6 +30,7 @@ begin
   // 2. Points 2 (0, 10) and 3 (10, 10), measured 10.30 m, too much
   ClearGeoRow(M2);
   M2.Uloha := ULOHA_KONTROLNI;
+  M2.KK := 3;
   M2.CB := '2';
   M2.X := 0;
   M2.Y := 10;
@@ -40,6 +42,7 @@ begin
   // 3. Points 1 and 3, not measured, only the computed length
   ClearGeoRow(M3);
   M3.Uloha := ULOHA_KONTROLNI;
+  M3.KK := 3;
   M3.CB := '1';
   M3.X := 0;
   M3.Y := 0;
@@ -50,6 +53,7 @@ begin
   // 4. The second point has no coordinates
   ClearGeoRow(M4);
   M4.Uloha := ULOHA_KONTROLNI;
+  M4.KK := 3;
   M4.CB := '1';
   M4.X := 0;
   M4.Y := 0;
@@ -70,7 +74,7 @@ begin
       // One line per measurement, as the grid shows it
       for I := 0 to Frame.Count - 1 do
       begin
-        R := TCheckMeasurementsAlgorithm.ResultOf(Frame.Rows[I]);
+        R := TCheckMeasurementsAlgorithm.ResultOf(Frame.Rows[I], Alg.Scale);
         Write(Format('Oměrná %d (%s - %s): ', [I + 1,
           string(Frame.Rows[I].CB), string(Frame.Rows[I].CBm)]));
         if not R.Found then
@@ -86,6 +90,12 @@ begin
       Writeln('Varování: ', Alg.Warnings.Count);
       for I := 0 to Alg.Warnings.Count - 1 do
         Writeln('  ', Alg.Warnings[I]);
+
+      // 5. Measurement 1 with the scale 0,998, the length goes in reduced
+      Alg.Scale := 0.998;
+      R := TCheckMeasurementsAlgorithm.ResultOf(Frame.Rows[0], Alg.Scale);
+      Writeln(Format('Oměrná 1 s měřítkem 0,998: rozdíl %.3f, mez %.3f m',
+        [R.Diff, R.Tolerance]));
     except
       on E: Exception do
         Writeln(E.ClassName, ': ', E.Message);

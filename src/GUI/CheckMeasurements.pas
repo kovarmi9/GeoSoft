@@ -8,7 +8,7 @@ uses
   Vcl.ExtCtrls, Vcl.Grids, Vcl.Menus, Vcl.Dialogs,
   Point, PointsUtilsSingleton, PointPrefixState,
   GeoRow, GeoDataFrame,
-  CoordOrderState, ProtocolTable,
+  CoordOrderState, ProtocolTable, ValidationUtils,
   GeoGrid, GeoPointsGrid, GeoColumnValidation,
   GeoAlgorithmCheckMeasurements,
   CalcBase;
@@ -47,6 +47,7 @@ type
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
     procedure ApplyDecimals; override;
+    procedure ApplySettings; override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -137,7 +138,7 @@ begin
   for I := 0 to High(FRows) do
   begin
     R   := FRows[I];
-    Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I]);
+    Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I], FAlg.Scale);
 
     if not Check.Found then
     begin
@@ -150,11 +151,16 @@ begin
     if Check.HasMeasured then
     begin
       GridPairs.Cells[COL_DIFF, R] := FloatToStr(Check.Diff, FS);
-      GridPairs.Cells[COL_TOL, R]  := FloatToStr(Check.Tolerance, FS);
-      if Check.Passed then
-        GridPairs.Cells[COL_PASS, R] := 'ANO'
+      if IsNan(Check.Tolerance) then
+        GridPairs.Cells[COL_PASS, R] := 'chybí KK'
       else
-        GridPairs.Cells[COL_PASS, R] := 'NE';
+      begin
+        GridPairs.Cells[COL_TOL, R] := FloatToStr(Check.Tolerance, FS);
+        if Check.Passed then
+          GridPairs.Cells[COL_PASS, R] := 'ANO'
+        else
+          GridPairs.Cells[COL_PASS, R] := 'NE';
+      end;
     end
     else
       GridPairs.Cells[COL_PASS, R] := 'neměřeno';
@@ -204,8 +210,9 @@ begin
       ListPointTo := Dict.GetPoint(PointNumberTo);
       Row.X  := ListPointFrom.X;   Row.Y  := ListPointFrom.Y;
       Row.Xm := ListPointTo.X;   Row.Ym := ListPointTo.Y;
-      // The tolerance follows the less accurate point
-      Row.KK := Max(ListPointFrom.Quality, ListPointTo.Quality);
+      // The limit follows the less accurate point
+      Row.KK := TValidationUtils.LowerQuality(ListPointFrom.Quality,
+        ListPointTo.Quality);
     end;
 
     if TryStrToFloat(Trim(GridPairs.Cells[COL_MEAS, R]), Meas, FS) then
@@ -240,7 +247,8 @@ begin
 
   Missing := 0;
   for I := 0 to FFrame.Count - 1 do
-    if not TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I]).Found then
+    if not TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I],
+      FAlg.Scale).Found then
       Inc(Missing);
 
   Report := Format('Uloženo %d oměrných do souboru%s%s',
@@ -261,6 +269,11 @@ begin
     GridPairs.ColumnFilters[I - GridPairs.FixedCols].DecimalPlaces :=
       GSettings.LengthDecimals;
   GridPairs.Invalidate;
+end;
+
+procedure TCheckMeasurementsForm.ApplySettings;
+begin
+  FAlg.Scale := GSettings.Scale;
 end;
 
 // One row is one pair
@@ -293,7 +306,7 @@ begin
 
     if Msg <> '' then
     begin
-      ABad.Add(Format('řádek %d: %s', [I + 1, Msg]));
+      ABad.Add(Format('řádek %d: %s', [FLoadLines[I], Msg]));
       for C := GridPairs.FixedCols to GridPairs.ColCount - 1 do
         GridPairs.Cells[C, R] := '';
       Continue;
@@ -315,8 +328,8 @@ var
   ListPoint: Point.TPoint;
   Dict: TPointDictionary;
   Nums: array of Int64;
-  Verdict, Note: string;
-  Measured, ComputedOnly, Failed, Skipped: Integer;
+  Verdict, Note, Tolerance: string;
+  Measured, ComputedOnly, Failed, Skipped, NoQuality: Integer;
   MaxDiff: Double;
 
   // Every point of the job, in order of first use
@@ -342,6 +355,8 @@ begin
   end;
 
   Prot.Title(ALines, 'Kontrolní oměrné');
+  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
+  Prot.Text('');
 
   Prot.Text('POUŽITÉ BODY');
   Prot.Table(['Č.', 'Číslo bodu', CoordNames, 'Z'],
@@ -361,19 +376,21 @@ begin
   Prot.Text('OMĚRNÉ MÍRY');
   Prot.Table(['Č.', 'Z bodu', 'Na bod', 'Měřená', 'Ze souřadnic',
               'Rozdíl', 'Mezní', 'Vyhov.'],
-             [ColWNo, ColWPoint, ColWPoint, ColWDist, 13, 11, 9, ColWFlag]);
+             [ColWNo, ColWPoint, ColWPoint, ColWDist, LengthWidth(13),
+              LengthWidth(11), LengthWidth(9), ColWFlag]);
 
   Measured     := 0;
   ComputedOnly := 0;
   Failed       := 0;
   Skipped      := 0;
+  NoQuality    := 0;
   MaxDiff      := 0;
 
   for I := 0 to FFrame.Count - 1 do
   begin
     PointNumberFrom := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
     PointNumberTo := StrToInt64Def(string(FFrame.Rows[I].CBm), 0);
-    Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I]);
+    Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I], FAlg.Scale);
 
     if not Check.Found then
     begin
@@ -387,16 +404,31 @@ begin
     if Check.HasMeasured then
     begin
       Inc(Measured);
-      if not Check.Passed then
-        Inc(Failed);
       if Abs(Check.Diff) > Abs(MaxDiff) then
         MaxDiff := Check.Diff;
 
-      if Check.Passed then Verdict := 'ANO' else Verdict := 'NE';
+      if IsNan(Check.Tolerance) then
+      begin
+        Inc(NoQuality);
+        Tolerance := '-';
+        Verdict := 'chybí KK';
+      end
+      else
+      begin
+        Tolerance := Num(Check.Tolerance);
+        if Check.Passed then
+          Verdict := 'ANO'
+        else
+        begin
+          Inc(Failed);
+          Verdict := 'NE';
+        end;
+      end;
+
       Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
                 PointId(PointNumberTo), Num(Check.Measured),
                 Num(Check.Computed), Num(Check.Diff),
-                Num(Check.Tolerance), Verdict]);
+                Tolerance, Verdict]);
     end
     else
     begin
@@ -424,6 +456,10 @@ begin
   if Skipped > 0 then
     Prot.Text('Nespočítaných oměrných (chybí bod v seznamu): ' +
               IntToStr(Skipped));
+
+  if NoQuality > 0 then
+    Prot.Text('Bez mezního rozdílu (chybí kód kvality bodu): ' +
+              IntToStr(NoQuality));
 
   Prot.Finish(FAlg.Warnings);
 end;

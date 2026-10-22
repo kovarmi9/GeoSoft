@@ -168,7 +168,8 @@ begin
   FTable.Text('');
   FTable.Text(ACaption);
   FTable.Table(['Č.', 'Číslo bodu', 'Vy', 'Vx', 'Sxy', 'KK', ''],
-               [ColWNo, ColWPoint, 8, 8, 8, 3, -12]);
+               [ColWNo, ColWPoint, LengthWidth(8), LengthWidth(8),
+                LengthWidth(8), 3, -12]);
 
   Number := 0;
   for I := 0 to FFrame.Count - 1 do

@@ -74,7 +74,7 @@ begin
   inherited;
 end;
 
-// Y, X, the source pair and dY, dX follow the switch
+// Y, X, the source pair and dY, dX follow the setting
 procedure TTransformationForm.ApplyCoordOrderToGrids;
 begin
   ApplyColumns(Grid, []);

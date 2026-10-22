@@ -16,8 +16,8 @@ uses
   System.SysUtils, System.Classes, System.Math;
 
 const
-  // Width of the title and of the end line. Keep it at least as wide as the
-  // widest table in the program - today the check measurements, 106 + indent.
+  // Width of the title and of the end line at 2 places. Keep it at least as
+  // wide as the widest table - today the check measurements, 106 + indent.
   ProtWidth  = 107;
   ProtIndent = ' ';    // every line starts with this
   ColGap     = '  ';   // space between two columns
@@ -25,9 +25,6 @@ const
   // Standard column widths. A minus width means left aligned.
   ColWNo    = 3;      // row number
   ColWPoint = -18;    // point id from FormatPointId, with a minus sign
-  ColWCoord = 14;     // one coordinate
-  ColWPair  = -(2 * ColWCoord + Length(ColGap));   // both coordinates
-  ColWDist  = 10;     // a length or a height in metres
   ColWFlag  = -10;    // a short word like 'dany'
 
 type
@@ -56,6 +53,18 @@ type
   end;
 
 function Pad(const AText: string; AWidth: Integer): string;
+
+/// <summary>Column of lengths, AWidth wide at 2 places.</summary>
+function LengthWidth(AWidth: Integer): Integer;
+/// <summary>Column of angles, AWidth wide at 4 places.</summary>
+function AngleWidth(AWidth: Integer): Integer;
+/// <summary>One coordinate.</summary>
+function ColWCoord: Integer;
+/// <summary>Both coordinates.</summary>
+function ColWPair: Integer;
+/// <summary>A length or a height in metres.</summary>
+function ColWDist: Integer;
+
 /// <summary>A length, coordinate or area, -1 = the setting.</summary>
 function Num(AValue: Double; ADecimals: Integer = -1): string;
 /// <summary>An angle in gon, by the setting.</summary>
@@ -68,6 +77,38 @@ implementation
 
 uses
   SettingsState;
+
+// More places, wider column, the sign stays
+function LengthWidth(AWidth: Integer): Integer;
+begin
+  Result := Sign(AWidth) * (Abs(AWidth) + GSettings.LengthDecimals - 2);
+end;
+
+function AngleWidth(AWidth: Integer): Integer;
+begin
+  Result := Sign(AWidth) * (Abs(AWidth) + GSettings.AngleDecimals - 4);
+end;
+
+function ColWCoord: Integer;
+begin
+  Result := LengthWidth(14);
+end;
+
+function ColWPair: Integer;
+begin
+  Result := -(2 * ColWCoord + Length(ColGap));
+end;
+
+function ColWDist: Integer;
+begin
+  Result := LengthWidth(10);
+end;
+
+// Title and end line, the widest table has four length columns
+function ProtocolWidth: Integer;
+begin
+  Result := ProtWidth + 4 * (GSettings.LengthDecimals - 2);
+end;
 
 // Puts the text into a column AWidth wide, minus width means left aligned
 function Pad(const AText: string; AWidth: Integer): string;
@@ -143,7 +184,7 @@ begin
   SetLength(FCols, 0);
   FWidth := 0;
   S := ProtIndent + '== ' + AText + ' ';
-  while Length(S) < ProtWidth do
+  while Length(S) < ProtocolWidth do
     S := S + '=';
   FLines.Add(S);
   FLines.Add('');
@@ -195,7 +236,8 @@ begin
     for i := 0 to AWarnings.Count - 1 do
       FLines.Add(' CHYBA: ' + AWarnings[i]);
   end;
-  FLines.Add(ProtIndent + StringOfChar('=', ProtWidth - Length(ProtIndent)));
+  FLines.Add(ProtIndent +
+    StringOfChar('=', ProtocolWidth - Length(ProtIndent)));
 end;
 
 initialization

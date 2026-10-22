@@ -217,7 +217,7 @@ begin
   SavePrefix;
 end;
 
-// Swaps Y and X when the switch changed
+// Swaps Y and X when the setting changed
 procedure TPointsManagementForm.ApplyCoordOrderToGrid;
 begin
   if FGridOrder = GCoordOrder then Exit;

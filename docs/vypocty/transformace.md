@@ -191,11 +191,12 @@ X = X0 + A21·y + A22·x
 
 ```
 v = transformovaná − daná         Sxy = √((vX² + vY²) / 2)
-m = √([vX·vX + vY·vY] / (2n − 4))
+m = √([vX·vX + vY·vY] / n′)
+n′ = 2n − 3 u shodnostní, 2n − 4 u podobnostní (počet nadbytečných měření)
 ```
 
 - Kontrola: [vX] = [vY] = 0.
-- m se jen vypisuje, u afinní ne.
+- m se jen vypisuje, u afinní ne, a jen když je n′ větší než nula.
 - Bod se posoudí podle Sxy proti Mxy svého kódu kvality (KatV 13.9,
   15.6): do Mxy (menší než Mxy), do Uxy (nepřekročí Uxy), přes Uxy,
   Uxy = 2·Mxy.

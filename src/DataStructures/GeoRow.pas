@@ -53,7 +53,7 @@ type
     PolarK:        Double;            // polar perpendicular (kolmice)
     Poznamka:      string[MAX_POPIS]; // note
     KK:            Integer;           // quality code 0..8
-    Vy, Vx, Vz:    Double;            // given minus computed position
+    Vy, Vx, Vz:    Double;            // computed minus given position
     Sxy:           Double;            // mean coordinate error, sqrt((Vy^2 + Vx^2) / 2)
   end;
 

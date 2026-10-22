@@ -16,3 +16,10 @@ už tabulky při psaní, validace je poslední pojistka.
 
 Meze (`PointNumberDigits`, `MaxQuality`, `MaxDescriptionLength`) jsou veřejné
 konstanty – podle nich nastavují tabulky svou kontrolu zadávání.
+
+Pro posouzení přesnosti bodu (transformace, polární metoda) slouží:
+
+- `MxyOfQuality` – Mxy kódu kvality podle KatV 13.9 a 15.6
+  (3 = 0,14, 4 = 0,26, 5 = 0,50, 6 = 0,21, 7 = 0,50, 8 = 1,00 m), jinak neurčeno
+- `MxyBand` – pásmo bodu podle Sxy: do Mxy (menší než Mxy), do Uxy
+  (nepřekročí Uxy = 2·Mxy), přes Uxy, podle KatV 13.7 a 13.8

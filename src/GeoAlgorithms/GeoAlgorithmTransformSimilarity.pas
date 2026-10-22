@@ -1,121 +1,79 @@
 ﻿unit GeoAlgorithmTransformSimilarity;
 
-// Similarity transformation (4-parameter, variable scale).
-// Model:  X' = X0 + lambda1*x - lambda2*y
-//         Y' = Y0 + lambda2*x + lambda1*y
-// Where:  omega = ArcTan2(lambda2, lambda1)  - rotation angle [rad]
-//         Q     = sqrt(lambda1^2 + lambda2^2) - uniform scale factor
-// Preserves angles, allows rotation, uniform scaling, and translation.
-// Parameters are computed via centroid reduction and a closed-form solution.
+// Similarity key, rotation and scale
+//   Lambda1 = sum(x * X + y * Y) / sum(x^2 + y^2)
+//   Lambda2 = sum(x * Y - y * X) / sum(x^2 + y^2)
+//   A11 = Lambda1, A12 = Lambda2, A21 = -Lambda2, A22 = Lambda1
 
 interface
 
 uses
-  Math, SysUtils, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase;
+  Math, SysUtils, GeoAlgorithmBase, GeoAlgorithmTransformBase;
 
 type
-  // Similarity (Helmert) transformation - rotation, scale, translation
+  /// <summary>Similarity (Helmert) key.</summary>
   TSimilarityTransformation = class(TTransformationAlgorithm)
-  private
-    FLambda1, FLambda2: Double; // intermediate lambda parameters
-    FOmega, FQ: Double;         // rotation angle [rad] and scale factor
-    FX0, FY0: Double;           // translation parameters
   protected
-    procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); override;
+    FOmega, FQ: Double;
+    class function MinimumPoints: Integer; override;
+    class function KindName: string; override;
+    procedure EstimateMatrix(const LocalReduced, GlobalReduced: TPointsArray); override;
   public
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
-
-    property Lambda1: Double read FLambda1;
-    property Lambda2: Double read FLambda2;
-    property Omega: Double read FOmega;  // rotation angle [rad]
-    property Q: Double read FQ;          // uniform scale factor
-    property X0: Double read FX0;        // X translation
-    property Y0: Double read FY0;        // Y translation
+    property Omega: Double read FOmega;  // rotation [rad]
+    property Q: Double read FQ;          // scale
   end;
 
 implementation
 
-procedure TSimilarityTransformation.EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray);
-var
-  i, n: Integer;
-  SumYL, SumXL, SumYG, SumXG: Double;
-  CentroidYL, CentroidXL, CentroidYG, CentroidXG: Double;
-  YrL, XrL, YrG, XrG: Double;
-  SumSq, SumL1, SumL2: Double;
+class function TSimilarityTransformation.MinimumPoints: Integer;
 begin
-  ClearWarnings;
+  Result := 2;
+end;
 
-  n := Length(LocalPoints);
-  if n <> Length(GlobalPoints) then
-    raise Exception.Create(
-      'Počet bodů v místní a cílové soustavě se neshoduje.');
-  if n < 2 then
-    raise Exception.Create(
-      'Pro podobnostní transformaci jsou potřeba alespoň 2 identické body.');
+class function TSimilarityTransformation.KindName: string;
+begin
+  Result := 'podobnostní';
+end;
 
-  // Compute centroids of both point sets
-  SumYL := 0; SumXL := 0; SumYG := 0; SumXG := 0;
-  for i := 0 to n - 1 do
+procedure TSimilarityTransformation.EstimateMatrix(
+  const LocalReduced, GlobalReduced: TPointsArray);
+var
+  I: Integer;
+  SumSquares, SumLambda1, SumLambda2: Double;
+  Lambda1, Lambda2: Double;
+begin
+  SumSquares := 0;
+  SumLambda1 := 0;
+  SumLambda2 := 0;
+  for I := 0 to High(LocalReduced) do
   begin
-    SumYL := SumYL + LocalPoints[i].Y;
-    SumXL := SumXL + LocalPoints[i].X;
-    SumYG := SumYG + GlobalPoints[i].Y;
-    SumXG := SumXG + GlobalPoints[i].X;
+    SumSquares := SumSquares + Sqr(LocalReduced[I].X) + Sqr(LocalReduced[I].Y);
+    SumLambda1 := SumLambda1 + LocalReduced[I].X * GlobalReduced[I].X +
+                               LocalReduced[I].Y * GlobalReduced[I].Y;
+    SumLambda2 := SumLambda2 + LocalReduced[I].X * GlobalReduced[I].Y -
+                               LocalReduced[I].Y * GlobalReduced[I].X;
   end;
 
-  CentroidYL := SumYL / n;
-  CentroidXL := SumXL / n;
-  CentroidYG := SumYG / n;
-  CentroidXG := SumXG / n;
-
-  SumSq := 0;
-  SumL1 := 0;
-  SumL2 := 0;
-
-  // Accumulate centroid-reduced cross-products for the lambda solution
-  for i := 0 to n - 1 do
-  begin
-    YrL := LocalPoints[i].Y - CentroidYL;
-    XrL := LocalPoints[i].X - CentroidXL;
-    YrG := GlobalPoints[i].Y - CentroidYG;
-    XrG := GlobalPoints[i].X - CentroidXG;
-
-    SumSq := SumSq + Sqr(XrL) + Sqr(YrL);
-    SumL1 := SumL1 + (XrL * XrG + YrL * YrG);
-    SumL2 := SumL2 + (XrL * YrG - YrL * XrG);
-  end;
-
-  // All control points in one spot - no direction can be derived from them
-  if SumSq < 1e-10 then
+  // Points in one spot
+  if SumSquares < 1e-10 then
     raise Exception.Create(
       'Identické body splývají, transformaci z nich nelze určit.');
 
-  // Lambda parameters (closed-form least-squares solution)
-  FLambda1 := SumL1 / SumSq;
-  FLambda2 := SumL2 / SumSq;
+  Lambda1 := SumLambda1 / SumSquares;
+  Lambda2 := SumLambda2 / SumSquares;
 
-  // Derive rotation, scale, and translation from lambda values
-  FOmega := ArcTan2(FLambda2, FLambda1);
-  FQ := Sqrt(Sqr(FLambda1) + Sqr(FLambda2)); // scale, may differ from 1
-  FX0 := CentroidXG - FLambda1 * CentroidXL + FLambda2 * CentroidYL;
-  FY0 := CentroidYG - FLambda1 * CentroidYL - FLambda2 * CentroidXL;
-end;
+  FOmega := ArcTan2(Lambda2, Lambda1);
+  FQ := Sqrt(Sqr(Lambda1) + Sqr(Lambda2));
 
-function TSimilarityTransformation.Calculate(const InputPoints: TPointsArray): TPointsArray;
-var
-  i: Integer;
-  x, y: Double;
-begin
-  SetLength(Result, Length(InputPoints));
-  for i := 0 to High(InputPoints) do
-  begin
-    x := InputPoints[i].X;
-    y := InputPoints[i].Y;
+  // Target points in one spot
+  if FQ < 1e-10 then
+    raise Exception.Create(
+      'Identické body splývají, transformaci z nich nelze určit.');
 
-    Result[i] := InputPoints[i];
-    Result[i].X := FX0 + FLambda1 * x - FLambda2 * y;
-    Result[i].Y := FY0 + FLambda2 * x + FLambda1 * y;
-  end;
+  FA11 := Lambda1;
+  FA12 := Lambda2;
+  FA21 := -Lambda2;
+  FA22 := Lambda1;
 end;
 
 end.

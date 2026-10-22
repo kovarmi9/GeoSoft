@@ -1,4 +1,4 @@
-unit TLevelling;
+unit Levelling;
 
 interface
 
@@ -8,7 +8,7 @@ uses
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin;
 
 type
-  TLevelling = class(TCalcBaseForm)
+  TLevellingForm = class(TCalcBaseForm)
   private
     { Private declarations }
   public
@@ -16,7 +16,7 @@ type
   end;
 
 var
-  Levelling: TLevelling;
+  LevellingForm: TLevellingForm;
 
 implementation
 

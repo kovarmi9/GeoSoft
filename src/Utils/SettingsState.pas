@@ -28,7 +28,7 @@ initialization
   // KN uses 2 places, angles in gon 4 places
   GSettings.LengthDecimals := 2;
   GSettings.AngleDecimals := 4;
-  // GEUS does not ask for it by default
+  // Not asked for by default
   GSettings.Polar.ShowTargetHeight := False;
   // Shown unless the settings hide it
   GSettings.Polar.ShowDescription  := True;

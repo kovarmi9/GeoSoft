@@ -17,14 +17,14 @@ uses
 
 const
   // Width of the title and of the end line. Keep it at least as wide as the
-  // widest table in the program - today the check measurements, 104 + indent.
-  ProtWidth  = 105;
+  // widest table in the program - today the check measurements, 106 + indent.
+  ProtWidth  = 107;
   ProtIndent = ' ';    // every line starts with this
   ColGap     = '  ';   // space between two columns
 
   // Standard column widths. A minus width means left aligned.
   ColWNo    = 3;      // row number
-  ColWPoint = -17;    // point id from FormatPointId
+  ColWPoint = -18;    // point id from FormatPointId, with a minus sign
   ColWCoord = 14;     // one coordinate
   ColWPair  = -(2 * ColWCoord + Length(ColGap));   // both coordinates
   ColWDist  = 10;     // a length or a height in metres

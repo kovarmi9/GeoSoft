@@ -123,7 +123,7 @@ begin
   Result := Sqrt(Sqr(B.X - A.X) + Sqr(B.Y - A.Y));
 end;
 
-// Weight of an orientation: its length over the longest one, as in GEUS
+// Weight of an orientation, its length over the longest one
 class function TPolarMethodAlgorithm.Weight(const AStation, ARow: TGeoRow;
   ALongest: Double): Double;
 begin
@@ -237,16 +237,16 @@ begin
     if FCongruent then
     begin
       FCongruentTr.ComputeParametersFromPoints(Local, Global);
-      AFrame.Rows[0].X := FCongruentTr.X0;
-      AFrame.Rows[0].Y := FCongruentTr.Y0;
+      AFrame.Rows[0].X := FCongruentTr.ShiftX;
+      AFrame.Rows[0].Y := FCongruentTr.ShiftY;
       FInfo.Shift := FCongruentTr.Omega * RAD_TO_GON;
       FInfo.Q := 1;
     end
     else
     begin
       FHelmertTr.ComputeParametersFromPoints(Local, Global);
-      AFrame.Rows[0].X := FHelmertTr.X0;
-      AFrame.Rows[0].Y := FHelmertTr.Y0;
+      AFrame.Rows[0].X := FHelmertTr.ShiftX;
+      AFrame.Rows[0].Y := FHelmertTr.ShiftY;
       FInfo.Shift := FHelmertTr.Omega * RAD_TO_GON;
       FInfo.Q := FHelmertTr.Q;
     end;

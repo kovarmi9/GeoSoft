@@ -89,6 +89,9 @@ type
     /// <summary>True if a point from the list was overwritten.</summary>
     function WasInList(const ARow: TGeoRow): Boolean;
 
+    /// <summary>True for a point this form added to the list itself.</summary>
+    function IsNewPoint(APointNumber: Int64): Boolean;
+
     /// <summary>
     /// Descendants override this to set the column order of their grids.
     /// A field grid and a pair of edits check the order themselves, a plain
@@ -363,6 +366,11 @@ begin
   if FAnswers.TryGetValue(PointNumber, Answer) then
     Exit((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
   Result := True;
+end;
+
+function TCalcBaseForm.IsNewPoint(APointNumber: Int64): Boolean;
+begin
+  Result := FNewPoints.Contains(APointNumber);
 end;
 
 procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);

@@ -64,13 +64,17 @@ type
 
     FCheckColumn: Integer;            // -1 = no check box column
     FChecked: TArray<Boolean>;        // index 0 is the header "select all"
+    FDefaultChecked: Boolean;
     FOnCheckChanged: TNotifyEvent;
 
     procedure SetCheckColumn(const Value: Integer);
+    procedure SetDefaultChecked(const Value: Boolean);
     function  GetChecked(ARow: Integer): Boolean;
     procedure SetChecked(ARow: Integer; const Value: Boolean);
     procedure EnsureCheckedLength;
     procedure DrawCheckBox(ARow: Integer; const ARect: TRect);
+    procedure OpenEditor;
+    procedure WMChar(var Msg: TWMChar); message WM_CHAR;
 
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
@@ -204,11 +208,15 @@ type
 
   published
     /// <summary>
-    /// Column that shows a check box instead of text, -1 for none. Make it
-    /// a fixed column when the flag is not part of the data.
+    /// Column that shows a check box instead of text, -1 for none. As a
+    /// data column the cursor reaches it and Space toggles the box.
     /// </summary>
     property CheckColumn: Integer
       read FCheckColumn write SetCheckColumn default -1;
+
+    /// <summary>All boxes start ticked, a new row takes the header box.</summary>
+    property DefaultChecked: Boolean
+      read FDefaultChecked write SetDefaultChecked default False;
 
     /// <summary>Fired after any check box changes.</summary>
     property OnCheckChanged: TNotifyEvent
@@ -328,6 +336,21 @@ begin
   Result := TGeoInplaceEdit.Create(Self);
 end;
 
+// Opens the editor, never on the check box column
+procedure TGeoGrid.OpenEditor;
+begin
+  if (goEditing in Options) and (Col <> FCheckColumn) then
+    EditorMode := True;
+end;
+
+// No typing into the check box column, Space is handled by KeyDown
+procedure TGeoGrid.WMChar(var Msg: TWMChar);
+begin
+  if Col = FCheckColumn then
+    Exit;
+  inherited;
+end;
+
 // Draw header cells centered and bold
 procedure TGeoGrid.DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 var
@@ -342,6 +365,8 @@ begin
     Canvas.FillRect(Rect);
 
     S := Cells[ACol, ARow];
+    if ACol = FCheckColumn then
+      S := '';                    // no caption, only the box
 
     TextX := Rect.Left + (Rect.Width  - Canvas.TextWidth(S)) div 2;
     TextY := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
@@ -358,6 +383,8 @@ begin
     if not CellSelectable(ACol, ARow) then
       Canvas.Brush.Color := clReadOnlyCell;
     S := DisplayText(ACol, ARow);
+    if ACol = FCheckColumn then
+      S := '';                    // only the box, not the text under it
     // A form that paints cells itself takes DisplayText on its own
     if (S = Cells[ACol, ARow]) or Assigned(OnDrawCell) then
       inherited DrawCell(ACol, ARow, Rect, State)
@@ -409,11 +436,12 @@ begin
     Exit;
   end;
 
-  // Space toggles the row's check box where the cell cannot be typed into
-  if (Key = VK_SPACE) and (Shift = []) and not EditorMode and
-     (FCheckColumn >= 0) and not (goEditing in Options) then
+  // Space toggles the check box the cursor stands on, F2 opens nothing
+  if (Col = FCheckColumn) and (Shift = []) and
+     ((Key = VK_SPACE) or (Key = VK_F2)) then
   begin
-    Checked[Row] := not Checked[Row];
+    if Key = VK_SPACE then
+      Checked[Row] := not Checked[Row];
     Key := 0;
     Exit;
   end;
@@ -530,8 +558,8 @@ begin
     Exit;                       // already at the start
 
   MoveColRow(C, R, True, True);
-  if AOpenEditor and (goEditing in Options) then
-    EditorMode := True;
+  if AOpenEditor then
+    OpenEditor;
 end;
 
 procedure TGeoGrid.LeaveGrid(ABackwards: Boolean);
@@ -594,8 +622,8 @@ begin
   end;
 
   // Close editor after Enter
-  if (PressedKey = VK_RETURN) and (goEditing in Options) then
-    EditorMode := True;
+  if PressedKey = VK_RETURN then
+    OpenEditor;
 end;
 
 procedure TGeoGrid.CommitCell;
@@ -637,8 +665,7 @@ begin
     begin
       FLastCommitFailed := False;
       Result := False;
-      if goEditing in Options then
-        EditorMode := True;
+      OpenEditor;
       Exit;
     end;
   end;
@@ -656,10 +683,31 @@ begin
   Invalidate;
 end;
 
-procedure TGeoGrid.EnsureCheckedLength;
+procedure TGeoGrid.SetDefaultChecked(const Value: Boolean);
+var
+  I: Integer;
 begin
-  if Length(FChecked) < RowCount then
-    SetLength(FChecked, RowCount);
+  FDefaultChecked := Value;
+  for I := 0 to High(FChecked) do
+    FChecked[I] := Value;
+  Invalidate;
+end;
+
+// A new row takes the header box, the header box itself the default
+procedure TGeoGrid.EnsureCheckedLength;
+var
+  I, OldLength: Integer;
+begin
+  OldLength := Length(FChecked);
+  if OldLength >= RowCount then
+    Exit;
+
+  SetLength(FChecked, RowCount);
+  for I := OldLength to RowCount - 1 do
+    if I = 0 then
+      FChecked[I] := FDefaultChecked
+    else
+      FChecked[I] := FChecked[0];
 end;
 
 function TGeoGrid.GetChecked(ARow: Integer): Boolean;

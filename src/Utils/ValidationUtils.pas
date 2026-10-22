@@ -6,7 +6,10 @@ uses
   System.Math;
 
 type
-  /// <summary>Checks the values of a point, used by TPoint.Create.</summary>
+  /// <summary>Band of a point, Uxy = 2 * Mxy.</summary>
+  TMxyBand = (mbUnknown, mbWithinMxy, mbWithinUxy, mbOverUxy);
+
+  /// <summary>Checks the values of a point and their accuracy.</summary>
   TValidationUtils = class
   public
     const
@@ -29,6 +32,12 @@ type
     class function ValidateQuality(const AQuality: Integer): Integer; static;
     /// <summary>Validates the description, cuts it to 32 characters.</summary>
     class function ValidateDescription(const ADescription: string): string; static;
+    /// <summary>Mxy of a quality code [m], NaN if none.</summary>
+    class function MxyOfQuality(const AQuality: Integer): Double; static;
+    /// <summary>Band of a point by its Sxy against Mxy.</summary>
+    class function MxyBand(const ASxy, AMxy: Double): TMxyBand; static;
+    /// <summary>Band as the protocols print it.</summary>
+    class function MxyBandText(const ABand: TMxyBand): string; static;
   end;
 
 implementation
@@ -61,6 +70,45 @@ end;
 class function TValidationUtils.ValidateDescription(const ADescription: string): string;
 begin
   Result := Copy(ADescription, 1, MaxDescriptionLength);
+end;
+
+// KatV annex points 13.9 and 15.6
+class function TValidationUtils.MxyOfQuality(const AQuality: Integer): Double;
+begin
+  case AQuality of
+    3: Result := 0.14;   // geodetic methods, 13.9
+    4: Result := 0.26;
+    5: Result := 0.50;
+    6: Result := 0.21;   // digitised map 1:1000 and 1:1250, 15.6
+    7: Result := 0.50;   // 1:2000 and 1:2500
+    8: Result := 1.00;   // 1:2880 and the others
+  else
+    Result := NaN;
+  end;
+end;
+
+// KatV 13.7, 13.8, less than Mxy, not over Uxy
+class function TValidationUtils.MxyBand(const ASxy, AMxy: Double): TMxyBand;
+begin
+  if IsNan(AMxy) then
+    Result := mbUnknown
+  else if ASxy < AMxy then
+    Result := mbWithinMxy
+  else if ASxy <= 2 * AMxy then
+    Result := mbWithinUxy
+  else
+    Result := mbOverUxy;
+end;
+
+class function TValidationUtils.MxyBandText(const ABand: TMxyBand): string;
+begin
+  case ABand of
+    mbWithinMxy: Result := 'do Mxy';
+    mbWithinUxy: Result := 'do Uxy';
+    mbOverUxy:   Result := 'přes Uxy';
+  else
+    Result := 'Mxy neurčeno';
+  end;
 end;
 
 end.

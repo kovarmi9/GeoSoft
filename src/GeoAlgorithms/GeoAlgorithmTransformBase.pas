@@ -1,106 +1,153 @@
 ﻿unit GeoAlgorithmTransformBase;
 
-// Abstract base for coordinate transformation algorithms.
-// A transformation is a two-step process:
-//   1. ComputeParametersFromPoints - estimate the key and measure its fit
-//   2. Calculate                   - apply the transform to new points
+// Base of the transformation keys
+//   Y = ShiftY + A11 * y + A12 * x
+//   X = ShiftX + A21 * y + A22 * x
 
 interface
 
-uses Math, Point, GeoAlgorithmBase;
+uses SysUtils, Point, GeoAlgorithmBase;
 
 type
-  // What one identical point says about the fit.
-  // Sxy is the mean coordinate error of that point, not the length of the
-  // residual vector: sqrt((Vy^2 + Vx^2) / 2), the way GEUS prints it.
+  // Residuals of one identical point
   TPointResidual = record
     PointNumber: Int64;
-    Vy, Vx: Double;   // given minus transformed
-    Sxy:    Double;
+    Vy, Vx: Double;   // transformed minus given
+    Sxy:    Double;   // sqrt((Vy^2 + Vx^2) / 2)
   end;
 
   TPointResiduals = array of TPointResidual;
 
-  // Where one point falls against the mean coordinate error of its
-  // accuracy class. Uxy = 2 * Mxy, mbUnknown means the class has no
-  // value yet, so nothing may be claimed about the point.
-  TMxyBand = (mbUnknown, mbWithinMxy, mbWithin2Mxy, mbOver2Mxy);
-
-  // Abstract base class for all coordinate transformation algorithms.
-  // TAlgorithmBase gives it the shared Warnings list.
+  /// <summary>Centroids, shifts and residuals of a key.</summary>
   TTransformationAlgorithm = class abstract(TAlgorithmBase)
   private
     FResiduals: TPointResiduals;
     FSumVV: Double;
+    FShiftY, FShiftX: Double;
+    /// <summary>Centroid of the points.</summary>
+    class function Centroid(const Points: TPointsArray): TPoint;
   protected
-    // Estimates the parameters from matched local and global points
-    procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); virtual; abstract;
+    FA11, FA12, FA21, FA22: Double;
+
+    /// <summary>Fewest identical points of the key.</summary>
+    class function MinimumPoints: Integer; virtual; abstract;
+    /// <summary>Name of the key for messages.</summary>
+    class function KindName: string; virtual; abstract;
+    /// <summary>Fills A11..A22 from points reduced to centroids.</summary>
+    procedure EstimateMatrix(const LocalReduced, GlobalReduced: TPointsArray); virtual; abstract;
   public
-    /// <summary>
-    /// Estimates the parameters and then measures how well they fit, so no
-    /// descendant can forget the residuals.
-    /// </summary>
+    /// <summary>Makes the key and the residuals.</summary>
     procedure ComputeParametersFromPoints(const LocalPoints, GlobalPoints: TPointsArray);
 
-    // Applies the computed transformation to InputPoints and returns the result
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; virtual; abstract;
+    /// <summary>Applies the key, Z stays as it was.</summary>
+    function Calculate(const InputPoints: TPointsArray): TPointsArray;
 
-    /// <summary>
-    /// Where a point falls. The decree tests single points, not the fit as
-    /// a whole, so nothing here judges the key itself.
-    /// </summary>
-    class function MxyBand(const ASxy, AMxy: Double): TMxyBand;
+    property A11: Double read FA11;
+    property A12: Double read FA12;
+    property A21: Double read FA21;
+    property A22: Double read FA22;
+    property ShiftY: Double read FShiftY;
+    property ShiftX: Double read FShiftX;
 
-    /// <summary>What every identical point says about the last fit.</summary>
+    /// <summary>Residuals of the identical points.</summary>
     property Residuals: TPointResiduals read FResiduals;
 
-    /// <summary>
-    /// Sum of Vy^2 + Vx^2 over the identical points. Kept so the mean error
-    /// of the key can be added once its formula is settled.
-    /// </summary>
+    /// <summary>Sum of Vy^2 + Vx^2.</summary>
     property SumVV: Double read FSumVV;
   end;
 
 implementation
 
-class function TTransformationAlgorithm.MxyBand(
-  const ASxy, AMxy: Double): TMxyBand;
+// Centroid, mean of Y and X
+class function TTransformationAlgorithm.Centroid(
+  const Points: TPointsArray): TPoint;
+var
+  I: Integer;
 begin
-  if IsNan(AMxy) then
-    Result := mbUnknown
-  else if ASxy <= AMxy then
-    Result := mbWithinMxy
-  else if ASxy <= 2 * AMxy then
-    Result := mbWithin2Mxy
-  else
-    Result := mbOver2Mxy;
+  Result := Default(TPoint);
+  for I := 0 to High(Points) do
+  begin
+    Result.Y := Result.Y + Points[I].Y;
+    Result.X := Result.X + Points[I].X;
+  end;
+  Result.Y := Result.Y / Length(Points);
+  Result.X := Result.X / Length(Points);
 end;
 
+// Checks, centroids, matrix, shifts, residuals
 procedure TTransformationAlgorithm.ComputeParametersFromPoints(
   const LocalPoints, GlobalPoints: TPointsArray);
 var
-  Transformed: TPointsArray;
-  I: Integer;
-  R: TPointResidual;
+  LocalCentroid, GlobalCentroid: TPoint;
+  LocalReduced, GlobalReduced, Transformed: TPointsArray;
+  I, Count: Integer;
+  Residual: TPointResidual;
 begin
-  // A failed estimate must not leave the residuals of the last one
+  ClearWarnings;
+
+  // No residuals of the last key
   SetLength(FResiduals, 0);
   FSumVV := 0;
 
-  EstimateParameters(LocalPoints, GlobalPoints);
+  // Checks
+  Count := Length(LocalPoints);
+  if Count <> Length(GlobalPoints) then
+    raise Exception.Create(
+      'Počet bodů v místní a cílové soustavě se neshoduje.');
+  if Count < MinimumPoints then
+    raise Exception.Create(Format(
+      'Pro %s transformaci jsou potřeba alespoň %d identické body.',
+      [KindName, MinimumPoints]));
 
-  // The identical points go through the key and meet their given place
-  Transformed := Calculate(LocalPoints);
-  SetLength(FResiduals, Length(LocalPoints));
-  for I := 0 to High(LocalPoints) do
+  // Reduced to centroids, keeps digits
+  LocalCentroid := Centroid(LocalPoints);
+  GlobalCentroid := Centroid(GlobalPoints);
+  SetLength(LocalReduced, Count);
+  SetLength(GlobalReduced, Count);
+  for I := 0 to Count - 1 do
   begin
-    R.PointNumber := GlobalPoints[I].PointNumber;
-    R.Vy  := GlobalPoints[I].Y - Transformed[I].Y;
-    R.Vx  := GlobalPoints[I].X - Transformed[I].X;
-    R.Sxy := Sqrt((Sqr(R.Vy) + Sqr(R.Vx)) / 2);
+    LocalReduced[I] := LocalPoints[I];
+    LocalReduced[I].Y := LocalPoints[I].Y - LocalCentroid.Y;
+    LocalReduced[I].X := LocalPoints[I].X - LocalCentroid.X;
+    GlobalReduced[I] := GlobalPoints[I];
+    GlobalReduced[I].Y := GlobalPoints[I].Y - GlobalCentroid.Y;
+    GlobalReduced[I].X := GlobalPoints[I].X - GlobalCentroid.X;
+  end;
 
-    FResiduals[I] := R;
-    FSumVV := FSumVV + Sqr(R.Vy) + Sqr(R.Vx);
+  // Matrix from the descendant
+  EstimateMatrix(LocalReduced, GlobalReduced);
+
+  // Centroid lands on centroid
+  FShiftY := GlobalCentroid.Y - FA11 * LocalCentroid.Y - FA12 * LocalCentroid.X;
+  FShiftX := GlobalCentroid.X - FA21 * LocalCentroid.Y - FA22 * LocalCentroid.X;
+
+  // Residuals of the identical points
+  Transformed := Calculate(LocalPoints);
+  SetLength(FResiduals, Count);
+  for I := 0 to Count - 1 do
+  begin
+    Residual.PointNumber := GlobalPoints[I].PointNumber;
+    Residual.Vy  := Transformed[I].Y - GlobalPoints[I].Y;
+    Residual.Vx  := Transformed[I].X - GlobalPoints[I].X;
+    Residual.Sxy := Sqrt((Sqr(Residual.Vy) + Sqr(Residual.Vx)) / 2);
+
+    FResiduals[I] := Residual;
+    FSumVV := FSumVV + Sqr(Residual.Vy) + Sqr(Residual.Vx);
+  end;
+end;
+
+// Key applied to each point
+function TTransformationAlgorithm.Calculate(
+  const InputPoints: TPointsArray): TPointsArray;
+var
+  I: Integer;
+begin
+  SetLength(Result, Length(InputPoints));
+  for I := 0 to High(InputPoints) do
+  begin
+    Result[I] := InputPoints[I];
+    Result[I].Y := FShiftY + FA11 * InputPoints[I].Y + FA12 * InputPoints[I].X;
+    Result[I].X := FShiftX + FA21 * InputPoints[I].Y + FA22 * InputPoints[I].X;
   end;
 end;
 

@@ -3287,9 +3287,9 @@ object Form1: TForm1
     end
     object MenuLevelling: TMenuItem
       Caption = 'Nivelace'
-      object N2: TMenuItem
+      object MenuTechnicalLevelling: TMenuItem
         Caption = 'Technick'#225' nivelace'
-        OnClick = N2Click
+        OnClick = MenuTechnicalLevellingClick
       end
     end
     object MenuNastaveni: TMenuItem

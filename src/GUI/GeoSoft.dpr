@@ -22,6 +22,7 @@ uses
   GeoAlgorithmTransformCongruent in '..\GeoAlgorithms\GeoAlgorithmTransformCongruent.pas',
   GeoAlgorithmTransformSimilarity in '..\GeoAlgorithms\GeoAlgorithmTransformSimilarity.pas',
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
+  GeoAlgorithmTransformation in '..\GeoAlgorithms\GeoAlgorithmTransformation.pas',
   SettingsDialog in 'SettingsDialog.pas' {SettingsForm},
   GeoDataFrame in '..\DataStructures\GeoDataFrame.pas',
   GeoRow in '..\DataStructures\GeoRow.pas',
@@ -32,6 +33,7 @@ uses
   PointPrefixState in '..\Utils\PointPrefixState.pas',
   ProtocolArea in '..\Utils\ProtocolArea.pas',
   ProtocolPolar in '..\Utils\ProtocolPolar.pas',
+  ProtocolTransformation in '..\Utils\ProtocolTransformation.pas',
   ProtocolTable in '..\Utils\ProtocolTable.pas',
   SettingsState in '..\Utils\SettingsState.pas',
   ValidationUtils in '..\Utils\ValidationUtils.pas',
@@ -41,7 +43,8 @@ uses
   DistanceIntersection in 'DistanceIntersection.pas' {DistanceIntersectionForm},
   ForwardIntersection in 'ForwardIntersection.pas' {ForwardIntersectionForm},
   RectangularAdjustment in 'RectangularAdjustment.pas' {RectangularAdjustmentForm},
-  Resection in 'Resection.pas' {ResectionForm};
+  Resection in 'Resection.pas' {ResectionForm},
+  Levelling in 'Levelling.pas' {LevellingForm};
 
 {$R *.res}
 
@@ -62,5 +65,6 @@ begin
   Application.CreateForm(TForwardIntersectionForm, ForwardIntersectionForm);
   Application.CreateForm(TRectangularAdjustmentForm, RectangularAdjustmentForm);
   Application.CreateForm(TResectionForm, ResectionForm);
+  Application.CreateForm(TLevellingForm, LevellingForm);
   Application.Run;
 end.

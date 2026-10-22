@@ -1,125 +1,46 @@
 ﻿unit GeoAlgorithmTransformCongruent;
 
-// Congruent transformation (4-parameter, fixed scale Q = 1).
-// Model:  X' = X0 + cos(omega)*x - sin(omega)*y
-//         Y' = Y0 + sin(omega)*x + cos(omega)*y
-// Preserves shape and size, only rotation and translation are estimated.
-// Parameters are computed via centroid reduction and a closed-form solution.
+// Congruent key, similarity without scale
+//   A11 = cos(Omega), A12 = sin(Omega), A21 = -sin(Omega), A22 = cos(Omega)
 
 interface
 
 uses
-  Math, SysUtils, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase;
+  GeoAlgorithmBase, GeoAlgorithmTransformSimilarity;
 
 type
-  // Congruent (rigid-body) transformation - rotation + translation only
-  TCongruentTransformation = class(TTransformationAlgorithm)
-  private
-    FLambda1, FLambda2: Double; // lambda parameters from the centroids
-    FOmega, FQ: Double;         // rotation [rad] and scale (always 1)
-    FX0, FY0: Double;           // translation parameters
+  /// <summary>Congruent key, scale always 1.</summary>
+  TCongruentTransformation = class(TSimilarityTransformation)
   protected
-    procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); override;
-  public
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
-
-    property Lambda1: Double read FLambda1;
-    property Lambda2: Double read FLambda2;
-    property Omega: Double read FOmega;   // rotation angle [rad]
-    property Q: Double read FQ;           // scale factor (= 1 for congruent)
-    property X0: Double read FX0;         // X translation
-    property Y0: Double read FY0;         // Y translation
+    class function MinimumPoints: Integer; override;
+    class function KindName: string; override;
+    procedure EstimateMatrix(const LocalReduced, GlobalReduced: TPointsArray); override;
   end;
 
 implementation
 
-procedure TCongruentTransformation.EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray);
-var
-  i, n: Integer;
-  SumYL, SumXL, SumYG, SumXG: Double;
-  CentroidYL, CentroidXL, CentroidYG, CentroidXG: Double;
-  YrL, XrL, YrG, XrG: Double;
-  SumSq, SumL1, SumL2: Double;
+class function TCongruentTransformation.MinimumPoints: Integer;
 begin
-  ClearWarnings;
-
-  n := Length(LocalPoints);
-  if n <> Length(GlobalPoints) then
-    raise Exception.Create(
-      'Počet bodů v místní a cílové soustavě se neshoduje.');
-  if n < 2 then
-    raise Exception.Create(
-      'Pro shodnostní transformaci jsou potřeba alespoň 2 identické body.');
-
-  // Compute centroids of both point sets
-  SumYL := 0; SumXL := 0; SumYG := 0; SumXG := 0;
-  for i := 0 to n - 1 do
-  begin
-    SumYL := SumYL + LocalPoints[i].Y;
-    SumXL := SumXL + LocalPoints[i].X;
-    SumYG := SumYG + GlobalPoints[i].Y;
-    SumXG := SumXG + GlobalPoints[i].X;
-  end;
-
-  CentroidYL := SumYL / n;
-  CentroidXL := SumXL / n;
-  CentroidYG := SumYG / n;
-  CentroidXG := SumXG / n;
-
-  SumSq := 0;
-  SumL1 := 0;
-  SumL2 := 0;
-
-  // Accumulate centroid-reduced cross-products for the lambda solution
-  for i := 0 to n - 1 do
-  begin
-    YrL := LocalPoints[i].Y - CentroidYL;
-    XrL := LocalPoints[i].X - CentroidXL;
-    YrG := GlobalPoints[i].Y - CentroidYG;
-    XrG := GlobalPoints[i].X - CentroidXG;
-
-    SumSq := SumSq + Sqr(XrL) + Sqr(YrL);
-    SumL1 := SumL1 + (XrL * XrG + YrL * YrG);
-    SumL2 := SumL2 + (XrL * YrG - YrL * XrG);
-  end;
-
-  // All control points in one spot - no direction can be derived from them
-  if SumSq < 1e-10 then
-    raise Exception.Create(
-      'Identické body splývají, transformaci z nich nelze určit.');
-
-  // Lambda parameters (closed-form least-squares solution)
-  FLambda1 := SumL1 / SumSq;
-  FLambda2 := SumL2 / SumSq;
-
-  // Derive rotation angle, scale (fixed to 1), and translations
-  FOmega := ArcTan2(FLambda2, FLambda1);
-  FQ := 1;
-  FX0 := CentroidXG - Cos(FOmega) * CentroidXL + Sin(FOmega) * CentroidYL;
-  FY0 := CentroidYG - Sin(FOmega) * CentroidXL - Cos(FOmega) * CentroidYL;
+  Result := 2;
 end;
 
-function TCongruentTransformation.Calculate(const InputPoints: TPointsArray): TPointsArray;
-var
-  i: Integer;
-  x, y: Double;
-  CosOmega, SinOmega: Double;
+class function TCongruentTransformation.KindName: string;
 begin
-  SetLength(Result, Length(InputPoints));
+  Result := 'shodnostní';
+end;
 
-  // Pre-compute trig values to avoid repeated calls in the loop
-  CosOmega := Cos(FOmega);
-  SinOmega := Sin(FOmega);
+procedure TCongruentTransformation.EstimateMatrix(
+  const LocalReduced, GlobalReduced: TPointsArray);
+begin
+  // Lambda1 and Lambda2
+  inherited;
 
-  for i := 0 to High(InputPoints) do
-  begin
-    x := InputPoints[i].X;
-    y := InputPoints[i].Y;
-
-    Result[i] := InputPoints[i];
-    Result[i].X := FX0 + CosOmega * x - SinOmega * y;
-    Result[i].Y := FY0 + SinOmega * x + CosOmega * y;
-  end;
+  // Divided by scale, cos and sin
+  FA11 := FA11 / FQ;
+  FA12 := FA12 / FQ;
+  FA21 := FA21 / FQ;
+  FA22 := FA22 / FQ;
+  FQ := 1;
 end;
 
 end.

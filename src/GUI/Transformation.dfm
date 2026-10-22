@@ -1,4 +1,5 @@
 inherited TransformationForm: TTransformationForm
+  ActiveControl = Grid
   Caption = 'Transformace'
   StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
@@ -25,7 +26,7 @@ inherited TransformationForm: TTransformationForm
     inherited ComboBoxPopis: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
-    object StaticText2: TStaticText
+    object StaticTextKind: TStaticText
       Left = 402
       Top = 0
       Width = 100
@@ -34,14 +35,16 @@ inherited TransformationForm: TTransformationForm
       Caption = 'Typ transformace:'
       TabOrder = 5
     end
-    object ComboBox1: TComboBox
+    object ComboBoxKind: TComboBox
       Left = 502
       Top = 0
       Width = 145
       Height = 23
+      Style = csDropDownList
       ItemIndex = 0
       TabOrder = 4
       Text = 'Shodnostn'#237
+      OnChange = KeyChanged
       Items.Strings = (
         'Shodnostn'#237
         'Podobnostn'#237
@@ -56,18 +59,22 @@ inherited TransformationForm: TTransformationForm
     Left = 0
     Top = 35
     Width = 800
-    Height = 546
-    Align = alClient
+    Height = 250
+    Align = alTop
     ColCount = 12
-    FixedCols = 2
+    FixedCols = 1
     RowCount = 3
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
     OnExit = GridExit
+    OnGetEditText = GridGetEditText
     EnterEndBehavior = ebAddRow
     OnCellCommitted = PointCommitted
     CheckColumn = 1
+    DefaultChecked = True
+    OnCheckChanged = KeyChanged
     ColumnFields.Strings = (
+      'TypS=Kl'#237#269
       'CB='#268'B do kter'#233
       'Y=Yc'#237'l'
       'X=Xc'#237'l'
@@ -97,17 +104,53 @@ inherited TransformationForm: TTransformationForm
       24
       24)
   end
-  inherited PanelButtons: TPanel
-    Visible = False
+  object Splitter1: TSplitter [3]
+    Left = 0
+    Top = 285
+    Width = 800
+    Height = 3
+    Cursor = crVSplit
+    Align = alTop
+    MinSize = 80
   end
-  inherited MainMenu1: TMainMenu
-    inherited MenuUloha: TMenuItem
-      inherited MenuReset: TMenuItem
-        Visible = False
-      end
-      inherited MenuNacistZapisnik: TMenuItem
-        Visible = False
-      end
+  object Memo1: TMemo [4]
+    Left = 0
+    Top = 288
+    Width = 800
+    Height = 231
+    Align = alClient
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssBoth
+    TabOrder = 4
+    WordWrap = False
+  end
+  object PanelSummary: TPanel [5]
+    Left = 0
+    Top = 519
+    Width = 800
+    Height = 25
+    Align = alBottom
+    BevelOuter = bvNone
+    TabOrder = 3
+    object LabelSummary: TLabel
+      Left = 8
+      Top = 5
+      Width = 3
+      Height = 15
+    end
+  end
+  inherited PanelButtons: TPanel
+    inherited ButtonCalculate: TButton
+      OnClick = CalculateClick
+    end
+    inherited ButtonSave: TButton
+      OnClick = SaveClick
     end
   end
 end

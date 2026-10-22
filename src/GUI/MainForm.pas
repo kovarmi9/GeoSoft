@@ -37,7 +37,7 @@ type
     MenuCheckMeasurements: TMenuItem;
     MenuTransformation: TMenuItem;
     MenuParcelArea: TMenuItem;
-    N2: TMenuItem;
+    MenuTechnicalLevelling: TMenuItem;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
     procedure YX2XYClick(Sender: TObject);
@@ -58,7 +58,7 @@ type
     procedure MenuCheckMeasurementsClick(Sender: TObject);
     procedure MenuTransformationClick(Sender: TObject);
     procedure MenuParcelAreaClick(Sender: TObject);
-    procedure N2Click(Sender: TObject);
+    procedure MenuTechnicalLevellingClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -75,7 +75,7 @@ implementation
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   CheckMeasurements, PolarMethod, PointsManagement, CoordOrderState,
   SettingsDialog, LineAdjustment, LineIntersection, DistanceIntersection,
-  ForwardIntersection, RectangularAdjustment, Resection;
+  ForwardIntersection, RectangularAdjustment, Resection, Levelling;
 
 // File menu: picks a list file and shows it
 procedure TForm1.MenuFileOpenClick(Sender: TObject);
@@ -175,9 +175,9 @@ begin
   TransformationForm.Show;
 end;
 
-procedure TForm1.N2Click(Sender: TObject);
+procedure TForm1.MenuTechnicalLevellingClick(Sender: TObject);
 begin
-  ResectionForm.Show;
+  LevellingForm.Show;
 end;
 
 procedure TForm1.MenuParcelAreaClick(Sender: TObject);

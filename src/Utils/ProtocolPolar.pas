@@ -16,13 +16,6 @@ type
 
     function Pair(const ARow: TGeoRow): string;
 
-    /// <summary>
-    /// Basic mean coordinate error of a quality code [m]. NaN for a code
-    /// nobody has given a value for yet, so the caller can say so instead
-    /// of testing against a made-up number.
-    /// </summary>
-    class function MxyOfQuality(const AQuality: Integer): Double; static;
-
     procedure WriteStation;
     procedure WriteFit;
     procedure WriteOrientations;
@@ -41,18 +34,7 @@ implementation
 
 uses
   System.SysUtils, System.Math, Point, GeoAlgorithmTransformBase,
-  CoordOrderState;
-
-class function TPolarProtocol.MxyOfQuality(const AQuality: Integer): Double;
-begin
-  case AQuality of
-    3: Result := 0.14;
-    4: Result := 0.26;
-    5: Result := 0.50;
-  else
-    Result := NaN;   // not specified yet
-  end;
-end;
+  CoordOrderState, ValidationUtils;
 
 constructor TPolarProtocol.Create(ATable: TProtocol;
   AAlg: TPolarMethodAlgorithm; AFrame: TGeoDataFrame);
@@ -116,7 +98,7 @@ var
 begin
   Fit := FAlg.Residuals;
   Quality := FFrame.Rows[0].KK;
-  Mxy := MxyOfQuality(Quality);
+  Mxy := TValidationUtils.MxyOfQuality(Quality);
 
   FTable.Text('');
   if FAlg.Info.Congruent then
@@ -129,13 +111,8 @@ begin
 
   for I := 0 to High(Fit) do
   begin
-    case TTransformationAlgorithm.MxyBand(Fit[I].Sxy, Mxy) of
-      mbWithinMxy:  Verdict := 'do Mxy';
-      mbWithin2Mxy: Verdict := 'do 2Mxy';
-      mbOver2Mxy:   Verdict := 'přes 2Mxy';
-    else
-      Verdict := 'Mxy neurčeno';
-    end;
+    Verdict := TValidationUtils.MxyBandText(
+      TValidationUtils.MxyBand(Fit[I].Sxy, Mxy));
 
     FTable.Row([FTable.PointId(Fit[I].PointNumber), Num(Fit[I].Vy),
                 Num(Fit[I].Vx), Num(Fit[I].Sxy), Verdict]);

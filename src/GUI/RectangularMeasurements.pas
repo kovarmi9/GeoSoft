@@ -135,7 +135,7 @@ begin
     Known := TPointDictionary.GetInstance.PointExists(PointNumber);
     if Known then
     begin
-      // Report the duplicate and let the user choose, the same as GEUS
+      // Duplicate point, the user chooses
       if Application.MessageBox(PChar(Format(
         'Bod %s již v seznamu existuje.' + sLineBreak +
         'Použít jeho souřadnice? (Ne = počítat ho jako nový)',

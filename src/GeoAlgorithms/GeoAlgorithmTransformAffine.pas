@@ -1,208 +1,78 @@
 ﻿unit GeoAlgorithmTransformAffine;
 
-// Affine transformation (6-parameter).
-// Model:  X' = a1*x + a2*y + a3
-//         Y' = b1*x + b2*y + b3
-// Parameters are estimated from >= 3 control point pairs via least squares (normal equations).
-// Allows independent scaling and shearing on both axes.
+// Affine key, own scale in each axis
+//   X = a1 * x + a2 * y, Y = b1 * x + b2 * y
+//   A11 = b2, A12 = b1, A21 = a2, A22 = a1
 
 interface
 
 uses
-  Math, SysUtils, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase;
+  SysUtils, GeoAlgorithmBase, GeoAlgorithmTransformBase;
 
 type
+  /// <summary>Affine key.</summary>
   TAffineTransformation = class(TTransformationAlgorithm)
-  private
-    a1, a2, a3: Double; // X-row coefficients
-    b1, b2, b3: Double; // Y-row coefficients
   protected
-    procedure EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray); override;
-  public
-    function Calculate(const InputPoints: TPointsArray): TPointsArray; override;
-
-    // Aliases matching the classic geodetic notation
-    property A_1: Double read a1;
-    property A_2: Double read a2;
-    property A_3: Double read a3;
-    property B_1: Double read b1;
-    property B_2: Double read b2;
-    property B_3: Double read b3;
-
-    // Descriptive aliases for the individual transformation parameters
-    property QX: Double read a1;      // scale factor in X
-    property QY: Double read b2;      // scale factor in Y
-    property OmegaX: Double read a2;  // rotation/shear component in X row
-    property OmegaY: Double read b1;  // rotation/shear component in Y row
-    property X0: Double read a3;      // X translation
-    property Y0: Double read b3;      // Y translation
+    class function MinimumPoints: Integer; override;
+    class function KindName: string; override;
+    procedure EstimateMatrix(const LocalReduced, GlobalReduced: TPointsArray); override;
   end;
 
 implementation
 
-type
-  TMatrix = array of array of Double;
-  TVector = array of Double;
-
-// Gauss-Jordan matrix inversion, raises an exception if the matrix is singular
-function InvertMatrix(const M: TMatrix): TMatrix;
-var
-  N, i, j, k: Integer;
-  Ratio: Double;
-  Aug: TMatrix;
+class function TAffineTransformation.MinimumPoints: Integer;
 begin
-  N := Length(M);
-  SetLength(Aug, N, 2 * N);
-
-  // Build augmented matrix [M | I]
-  for i := 0 to N - 1 do
-  begin
-    for j := 0 to N - 1 do
-      Aug[i][j] := M[i][j];
-    for j := N to 2 * N - 1 do
-      Aug[i][j] := IfThen(j - N = i, 1.0, 0.0);
-  end;
-
-  // Forward elimination
-  for i := 0 to N - 1 do
-  begin
-    if Abs(Aug[i][i]) < 1e-12 then
-      raise Exception.Create('Matice je singulární - identické body jsou ' +
-        'v degenerované poloze.');
-
-    for j := 0 to N - 1 do
-    begin
-      if i <> j then
-      begin
-        Ratio := Aug[j][i] / Aug[i][i];
-        for k := 0 to 2 * N - 1 do
-          Aug[j][k] := Aug[j][k] - Ratio * Aug[i][k];
-      end;
-    end;
-  end;
-
-  // Normalise rows so the diagonal becomes 1
-  for i := 0 to N - 1 do
-  begin
-    for j := N to 2 * N - 1 do
-      Aug[i][j] := Aug[i][j] / Aug[i][i];
-  end;
-
-  // Extract the right half - that is the inverse
-  SetLength(Result, N, N);
-  for i := 0 to N - 1 do
-    for j := 0 to N - 1 do
-      Result[i][j] := Aug[i][j + N];
+  Result := 3;
 end;
 
-function MultiplyMatrixVector(const M: TMatrix; const V: TVector): TVector;
-var
-  i, j: Integer;
+class function TAffineTransformation.KindName: string;
 begin
-  SetLength(Result, Length(M));
-  for i := 0 to High(M) do
+  Result := 'afinní';
+end;
+
+procedure TAffineTransformation.EstimateMatrix(
+  const LocalReduced, GlobalReduced: TPointsArray);
+var
+  I: Integer;
+  SumXX, SumYY, SumXY: Double;
+  SumXTargetX, SumYTargetX, SumXTargetY, SumYTargetY: Double;
+  Determinant: Double;
+  A1, A2, B1, B2: Double;
+begin
+  SumXX := 0;
+  SumYY := 0;
+  SumXY := 0;
+  SumXTargetX := 0;
+  SumYTargetX := 0;
+  SumXTargetY := 0;
+  SumYTargetY := 0;
+  for I := 0 to High(LocalReduced) do
   begin
-    Result[i] := 0;
-    for j := 0 to High(M[i]) do
-      Result[i] := Result[i] + M[i][j] * V[j];
-  end;
-end;
-
-function MultiplyMatrix(const A, B: TMatrix): TMatrix;
-var
-  i, j, k: Integer;
-begin
-  SetLength(Result, Length(A), Length(B[0]));
-  for i := 0 to High(A) do
-    for j := 0 to High(B[0]) do
-    begin
-      Result[i][j] := 0;
-      for k := 0 to High(B) do
-        Result[i][j] := Result[i][j] + A[i][k] * B[k][j];
-    end;
-end;
-
-function TransposeMatrix(const M: TMatrix): TMatrix;
-var
-  i, j: Integer;
-begin
-  SetLength(Result, Length(M[0]), Length(M));
-  for i := 0 to High(M) do
-    for j := 0 to High(M[0]) do
-      Result[j][i] := M[i][j];
-end;
-
-// Builds design matrix A and vector L, then solves the normal equations:
-// Params = (A^T * A)^-1 * A^T * L
-procedure TAffineTransformation.EstimateParameters(const LocalPoints, GlobalPoints: TPointsArray);
-var
-  A: TMatrix;
-  L: TVector;
-  i, n: Integer;
-  AT, ATA, InvATA: TMatrix;
-  ATL, Params: TVector;
-begin
-  ClearWarnings;
-
-  n := Length(LocalPoints);
-  if n <> Length(GlobalPoints) then
-    raise Exception.Create(
-      'Počet bodů v místní a cílové soustavě se neshoduje.');
-  if n < 3 then
-    raise Exception.Create(
-      'Pro afinní transformaci jsou potřeba alespoň 3 identické body.');
-  SetLength(A, 2 * n, 6);
-  SetLength(L, 2 * n);
-
-  // Each control point contributes two rows (one for X, one for Y)
-  for i := 0 to n - 1 do
-  begin
-    A[2 * i][0] := LocalPoints[i].X;
-    A[2 * i][1] := LocalPoints[i].Y;
-    A[2 * i][2] := 1;
-    A[2 * i][3] := 0;
-    A[2 * i][4] := 0;
-    A[2 * i][5] := 0;
-    L[2 * i] := GlobalPoints[i].X;
-
-    A[2 * i + 1][0] := 0;
-    A[2 * i + 1][1] := 0;
-    A[2 * i + 1][2] := 0;
-    A[2 * i + 1][3] := LocalPoints[i].X;
-    A[2 * i + 1][4] := LocalPoints[i].Y;
-    A[2 * i + 1][5] := 1;
-    L[2 * i + 1] := GlobalPoints[i].Y;
+    SumXX := SumXX + Sqr(LocalReduced[I].X);
+    SumYY := SumYY + Sqr(LocalReduced[I].Y);
+    SumXY := SumXY + LocalReduced[I].X * LocalReduced[I].Y;
+    SumXTargetX := SumXTargetX + LocalReduced[I].X * GlobalReduced[I].X;
+    SumYTargetX := SumYTargetX + LocalReduced[I].Y * GlobalReduced[I].X;
+    SumXTargetY := SumXTargetY + LocalReduced[I].X * GlobalReduced[I].Y;
+    SumYTargetY := SumYTargetY + LocalReduced[I].Y * GlobalReduced[I].Y;
   end;
 
-  AT := TransposeMatrix(A);
-  ATA := MultiplyMatrix(AT, A);
-  ATL := MultiplyMatrixVector(AT, L);
-  InvATA := InvertMatrix(ATA);
-  Params := MultiplyMatrixVector(InvATA, ATL);
+  // Points on one line
+  Determinant := SumXX * SumYY - Sqr(SumXY);
+  if Determinant <= 1e-10 * SumXX * SumYY then
+    raise Exception.Create('Identické body leží v přímce, afinní ' +
+      'transformaci z nich nelze určit.');
 
-  a1 := Params[0];
-  a2 := Params[1];
-  a3 := Params[2];
-  b1 := Params[3];
-  b2 := Params[4];
-  b3 := Params[5];
-end;
+  // Cramer's rule
+  A1 := (SumXTargetX * SumYY - SumYTargetX * SumXY) / Determinant;
+  A2 := (SumYTargetX * SumXX - SumXTargetX * SumXY) / Determinant;
+  B1 := (SumXTargetY * SumYY - SumYTargetY * SumXY) / Determinant;
+  B2 := (SumYTargetY * SumXX - SumXTargetY * SumXY) / Determinant;
 
-function TAffineTransformation.Calculate(const InputPoints: TPointsArray): TPointsArray;
-var
-  i: Integer;
-  x, y: Double;
-begin
-  SetLength(Result, Length(InputPoints));
-  for i := 0 to High(InputPoints) do
-  begin
-    x := InputPoints[i].X;
-    y := InputPoints[i].Y;
-
-    Result[i] := InputPoints[i];
-    Result[i].X := a1 * x + a2 * y + a3;
-    Result[i].Y := b1 * x + b2 * y + b3;
-  end;
+  FA11 := B2;
+  FA12 := B1;
+  FA21 := A2;
+  FA22 := A1;
 end;
 
 end.

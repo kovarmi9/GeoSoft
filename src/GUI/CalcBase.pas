@@ -90,6 +90,9 @@ type
     /// <summary>True if a point from the list was overwritten.</summary>
     function WasInList(const ARow: TGeoRow): Boolean;
 
+    /// <summary>A list point as it was before this form changed it.</summary>
+    function OriginalPoint(APointNumber: Int64; out APoint: Point.TPoint): Boolean;
+
     /// <summary>True for a point this form added to the list itself.</summary>
     function IsNewPoint(APointNumber: Int64): Boolean;
 
@@ -367,6 +370,16 @@ begin
   if FAnswers.TryGetValue(PointNumber, Answer) then
     Exit((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
   Result := True;
+end;
+
+function TCalcBaseForm.OriginalPoint(APointNumber: Int64; out APoint: Point.TPoint): Boolean;
+begin
+  Result := FOriginals.TryGetValue(APointNumber, APoint);
+  if not Result and Points.PointExists(APointNumber) then
+  begin
+    APoint := Points.GetPoint(APointNumber);
+    Result := True;
+  end;
 end;
 
 function TCalcBaseForm.IsNewPoint(APointNumber: Int64): Boolean;

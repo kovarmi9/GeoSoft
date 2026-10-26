@@ -24,6 +24,8 @@ uses
   GeoAlgorithmTransformAffine in '..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas',
   GeoAlgorithmTransformation in '..\GeoAlgorithms\GeoAlgorithmTransformation.pas',
   GeoAlgorithmScale in '..\GeoAlgorithms\GeoAlgorithmScale.pas',
+  GeoAlgorithmLineAdjustment in '..\GeoAlgorithms\GeoAlgorithmLineAdjustment.pas',
+  GeoAlgorithmLevelling in '..\GeoAlgorithms\GeoAlgorithmLevelling.pas',
   SettingsDialog in 'SettingsDialog.pas' {SettingsForm},
   GeoDataFrame in '..\DataStructures\GeoDataFrame.pas',
   GeoRow in '..\DataStructures\GeoRow.pas',

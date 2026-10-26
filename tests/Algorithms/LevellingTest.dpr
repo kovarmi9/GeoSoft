@@ -13,7 +13,7 @@ var
   Frame: TGeoDataFrame;
   Alg: TLevellingAlgorithm;
 
-// One reading: B back, F fore, S side. Height only at the known ends.
+// One reading: B back, F fore, S side. Given height only at the known ends.
 procedure Add(const APointNumber: string; AKind: Char;
   AReading, ALength: Double; AHeight: Double = NaN);
 var
@@ -51,13 +51,13 @@ begin
   begin
     Row := Frame.Rows[I];
     Writeln(Format('  %-5s převýšení %8.4f  oprava %8.4f  výška %9.4f',
-      [string(Row.CB), Row.Vz, Row.Vy, Row.Z]));
+      [string(Row.CB), Row.Vz, Row.Vy, Row.VC]));
   end;
   Writeln;
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([Uloha, CB, Z, Xm, Ym, Zm, SH, Vz, Vy]);
+  Frame := TGeoDataFrame.Create([Uloha, CB, Z, Xm, Ym, Zm, SH, Vz, Vy, VC]);
   Alg := TLevellingAlgorithm.Create;
   try
     // 1. Line 101 - 102, side reading 5001, misclosure +3 mm.
@@ -90,13 +90,24 @@ begin
     Add('102', 'F', 1.432, 30, 251.274);
     Run('3. Odchylka přes mez (očekáváno upozornění)');
 
-    // 4. Two readings on a row, a missing length, no end height
+    // 4. Two readings on a row, a missing length
     Frame.ClearData;
     Add('101', 'B', 1.523, 30, 250.000);
     Add('', 'F', 0.987, NaN);
     Frame.Rows[1].Xm := 1.0;
     Add('102', 'F', 1.432, 30);
     Run('4. Chyby v zápisníku (očekávány chyby)');
+
+    // 5. End 102 without a given height, no correction.
+    // Expected: 250,536  251,279  102 251,257
+    Frame.ClearData;
+    Add('101', 'B', 1.523, 30, 250.000);
+    Add('', 'F', 0.987, 30);
+    Add('', 'B', 1.845, 30);
+    Add('', 'F', 1.102, 30);
+    Add('', 'B', 1.410, 30);
+    Add('102', 'F', 1.432, 30);
+    Run('5. Konec bez dané výšky (očekáváno upozornění)');
   finally
     Alg.Free;
     Frame.Free;

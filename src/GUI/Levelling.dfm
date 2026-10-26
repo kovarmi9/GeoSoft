@@ -8,22 +8,25 @@ inherited LevellingForm: TLevellingForm
     Width = 800
     Height = 250
     Align = alTop
-    ColCount = 10
+    ColCount = 11
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
     TabOrder = 2
+    OnExit = GridExit
     EnterEndBehavior = ebAddRow
+    OnCellCommitted = PointCommitted
     ColumnFields.Strings = (
       'CB='#268#237'slo bodu'
       'Xm=Vzad'
       'Ym=Vp'#345'ed'
       'Zm=Bo'#269'n'#283
       'SH=D'#233'lka'
+      'Z=Dan'#225' v'#253#353'ka'
       'Vz=P'#345'ev'#253#353'en'#237
       'Vy=Oprava'
-      'Z=V'#253#353'ka'
+      'VC=Vyp. v'#253#353'ka'
       'Poznamka=Pozn'#225'mka')
-    ReadOnlyFields = [Z, Vy, Vz]
+    ReadOnlyFields = [VC, Vy, Vz]
     ColWidths = (
       30
       130
@@ -31,6 +34,7 @@ inherited LevellingForm: TLevellingForm
       70
       70
       70
+      90
       80
       60
       90
@@ -61,5 +65,13 @@ inherited LevellingForm: TLevellingForm
     ScrollBars = ssBoth
     TabOrder = 3
     WordWrap = False
+  end
+  inherited PanelButtons: TPanel
+    inherited ButtonCalculate: TButton
+      OnClick = CalculateClick
+    end
+    inherited ButtonSave: TButton
+      OnClick = SaveClick
+    end
   end
 end

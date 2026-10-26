@@ -1,6 +1,6 @@
 ﻿unit GeoAlgorithmLevelling;
 
-// Technical levelling, a line between known heights or a closed loop.
+// Technical levelling, a line from a known height or a closed loop.
 
 interface
 
@@ -19,12 +19,13 @@ type
   TLevellingInfo = record
     Valid:       Boolean;
     Closed:      Boolean;   // ends on the start point
+    Open:        Boolean;   // the end has no given height, no check
     SetupCount:  Integer;
     TotalLength: Double;    // back and fore sights [m]
     SumHeight:   Double;    // measured height differences
-    Given:       Double;    // end height minus start height
-    Misclosure:  Double;    // SumHeight - Given
-    Limit:       Double;    // 20 mm √r, r in km
+    Given:       Double;    // end height minus start height, NaN if open
+    Misclosure:  Double;    // SumHeight - Given, NaN if open
+    Limit:       Double;    // 20 mm √r, r in km, NaN if open
   end;
 
   TLevellingAlgorithm = class(TFrameAlgorithm)
@@ -34,7 +35,7 @@ type
   public
     class function TaskCode: Integer; override;
 
-    /// <summary>Xm back, Ym fore, Zm side reading, SH sight length.</summary>
+    /// <summary>Readings Xm, Ym, Zm, SH length, Z given, VC out.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     /// <summary>The reading filled in on the row.</summary>
@@ -75,12 +76,11 @@ begin
     Result := lrNone;
 end;
 
-// A setup is back, side readings, fore. The ends need heights.
+// A setup is back, side readings, fore. The start needs a height.
 function TLevellingAlgorithm.CheckLayout(AFrame: TGeoDataFrame): Boolean;
 var
   I: Integer;
   Reading, Previous: TLevellingReading;
-  First, Last: TGeoRow;
 begin
   Result := False;
   if AFrame.Count = 0 then
@@ -112,14 +112,9 @@ begin
   if Previous <> lrFore then
     AddError('Pořad musí končit čtením vpřed.');
 
-  First := AFrame.Rows[0];
-  Last := AFrame.Rows[AFrame.Count - 1];
-  if IsNan(First.Z) then
-    AddError(Format('Začátek pořadu %s nemá výšku.',
-      [Trim(string(First.CB))]));
-  if (First.CB <> Last.CB) and IsNan(Last.Z) then
-    AddError(Format('Konec pořadu %s nemá výšku.',
-      [Trim(string(Last.CB))]));
+  if IsNan(AFrame.Rows[0].Z) then
+    AddError(Format('Začátek pořadu %s nemá danou výšku.',
+      [Trim(string(AFrame.Rows[0].CB))]));
 
   Result := Warnings.Count = 0;
 end;
@@ -131,24 +126,25 @@ var
 begin
   ClearWarnings;
   FInfo := Default(TLevellingInfo);
+  FInfo.Given := NaN;
+  FInfo.Misclosure := NaN;
+  FInfo.Limit := NaN;
 
-  // Old results must not survive, only the ends keep their heights
-  LastRow := AFrame.Count - 1;
-  for I := 0 to LastRow do
+  // Old results must not survive a failed run
+  for I := 0 to AFrame.Count - 1 do
   begin
     AFrame.Rows[I].Vz := NaN;
     AFrame.Rows[I].Vy := NaN;
-    if (I > 0) and (I < LastRow) then
-      AFrame.Rows[I].Z := NaN;
+    AFrame.Rows[I].VC := NaN;
   end;
 
   if not CheckLayout(AFrame) then
     Exit;
 
+  LastRow := AFrame.Count - 1;
   FInfo.Closed := (Trim(string(AFrame.Rows[0].CB)) <> '') and
     (AFrame.Rows[0].CB = AFrame.Rows[LastRow].CB);
-  if FInfo.Closed then
-    AFrame.Rows[LastRow].Z := AFrame.Rows[0].Z;
+  FInfo.Open := not FInfo.Closed and IsNan(AFrame.Rows[LastRow].Z);
 
   // Sums of the line
   Back := 0;
@@ -175,18 +171,24 @@ begin
     Exit;
   end;
 
-  if FInfo.Closed then
-    FInfo.Given := 0
+  if FInfo.Open then
+    AddWarning(Format('Konec pořadu %s nemá danou výšku, výšky jsou ' +
+      'bez kontroly.', [Trim(string(AFrame.Rows[LastRow].CB))]))
   else
-    FInfo.Given := AFrame.Rows[LastRow].Z - AFrame.Rows[0].Z;
-  FInfo.Misclosure := FInfo.SumHeight - FInfo.Given;
+  begin
+    if FInfo.Closed then
+      FInfo.Given := 0
+    else
+      FInfo.Given := AFrame.Rows[LastRow].Z - AFrame.Rows[0].Z;
+    FInfo.Misclosure := FInfo.SumHeight - FInfo.Given;
 
-  // Annex 4.9 of decree 31/1995, r in km
-  FInfo.Limit := 0.020 * Sqrt(FInfo.TotalLength / 1000);
-  if Abs(FInfo.Misclosure) > FInfo.Limit then
-    AddWarning(Format('Odchylka %.3f m překračuje mezní odchylku %.3f m - ' +
-      'příloha, bod 4.9 vyhlášky 31/1995 Sb.',
-      [FInfo.Misclosure, FInfo.Limit]));
+    // Annex 4.9 of decree 31/1995, r in km
+    FInfo.Limit := 0.020 * Sqrt(FInfo.TotalLength / 1000);
+    if Abs(FInfo.Misclosure) > FInfo.Limit then
+      AddWarning(Format('Odchylka %.3f m překračuje mezní odchylku ' +
+        '%.3f m - příloha, bod 4.9 vyhlášky 31/1995 Sb.',
+        [FInfo.Misclosure, FInfo.Limit]));
+  end;
 
   // Heights, the correction goes by the length of the setup
   Height := AFrame.Rows[0].Z;
@@ -196,24 +198,27 @@ begin
         begin
           Back := AFrame.Rows[I].Xm;
           BackLength := AFrame.Rows[I].SH;
-          AFrame.Rows[I].Z := Height;
+          AFrame.Rows[I].VC := Height;
         end;
       lrSide:
         begin
           // From the instrument horizon, no correction
           AFrame.Rows[I].Vz := Back - AFrame.Rows[I].Zm;
-          AFrame.Rows[I].Z := Height + AFrame.Rows[I].Vz;
+          AFrame.Rows[I].VC := Height + AFrame.Rows[I].Vz;
         end;
       lrFore:
         begin
           SetupLength := BackLength + AFrame.Rows[I].SH;
           Difference := Back - AFrame.Rows[I].Ym;
-          Correction := -FInfo.Misclosure * SetupLength / FInfo.TotalLength;
+          if FInfo.Open then
+            Correction := 0
+          else
+            Correction := -FInfo.Misclosure * SetupLength /
+              FInfo.TotalLength;
           AFrame.Rows[I].Vz := Difference;
           AFrame.Rows[I].Vy := Correction;
           Height := Height + Difference + Correction;
-          if I < LastRow then
-            AFrame.Rows[I].Z := Height;
+          AFrame.Rows[I].VC := Height;
         end;
     end;
 

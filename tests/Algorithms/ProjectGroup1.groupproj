@@ -27,6 +27,9 @@
         <Projects Include="LevellingTest.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="LineAdjustmentTest.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="..\..\src\GUI\GeoSoft.dproj">
             <Dependencies/>
         </Projects>
@@ -110,6 +113,15 @@
     <Target Name="LevellingTest:Make">
         <MSBuild Projects="LevellingTest.dproj" Targets="Make"/>
     </Target>
+    <Target Name="LineAdjustmentTest">
+        <MSBuild Projects="LineAdjustmentTest.dproj"/>
+    </Target>
+    <Target Name="LineAdjustmentTest:Clean">
+        <MSBuild Projects="LineAdjustmentTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LineAdjustmentTest:Make">
+        <MSBuild Projects="LineAdjustmentTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="GeoSoft">
         <MSBuild Projects="..\..\src\GUI\GeoSoft.dproj"/>
     </Target>
@@ -120,13 +132,13 @@
         <MSBuild Projects="..\..\src\GUI\GeoSoft.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="PolarTest;OrthogonalTest;AreaTest;CheckTest;RectTest;TransformTest;ScaleTest;LevellingTest;GeoSoft"/>
+        <CallTarget Targets="PolarTest;OrthogonalTest;AreaTest;CheckTest;RectTest;TransformTest;ScaleTest;LevellingTest;LineAdjustmentTest;GeoSoft"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;AreaTest:Clean;CheckTest:Clean;RectTest:Clean;TransformTest:Clean;ScaleTest:Clean;LevellingTest:Clean;GeoSoft:Clean"/>
+        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;AreaTest:Clean;CheckTest:Clean;RectTest:Clean;TransformTest:Clean;ScaleTest:Clean;LevellingTest:Clean;LineAdjustmentTest:Clean;GeoSoft:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;AreaTest:Make;CheckTest:Make;RectTest:Make;TransformTest:Make;ScaleTest:Make;LevellingTest:Make;GeoSoft:Make"/>
+        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;AreaTest:Make;CheckTest:Make;RectTest:Make;TransformTest:Make;ScaleTest:Make;LevellingTest:Make;LineAdjustmentTest:Make;GeoSoft:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

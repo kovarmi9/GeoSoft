@@ -175,6 +175,8 @@
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformAffine.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmTransformation.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmScale.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmLineAdjustment.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmLevelling.pas"/>
         <DCCReference Include="SettingsDialog.pas">
             <Form>SettingsForm</Form>
             <FormType>dfm</FormType>

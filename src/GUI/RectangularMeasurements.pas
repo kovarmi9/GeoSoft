@@ -373,17 +373,16 @@ var
   Segment: TSegmentInfo;
   Row: TGeoRow;
   ListPoint: Point.TPoint;
-  Kind, Dist, Verdict: string;
-  Difference: Double;
+  Kind, Dist, Tail: string;
 begin
   Prot.Title(ALines, 'Konstrukční oměrné');
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Prot.Text('');
 
   for S := 0 to High(FAlg.Segments) do
   begin
     Segment := FAlg.Segments[S];
 
+    Prot.Text('');
     Prot.Text(Format('Úsek %d: %s → %s', [S + 1,
       FormatPointId(string(FFrame.Rows[Segment.FromRow].CB)),
       FormatPointId(string(FFrame.Rows[Segment.ToRow].CB))]));
@@ -396,10 +395,15 @@ begin
       Row := FFrame.Rows[I];
 
       // The notebook marks the given points by position: first and last
+      Tail := '';
       if (I = Segment.FromRow) or (I = Segment.ToRow) then
         Kind := 'daný'
       else
+      begin
         Kind := 'vypočtený';
+        if WasInList(Row) then
+          Tail := '*** bod v seznamu aktualizován ***';
+      end;
 
       // the first point of a stretch has no length in front of it
       if I = Segment.FromRow then
@@ -410,26 +414,20 @@ begin
       ListPoint.X := Row.X;
       ListPoint.Y := Row.Y;
 
-      Prot.Row([IntToStr(I - Segment.FromRow + 1),
+      // the number of the notebook row
+      Prot.Row([IntToStr(FRows[I] - StringGrid1.FixedRows + 1),
                 FormatPointId(string(Row.CB)),
-                Dist, CoordPair(ListPoint), Kind]);
+                Dist, CoordPair(ListPoint), Kind], Tail);
     end;
 
-    Prot.Text('');
+    Prot.Line;
     Prot.Text('Měřená délka = ' + Num(Segment.MeasDist) +
               '    Vypočtená délka = ' + Num(Segment.CalcDist));
-    // KatV 13.5, the difference has to be less than ud
-    Difference := Abs(Segment.CalcDist - Segment.MeasDist);
-    if IsNan(Segment.Limit) then
-      Verdict := 'Mezní rozdíl neurčen, chybí kód kvality'
-    else if Difference < Segment.Limit then
-      Verdict := 'Mezní rozdíl = ' + Num(Segment.Limit) + '    vyhovuje'
-    else
-      Verdict := 'Mezní rozdíl = ' + Num(Segment.Limit) + '    nevyhovuje';
-    Prot.Text('Odchylka = ' + Num(Difference) + '    ' + Verdict);
-    Prot.Text('Uzávěr = ' + Num(Segment.Closure) + ' m');
-    Prot.Text('');
+    Prot.Text(LimitText(Abs(Segment.CalcDist - Segment.MeasDist),
+      Segment.Limit));
   end;
+  if Length(FAlg.Segments) > 0 then
+    Prot.Text(LimitSource);
 
   Prot.Finish(FWarnings);
 end;

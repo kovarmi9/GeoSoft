@@ -9,7 +9,8 @@ uses
   Vcl.Grids, PointPrefixState, Point, PointsUtilsSingleton, GeoRow,
   GeoDataFrame, GeoGridBridge, GeoAlgorithmTransformation,
   ProtocolTransformation,
-  CoordOrderState, GeoGrid, GeoFieldsGrid, CalcBase, Vcl.Menus;
+  CoordOrderState, GeoGrid, GeoFieldsGrid, GeoColumnValidation, CalcBase,
+  Vcl.Menus;
 
 type
   TTransformationForm = class(TCalcBaseForm)
@@ -18,6 +19,8 @@ type
     Grid: TGeoFieldsGrid;
     PanelSummary: TPanel;
     LabelSummary: TLabel;
+    ButtonUncheckUp: TButton;
+    EditUpLimit: TEdit;
     Splitter1: TSplitter;
     Memo1: TMemo;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -26,6 +29,7 @@ type
     procedure SaveClick(Sender: TObject);
     procedure GridGetEditText(Sender: TObject; ACol, ARow: Integer;
       var Value: string);
+    procedure ButtonUncheckUpClick(Sender: TObject);
   private
     FAlg: TTransformationFrameAlgorithm;
     FFrame: TGeoDataFrame;
@@ -165,13 +169,36 @@ begin
   end;
 
   Recompute;
-  Grid.Cells[0, ARow] := IntToStr(ARow);   // row number
 end;
 
 // A check box or the type of the transformation has changed
 procedure TTransformationForm.KeyChanged(Sender: TObject);
 begin
   Recompute;
+end;
+
+// Unticks every point with Up over the limit
+procedure TTransformationForm.ButtonUncheckUpClick(Sender: TObject);
+var
+  Limit, Up: Double;
+  R: Integer;
+  Over: TArray<Integer>;
+begin
+  if not TryEvaluateExpression(Trim(EditUpLimit.Text), Limit) then
+  begin
+    ShowMessage('Zadejte hodnotu Up.');
+    Exit;
+  end;
+
+  // Read first, every untick recomputes
+  for R := Grid.FixedRows to Grid.RowCount - 1 do
+    if Grid.Checked[R] and
+       TryStrToFloat(Grid.Cells[Grid.FieldToCol(Sxy), R], Up, FS) and
+       (Up > Limit) then
+      Over := Over + [R];
+
+  for R in Over do
+    Grid.Checked[R] := False;
 end;
 
 // One frame row per grid row, TypS by the box and the list
@@ -255,7 +282,7 @@ begin
   if not IsNan(FAlg.Info.Scale) then
     Summary := Summary + '    Měřítko transformace: ' +
       FormatFloat('0.000000', FAlg.Info.Scale, FS);
-  // A failed key says why
+  // A failed key says why, a note shows too
   if FAlg.Warnings.Count > 0 then
     Summary := Summary + '    ' + FAlg.Warnings[0];
 
@@ -354,10 +381,8 @@ begin
     if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
     begin
       Grid.Checked[R] := AFrame.Rows[I].TypS <> DRUH_KONTROLNI;
-      Grid.Cells[0, R] := IntToStr(R);   // row number
       Inc(R);
     end;
-  Grid.Cells[0, R] := '';      // no number on the empty row
   Grid.RowCount := R + 1;
   Recompute;
 end;

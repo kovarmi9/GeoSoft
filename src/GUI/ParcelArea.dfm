@@ -69,6 +69,27 @@ inherited ParcelAreaForm: TParcelAreaForm
     TabOrder = 3
     ExplicitTop = 152
   end
+  object PanelParcel: TPanel [4]
+    Left = 0
+    Top = 35
+    Width = 800
+    Height = 33
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 4
+    object EditParcel: TLabeledEdit
+      Left = 60
+      Top = 5
+      Width = 150
+      Height = 23
+      EditLabel.Width = 39
+      EditLabel.Height = 15
+      EditLabel.Caption = 'Parcela'
+      LabelPosition = lpLeft
+      TabOrder = 0
+      Text = ''
+    end
+  end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick

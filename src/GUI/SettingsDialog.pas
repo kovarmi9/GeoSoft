@@ -16,6 +16,8 @@ type
     LabelAngleDecimals: TLabel;
     SpinLengthDecimals: TSpinEdit;
     SpinAngleDecimals: TSpinEdit;
+    LabelAreaDecimals: TLabel;
+    SpinAreaDecimals: TSpinEdit;
     TabScale: TTabSheet;
     LabelScale: TLabel;
     EditScale: TEdit;
@@ -91,6 +93,7 @@ begin
     F.CheckPolarCongruent.Checked    := GSettings.Polar.Congruent;
     F.SpinLengthDecimals.Value := GSettings.LengthDecimals;
     F.SpinAngleDecimals.Value  := GSettings.AngleDecimals;
+    F.SpinAreaDecimals.Value   := GSettings.AreaDecimals;
 
     Result := F.ShowModal = mrOk;
     if not Result then
@@ -109,6 +112,7 @@ begin
     GSettings.Polar.Congruent       := F.CheckPolarCongruent.Checked;
     GSettings.LengthDecimals := F.SpinLengthDecimals.Value;
     GSettings.AngleDecimals  := F.SpinAngleDecimals.Value;
+    GSettings.AreaDecimals   := F.SpinAreaDecimals.Value;
   finally
     F.Free;
   end;

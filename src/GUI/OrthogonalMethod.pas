@@ -26,20 +26,17 @@ uses
   CoordOrderState,
   ProtocolTable,
   CalcBase,
-  PointPrefixState, Vcl.Menus, SettingsState;
+  PointPrefixState, Vcl.Menus, SettingsState, GeoFieldsDef;
 
 type
   TOrthogonalMethodForm = class(TCalcBaseForm)
     GridBaseline: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
     Memo1: TMemo;
-    procedure AnchorGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure Button1Click(Sender: TObject);
     procedure SaveClick(Sender: TObject);
     procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
-    procedure DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
   private
     FAlg: TOrthogonalMethodAlgorithm;
     FFrame: TGeoDataFrame;        // the input and the output of the run
@@ -70,11 +67,20 @@ const
   CSV_NAME = 'ortogonalni_metoda.csv';   // saved next to exe
 
 constructor TOrthogonalMethodForm.Create(AOwner: TComponent);
+var
+  FilterData: TColumnFilterData;
 begin
   inherited Create(AOwner);
 
   FAlg := TOrthogonalMethodAlgorithm.Create;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Z, Xm, Ym, KK, Poznamka]);
+  FFrame := TGeoDataFrame.Create(
+    [Uloha, CB, X, Y, Z, SH, PolarK, KK, Poznamka]);
+
+  // A point before the start of the line has a negative stationing
+  FilterData := GeoFieldColumns[SH].Filter;
+  FilterData.HasMinValue := False;
+  GridBaseline.SetColumnFilterData(SH, FilterData);
+  GridDetail.SetColumnFilterData(SH, FilterData);
 end;
 
 destructor TOrthogonalMethodForm.Destroy;
@@ -206,8 +212,8 @@ var
   ListPoint: Point.TPoint;
 begin
   // Enter on an empty tape cell means zero, the user confirmed it
-  if ((ACol = GridBaseline.FieldToCol(Xm)) or
-      (ACol = GridBaseline.FieldToCol(Ym))) and
+  if ((ACol = GridBaseline.FieldToCol(SH)) or
+      (ACol = GridBaseline.FieldToCol(PolarK))) and
      (Trim(GridBaseline.Cells[ACol, ARow]) = '') then
     GridBaseline.Cells[ACol, ARow] := '0';
 
@@ -261,7 +267,7 @@ begin
         end;
       end;
 
-    Xm, Ym:
+    SH, PolarK:
       // Enter on an empty tape cell means zero, the same as for P and K
       if Trim(Grid.Cells[ACol, ARow]) = '' then
         Grid.Cells[ACol, ARow] := '0';
@@ -276,24 +282,6 @@ begin
     Grid.Cells[Grid.FieldToCol(KK), ARow] := Trim(GPointPrefix.KK);
 
   Recompute;
-end;
-
-procedure TOrthogonalMethodForm.DetailGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-begin
-  if ARow >= GridDetail.FixedRows then
-    GridDetail.Cells[0, ARow] := IntToStr(ARow);
-end;
-
-procedure TOrthogonalMethodForm.AnchorGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key = VK_DELETE then
-    GridBaseline.Cells[GridBaseline.Col, GridBaseline.Row] := '';
-end;
-
-procedure TOrthogonalMethodForm.DetailGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-begin
-  if Key = VK_DELETE then
-    GridDetail.Cells[GridDetail.Col, GridDetail.Row] := '';
 end;
 
 procedure TOrthogonalMethodForm.Button1Click(Sender: TObject);
@@ -398,9 +386,13 @@ var
   // One line of either point table, wherever the row comes from
   procedure PointLine(const ALabel: string; const ARow: TGeoRow;
     const ATail: string = '');
+  var
+    ListPoint: Point.TPoint;
   begin
+    ListPoint.X := ARow.X;
+    ListPoint.Y := ARow.Y;
     Prot.Row([ALabel, FormatPointId(string(ARow.CB)),
-              Num(ARow.Xm), Num(ARow.Ym)], ATail);
+              Num(ARow.SH), Num(ARow.PolarK), CoordPair(ListPoint)], ATail);
   end;
 
 begin
@@ -412,23 +404,23 @@ begin
   end;
 
   Prot.Title(ALines, 'Ortogonální metoda');
+  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
+  Prot.Text('');
 
   Prot.Text('PŘIPOJOVACÍ BODY');
-  Prot.Table(['', 'Číslo bodu', 'Staničení', 'Kolmice'],
-             [-4, ColWPoint, ColWDist, ColWDist]);
+  Prot.Table(['', 'Číslo bodu', 'Staničení', 'Kolmice', CoordNames],
+             [-4, ColWPoint, ColWDist, ColWDist, ColWPair]);
   PointLine('P:', FFrame.Rows[0]);
   PointLine('K:', FFrame.Rows[1]);
   Prot.Line;
 
-  Prot.Text('Odchylka = ' + Num(Baseline.Diff) +
-            '    Mezní KK[3] = ' + Num(Baseline.Tolerance));
-  if Baseline.Diff > Baseline.Tolerance then
-    Prot.Text('CHYBA: Odchylka délky pásky překračuje mezní hodnotu!');
+  Prot.Text(LimitText(Baseline.Diff, Baseline.Tolerance));
+  Prot.Text(LimitSource);
 
   Prot.Text('');
   Prot.Text('PODROBNÉ BODY');
-  Prot.Table(['Č.', 'Číslo bodu', 'Staničení', 'Kolmice'],
-             [ColWNo, ColWPoint, ColWDist, ColWDist]);
+  Prot.Table(['Č.', 'Číslo bodu', 'Staničení', 'Kolmice', CoordNames],
+             [ColWNo, ColWPoint, ColWDist, ColWDist, ColWPair]);
 
   N := 0;
   for I := 0 to FFrame.Count - 1 do

@@ -120,10 +120,9 @@ begin
 
   FTable.Line;
   if IsNan(Mxy) then
-    FTable.Text('Třída přesnosti (kód kvality): ' + IntToStr(Quality) +
-                '    Mxy pro tento kód není určeno')
+    FTable.Text('Kód kvality: ' + IntToStr(Quality) + '    ' + NoMxy)
   else
-    FTable.Text('Třída přesnosti (kód kvality): ' + IntToStr(Quality) +
+    FTable.Text('Kód kvality: ' + IntToStr(Quality) +
                 '    Mxy = ' + Num(Mxy) + '    Uxy = ' + Num(2 * Mxy));
 
   FTable.Text('Odchylky dle KatV, body přílohy 13.7 až 13.9');
@@ -139,8 +138,8 @@ begin
 
   FTable.Text('');
   FTable.Text('ORIENTACE');
-  FTable.Table(['Číslo bodu', 'Směr [g]', 'Délka [m]', 'dfi [g]', 'ds [m]'],
-               [ColWPoint, AngleWidth(10), ColWDist, AngleWidth(8),
+  FTable.Table(['Č.', 'Číslo bodu', 'Směr', 'Délka', 'dfi', 'ds'],
+               [ColWNo, ColWPoint, AngleWidth(10), ColWDist, AngleWidth(8),
                 LengthWidth(8)]);
 
   for I := 1 to FAlg.Info.OrientCount do
@@ -149,15 +148,15 @@ begin
     Res := TPolarMethodAlgorithm.ResultOf(St, Row, FAlg.Info.Shift, FAlg.Scale);
 
     // What was not measured stays blank
-    FTable.Row([FTable.FormatPointId(string(Row.CB)), Ang(Row.HZ),
-                Num(Row.SH), Ang(Res.Dfi), Num(Res.Ds)]);
+    FTable.Row([IntToStr(I), FTable.FormatPointId(string(Row.CB)),
+                Ang(Row.HZ), Num(Row.SH), Ang(Res.Dfi), Num(Res.Ds)]);
   end;
 
   FTable.Line;
   FTable.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
   FTable.Text('Or. posun = ' + Ang(FAlg.Info.Shift) +
-              ' g    Střední chyba or. pos. = ' + Ang(FAlg.Info.ShiftError) +
-              ' g    Mezní = ' + Ang(MEZNI_DFI) + ' g');
+              '    Střední chyba or. pos. = ' + Ang(FAlg.Info.ShiftError) +
+              '    Mezní = ' + Ang(MEZNI_DFI));
 end;
 
 procedure TPolarProtocol.WriteDetails(const AUpdated: TArray<Boolean>);
@@ -171,8 +170,8 @@ begin
 
   FTable.Text('');
   FTable.Text('PODROBNÉ BODY');
-  FTable.Table(['Číslo bodu', 'Směr [g]', 'Délka [m]', CoordNames],
-               [ColWPoint, AngleWidth(10), ColWDist, ColWPair]);
+  FTable.Table(['Č.', 'Číslo bodu', 'Směr', 'Délka', CoordNames],
+               [ColWNo, ColWPoint, AngleWidth(10), ColWDist, ColWPair]);
 
   for I := FAlg.Info.OrientCount + 1 to FFrame.Count - 1 do
   begin
@@ -183,7 +182,8 @@ begin
     else
       Tail := '';
 
-    FTable.Row([FTable.FormatPointId(string(Row.CB)), Ang(Row.HZ),
+    FTable.Row([IntToStr(I - FAlg.Info.OrientCount),
+                FTable.FormatPointId(string(Row.CB)), Ang(Row.HZ),
                 Num(Row.SH), Pair(Row)], Tail);
   end;
 end;

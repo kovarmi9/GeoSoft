@@ -47,7 +47,7 @@ begin
   n := AFrame.Count;
   if n < 3 then
   begin
-    AddWarning('Pro výpočet plochy jsou potřeba alespoň 3 body.');
+    AddError('Pro výpočet plochy jsou potřeba alespoň 3 body.');
     Exit;
   end;
 
@@ -59,7 +59,7 @@ begin
   FArea := Abs(sum) / 2;
 
   if FArea < 1e-6 then
-    AddWarning('Plocha je nulová - body mohou být kolineární.');
+    AddError('Plocha je nulová - body mohou být kolineární.');
 end;
 
 end.

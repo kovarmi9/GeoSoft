@@ -144,6 +144,24 @@ inherited TransformationForm: TTransformationForm
       Width = 3
       Height = 15
     end
+    object ButtonUncheckUp: TButton
+      Left = 616
+      Top = 0
+      Width = 120
+      Height = 25
+      Anchors = [akTop, akRight]
+      Caption = 'Odzna'#269'it Up v'#283't'#353#237' ne'#382
+      TabOrder = 0
+      OnClick = ButtonUncheckUpClick
+    end
+    object EditUpLimit: TEdit
+      Left = 740
+      Top = 1
+      Width = 56
+      Height = 23
+      Anchors = [akTop, akRight]
+      TabOrder = 1
+    end
   end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton

@@ -2,14 +2,15 @@
 
 // Orthogonal (rectangular) survey method.
 // The frame is the whole job: rows 0 and 1 are the measuring line P and K,
-// every further row is a detail point. Xm, Ym carry the tape measurements
-// (stationing and perpendicular offset), X and Y the S-JTSK coordinates -
+// every further row is a detail point. SH carries the stationing and PolarK
+// the perpendicular offset, X and Y the S-JTSK coordinates -
 // given on P and K, computed on the detail points.
 
 interface
 
 uses
-  System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame;
+  System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
+  ValidationUtils;
 
 const
   // Task code from the survey notebook convention
@@ -25,8 +26,7 @@ type
     L:         Double;   // length from the tape
     Lg:        Double;   // length from the coordinates
     Diff:      Double;   // |Lg - L|
-    Tolerance: Double;   // limit of Diff
-    Stretch:   Double;   // Lg/L - 1, the tape stretching
+    Tolerance: Double;   // ud of Diff, NaN without quality
   end;
 
   TOrthogonalMethodAlgorithm = class(TFrameAlgorithm)
@@ -49,8 +49,6 @@ const
   MAX_OFFSET_ABS   = 30.0;  // absolute max perpendicular offset [m]
   MAX_OFFSET_RATIO = 0.75;  // max offset as fraction of baseline length
   WARN_RATIO       = 0.50;  // soft warning threshold for offset/L ratio
-  MAX_STRETCH_WARN = 0.005; // 0.5 % - tape stretching warning
-  MAX_STRETCH_ERR  = 0.020; // 2.0 % - tape stretching suspected blunder
 
 class function TOrthogonalMethodAlgorithm.TaskCode: Integer;
 begin
@@ -77,7 +75,7 @@ begin
 
   if AFrame.Count < BASELINE_ROWS then
   begin
-    AddWarning('Měřická přímka není zadaná.');
+    AddError('Měřická přímka není zadaná.');
     Exit;
   end;
 
@@ -88,51 +86,46 @@ begin
   Lg := Sqrt(Sqr(K.X - P.X) + Sqr(K.Y - P.Y));
   if IsNan(Lg) or (Lg < MIN_BASELINE) then
   begin
-    AddWarning('Základní body P a K splývají nebo chybí souřadnice.');
+    AddError('Základní body P a K splývají nebo chybí souřadnice.');
     Exit;
   end;
 
   // Tape readings are measured values, none of them may be guessed
-  if IsNan(P.Xm) or IsNan(P.Ym) or IsNan(K.Xm) or IsNan(K.Ym) then
+  if IsNan(P.SH) or IsNan(P.PolarK) or IsNan(K.SH) or IsNan(K.PolarK) then
   begin
-    AddWarning('Zadejte staničení a kolmici připojovacích bodů P a K.');
+    AddError('Zadejte staničení a kolmici připojovacích bodů P a K.');
     Exit;
   end;
 
   // Step 1: convert connection point tape measurements to S-JTSK
-  sP := P.Xm * Scale;
-  qP := P.Ym * Scale;
-  dS := (K.Xm - P.Xm) * Scale;
-  dQ := (K.Ym - P.Ym) * Scale;
+  sP := P.SH * Scale;
+  qP := P.PolarK * Scale;
+  dS := (K.SH - P.SH) * Scale;
+  dQ := (K.PolarK - P.PolarK) * Scale;
 
   j := Sqr(dS) + Sqr(dQ);
   if j < 1e-10 then
   begin
-    AddWarning('Připojovací body P a K na pásce splývají.');
+    AddError('Připojovací body P a K na pásce splývají.');
     Exit;
   end;
 
   L := Sqrt(j);
 
-  // Step 2: the tape against the coordinates, both criteria in one place
+  // Step 2: the tape against the coordinates
   FBaseline.Valid     := True;
   FBaseline.L         := L;
   FBaseline.Lg        := Lg;
   FBaseline.Diff      := Abs(Lg - L);
-  FBaseline.Tolerance := 0.012 * Sqrt(L) + 0.10;
-  FBaseline.Stretch   := Lg / L - 1;
+  // The worse of P and K decides (KatV 13.6)
+  FBaseline.Tolerance := TValidationUtils.LengthLimit(Max(L, Lg),
+    TValidationUtils.LowerQuality(P.KK, K.KK));
 
-  if FBaseline.Diff > FBaseline.Tolerance then
-    AddWarning(Format('Odchylka délky pásky %.3f m překračuje mezní ' +
-      'hodnotu %.3f m', [FBaseline.Diff, FBaseline.Tolerance]));
-
-  if Abs(FBaseline.Stretch) > MAX_STRETCH_ERR then
-    AddWarning(Format('Napínání pásky %.1f %% - podezření na hrubou chybu ' +
-      '(mezní hodnota %.1f %%)',
-      [Abs(FBaseline.Stretch) * 100, MAX_STRETCH_ERR * 100]))
-  else if Abs(FBaseline.Stretch) > MAX_STRETCH_WARN then
-    AddWarning(Format('Napínání pásky %.1f %% překračuje mezní hodnotu %.1f %%',
-      [Abs(FBaseline.Stretch) * 100, MAX_STRETCH_WARN * 100]));
+  if not IsNan(FBaseline.Tolerance) and
+     (FBaseline.Diff >= FBaseline.Tolerance) then
+    AddWarning(Format('Odchylka délky přímky %.3f m není menší než mezní ' +
+      'rozdíl %.3f m - příloha, bod 13.5 katastrální vyhlášky',
+      [FBaseline.Diff, FBaseline.Tolerance]));
 
   // Step 3: Helmert similarity transform coefficients
   dx := K.X - P.X;
@@ -148,15 +141,15 @@ begin
   for i := BASELINE_ROWS to AFrame.Count - 1 do
   begin
     // Nothing measured yet, so the row keeps no coordinates
-    if IsNan(AFrame.Rows[i].Xm) or IsNan(AFrame.Rows[i].Ym) then
+    if IsNan(AFrame.Rows[i].SH) or IsNan(AFrame.Rows[i].PolarK) then
     begin
       AFrame.Rows[i].X := NaN;
       AFrame.Rows[i].Y := NaN;
       Continue;
     end;
 
-    si := AFrame.Rows[i].Xm * Scale;
-    qi := AFrame.Rows[i].Ym * Scale;
+    si := AFrame.Rows[i].SH * Scale;
+    qi := AFrame.Rows[i].PolarK * Scale;
 
     offS := si - sP;
     offQ := qi - qP;
@@ -166,12 +159,12 @@ begin
     // Extension beyond P or K
     if offS < -L / 3 then
       AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
-        'za bodem P o %.3f m (max. L/3 = %.3f m) - bod 10.2 j) vyhlášky ' +
+        'za bodem P o %.3f m (max. L/3 = %.3f m) - bod 10.2 i) vyhlášky ' +
         '31/1995 Sb. v platném znění',
         [PtNo, Abs(offS) - L / 3, L / 3]))
     else if offS > 4 * L / 3 then
       AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
-        'za bodem K o %.3f m (max. L/3 = %.3f m) - bod 10.2 j) vyhlášky ' +
+        'za bodem K o %.3f m (max. L/3 = %.3f m) - bod 10.2 i) vyhlášky ' +
         '31/1995 Sb. v platném znění',
         [PtNo, offS - 4 * L / 3, L / 3]));
 

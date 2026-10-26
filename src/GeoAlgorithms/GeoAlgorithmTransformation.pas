@@ -111,7 +111,9 @@ end;
 
 procedure TTransformationFrameAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
-  I, N, Redundancy: Integer;
+  I, J, N, Redundancy, Direction: Integer;
+  SameTarget, SameSource: Integer;   // earlier key rows with the number
+  PointNumber: Int64;
   Row: TGeoRow;
   Key: TTransformationAlgorithm;
   LocalPoints, GlobalPoints: TPointsArray;
@@ -125,6 +127,23 @@ begin
   SetLength(FInfo.OutsideRows, 0);
 
   ClearResults(AFrame);     // old results must not survive a failed run
+
+  // One job goes one way: all numbers positive, or all negative
+  Direction := 0;
+  for I := 0 to AFrame.Count - 1 do
+  begin
+    PointNumber := StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0);
+    if PointNumber = 0 then
+      Continue;
+    if Direction = 0 then
+      Direction := Sign(PointNumber)
+    else if Sign(PointNumber) <> Direction then
+    begin
+      AddError('Čísla bodů mají různá znaménka, směr transformace ' +
+        'není jednoznačný.');
+      Exit;
+    end;
+  end;
 
   // Identical points with a number and both pairs
   SetLength(LocalPoints, AFrame.Count);
@@ -164,9 +183,32 @@ begin
     except
       on E: Exception do
       begin
-        AddWarning(E.Message);
+        AddError(E.Message);
         Exit;
       end;
+    end;
+
+    // A point used twice, told after a working key
+    for I := 1 to N - 1 do
+    begin
+      SameTarget := 0;
+      SameSource := 0;
+      for J := 0 to I - 1 do
+      begin
+        if AFrame.Rows[KeyRows[I]].CB = AFrame.Rows[KeyRows[J]].CB then
+          Inc(SameTarget);
+        if (Trim(string(AFrame.Rows[KeyRows[I]].CBm)) <> '') and
+           (AFrame.Rows[KeyRows[I]].CBm = AFrame.Rows[KeyRows[J]].CBm) then
+          Inc(SameSource);
+      end;
+
+      // Told once, when the point comes the second time
+      if SameTarget = 1 then
+        AddWarning(Format('Identický bod %s je v klíči vícekrát.',
+          [Trim(string(AFrame.Rows[KeyRows[I]].CB))]))
+      else if SameSource = 1 then
+        AddWarning(Format('Zdrojový bod %s je v klíči vícekrát.',
+          [Trim(string(AFrame.Rows[KeyRows[I]].CBm))]));
     end;
 
     // Residuals of the key go to the identical points

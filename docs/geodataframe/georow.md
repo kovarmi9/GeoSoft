@@ -12,13 +12,13 @@ Unit `src/DataStructures/GeoRow.pas`.
 | `CB` | `string[16]` | číslo bodu (15 číslic a znaménko) |
 | `X`, `Y`, `Z` | `Double` | souřadnice S-JTSK a výška [m] |
 | `CBm` | `string[16]` | číslo druhého bodu (kontrolní oměrné), zdrojového bodu (transformace) |
-| `Xm`, `Ym`, `Zm` | `Double` | místní souřadnice, staničení a kolmice, v transformaci zdrojové souřadnice [m] |
+| `Xm`, `Ym`, `Zm` | `Double` | místní souřadnice, v transformaci zdrojové souřadnice [m] |
 | `TypS` | `Integer` | typ délky; v transformaci role řádku (1 identický, 2 kontrolní, 3 určovaný) |
-| `SH`, `SS` | `Double` | vodorovná a šikmá délka [m] |
+| `SH`, `SS` | `Double` | vodorovná a šikmá délka, SH v ortogonální metodě staničení [m] |
 | `VS`, `VC` | `Double` | výška přístroje a cíle [m] |
 | `HZ`, `Zuhel` | `Double` | vodorovný a zenitový úhel [gon] |
 | `PolarD` | `Double` | polární doměrek [m] |
-| `PolarK` | `Double` | polární kolmice [m] |
+| `PolarK` | `Double` | polární kolmice, v ortogonální metodě kolmice [m] |
 | `Poznamka` | `string[32]` | poznámka |
 | `KK` | `Integer` | kód kvality 0–8 |
 | `Vy`, `Vx`, `Vz` | `Double` | odchylka: vypočtená minus daná poloha a výška [m] |

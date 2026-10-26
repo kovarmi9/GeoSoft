@@ -22,6 +22,7 @@ type
     ScalePlace: TScalePlace;
     LengthDecimals: Integer;    // shown places of lengths and coordinates
     AngleDecimals: Integer;     // shown places of angles
+    AreaDecimals: Integer;      // shown places of areas
     Polar: TPolarSettings;
   end;
 
@@ -35,6 +36,8 @@ initialization
   // KN uses 2 places, angles in gon 4 places
   GSettings.LengthDecimals := 2;
   GSettings.AngleDecimals := 4;
+  // Whole square metres as in the cadastre
+  GSettings.AreaDecimals := 0;
   // Not asked for by default
   GSettings.Polar.ShowTargetHeight := False;
   // Shown unless the settings hide it

@@ -66,6 +66,9 @@ type
     FChecked: TArray<Boolean>;        // index 0 is the header "select all"
     FDefaultChecked: Boolean;
     FOnCheckChanged: TNotifyEvent;
+    FRowNumbers: Boolean;
+
+    procedure SetRowNumbers(const Value: Boolean);
 
     procedure SetCheckColumn(const Value: Integer);
     procedure SetDefaultChecked(const Value: Boolean);
@@ -218,6 +221,10 @@ type
     property DefaultChecked: Boolean
       read FDefaultChecked write SetDefaultChecked default False;
 
+    /// <summary>Numbers 1, 2, 3 in the header column.</summary>
+    property RowNumbers: Boolean
+      read FRowNumbers write SetRowNumbers default True;
+
     /// <summary>Fired after any check box changes.</summary>
     property OnCheckChanged: TNotifyEvent
       read FOnCheckChanged write FOnCheckChanged;
@@ -290,6 +297,7 @@ begin
   Options := Options + [goEditing, goTabs, goColSizing, goRowSizing];
   FEnterEndBehavior := ebStayOnLastCell;
   FCheckColumn := -1;
+  FRowNumbers := True;
   FColumnHeaders := TStringList.Create;
   FRowHeaders    := TStringList.Create;
 end;
@@ -366,7 +374,10 @@ begin
 
     S := Cells[ACol, ARow];
     if ACol = FCheckColumn then
-      S := '';                    // no caption, only the box
+      S := ''                     // no caption, only the box
+    else if FRowNumbers and (S = '') and (ACol = 0) and
+            (ARow >= FixedRows) then
+      S := IntToStr(ARow - FixedRows + 1);   // only drawn, not in Cells
 
     TextX := Rect.Left + (Rect.Width  - Canvas.TextWidth(S)) div 2;
     TextY := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
@@ -786,6 +797,12 @@ procedure TGeoGrid.SetColumnHeaders(const Value: TStrings);
 begin
   FColumnHeaders.Assign(Value);
   UpdateHeaders;
+end;
+
+procedure TGeoGrid.SetRowNumbers(const Value: Boolean);
+begin
+  FRowNumbers := Value;
+  Invalidate;
 end;
 
 procedure TGeoGrid.SetRowHeaders(const Value: TStrings);

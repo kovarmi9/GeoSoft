@@ -9,6 +9,7 @@ Nastavení platí pro celý program až do jeho ukončení.
   sloupce tabulek, protokoly a soubory TXT a CSV.
 - **Desetinná místa délek a souřadnic** – 0 až 9, výchozí 2.
 - **Desetinná místa úhlů** – 0 až 9, výchozí 4.
+- **Desetinná místa ploch** – 0 až 9, výchozí 0.
 
 ## Měřítko
 

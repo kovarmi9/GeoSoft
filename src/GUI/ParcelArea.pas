@@ -12,12 +12,14 @@ uses
   CoordOrderState, ProtocolArea,
   GeoRow, GeoDataFrame, GeoGrid, GeoFieldsGrid,
   GeoAlgorithmLHuilier,
-  CalcBase, Vcl.Menus;
+  CalcBase, Vcl.Menus, Vcl.Mask;
 
 type
   TParcelAreaForm = class(TCalcBaseForm)
     StringGrid1: TGeoFieldsGrid;
     Memo1: TMemo;
+    PanelParcel: TPanel;
+    EditParcel: TLabeledEdit;
     procedure CalculateClick(Sender: TObject);
     procedure SaveClick(Sender: TObject);
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -96,8 +98,6 @@ begin
     NormalizePointCell(StringGrid1, ACol, ARow);
     FillFromDict(ARow);
   end;
-
-  StringGrid1.Cells[0, ARow] := IntToStr(ARow);
 end;
 
 // Every row with a point number is a corner. False, with a message, when
@@ -181,18 +181,14 @@ begin
   R := StringGrid1.FixedRows;
   for I := 0 to AFrame.Count - 1 do
     if PutRow(StringGrid1, R, AFrame.Rows[I], I, ABad) then
-    begin
-      StringGrid1.Cells[0, R] := IntToStr(R);   // row number
       Inc(R);
-    end;
-  StringGrid1.Cells[0, R] := '';     // no number on the empty row
   StringGrid1.RowCount := R + 1;
 end;
 
 // TAreaProtocol writes it
 procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);
 begin
-  FProtocol.Write(ALines);
+  FProtocol.Write(ALines, Trim(EditParcel.Text));
 end;
 
 end.

@@ -17,14 +17,15 @@ type
     constructor Create(ATable: TProtocol; AAlg: TLHuilierAlgorithm;
       AFrame: TGeoDataFrame);
 
-    /// <summary>Writes the last run into ALines.</summary>
-    procedure Write(ALines: TStrings);
+    /// <summary>Writes the last run, AParcel may be empty.</summary>
+    procedure Write(ALines: TStrings; const AParcel: string);
   end;
 
 implementation
 
 uses
-  System.SysUtils, System.Math, Point, GeoRow, CoordOrderState;
+  System.SysUtils, System.Math, Point, GeoRow, CoordOrderState,
+  SettingsState;
 
 constructor TAreaProtocol.Create(ATable: TProtocol; AAlg: TLHuilierAlgorithm;
   AFrame: TGeoDataFrame);
@@ -35,7 +36,7 @@ begin
   FFrame := AFrame;
 end;
 
-procedure TAreaProtocol.Write(ALines: TStrings);
+procedure TAreaProtocol.Write(ALines: TStrings; const AParcel: string);
 var
   I: Integer;
   Row: TGeoRow;
@@ -47,7 +48,7 @@ begin
     Exit;
   end;
 
-  FTable.Title(ALines, 'Výpočet plochy parcely');
+  FTable.Title(ALines, Trim('Plocha parcely ' + AParcel));
 
   FTable.Table(['Č.', 'Číslo bodu', CoordNames],
                [ColWNo, ColWPoint, ColWPair]);
@@ -61,7 +62,11 @@ begin
   end;
 
   FTable.Text('');
-  FTable.Text('Plocha = ' + Num(FAlg.Area) + ' m²');
+  FTable.Text('Plocha = ' + Num(FAlg.Area, GSettings.AreaDecimals) + ' m²');
+  // KatV § 82 (2), whole m², at least 1 m², none after an error
+  if FAlg.Warnings.Count = 0 then
+    FTable.Text('Výměra = ' + IntToStr(Max(1, Trunc(FAlg.Area + 0.5))) +
+      ' m²');
   FTable.Finish(FAlg.Warnings);
 end;
 

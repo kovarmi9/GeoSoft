@@ -16,7 +16,8 @@ const
   // Task code from the survey notebook convention
   ULOHA_POLARNI = 1;
 
-  MEZNI_DFI = 0.08;   // [gon], 10.2 of the decree
+  // [gon], Návod pro obnovu KO 4.3.5.1.2 c), provisional
+  MEZNI_DFI = 0.08;
 
 type
   // Role of a frame row
@@ -226,7 +227,7 @@ begin
 
   if M < 2 then
   begin
-    AddWarning('Volné stanovisko potřebuje alespoň dvě orientace ' +
+    AddError('Volné stanovisko potřebuje alespoň dvě orientace ' +
       's měřeným směrem i délkou.');
     Exit;
   end;
@@ -253,7 +254,7 @@ begin
   except
     on E: Exception do
     begin
-      AddWarning('Volné stanovisko: ' + E.Message);
+      AddError('Volné stanovisko: ' + E.Message);
       Exit;
     end;
   end;
@@ -313,13 +314,13 @@ begin
 
   if AFrame.Count = 0 then
   begin
-    AddWarning('Zápisník je prázdný.');
+    AddError('Zápisník je prázdný.');
     Exit;
   end;
 
   if RoleOf(AFrame.Rows[0]) <> prStation then
   begin
-    AddWarning('První řádek musí být stanovisko.');
+    AddError('První řádek musí být stanovisko.');
     Exit;
   end;
 
@@ -334,10 +335,10 @@ begin
     if Role <> Expected then
     begin
       if Expected = prOrient then
-        AddWarning(Format('Bod %s: řádek není orientace ani podrobný bod.',
+        AddError(Format('Bod %s: řádek není orientace ani podrobný bod.',
           [Trim(string(AFrame.Rows[I].CB))]))
       else
-        AddWarning(Format('Bod %s: řádek není podrobný bod.',
+        AddError(Format('Bod %s: řádek není podrobný bod.',
           [Trim(string(AFrame.Rows[I].CB))]));
     end
     else if Role = prOrient then
@@ -349,7 +350,7 @@ begin
   end;
 
   if NDir = 0 then
-    AddWarning('Zadejte alespoň jednu orientaci s měřeným směrem.');
+    AddError('Zadejte alespoň jednu orientaci s měřeným směrem.');
   Result := Warnings.Count = 0;
 end;
 
@@ -386,8 +387,8 @@ begin
 
       if Abs(R.Dfi) > MEZNI_DFI then
         AddWarning(Format('Orientace %s: odchylka or. posunu dfi = %.4f g ' +
-          'překračuje mezní hodnotu %.2f g - bod 10.2 vyhlášky 31/1995 Sb. ' +
-          'v platném znění', [PtNo, R.Dfi, MEZNI_DFI]));
+          'překračuje mezní hodnotu %.2f g - Návod pro obnovu katastrálního ' +
+          'operátu, bod 4.3.5.1.2 c)', [PtNo, R.Dfi, MEZNI_DFI]));
     end;
 
     if not IsNan(R.Ds) then
@@ -449,6 +450,10 @@ begin
   end
   else
     FInfo.Shift := MeanShift(AFrame, AFrame.Rows[0]);
+
+  // The shift from 0 to 400 gon, as surveyors write it
+  if FInfo.Shift < 0 then
+    FInfo.Shift := FInfo.Shift + 400;
 
   MaxDist := CheckOrientations(AFrame);
   ComputeDetails(AFrame, MaxDist);

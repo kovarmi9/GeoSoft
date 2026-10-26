@@ -47,6 +47,9 @@ type
     /// <summary>Derives what is shown from one row. No state is kept.</summary>
     class function ResultOf(const ARow: TGeoRow;
       AScale: Double): TCheckResult;
+
+    /// <summary>The word for the notebook and the protocol.</summary>
+    class function Verdict(const ACheck: TCheckResult): string;
   end;
 
 implementation
@@ -63,6 +66,21 @@ begin
     Result := NaN
   else
     Result := Sqrt(Sqr(ARow.Xm - ARow.X) + Sqr(ARow.Ym - ARow.Y));
+end;
+
+class function TCheckMeasurementsAlgorithm.Verdict(
+  const ACheck: TCheckResult): string;
+begin
+  if not ACheck.Found then
+    Result := 'chybí bod'
+  else if not ACheck.HasMeasured then
+    Result := 'neměřeno'
+  else if IsNan(ACheck.Tolerance) then
+    Result := 'bez Mxy'
+  else if ACheck.Passed then
+    Result := 'vyhovuje'
+  else
+    Result := 'nevyhovuje';
 end;
 
 class function TCheckMeasurementsAlgorithm.ResultOf(const ARow: TGeoRow;
@@ -110,7 +128,7 @@ begin
       Continue;
 
     if R.Computed < MIN_DIST then
-      AddWarning(Format(
+      AddError(Format(
         'Oměrná %d (body %s - %s): body mají shodné souřadnice.',
         [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm)]));
 

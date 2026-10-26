@@ -37,6 +37,13 @@ object SettingsForm: TSettingsForm
         Height = 15
         Caption = 'Desetinn'#225' m'#237'sta '#250'hl'#367
       end
+      object LabelAreaDecimals: TLabel
+        Left = 12
+        Top = 158
+        Width = 120
+        Height = 15
+        Caption = 'Desetinn'#225' m'#237'sta ploch'
+      end
       object RadioGroupCoordOrder: TRadioGroup
         Left = 8
         Top = 8
@@ -69,6 +76,16 @@ object SettingsForm: TSettingsForm
         MinValue = 0
         TabOrder = 2
         Value = 4
+      end
+      object SpinAreaDecimals: TSpinEdit
+        Left = 240
+        Top = 154
+        Width = 60
+        Height = 24
+        MaxValue = 9
+        MinValue = 0
+        TabOrder = 3
+        Value = 0
       end
     end
     object TabScale: TTabSheet

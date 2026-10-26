@@ -30,7 +30,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     ParentColor = True
     TabOrder = 1
     OnExit = GridExit
-    OnKeyDown = AnchorGridKeyDown
     EnterEndBehavior = ebMoveFocusNext
     OnCellCommitted = BasePointCommitted
     RowHeaders.Strings = (
@@ -42,8 +41,8 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       'X'
       'Y'
       'Z'
-      'Xm=Stani'#269'en'#237
-      'Ym=Kolmice'
+      'SH=Stani'#269'en'#237
+      'PolarK=Kolmice'
       'KK'
       'Poznamka=Popis')
     ReadOnlyFields = [X, Y, Z, Poznamka, KK]
@@ -97,8 +96,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     ParentColor = True
     TabOrder = 4
     OnExit = GridExit
-    OnKeyDown = DetailGridKeyDown
-    OnSelectCell = DetailGridSelectCell
     EnterEndBehavior = ebAddRow
     OnCellCommitted = DetailPointCommitted
     RowHeaders.Strings = (
@@ -108,8 +105,8 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       'X'
       'Y'
       'Z'
-      'Xm=Stani'#269'en'#237
-      'Ym=Kolmice'
+      'SH=Stani'#269'en'#237
+      'PolarK=Kolmice'
       'KK'
       'Poznamka=Popis')
     ReadOnlyFields = [X, Y, Z]

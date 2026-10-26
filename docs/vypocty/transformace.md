@@ -13,6 +13,14 @@ Transformace je rovinná, výšky se netransformují.
 | afinní | 6 | 3 |
 
 - Shodnostní má nadbytek vždy, ostatní s minimem bodů vyjdou přesně.
+- Transformace jde oběma směry: kladná čísla bodů z místní soustavy do
+  S-JTSK, záporná zpět. Body jedné úlohy mají stejné znaménko, jinak
+  výpočet ohlásí chybu.
+- Tlačítko „Odznačit Up větší než“ vyřadí z klíče body, jejichž Up
+  (Sxy) je větší než zadaná hodnota, a hned přepočítá. Slouží k ladění
+  klíče.
+- Bod, který je v klíči dvakrát (stejné číslo cíle nebo zdroje), se
+  počítá s dvojnásobnou vahou a protokol na to upozorní.
 - Role bodu podle seznamu souřadnic a zaškrtnutí ve sloupci Klíč:
   **identický** (je v seznamu, zaškrtnutý, jde do klíče), **kontrolní**
   (je v seznamu, nezaškrtnutý, jen odchylky), **určovaný** (není

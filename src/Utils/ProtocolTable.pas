@@ -27,6 +27,11 @@ const
   ColWPoint = -18;    // point id from FormatPointId, with a minus sign
   ColWFlag  = -10;    // a short word like 'dany'
 
+  // Where the length limits come from
+  LimitSource = 'Mezní rozdíl dle KatV, body přílohy 13.5 a 13.6';
+  // A quality code without Mxy gives no limit
+  NoMxy = 'kód kvality bez Mxy';
+
 type
   TProtocol = class
   private
@@ -42,7 +47,7 @@ type
     // ATail is free text written behind the last column
     procedure Row(const AValues: array of string; const ATail: string = '');
     procedure Line;                            // as wide as the table
-    procedure Finish(AWarnings: TStrings);     // warnings and the end line
+    procedure Finish(AWarnings: TStrings);     // messages and the end line
 
     // A point number the way the protocol writes it: 000000 00000 0000
     function FormatPointId(const S: string): string;
@@ -64,6 +69,9 @@ function ColWCoord: Integer;
 function ColWPair: Integer;
 /// <summary>A length or a height in metres.</summary>
 function ColWDist: Integer;
+
+/// <summary>Difference against its limit, KatV 13.5: less than ud.</summary>
+function LimitText(ADifference, ALimit: Double): string;
 
 /// <summary>A length, coordinate or area, -1 = the setting.</summary>
 function Num(AValue: Double; ADecimals: Integer = -1): string;
@@ -108,6 +116,18 @@ end;
 function ProtocolWidth: Integer;
 begin
   Result := ProtWidth + 4 * (GSettings.LengthDecimals - 2);
+end;
+
+function LimitText(ADifference, ALimit: Double): string;
+begin
+  Result := 'Odchylka = ' + Num(ADifference) + '    ';
+  if IsNan(ALimit) then
+    Exit(Result + 'Mezní rozdíl neurčen, ' + NoMxy);
+  Result := Result + 'Mezní rozdíl = ' + Num(ALimit) + '    ';
+  if ADifference < ALimit then
+    Result := Result + 'vyhovuje'
+  else
+    Result := Result + 'nevyhovuje';
 end;
 
 // Puts the text into a column AWidth wide, minus width means left aligned
@@ -233,8 +253,12 @@ begin
   if (AWarnings <> nil) and (AWarnings.Count > 0) then
   begin
     Line;
+    // A message with an object is an error, the others are notes
     for i := 0 to AWarnings.Count - 1 do
-      FLines.Add(' CHYBA: ' + AWarnings[i]);
+      if AWarnings.Objects[i] <> nil then
+        FLines.Add(' CHYBA: ' + AWarnings[i])
+      else
+        FLines.Add(' UPOZORNĚNÍ: ' + AWarnings[i]);
   end;
   FLines.Add(ProtIndent +
     StringOfChar('=', ProtocolWidth - Length(ProtIndent)));

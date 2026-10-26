@@ -234,8 +234,7 @@ begin
   begin
     Mxy := TValidationUtils.MxyOfQuality(Quality);
     if IsNan(Mxy) then
-      FTable.Text('Kód kvality: ' + IntToStr(Quality) +
-                  '    Mxy pro tento kód není určeno')
+      FTable.Text('Kód kvality: ' + IntToStr(Quality) + '    ' + NoMxy)
     else
       FTable.Text('Kód kvality: ' + IntToStr(Quality) +
                   '    Mxy = ' + Num(Mxy) + '    Uxy = ' + Num(2 * Mxy));
@@ -248,7 +247,7 @@ begin
               '   přes Uxy: ' + IntToStr(OverUxy) +
               '   % do Mxy: ' + IntToStr(Round(100 * InMxy / Total)));
   if Unknown > 0 then
-    FTable.Text('Bez Mxy (kód kvality neurčen): ' + IntToStr(Unknown));
+    FTable.Text('Body bez Mxy (' + NoMxy + '): ' + IntToStr(Unknown));
 
   // KatV 13.8, every point within Uxy, over 20 points 40 % within Mxy
   if Unknown = 0 then

@@ -1,4 +1,4 @@
-unit GeoAlgorithmBase;
+﻿unit GeoAlgorithmBase;
 
 interface
 
@@ -15,13 +15,16 @@ type
     FWarnings: TStringList;
     FScale: Double;
   protected
+    /// <summary>A note, the calculation goes on.</summary>
     procedure AddWarning(const AMsg: string);
+    /// <summary>The calculation cannot go on, marked by ErrorMark.</summary>
+    procedure AddError(const AMsg: string);
     procedure ClearWarnings;
   public
     constructor Create;
     destructor Destroy; override;
 
-    // Warnings produced by the last run (cleared at the start of each run)
+    // Messages of the last run, an error has ErrorMark in Objects
     property Warnings: TStringList read FWarnings;
 
     /// <summary>
@@ -41,6 +44,10 @@ type
     // The code this algorithm writes into TGeoRow.Uloha
     class function TaskCode: Integer; virtual; abstract;
   end;
+
+var
+  /// <summary>Object of an error message in Warnings.</summary>
+  ErrorMark: TObject;
 
 implementation
 
@@ -62,9 +69,20 @@ begin
   FWarnings.Add(AMsg);
 end;
 
+procedure TAlgorithmBase.AddError(const AMsg: string);
+begin
+  FWarnings.AddObject(AMsg, ErrorMark);
+end;
+
 procedure TAlgorithmBase.ClearWarnings;
 begin
   FWarnings.Clear;
 end;
+
+initialization
+  ErrorMark := TObject.Create;
+
+finalization
+  ErrorMark.Free;
 
 end.

@@ -248,8 +248,8 @@ begin
       Chain[I].X := AFrame.Rows[AFrom + I].SH * Scale;
       if IsNan(Chain[I].X) then
       begin
-        AMsgs.Add(Head + Format('bod %s nemá délku.',
-          [string(AFrame.Rows[AFrom + I].CB)]));
+        AMsgs.AddObject(Head + Format('bod %s nemá délku.',
+          [string(AFrame.Rows[AFrom + I].CB)]), ErrorMark);
         NoLength := True;
       end;
     end;
@@ -258,7 +258,7 @@ begin
   // A missing length would put the point onto the previous one
   if NoLength then
   begin
-    AMsgs.Add(Head + 'úsek se nepočítá.');
+    AMsgs.AddObject(Head + 'úsek se nepočítá.', ErrorMark);
     Exit;
   end;
 
@@ -273,7 +273,7 @@ begin
   if IsNan(Ident[0].X) or IsNan(Ident[0].Y) or
      IsNan(Ident[1].X) or IsNan(Ident[1].Y) then
   begin
-    AMsgs.Add(Head + 'daný bod nemá souřadnice.');
+    AMsgs.AddObject(Head + 'daný bod nemá souřadnice.', ErrorMark);
     Exit;
   end;
 
@@ -283,13 +283,13 @@ begin
   except
     on E: Exception do
     begin
-      AMsgs.Add(Head + E.Message);
+      AMsgs.AddObject(Head + E.Message, ErrorMark);
       Exit;
     end;
   end;
 
   for I := 0 to Warnings.Count - 1 do
-    AMsgs.Add(Head + Warnings[I]);
+    AMsgs.AddObject(Head + Warnings[I], Warnings.Objects[I]);
 
   Loc := FLocalPoints;
   Seg.FromRow  := AFrom;
@@ -336,7 +336,7 @@ begin
   // The chain has to start on a given point
   if not IsGiven(AFrame.Rows[0]) then
   begin
-    AddWarning('První bod řetězce musí být daný.');
+    AddError('První bod řetězce musí být daný.');
     Exit;
   end;
 
@@ -354,12 +354,13 @@ begin
       end;
 
     if First < AFrame.Count - 1 then
-      Msgs.Add(Format('Za bodem %s už není známý bod, nespočítané body: %d.',
-        [string(AFrame.Rows[First].CB), AFrame.Count - 1 - First]));
+      Msgs.AddObject(Format('Za bodem %s už není známý bod, ' +
+        'nespočítané body: %d.',
+        [string(AFrame.Rows[First].CB), AFrame.Count - 1 - First]), ErrorMark);
 
+    // The marks of the errors go with the messages
     ClearWarnings;
-    for I := 0 to Msgs.Count - 1 do
-      AddWarning(Msgs[I]);
+    Warnings.AddStrings(Msgs);
   finally
     Msgs.Free;
   end;

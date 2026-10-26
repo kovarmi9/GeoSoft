@@ -39,7 +39,7 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
     TabOrder = 2
     WordWrap = False
   end
-  object GridPairs: TGeoPointsGrid [3]
+  object GridPairs: TGeoFieldsGrid [3]
     Left = 0
     Top = 35
     Width = 800
@@ -53,53 +53,16 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
     OnSelectCell = GridPairsSelectCell
     EnterEndBehavior = ebAddRow
     OnCellCommitted = PairCommitted
-    ColumnHeaders.Strings = (
-      ''
-      'Z bodu'
-      'Na bod'
-      'M'#283#345'en'#225
-      'Ze sou'#345'adnic'
-      'Rozd'#237'l'
-      'Mezn'#237
-      'Vyhovuje'
-      'Pozn'#225'mka')
-    ColumnFilters = <
-      item
-        DataType = cdtInteger
-        MaxLength = 16
-        HasMinValue = True
-        MinValue = -999999999999999.000000000000000000
-        HasMaxValue = True
-        MaxValue = 999999999999999.000000000000000000
-      end
-      item
-        DataType = cdtInteger
-        MaxLength = 16
-        HasMinValue = True
-        MinValue = -999999999999999.000000000000000000
-        HasMaxValue = True
-        MaxValue = 999999999999999.000000000000000000
-      end
-      item
-        DataType = cdtExpression
-        DecimalPlaces = 3
-        AllowEmpty = True
-        OnInvalidCommit = ciaBeepAndClear
-      end
-      item
-        DataType = cdtFloat
-      end
-      item
-        DataType = cdtFloat
-      end
-      item
-        DataType = cdtFloat
-      end
-      item
-      end
-      item
-        MaxLength = 32
-      end>
+    ColumnFields.Strings = (
+      'CB=Z bodu'
+      'CBm=Na bod'
+      'SH=M'#283#345'en'#225
+      'SS=Ze sou'#345'adnic'
+      'Vy=Rozd'#237'l'
+      'Sxy=Mezn'#237
+      'Vz=Vyhovuje'
+      'Poznamka=Pozn'#225'mka')
+    ReadOnlyFields = [SS, Vy, Vz, Sxy]
     ColWidths = (
       40
       110

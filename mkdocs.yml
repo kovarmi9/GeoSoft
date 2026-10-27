@@ -20,6 +20,12 @@ markdown_extensions:
       permalink: true        # odkaz na každý nadpis
   - pymdownx.highlight       # barevné zvýraznění kódu
   - pymdownx.superfences
+  - pymdownx.arithmatex:     # vzorce v LaTeXu
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
   - Úvod: index.md
@@ -47,6 +53,7 @@ nav:
       - Průsečík přímek: vypocty/prusecik-primek.md
       - Protínání z délek: vypocty/protinani-z-delek.md
       - Protínání ze směrů: vypocty/protinani-ze-smeru.md
+      - Protínání zpět: vypocty/protinani-zpet.md
   - Nastavení: nastaveni.md
   - Protokol: protokol.md
   - Datová struktura:

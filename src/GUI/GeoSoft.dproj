@@ -180,6 +180,7 @@
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmLineIntersection.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmDistanceIntersection.pas"/>
         <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmForwardIntersection.pas"/>
+        <DCCReference Include="..\GeoAlgorithms\GeoAlgorithmResection.pas"/>
         <DCCReference Include="SettingsDialog.pas">
             <Form>SettingsForm</Form>
             <FormType>dfm</FormType>

@@ -1,4 +1,5 @@
-﻿program DistanceIntersectionTest;
+﻿
+program DistanceIntersectionTest;
 
 {$APPTYPE CONSOLE}
 
@@ -13,7 +14,7 @@ var
   Frame: TGeoDataFrame;
   Alg: TDistanceIntersectionAlgorithm;
 
-// One notebook row: number, length, and Y, X of a given point
+// Pridani bodu
 procedure Add(const APointNumber: string; ALength: Double;
   AY: Double = NaN; AX: Double = NaN);
 var
@@ -29,44 +30,53 @@ begin
   Frame.AddRow(Row);
 end;
 
-// Points 11 and 12 of the GEUS example, the new point with ACheck
-procedure Run(const ATitle, ANumber: string; ACheck: Double;
-  AFirst: Double = 33.54; ASecond: Double = 39.05);
+// Vypocet a vypis vysledku
+procedure Run(const ATitle: string);
 var
   I: Integer;
   Row: TGeoRow;
 begin
-  Frame.ClearData;
-  Add('11', AFirst, 100.00, 200.00);
-  Add('12', ASecond, 140.00, 200.00);
-  Add(ANumber, ACheck);
   Alg.Calculate(Frame);
 
   Writeln(ATitle);
+
   if Alg.Valid then
-    Writeln(Format('  1-2 %.3f, úhel %.1f gon, vlevo %s, kontrolní %.3f, ' +
-      'mez %.3f', [Alg.Base, Alg.omega, BoolToStr(Alg.Left, True),
-      Alg.Measured, Alg.Limit]));
+  begin
+    Writeln('  Delka zakladny: ', Alg.Base:0:3);
+    Writeln('  Uhel protnuti: ', Alg.Omega:0:1, ' gon');
+    Writeln('  Vlevo: ', BoolToStr(Alg.Left, True));
+    Writeln('  Kontrolni delka: ', Alg.Measured:0:3);
+    Writeln('  Mez: ', Alg.Limit:0:3);
+  end;
+
   for I := 0 to Alg.Warnings.Count - 1 do
+  begin
     Writeln('  ', Alg.Warnings[I]);
+  end;
+
   Row := Frame.Rows[GIVEN_POINTS];
-  Writeln(Format('  %s: Y %.3f  X %.3f  KK %d',
-    [string(Row.CB), Row.Y, Row.X, Row.KK]));
+
+  Writeln('  ', string(Row.CB), ': Y ', Row.Y:0:3,
+    '  X ', Row.X:0:3, '  KK ', Row.KK);
+
   Writeln;
 end;
+
 
 begin
   Frame := TGeoDataFrame.Create([Uloha, CB, SH, Y, X, KK]);
   Alg := TDistanceIntersectionAlgorithm.Create;
+
   try
-    // Expected right Y 115,000 X 170,001, left Y 115,000 X 229,999
-    Run('1. Kontrolní délka 40,00, vpravo (jako GEUS)', '111', 40.00);
-    Run('2. Kontrolní délka -40,00, vlevo', '112', -40.00);
-    Run('3. Kontrolní délka -1, vlevo bez kontroly', '113', -1);
-    Run('4. Kontrolní délka 40,50, přes mez', '114', 40.50);
-    Run('5. Kontrolní délka 0, vpravo bez kontroly', '115', 0);
-    Run('6. Délky 10 a 10 se neprotnou (očekávána chyba)', '116', 40.00,
-      10.00, 10.00);
+    // Priklad protinani z delek
+    // Ocekavany vysledek: Y = 853262.19, X = 1010898.28
+
+    Add('202', 703.84, 853704.65, 1011445.66);
+    Add('229', 846.61, 852501.72, 1011270.35);
+    Add('226', -1);
+
+    Run('Protinani z delek - bod 226');
+
   finally
     Alg.Free;
     Frame.Free;
@@ -75,3 +85,5 @@ begin
   Writeln('Hotovo. Enter...');
   Readln;
 end.
+end.
+

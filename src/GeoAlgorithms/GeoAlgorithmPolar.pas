@@ -57,7 +57,6 @@ type
     // The steps of Calculate, in order
     function CheckLayout(AFrame: TGeoDataFrame): Boolean;
     function SolveFreeStation(AFrame: TGeoDataFrame): Boolean;
-    function MeanShift(AFrame: TGeoDataFrame; const AStation: TGeoRow): Double;
     function CheckOrientations(AFrame: TGeoDataFrame): Double;
     procedure ComputeDetails(AFrame: TGeoDataFrame; AMaxDist: Double);
 
@@ -71,6 +70,10 @@ type
 
     /// <summary>Checks the rows, fills X and Y of the detail points.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
+
+    /// <summary>Weighted mean shift [gon] of rows AFirst to ALast.</summary>
+    class function MeanShift(AFrame: TGeoDataFrame; const AStation: TGeoRow;
+                             AFirst, ALast: Integer): Double;
 
     /// <summary>Residuals of one orientation.</summary>
     class function ResultOf(const AStation, ARow: TGeoRow;
@@ -276,17 +279,20 @@ end;
 
 // With a given station the shift [gon] is the mean of the orientations,
 // weighted by their length
-function TPolarMethodAlgorithm.MeanShift(AFrame: TGeoDataFrame;
-  const AStation: TGeoRow): Double;
+class function TPolarMethodAlgorithm.MeanShift(AFrame: TGeoDataFrame;
+  const AStation: TGeoRow; AFirst, ALast: Integer): Double;
 var
   I: Integer;
   Sigma, Psi, SumSin, SumCos, DMax, P: Double;
 begin
   SumSin := 0;
   SumCos := 0;
-  DMax := LongestOrient(AFrame, AStation);
+  DMax := 0;
+  for I := AFirst to ALast do
+    if not IsNan(AFrame.Rows[I].HZ) then
+      DMax := Max(DMax, Dist(AStation, AFrame.Rows[I]));
 
-  for I := 1 to FInfo.OrientCount do
+  for I := AFirst to ALast do
   begin
     if IsNan(AFrame.Rows[I].HZ) then
       Continue;
@@ -449,7 +455,7 @@ begin
       Exit;
   end
   else
-    FInfo.Shift := MeanShift(AFrame, AFrame.Rows[0]);
+    FInfo.Shift := MeanShift(AFrame, AFrame.Rows[0], 1, FInfo.OrientCount);
 
   // The shift from 0 to 400 gon, as surveyors write it
   if FInfo.Shift < 0 then

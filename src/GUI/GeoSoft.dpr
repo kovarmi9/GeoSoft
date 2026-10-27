@@ -27,6 +27,8 @@ uses
   GeoAlgorithmLineAdjustment in '..\GeoAlgorithms\GeoAlgorithmLineAdjustment.pas',
   GeoAlgorithmLevelling in '..\GeoAlgorithms\GeoAlgorithmLevelling.pas',
   GeoAlgorithmLineIntersection in '..\GeoAlgorithms\GeoAlgorithmLineIntersection.pas',
+  GeoAlgorithmDistanceIntersection in '..\GeoAlgorithms\GeoAlgorithmDistanceIntersection.pas',
+  GeoAlgorithmForwardIntersection in '..\GeoAlgorithms\GeoAlgorithmForwardIntersection.pas',
   SettingsDialog in 'SettingsDialog.pas' {SettingsForm},
   GeoDataFrame in '..\DataStructures\GeoDataFrame.pas',
   GeoRow in '..\DataStructures\GeoRow.pas',

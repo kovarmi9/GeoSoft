@@ -30,6 +30,7 @@ uses
   GeoAlgorithmDistanceIntersection in '..\GeoAlgorithms\GeoAlgorithmDistanceIntersection.pas',
   GeoAlgorithmForwardIntersection in '..\GeoAlgorithms\GeoAlgorithmForwardIntersection.pas',
   GeoAlgorithmResection in '..\GeoAlgorithms\GeoAlgorithmResection.pas',
+  GeoAlgorithmRectangularAdjustment in '..\GeoAlgorithms\GeoAlgorithmRectangularAdjustment.pas',
   SettingsDialog in 'SettingsDialog.pas' {SettingsForm},
   GeoDataFrame in '..\DataStructures\GeoDataFrame.pas',
   GeoRow in '..\DataStructures\GeoRow.pas',

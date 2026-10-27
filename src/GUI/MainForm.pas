@@ -7,7 +7,7 @@ uses
   System.Classes, System.UITypes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  GeoGrid, GeoPointsGrid, Vcl.ExtCtrls;
+  GeoGrid, GeoPointsGrid, Vcl.ExtCtrls, GeoFieldsGrid;
 
 type
   TForm1 = class(TForm)

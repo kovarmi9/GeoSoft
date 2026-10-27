@@ -45,7 +45,7 @@ procedure TLineAdjustmentAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   I: Integer;
   PointA, PointB: TGeoRow;
-  NormalX, NormalY, Offset: Double;
+  DeltaXAB, DeltaYAB, sAB, k: Double;
   PointNumber: string;
 begin
   ClearWarnings;
@@ -61,7 +61,10 @@ begin
 
   PointA := AFrame.Rows[0];
   PointB := AFrame.Rows[1];
-  FLineLength := Sqrt(Sqr(PointB.X - PointA.X) + Sqr(PointB.Y - PointA.Y));
+  DeltaXAB := PointB.X - PointA.X;
+  DeltaYAB := PointB.Y - PointA.Y;
+  sAB := Sqrt(Sqr(DeltaXAB) + Sqr(DeltaYAB));
+  FLineLength := sAB;
   if IsNan(FLineLength) or (FLineLength < MIN_LINE) then
   begin
     AddError('Body přímky splývají nebo nemají souřadnice.');
@@ -71,10 +74,6 @@ begin
   // The worse point decides the code and the limit
   FQuality := TValidationUtils.LowerQuality(PointA.KK, PointB.KK);
   FLimit := 2 * TValidationUtils.MxyOfQuality(FQuality);
-
-  // Unit normal, to the right of A - B is plus as in the orthogonal method
-  NormalX := -(PointB.Y - PointA.Y) / FLineLength;
-  NormalY := (PointB.X - PointA.X) / FLineLength;
 
   for I := LINE_ROWS to AFrame.Count - 1 do
   begin
@@ -86,17 +85,18 @@ begin
       Continue;
     end;
 
-    Offset := (AFrame.Rows[I].X - PointA.X) * NormalX +
-      (AFrame.Rows[I].Y - PointA.Y) * NormalY;
+    // Offset k, to the right of A - B is plus as in the orthogonal method
+    k := ((AFrame.Rows[I].Y - PointA.Y) * DeltaXAB -
+      (AFrame.Rows[I].X - PointA.X) * DeltaYAB) / sAB;
 
-    if not IsNan(FLimit) and (Abs(Offset) > FLimit) then
+    if not IsNan(FLimit) and (Abs(k) > FLimit) then
       AddWarning(Format('Bod %s: kolmice %.3f m je delší než Uxy %.3f m.',
-        [PointNumber, Abs(Offset), FLimit]));
+        [PointNumber, Abs(k), FLimit]));
 
     // The foot of the perpendicular
-    AFrame.Rows[I].X := AFrame.Rows[I].X - Offset * NormalX;
-    AFrame.Rows[I].Y := AFrame.Rows[I].Y - Offset * NormalY;
-    AFrame.Rows[I].PolarK := Offset;
+    AFrame.Rows[I].X := AFrame.Rows[I].X + k * DeltaYAB / sAB;
+    AFrame.Rows[I].Y := AFrame.Rows[I].Y - k * DeltaXAB / sAB;
+    AFrame.Rows[I].PolarK := k;
     AFrame.Rows[I].KK := FQuality;
   end;
 end;

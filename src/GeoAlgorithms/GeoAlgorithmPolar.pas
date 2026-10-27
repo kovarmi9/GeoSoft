@@ -25,7 +25,7 @@ type
 
   // Residuals of one orientation
   TOrientResult = record
-    Dfi:     Double;   // direction residual [gon], NaN without direction
+    dPhi:    Double;   // direction residual [gon], NaN without direction
     Dg:      Double;   // distance from coordinates [m]
     Ds:      Double;   // distance residual [m], NaN without distance
   end;
@@ -35,10 +35,10 @@ type
     Valid:         Boolean;
     FreeStation:   Boolean;
     OrientCount:   Integer;   // rows 1..OrientCount, row 0 is the station
-    Shift:         Double;    // orientation shift [gon]
-    ShiftError:    Double;
+    phi:           Double;    // orientation shift [gon]
+    mPhi:          Double;    // mean error of the shift
     Congruent:     Boolean;   // how the free station was transformed
-    Q:             Double;    // scale of that transformation
+    q:             Double;    // scale of that transformation
   end;
 
   TPolarMethodAlgorithm = class(TFrameAlgorithm)
@@ -77,7 +77,7 @@ type
 
     /// <summary>Residuals of one orientation.</summary>
     class function ResultOf(const AStation, ARow: TGeoRow;
-                            AShift, AScale: Double): TOrientResult;
+                            APhi, AScale: Double): TOrientResult;
 
     /// <summary>The job of the last run, for the protocol.</summary>
     property Info: TPolarInfo read FInfo;
@@ -170,19 +170,19 @@ begin
 end;
 
 class function TPolarMethodAlgorithm.ResultOf(const AStation, ARow: TGeoRow;
-  AShift, AScale: Double): TOrientResult;
+  APhi, AScale: Double): TOrientResult;
 var
-  Sigma, Psi: Double;
+  sigma, psi: Double;
 begin
   // An empty cell means it was not measured
   if IsNan(ARow.HZ) then
-    Result.Dfi := NaN
+    Result.dPhi := NaN
   else
   begin
-    Sigma := ArcTan2(ARow.Y - AStation.Y, ARow.X - AStation.X);
-    Psi   := ARow.HZ * GON_TO_RAD;
-    Result.Dfi := ArcTan2(Sin(Sigma - Psi - AShift * GON_TO_RAD),
-                          Cos(Sigma - Psi - AShift * GON_TO_RAD)) * RAD_TO_GON;
+    sigma := ArcTan2(ARow.Y - AStation.Y, ARow.X - AStation.X);
+    psi   := ARow.HZ * GON_TO_RAD;
+    Result.dPhi := ArcTan2(Sin(sigma - psi - APhi * GON_TO_RAD),
+                          Cos(sigma - psi - APhi * GON_TO_RAD)) * RAD_TO_GON;
   end;
 
   Result.Dg := Dist(AStation, ARow);
@@ -198,7 +198,7 @@ function TPolarMethodAlgorithm.SolveFreeStation(AFrame: TGeoDataFrame): Boolean;
 var
   Local, Global: TPointsArray;
   I, M: Integer;
-  Psi, D: Double;
+  psi, D: Double;
 begin
   Result := False;
 
@@ -211,12 +211,12 @@ begin
     if IsNan(AFrame.Rows[I].HZ) or IsNan(AFrame.Rows[I].SH) then
       Continue;
 
-    Psi := AFrame.Rows[I].HZ * GON_TO_RAD;
+    psi := AFrame.Rows[I].HZ * GON_TO_RAD;
     D   := AFrame.Rows[I].SH * Scale;
 
     Local[M].PointNumber := StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0);
-    Local[M].X := D * Cos(Psi);
-    Local[M].Y := D * Sin(Psi);
+    Local[M].X := D * Cos(psi);
+    Local[M].Y := D * Sin(psi);
 
     Global[M] := Local[M];
     Global[M].X := AFrame.Rows[I].X;
@@ -243,16 +243,16 @@ begin
       FCongruentTr.ComputeParametersFromPoints(Local, Global);
       AFrame.Rows[0].X := FCongruentTr.ShiftX;
       AFrame.Rows[0].Y := FCongruentTr.ShiftY;
-      FInfo.Shift := FCongruentTr.Omega * RAD_TO_GON;
-      FInfo.Q := 1;
+      FInfo.phi := FCongruentTr.omega * RAD_TO_GON;
+      FInfo.q := 1;
     end
     else
     begin
       FHelmertTr.ComputeParametersFromPoints(Local, Global);
       AFrame.Rows[0].X := FHelmertTr.ShiftX;
       AFrame.Rows[0].Y := FHelmertTr.ShiftY;
-      FInfo.Shift := FHelmertTr.Omega * RAD_TO_GON;
-      FInfo.Q := FHelmertTr.Q;
+      FInfo.phi := FHelmertTr.omega * RAD_TO_GON;
+      FInfo.q := FHelmertTr.q;
     end;
   except
     on E: Exception do
@@ -283,7 +283,7 @@ class function TPolarMethodAlgorithm.MeanShift(AFrame: TGeoDataFrame;
   const AStation: TGeoRow; AFirst, ALast: Integer): Double;
 var
   I: Integer;
-  Sigma, Psi, SumSin, SumCos, DMax, P: Double;
+  sigma, psi, SumSin, SumCos, DMax, p: Double;
 begin
   SumSin := 0;
   SumCos := 0;
@@ -297,13 +297,13 @@ begin
     if IsNan(AFrame.Rows[I].HZ) then
       Continue;
 
-    Sigma := ArcTan2(AFrame.Rows[I].Y - AStation.Y,
+    sigma := ArcTan2(AFrame.Rows[I].Y - AStation.Y,
                      AFrame.Rows[I].X - AStation.X);
-    Psi := AFrame.Rows[I].HZ * GON_TO_RAD;
-    P := Weight(AStation, AFrame.Rows[I], DMax);
+    psi := AFrame.Rows[I].HZ * GON_TO_RAD;
+    p := Weight(AStation, AFrame.Rows[I], DMax);
 
-    SumCos := SumCos + P * Cos(Sigma - Psi);
-    SumSin := SumSin + P * Sin(Sigma - Psi);
+    SumCos := SumCos + p * Cos(sigma - psi);
+    SumSin := SumSin + p * Sin(sigma - psi);
   end;
 
   Result := ArcTan2(SumSin, SumCos) * RAD_TO_GON;
@@ -366,7 +366,7 @@ function TPolarMethodAlgorithm.CheckOrientations(AFrame: TGeoDataFrame): Double;
 var
   St: TGeoRow;
   I, NDir: Integer;
-  SumP, SumPDfi, DMax, P, Limit: Double;
+  SumP, SumPdPhi, DMax, p, Limit: Double;
   R: TOrientResult;
   PtNo: string;
 begin
@@ -374,27 +374,27 @@ begin
   St := AFrame.Rows[0];
   NDir := 0;
   SumP := 0;
-  SumPDfi := 0;
+  SumPdPhi := 0;
   DMax := LongestOrient(AFrame, St);
 
   for I := 1 to FInfo.OrientCount do
   begin
-    R := ResultOf(St, AFrame.Rows[I], FInfo.Shift, Scale);
+    R := ResultOf(St, AFrame.Rows[I], FInfo.phi, Scale);
     PtNo := Trim(string(AFrame.Rows[I].CB));
     Result := Max(Result, R.Dg);
 
     // Without a direction only the distance is checked
-    if not IsNan(R.Dfi) then
+    if not IsNan(R.dPhi) then
     begin
       Inc(NDir);
-      P := Weight(St, AFrame.Rows[I], DMax);
-      SumP := SumP + P;
-      SumPDfi := SumPDfi + P * Sqr(R.Dfi);
+      p := Weight(St, AFrame.Rows[I], DMax);
+      SumP := SumP + p;
+      SumPdPhi := SumPdPhi + p * Sqr(R.dPhi);
 
-      if Abs(R.Dfi) > MEZNI_DFI then
+      if Abs(R.dPhi) > MEZNI_DFI then
         AddWarning(Format('Orientace %s: odchylka or. posunu dfi = %.4f g ' +
           'překračuje mezní hodnotu %.2f g - Návod pro obnovu katastrálního ' +
-          'operátu, bod 4.3.5.1.2 c)', [PtNo, R.Dfi, MEZNI_DFI]));
+          'operátu, bod 4.3.5.1.2 c)', [PtNo, R.dPhi, MEZNI_DFI]));
     end;
 
     if not IsNan(R.Ds) then
@@ -408,7 +408,7 @@ begin
 
   // Mean error of a weighted mean
   if (NDir > 1) and (SumP > 0) then
-    FInfo.ShiftError := Sqrt(SumPDfi / ((NDir - 1) * SumP));
+    FInfo.mPhi := Sqrt(SumPdPhi / ((NDir - 1) * SumP));
 end;
 
 procedure TPolarMethodAlgorithm.ComputeDetails(AFrame: TGeoDataFrame;
@@ -416,17 +416,17 @@ procedure TPolarMethodAlgorithm.ComputeDetails(AFrame: TGeoDataFrame;
 var
   St: TGeoRow;
   I: Integer;
-  D, Sigma: Double;
+  D, sigma: Double;
 begin
   St := AFrame.Rows[0];
 
   for I := FInfo.OrientCount + 1 to AFrame.Count - 1 do
   begin
     D     := AFrame.Rows[I].SH * Scale;
-    Sigma := (FInfo.Shift + AFrame.Rows[I].HZ) * GON_TO_RAD;
+    sigma := (FInfo.phi + AFrame.Rows[I].HZ) * GON_TO_RAD;
 
-    AFrame.Rows[I].X := St.X + D * Cos(Sigma);
-    AFrame.Rows[I].Y := St.Y + D * Sin(Sigma);
+    AFrame.Rows[I].X := St.X + D * Cos(sigma);
+    AFrame.Rows[I].Y := St.Y + D * Sin(sigma);
 
     if (AMaxDist > 0) and (D > AMaxDist) then
       AddWarning(Format('Bod %s: délka rajónu %.1f m je větší než ' +
@@ -455,11 +455,11 @@ begin
       Exit;
   end
   else
-    FInfo.Shift := MeanShift(AFrame, AFrame.Rows[0], 1, FInfo.OrientCount);
+    FInfo.phi := MeanShift(AFrame, AFrame.Rows[0], 1, FInfo.OrientCount);
 
   // The shift from 0 to 400 gon, as surveyors write it
-  if FInfo.Shift < 0 then
-    FInfo.Shift := FInfo.Shift + 400;
+  if FInfo.phi < 0 then
+    FInfo.phi := FInfo.phi + 400;
 
   MaxDist := CheckOrientations(AFrame);
   ComputeDetails(AFrame, MaxDist);

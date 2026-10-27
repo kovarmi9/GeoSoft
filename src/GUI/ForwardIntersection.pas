@@ -133,8 +133,8 @@ begin
         [Copy('AB', I + 1, 1),
         FormatPointId(string(FFrame.Rows[FAlg.Stations[I].Row].CB)),
         FAlg.Stations[I].OrientCount]);
-      if not IsNan(FAlg.Stations[I].Shift) then
-        Result := Result + ', posun ' + Ang(FAlg.Stations[I].Shift);
+      if not IsNan(FAlg.Stations[I].phi) then
+        Result := Result + ', posun ' + Ang(FAlg.Stations[I].phi);
       Result := Result + '    ';
     end;
 
@@ -296,11 +296,11 @@ begin
                   CoordPair(ListPoint), IntToStr(Row.KK)])
       else
         Prot.Row(['', FormatPointId(string(Row.CB)), Ang(Row.HZ),
-                  Ang(FAlg.Deviations[I]), CoordPair(ListPoint),
+                  Ang(FAlg.dPhi[I]), CoordPair(ListPoint),
                   IntToStr(Row.KK)]);
     end;
     Prot.Line;
-    Prot.Text('Or. posun = ' + Ang(FAlg.Stations[J].Shift) +
+    Prot.Text('Or. posun = ' + Ang(FAlg.Stations[J].phi) +
       '    Mezní dfi = ' + Ang(MEZNI_DFI));
     Prot.Text('');
   end;
@@ -324,7 +324,7 @@ begin
     else
       Tail := '';
     Prot.Row([IntToStr(Number), FormatPointId(string(Row.CB)), Ang(Row.HZ),
-              Ang(Row.Zuhel), Ang(FAlg.Angles[I]), CoordPair(ListPoint),
+              Ang(Row.Zuhel), Ang(FAlg.omega[I]), CoordPair(ListPoint),
               IntToStr(Row.KK)], Tail);
   end;
 

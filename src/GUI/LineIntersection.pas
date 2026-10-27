@@ -263,7 +263,7 @@ begin
   for I := 0 to LINE_POINTS - 1 do
     PointLine(Grid.Cells[0, I + 1] + ':', FFrame.Rows[I]);
   Prot.Line;
-  Prot.Text('Úhel protnutí = ' + Ang(FAlg.Angle));
+  Prot.Text('Úhel protnutí = ' + Ang(FAlg.omega));
   Prot.Text(TLineIntersectionAlgorithm.PlaceText(FAlg.Place));
 
   Prot.Text('');

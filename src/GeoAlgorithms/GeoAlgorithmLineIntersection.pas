@@ -24,7 +24,7 @@ type
   TLineIntersectionAlgorithm = class(TFrameAlgorithm)
   private
     FValid: Boolean;
-    FAngle: Double;
+    FOmega: Double;
     FPlace: TIntersectionPlace;
   public
     class function TaskCode: Integer; override;
@@ -37,7 +37,7 @@ type
 
     property Valid: Boolean read FValid;
     /// <summary>Angle of the two lines, 0 to 200 gon.</summary>
-    property Angle: Double read FAngle;
+    property omega: Double read FOmega;
     property Place: TIntersectionPlace read FPlace;
   end;
 
@@ -63,13 +63,13 @@ end;
 procedure TLineIntersectionAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   I: Integer;
-  DirectionX1, DirectionY1, DirectionX2, DirectionY2: Double;
-  Cross, OnFirst, OnSecond: Double;
-  OnFirstSegment, OnSecondSegment: Boolean;
+  DeltaXI, DeltaYI, DeltaXII, DeltaYII, DeltaX0, DeltaY0: Double;
+  D, t, u: Double;
+  OnSegmentI, OnSegmentII: Boolean;
 begin
   ClearWarnings;
   FValid := False;
-  FAngle := NaN;
+  FOmega := NaN;
   FPlace := ipNone;
 
   if AFrame.Count <= LINE_POINTS then
@@ -90,54 +90,54 @@ begin
       Exit;
     end;
 
-  DirectionX1 := AFrame.Rows[1].X - AFrame.Rows[0].X;
-  DirectionY1 := AFrame.Rows[1].Y - AFrame.Rows[0].Y;
-  DirectionX2 := AFrame.Rows[3].X - AFrame.Rows[2].X;
-  DirectionY2 := AFrame.Rows[3].Y - AFrame.Rows[2].Y;
+  DeltaXI := AFrame.Rows[1].X - AFrame.Rows[0].X;
+  DeltaYI := AFrame.Rows[1].Y - AFrame.Rows[0].Y;
+  DeltaXII := AFrame.Rows[3].X - AFrame.Rows[2].X;
+  DeltaYII := AFrame.Rows[3].Y - AFrame.Rows[2].Y;
+  DeltaX0 := AFrame.Rows[2].X - AFrame.Rows[0].X;
+  DeltaY0 := AFrame.Rows[2].Y - AFrame.Rows[0].Y;
 
-  if Sqrt(Sqr(DirectionX1) + Sqr(DirectionY1)) < MIN_LINE then
+  if Sqrt(Sqr(DeltaXI) + Sqr(DeltaYI)) < MIN_LINE then
   begin
     AddError('Body přímky I splývají.');
     Exit;
   end;
-  if Sqrt(Sqr(DirectionX2) + Sqr(DirectionY2)) < MIN_LINE then
+  if Sqrt(Sqr(DeltaXII) + Sqr(DeltaYII)) < MIN_LINE then
   begin
     AddError('Body přímky II splývají.');
     Exit;
   end;
 
-  // Angle of the lines from their cross and dot product
-  Cross := DirectionX1 * DirectionY2 - DirectionY1 * DirectionX2;
-  FAngle := Abs(ArcTan2(Cross, DirectionX1 * DirectionX2 +
-    DirectionY1 * DirectionY2)) * 200 / Pi;
-  if (FAngle < 1E-6) or (FAngle > 200 - 1E-6) then
+  // Determinant, zero means parallel lines
+  D := DeltaXI * DeltaYII - DeltaYI * DeltaXII;
+  FOmega := Abs(ArcTan2(D, DeltaXI * DeltaXII +
+    DeltaYI * DeltaYII)) * 200 / Pi;
+  if (FOmega < 1E-6) or (FOmega > 200 - 1E-6) then
   begin
     AddError('Přímky jsou rovnoběžné.');
     Exit;
   end;
-  if (FAngle < MIN_ANGLE) or (FAngle > MAX_ANGLE) then
+  if (FOmega < MIN_ANGLE) or (FOmega > MAX_ANGLE) then
     AddWarning(Format('Úhel protnutí %.1f gon je mimo %d až %d gon.',
-      [FAngle, MIN_ANGLE, MAX_ANGLE]));
+      [FOmega, MIN_ANGLE, MAX_ANGLE]));
 
   // Where on each line, 0 is its first point and 1 its second
-  OnFirst := ((AFrame.Rows[2].X - AFrame.Rows[0].X) * DirectionY2 -
-    (AFrame.Rows[2].Y - AFrame.Rows[0].Y) * DirectionX2) / Cross;
-  OnSecond := ((AFrame.Rows[2].X - AFrame.Rows[0].X) * DirectionY1 -
-    (AFrame.Rows[2].Y - AFrame.Rows[0].Y) * DirectionX1) / Cross;
+  t := (DeltaX0 * DeltaYII - DeltaY0 * DeltaXII) / D;
+  u := (DeltaX0 * DeltaYI - DeltaY0 * DeltaXI) / D;
 
-  OnFirstSegment := (OnFirst >= -1E-9) and (OnFirst <= 1 + 1E-9);
-  OnSecondSegment := (OnSecond >= -1E-9) and (OnSecond <= 1 + 1E-9);
-  if OnFirstSegment and OnSecondSegment then
+  OnSegmentI := (t >= -1E-9) and (t <= 1 + 1E-9);
+  OnSegmentII := (u >= -1E-9) and (u <= 1 + 1E-9);
+  if OnSegmentI and OnSegmentII then
     FPlace := ipBoth
-  else if OnFirstSegment then
+  else if OnSegmentI then
     FPlace := ipFirstOnly
-  else if OnSecondSegment then
+  else if OnSegmentII then
     FPlace := ipSecondOnly
   else
     FPlace := ipNone;
 
-  AFrame.Rows[LINE_POINTS].X := AFrame.Rows[0].X + OnFirst * DirectionX1;
-  AFrame.Rows[LINE_POINTS].Y := AFrame.Rows[0].Y + OnFirst * DirectionY1;
+  AFrame.Rows[LINE_POINTS].X := AFrame.Rows[0].X + t * DeltaXI;
+  AFrame.Rows[LINE_POINTS].Y := AFrame.Rows[0].Y + t * DeltaYI;
 
   // The worst of the four points
   AFrame.Rows[LINE_POINTS].KK := TValidationUtils.LowerQuality(

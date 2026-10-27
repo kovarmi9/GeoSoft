@@ -45,7 +45,7 @@ begin
   Writeln(ATitle);
   if Alg.Valid then
     Writeln(Format('  1-2 %.3f, úhel %.1f gon, vlevo %s, kontrolní %.3f, ' +
-      'mez %.3f', [Alg.Base, Alg.Angle, BoolToStr(Alg.Left, True),
+      'mez %.3f', [Alg.Base, Alg.omega, BoolToStr(Alg.Left, True),
       Alg.Measured, Alg.Limit]));
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);

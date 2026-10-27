@@ -1,7 +1,7 @@
 ﻿unit GeoAlgorithmTransformCongruent;
 
 // Congruent key, similarity without scale
-//   A11 = cos(Omega), A12 = sin(Omega), A21 = -sin(Omega), A22 = cos(Omega)
+//   A11 = cos(omega), A12 = sin(omega), A21 = -sin(omega), A22 = cos(omega)
 
 interface
 
@@ -32,7 +32,7 @@ end;
 procedure TCongruentTransformation.EstimateMatrix(
   const LocalReduced, GlobalReduced: TPointsArray);
 begin
-  // Lambda1 and Lambda2
+  // lambda1 and lambda2
   inherited;
 
   // Divided by scale, cos and sin

@@ -1,9 +1,9 @@
 ﻿unit GeoAlgorithmTransformSimilarity;
 
 // Similarity key, rotation and scale
-//   Lambda1 = sum(x * X + y * Y) / sum(x^2 + y^2)
-//   Lambda2 = sum(x * Y - y * X) / sum(x^2 + y^2)
-//   A11 = Lambda1, A12 = Lambda2, A21 = -Lambda2, A22 = Lambda1
+//   lambda1 = sum(x * X + y * Y) / sum(x^2 + y^2)
+//   lambda2 = sum(x * Y - y * X) / sum(x^2 + y^2)
+//   A11 = lambda1, A12 = lambda2, A21 = -lambda2, A22 = lambda1
 
 interface
 
@@ -19,8 +19,8 @@ type
     class function KindName: string; override;
     procedure EstimateMatrix(const LocalReduced, GlobalReduced: TPointsArray); override;
   public
-    property Omega: Double read FOmega;  // rotation [rad]
-    property Q: Double read FQ;          // scale
+    property omega: Double read FOmega;  // rotation [rad]
+    property q: Double read FQ;          // scale
   end;
 
 implementation
@@ -40,7 +40,7 @@ procedure TSimilarityTransformation.EstimateMatrix(
 var
   I: Integer;
   SumSquares, SumLambda1, SumLambda2: Double;
-  Lambda1, Lambda2: Double;
+  lambda1, lambda2: Double;
 begin
   SumSquares := 0;
   SumLambda1 := 0;
@@ -59,21 +59,21 @@ begin
     raise Exception.Create(
       'Identické body splývají, transformaci z nich nelze určit.');
 
-  Lambda1 := SumLambda1 / SumSquares;
-  Lambda2 := SumLambda2 / SumSquares;
+  lambda1 := SumLambda1 / SumSquares;
+  lambda2 := SumLambda2 / SumSquares;
 
-  FOmega := ArcTan2(Lambda2, Lambda1);
-  FQ := Sqrt(Sqr(Lambda1) + Sqr(Lambda2));
+  FOmega := ArcTan2(lambda2, lambda1);
+  FQ := Sqrt(Sqr(lambda1) + Sqr(lambda2));
 
   // Target points in one spot
   if FQ < 1e-10 then
     raise Exception.Create(
       'Identické body splývají, transformaci z nich nelze určit.');
 
-  FA11 := Lambda1;
-  FA12 := Lambda2;
-  FA21 := -Lambda2;
-  FA22 := Lambda1;
+  FA11 := lambda1;
+  FA12 := lambda2;
+  FA21 := -lambda2;
+  FA22 := lambda1;
 end;
 
 end.

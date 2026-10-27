@@ -22,7 +22,7 @@ type
   private
     FValid: Boolean;
     FLeft: Boolean;
-    FAngle: Double;
+    FOmega: Double;
     FBase: Double;
     FMeasured: Double;
     FLimit: Double;
@@ -36,7 +36,7 @@ type
     /// <summary>The new point lies left of 1 - 2.</summary>
     property Left: Boolean read FLeft;
     /// <summary>Angle at the new point, 0 to 200 gon.</summary>
-    property Angle: Double read FAngle;
+    property omega: Double read FOmega;
     /// <summary>Length 1 - 2 from the coordinates.</summary>
     property Base: Double read FBase;
     /// <summary>Check length 1 - 2 times Scale, NaN if not measured.</summary>
@@ -55,13 +55,13 @@ end;
 procedure TDistanceIntersectionAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   I, Quality: Integer;
-  Check, LengthFirst, LengthSecond, Along, Across, Side: Double;
-  DirectionX, DirectionY, ToFirstX, ToFirstY, ToSecondX, ToSecondY: Double;
+  Check, s12, s1, s2, p, h, epsilon: Double;
+  DeltaX12, DeltaY12, ToFirstX, ToFirstY, ToSecondX, ToSecondY: Double;
 begin
   ClearWarnings;
   FValid := False;
   FLeft := False;
-  FAngle := NaN;
+  FOmega := NaN;
   FBase := NaN;
   FMeasured := NaN;
   FLimit := NaN;
@@ -92,9 +92,10 @@ begin
     end;
   end;
 
-  DirectionX := AFrame.Rows[1].X - AFrame.Rows[0].X;
-  DirectionY := AFrame.Rows[1].Y - AFrame.Rows[0].Y;
-  FBase := Sqrt(Sqr(DirectionX) + Sqr(DirectionY));
+  DeltaX12 := AFrame.Rows[1].X - AFrame.Rows[0].X;
+  DeltaY12 := AFrame.Rows[1].Y - AFrame.Rows[0].Y;
+  s12 := Sqrt(Sqr(DeltaX12) + Sqr(DeltaY12));
+  FBase := s12;
   if FBase < MIN_BASE then
   begin
     AddError('Body 1 a 2 splývají.');
@@ -119,27 +120,27 @@ begin
         [Abs(FMeasured - FBase), FLimit]));
   end;
 
-  // Along the base from point 1, and across it
-  LengthFirst := AFrame.Rows[0].SH * Scale;
-  LengthSecond := AFrame.Rows[1].SH * Scale;
-  Along := (Sqr(LengthFirst) - Sqr(LengthSecond) + Sqr(FBase)) / (2 * FBase);
-  Across := Sqr(LengthFirst) - Sqr(Along);
-  if Across < -1E-9 then
+  // p along the base from point 1, h across it
+  s1 := AFrame.Rows[0].SH * Scale;
+  s2 := AFrame.Rows[1].SH * Scale;
+  p := (Sqr(s1) - Sqr(s2) + Sqr(s12)) / (2 * s12);
+  h := Sqr(s1) - Sqr(p);
+  if h < -1E-9 then
   begin
     AddError('Neřešitelná konfigurace, délky se neprotínají.');
     Exit;
   end;
-  Across := Sqrt(Max(Across, 0));
+  h := Sqrt(Max(h, 0));
 
   // To the right of 1 - 2 is plus, as in the orthogonal method
   if FLeft then
-    Side := -1
+    epsilon := -1
   else
-    Side := 1;
+    epsilon := 1;
   AFrame.Rows[GIVEN_POINTS].X := AFrame.Rows[0].X +
-    (Along * DirectionX - Side * Across * DirectionY) / FBase;
+    (p * DeltaX12 - epsilon * h * DeltaY12) / s12;
   AFrame.Rows[GIVEN_POINTS].Y := AFrame.Rows[0].Y +
-    (Along * DirectionY + Side * Across * DirectionX) / FBase;
+    (p * DeltaY12 + epsilon * h * DeltaX12) / s12;
   AFrame.Rows[GIVEN_POINTS].KK := Quality;
 
   // Angle between the two lengths at the new point
@@ -147,11 +148,11 @@ begin
   ToFirstY := AFrame.Rows[0].Y - AFrame.Rows[GIVEN_POINTS].Y;
   ToSecondX := AFrame.Rows[1].X - AFrame.Rows[GIVEN_POINTS].X;
   ToSecondY := AFrame.Rows[1].Y - AFrame.Rows[GIVEN_POINTS].Y;
-  FAngle := Abs(ArcTan2(ToFirstX * ToSecondY - ToFirstY * ToSecondX,
+  FOmega := Abs(ArcTan2(ToFirstX * ToSecondY - ToFirstY * ToSecondX,
     ToFirstX * ToSecondX + ToFirstY * ToSecondY)) * 200 / Pi;
-  if (FAngle < MIN_ANGLE) or (FAngle > MAX_ANGLE) then
+  if (FOmega < MIN_ANGLE) or (FOmega > MAX_ANGLE) then
     AddWarning(Format('Úhel protnutí %.1f gon je mimo %d až %d gon.',
-      [FAngle, MIN_ANGLE, MAX_ANGLE]));
+      [FOmega, MIN_ANGLE, MAX_ANGLE]));
 
   FValid := True;
 end;

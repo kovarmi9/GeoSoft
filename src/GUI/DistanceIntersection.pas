@@ -306,7 +306,7 @@ begin
     Prot.Text(LimitText(Abs(FAlg.Measured - FAlg.Base), FAlg.Limit));
     Prot.Text(LimitSource);
   end;
-  Prot.Text('Úhel protnutí = ' + Ang(FAlg.Angle));
+  Prot.Text('Úhel protnutí = ' + Ang(FAlg.omega));
   if FAlg.Left then
     Prot.Text('Bod leží vlevo od 1→2')
   else

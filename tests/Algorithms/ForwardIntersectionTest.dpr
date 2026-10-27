@@ -42,7 +42,7 @@ begin
   for I := 0 to 1 do
     Writeln(Format('  stanovisko %d: řádek %d, orientací %d, posun %.4f',
       [I + 1, Alg.Stations[I].Row + 1, Alg.Stations[I].OrientCount,
-      Alg.Stations[I].Shift]));
+      Alg.Stations[I].phi]));
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
   for I := 0 to Frame.Count - 1 do
@@ -50,7 +50,7 @@ begin
     begin
       Row := Frame.Rows[I];
       Writeln(Format('  %s: Y %.3f  X %.3f  úhel %.1f  KK %d',
-        [string(Row.CB), Row.Y, Row.X, Alg.Angles[I], Row.KK]));
+        [string(Row.CB), Row.Y, Row.X, Alg.omega[I], Row.KK]));
     end;
   Writeln;
 end;

@@ -61,7 +61,7 @@ begin
 
       Writeln(Format('Platný: %s, orientací: %d, orientační posun: %.4f gon',
         [BoolToStr(Alg.Info.Valid, True), Alg.Info.OrientCount,
-         Alg.Info.Shift]));
+         Alg.Info.phi]));
       Writeln('Varování: ', Alg.Warnings.Count);
       for I := 0 to Alg.Warnings.Count - 1 do
         Writeln('  ', Alg.Warnings[I]);

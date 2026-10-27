@@ -240,7 +240,7 @@ begin
     FInfo.ShiftX := Key.ShiftX;
     // Congruent has Q = 1
     if FKind <> ttAffine then
-      FInfo.Scale := TSimilarityTransformation(Key).Q;
+      FInfo.Scale := TSimilarityTransformation(Key).q;
 
     // Mean error, only written, the affine key has none
     if FKind = ttCongruent then

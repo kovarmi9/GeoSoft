@@ -38,7 +38,7 @@ begin
   Writeln(ATitle);
   if Alg.Valid then
     Writeln(Format('  úhel %.1f gon, %s',
-      [Alg.Angle, TLineIntersectionAlgorithm.PlaceText(Alg.Place)]));
+      [Alg.omega, TLineIntersectionAlgorithm.PlaceText(Alg.Place)]));
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
   Row := Frame.Rows[LINE_POINTS];

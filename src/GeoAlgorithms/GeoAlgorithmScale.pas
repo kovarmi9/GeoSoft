@@ -27,13 +27,13 @@ implementation
 
 class function TLengthScale.ProjectionScale(const AY, AX: Double): Double;
 var
-  Rho, D: Double;
+  rho, D: Double;
 begin
-  Rho := Sqrt(Sqr(AX) + Sqr(AY));
-  if (Rho <= 1100000) or (Rho >= 1500000) then
+  rho := Sqrt(Sqr(AX) + Sqr(AY));
+  if (rho <= 1100000) or (rho >= 1500000) then
     Exit(NaN);                 // not S-JTSK coordinates
 
-  D := Rho - 1298039;
+  D := rho - 1298039;
   Result := 0.9999 + 1.22822e-14 * Power(D, 2) - 3.154e-21 * Power(D, 3) +
     1.848e-27 * Power(D, 4);
 end;

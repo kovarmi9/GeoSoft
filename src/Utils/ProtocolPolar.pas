@@ -105,7 +105,7 @@ begin
     FTable.Text('ODCHYLKY TRANSFORMACE (shodnostní)')
   else
     FTable.Text('ODCHYLKY TRANSFORMACE (Helmertova, q = ' +
-                Num(FAlg.Info.Q, 7) + ')');
+                Num(FAlg.Info.q, 7) + ')');
   FTable.Table(['Číslo bodu', 'Vy', 'Vx', 'Sxy', ''],
                [ColWPoint, LengthWidth(8), LengthWidth(8), LengthWidth(8), -12]);
 
@@ -145,17 +145,17 @@ begin
   for I := 1 to FAlg.Info.OrientCount do
   begin
     Row := FFrame.Rows[I];
-    Res := TPolarMethodAlgorithm.ResultOf(St, Row, FAlg.Info.Shift, FAlg.Scale);
+    Res := TPolarMethodAlgorithm.ResultOf(St, Row, FAlg.Info.phi, FAlg.Scale);
 
     // What was not measured stays blank
     FTable.Row([IntToStr(I), FTable.FormatPointId(string(Row.CB)),
-                Ang(Row.HZ), Num(Row.SH), Ang(Res.Dfi), Num(Res.Ds)]);
+                Ang(Row.HZ), Num(Row.SH), Ang(Res.dPhi), Num(Res.Ds)]);
   end;
 
   FTable.Line;
   FTable.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  FTable.Text('Or. posun = ' + Ang(FAlg.Info.Shift) +
-              '    Střední chyba or. pos. = ' + Ang(FAlg.Info.ShiftError) +
+  FTable.Text('Or. posun = ' + Ang(FAlg.Info.phi) +
+              '    Střední chyba or. pos. = ' + Ang(FAlg.Info.mPhi) +
               '    Mezní = ' + Ang(MEZNI_DFI));
 end;
 

@@ -43,6 +43,10 @@ nav:
       - Kontrolní oměrné: vypocty/kontrolni-omerne.md
       - Výpočet výměr: vypocty/vymera.md
       - Transformace: vypocty/transformace.md
+      - Vyrovnání do přímky: vypocty/vyrovnani-do-primky.md
+      - Průsečík přímek: vypocty/prusecik-primek.md
+      - Protínání z délek: vypocty/protinani-z-delek.md
+      - Protínání ze směrů: vypocty/protinani-ze-smeru.md
   - Nastavení: nastaveni.md
   - Protokol: protokol.md
   - Datová struktura:

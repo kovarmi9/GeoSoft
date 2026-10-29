@@ -32,21 +32,18 @@ type
   TOrthogonalMethodForm = class(TCalcBaseForm)
     GridBaseline: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
-    Memo1: TMemo;
     procedure Button1Click(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
     procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TOrthogonalMethodAlgorithm;
-    FFrame: TGeoDataFrame;        // the input and the output of the run
     FRows: TArray<Integer>;       // grid row of each frame row, -1 = P or K
     FDetailCB: TArray<string>;    // number each detail row was filled for
     procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
-    procedure BuildFrame;
     procedure Recompute;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
     function GridNumber(AFrameRow: Integer): string; override;
@@ -74,6 +71,7 @@ begin
   inherited Create(AOwner);
 
   FAlg := TOrthogonalMethodAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
     [Uloha, CB, X, Y, Z, SH, PolarK, KK, Poznamka]);
 
@@ -87,7 +85,6 @@ end;
 destructor TOrthogonalMethodForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -131,7 +128,7 @@ begin
 end;
 
 // Rows 0 and 1 are the measuring line, the rest are the detail points
-procedure TOrthogonalMethodForm.BuildFrame;
+function TOrthogonalMethodForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
@@ -170,6 +167,7 @@ var
   end;
 
 begin
+  Result := True;
   FFrame.ClearData;
   SetLength(FRows, 0);
 
@@ -205,7 +203,7 @@ begin
   // P and K carry -1, so the bridge leaves those rows alone
   FrameToGrid(GridDetail, FFrame, FRows, [CB, X, Y]);
 
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 procedure TOrthogonalMethodForm.BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -329,31 +327,12 @@ begin
   GridDetail.EditorMode := True;
 end;
 
-// Dumps the frame into CSV: the measuring line first, then the detail points.
-procedure TOrthogonalMethodForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
-  // The file is made from the grids, but nothing on the form moves
-  BuildFrame;
-
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
-end;
-
 // The first two rows are P and K
 procedure TOrthogonalMethodForm.LoadFrame(AFrame: TGeoDataFrame;
   ABad: TStrings);
 var
   I, R: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(GridBaseline, 3);
   ClearGrid(GridDetail, GridDetail.FixedRows + AFrame.Count + 1);
   SetLength(FDetailCB, 0);

@@ -15,20 +15,16 @@ type
     Grid: TGeoFieldsGrid;
     PanelSide: TPanel;
     LabelSide: TLabel;
-    Splitter1: TSplitter;
-    Memo1: TMemo;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
   private
     FAlg: TDistanceIntersectionAlgorithm;
-    FFrame: TGeoDataFrame;        // the input and the output of the run
     FStored: Boolean;             // the point went to the list in this run
     function LoadPoint(ARow: Integer): Boolean;
-    procedure BuildFrame;
     procedure Recompute;
     function SideText: string;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -55,6 +51,7 @@ var
 begin
   inherited Create(AOwner);
   FAlg := TDistanceIntersectionAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([Uloha, CB, SH, X, Y, KK]);
 
   // A negative check length puts the new point to the left
@@ -66,7 +63,6 @@ end;
 destructor TDistanceIntersectionForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -97,13 +93,14 @@ begin
 end;
 
 // Rows 0 and 1 are the given points from the list, row 2 the new one
-procedure TDistanceIntersectionForm.BuildFrame;
+function TDistanceIntersectionForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
   PointNumber: Int64;
   ListPoint: Point.TPoint;
 begin
+  Result := True;
   FFrame.ClearData;
   for R := 1 to RESULT_ROW do
   begin
@@ -162,7 +159,7 @@ begin
     LabelSide.Caption := '';
   end;
 
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 procedure TDistanceIntersectionForm.PointCommitted(Sender: TObject;
@@ -228,22 +225,7 @@ begin
   FFrame.Rows[GIVEN_POINTS].CB := Row.CB;
   Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := string(Row.CB);
   FStored := True;
-  ShowProtocol(Memo1.Lines);
-end;
-
-// The three notebook rows into CSV
-procedure TDistanceIntersectionForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
-  BuildFrame;
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
+  ShowProtocol;
 end;
 
 // Row by row into the grid, the new point is computed again
@@ -252,7 +234,6 @@ procedure TDistanceIntersectionForm.LoadFrame(AFrame: TGeoDataFrame;
 var
   I: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(Grid, RESULT_ROW + 1);
   for I := 0 to Min(AFrame.Count, RESULT_ROW) - 1 do
     PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad);

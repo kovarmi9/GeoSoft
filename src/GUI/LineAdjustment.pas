@@ -13,20 +13,16 @@ type
   TLineAdjustmentForm = class(TCalcBaseForm)
     GridLine: TGeoFieldsGrid;
     GridPoints: TGeoFieldsGrid;
-    Splitter1: TSplitter;
-    Memo1: TMemo;
     procedure LinePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
   private
     FAlg: TLineAdjustmentAlgorithm;
-    FFrame: TGeoDataFrame;        // the input and the output of the run
     FRows: TArray<Integer>;       // grid row of each frame row, -1 = A or B
     function LoadLinePoint(ARow: Integer): Boolean;
-    procedure BuildFrame;
     procedure Recompute;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -51,6 +47,7 @@ begin
   inherited Create(AOwner);
   FAlg := TLineAdjustmentAlgorithm.Create;
   // Xm and Ym keep the point before the move, for the protocol
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
     [Uloha, CB, CBm, X, Y, Z, Xm, Ym, PolarK, KK, Poznamka]);
 end;
@@ -58,7 +55,6 @@ end;
 destructor TLineAdjustmentForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -87,7 +83,7 @@ begin
 end;
 
 // Rows 0 and 1 are A and B, the rest are the points to move
-procedure TLineAdjustmentForm.BuildFrame;
+function TLineAdjustmentForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
@@ -126,6 +122,7 @@ var
   end;
 
 begin
+  Result := True;
   FFrame.ClearData;
   SetLength(FRows, 0);
 
@@ -180,7 +177,7 @@ begin
   // A and B carry -1, so the bridge leaves those rows alone
   FrameToGrid(GridPoints, FFrame, FRows, [CBm, X, Y, PolarK]);
 
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 // A and B are rows of the line grid, the others of the point grid
@@ -321,30 +318,12 @@ begin
     ShowMessage(Trim(FAlg.Warnings.Text));
 end;
 
-// Dumps the frame into CSV: A and B first, then the points
-procedure TLineAdjustmentForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
-  // The file is made from the grids, nothing is computed or stored
-  BuildFrame;
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
-end;
-
 // The first two rows are A and B, results come with the next Výpočet
 procedure TLineAdjustmentForm.LoadFrame(AFrame: TGeoDataFrame;
   ABad: TStrings);
 var
   I, R: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(GridLine, 3);
   ClearGrid(GridPoints, GridPoints.FixedRows + AFrame.Count + 1);
 

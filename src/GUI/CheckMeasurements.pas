@@ -18,7 +18,6 @@ const
 
 type
   TCheckMeasurementsForm = class(TCalcBaseForm)
-    Memo1: TMemo;
     GridPairs: TGeoFieldsGrid;
     procedure CalculateClick(Sender: TObject);
     procedure GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer;
@@ -27,14 +26,13 @@ type
     procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TCheckMeasurementsAlgorithm;
-    FFrame: TGeoDataFrame;
     FRows: TArray<Integer>;   // grid row each frame row came from
     procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
-    procedure BuildFrame;
     procedure RefreshComputed;
     procedure Recompute;
     procedure ClearComputed(ARow: Integer);
   protected
+    function BuildFrame: Boolean; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
     procedure ApplyCoordOrderToGrids; override;
@@ -65,7 +63,6 @@ end;
 
 destructor TCheckMeasurementsForm.Destroy;
 begin
-  FFrame.Free;
   FAlg.Free;
   inherited;
 end;
@@ -158,7 +155,7 @@ end;
 
 // One row per measurement: the point we start from, the point we go to,
 // the measured length and the worse quality code of the two
-procedure TCheckMeasurementsForm.BuildFrame;
+function TCheckMeasurementsForm.BuildFrame: Boolean;
 var
   R: Integer;
   PointNumberFrom, PointNumberTo: Int64;
@@ -166,6 +163,7 @@ var
   Row: TGeoRow;
   Dict: TPointDictionary;
 begin
+  Result := True;
   FFrame.ClearData;
   SetLength(FRows, 0);
   Dict := TPointDictionary.GetInstance;
@@ -249,7 +247,6 @@ procedure TCheckMeasurementsForm.LoadFrame(AFrame: TGeoDataFrame;
 var
   I, R: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(GridPairs, GridPairs.FixedRows + AFrame.Count + 1);
 
   R := GridPairs.FixedRows;
@@ -375,7 +372,7 @@ begin
     Exit;
   end;
 
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 end.

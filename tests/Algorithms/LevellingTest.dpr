@@ -108,6 +108,47 @@ begin
     Add('', 'B', 1.410, 30);
     Add('102', 'F', 1.432, 30);
     Run('5. Konec bez dané výšky (očekáváno upozornění)');
+
+    // 6. There 101 - 102 and back, 102 twice at the turn, rho +2 mm.
+    // Expected: 102 there 251,257, back 251,255, mean 251,256
+    Frame.ClearData;
+    Alg.BothWays := True;
+    Add('101', 'B', 1.523, 30, 250.000);
+    Add('', 'F', 0.987, 30);
+    Add('', 'B', 1.845, 30);
+    Add('', 'F', 1.102, 30);
+    Add('', 'B', 1.410, 30);
+    Add('102', 'F', 1.432, 30);
+    Add('102', 'B', 1.200, 30);
+    Add('', 'F', 1.500, 30);
+    Add('', 'B', 0.900, 30);
+    Add('101', 'F', 1.855, 30, 250.000);
+    Run('6. Tam a zpět 101 - 102 - 101');
+    Writeln(Format('  tam %.4f, zpět %.4f, rozdíl %.4f, mez %.4f',
+      [Alg.Info.SumHeight, Alg.Info.SumBack, Alg.Info.Misclosure,
+       Alg.Info.Limit]));
+
+    // 7. The turn point written only once (expected error)
+    Frame.Rows[6].CB := '';
+    Run('7. Tam a zpět bez bodu obratu (očekávána chyba)');
+
+    // 8. Closed loop there and back, the turn on the start 101.
+    // Expected: 201 250,5015  202 250,9020  101 always 250,0000
+    Frame.ClearData;
+    Add('101', 'B', 1.000, 40, 250.000);
+    Add('201', 'F', 0.500, 40);
+    Add('', 'B', 1.300, 40);
+    Add('202', 'F', 0.900, 40);
+    Add('', 'B', 0.700, 40);
+    Add('101', 'F', 1.604, 40, 250.000);
+    Add('101', 'B', 1.604, 40, 250.000);
+    Add('202', 'F', 0.701, 40);
+    Add('', 'B', 0.899, 40);
+    Add('201', 'F', 1.300, 40);
+    Add('', 'B', 0.500, 40);
+    Add('101', 'F', 1.003, 40, 250.000);
+    Run('8. Uzavřený pořad tam a zpět');
+    Alg.BothWays := False;
   finally
     Alg.Free;
     Frame.Free;

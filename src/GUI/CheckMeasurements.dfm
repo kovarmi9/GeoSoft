@@ -20,29 +20,12 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
     Top = 581
     ExplicitTop = 581
   end
-  object Memo1: TMemo [2]
-    Left = 0
-    Top = 163
-    Width = 800
-    Height = 381
-    Align = alClient
-    Font.Charset = EASTEUROPE_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -12
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssBoth
-    TabOrder = 2
-    WordWrap = False
-  end
   object GridPairs: TGeoFieldsGrid [3]
     Left = 0
     Top = 35
     Width = 800
     Height = 128
-    Align = alTop
+    Align = alClient
     ColCount = 9
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]

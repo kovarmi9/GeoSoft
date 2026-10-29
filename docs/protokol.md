@@ -55,7 +55,7 @@ sequenceDiagram
 
 | unit | co v něm je |
 |---|---|
-| `GUI/CalcBase.pas` | předek oken `TCalcBaseForm`: pole `Prot`, `BeginProtocol`, `FrameTable`, zápis do `.ptk` |
+| `GUI/CalcBase.pas` | předek oken `TCalcBaseForm`: memo protokolu `MemoProtocol`, pole `Prot`, `BeginProtocol`, `FrameTable`, zápis do `.ptk` |
 | `GUI/<úloha>.pas` | `WriteProtocol` úlohy, co se do protokolu napíše |
 | `GeoAlgorithms/GeoAlgorithm<úloha>.pas` | výpočet, zprávy `AddError` a `AddWarning` |
 | `Utils/ProtocolTable.pas` | `TProtocol` (nadpis, tabulky, čáry), sloupce `Col…`, `Num`, `Ang`, `PointId`, `CoordPair` |

@@ -14,19 +14,15 @@ type
     Grid: TGeoFieldsGrid;
     PanelPlace: TPanel;
     LabelPlace: TLabel;
-    Splitter1: TSplitter;
-    Memo1: TMemo;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
   private
     FAlg: TLineIntersectionAlgorithm;
-    FFrame: TGeoDataFrame;        // the input and the output of the run
     FStored: Boolean;             // the point went to the list in this run
     function LoadPoint(ARow: Integer): Boolean;
-    procedure BuildFrame;
     procedure Recompute;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -51,13 +47,13 @@ constructor TLineIntersectionForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TLineIntersectionAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, KK]);
 end;
 
 destructor TLineIntersectionForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -83,13 +79,14 @@ begin
 end;
 
 // Rows 0 to 3 are the lines from the list, row 4 the intersection
-procedure TLineIntersectionForm.BuildFrame;
+function TLineIntersectionForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
   PointNumber: Int64;
   ListPoint: Point.TPoint;
 begin
+  Result := True;
   FFrame.ClearData;
   for R := 1 to RESULT_ROW do
   begin
@@ -133,7 +130,7 @@ begin
     LabelPlace.Caption := '';
   end;
 
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 procedure TLineIntersectionForm.PointCommitted(Sender: TObject;
@@ -196,22 +193,7 @@ begin
   FFrame.Rows[LINE_POINTS].CB := Row.CB;
   Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := string(Row.CB);
   FStored := True;
-  ShowProtocol(Memo1.Lines);
-end;
-
-// The five point numbers into CSV
-procedure TLineIntersectionForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
-  BuildFrame;
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
+  ShowProtocol;
 end;
 
 // Row by row into the grid, the intersection is computed again
@@ -220,7 +202,6 @@ procedure TLineIntersectionForm.LoadFrame(AFrame: TGeoDataFrame;
 var
   I: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(Grid, RESULT_ROW + 1);
   for I := 0 to Min(AFrame.Count, RESULT_ROW) - 1 do
     PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad);

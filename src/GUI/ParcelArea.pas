@@ -17,18 +17,15 @@ uses
 type
   TParcelAreaForm = class(TCalcBaseForm)
     StringGrid1: TGeoFieldsGrid;
-    Memo1: TMemo;
     PanelParcel: TPanel;
     EditParcel: TLabeledEdit;
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TLHuilierAlgorithm;
-    FFrame: TGeoDataFrame;       // the input of the run
     procedure FillFromDict(const R: Integer);
-    function  BuildFrame: Boolean;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
@@ -51,13 +48,13 @@ constructor TParcelAreaForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TLHuilierAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y]);
 end;
 
 destructor TParcelAreaForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited;
 end;
 
@@ -137,34 +134,16 @@ procedure TParcelAreaForm.CalculateClick(Sender: TObject);
 begin
   if not CommitEditing then
     Exit;            // the typed value is invalid
-  Memo1.Lines.Clear;       // old area would look like a new one
+  MemoProtocol.Clear;       // old area would look like a new one
 
   // The frame is the only input, so every run rebuilds it
   if not BuildFrame then
     Exit;
   FAlg.Calculate(FFrame);
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 
   if IsNan(FAlg.Area) then
     ShowMessage(Trim(FAlg.Warnings.Text));
-end;
-
-// Dumps the frame into CSV. The area belongs to the whole job, not to a
-// row, so it stays in the protocol.
-procedure TParcelAreaForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-  if not BuildFrame then
-    Exit;
-
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
 end;
 
 // Every row is a corner
@@ -172,7 +151,6 @@ procedure TParcelAreaForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
 
   R := StringGrid1.FixedRows;

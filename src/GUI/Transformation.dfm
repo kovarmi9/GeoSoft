@@ -60,7 +60,7 @@ inherited TransformationForm: TTransformationForm
     Top = 35
     Width = 800
     Height = 250
-    Align = alTop
+    Align = alClient
     ColCount = 12
     FixedCols = 1
     RowCount = 3
@@ -104,35 +104,9 @@ inherited TransformationForm: TTransformationForm
       24
       24)
   end
-  object Splitter1: TSplitter [3]
-    Left = 0
-    Top = 285
-    Width = 800
-    Height = 3
-    Cursor = crVSplit
-    Align = alTop
-    MinSize = 80
-  end
-  object Memo1: TMemo [4]
-    Left = 0
-    Top = 288
-    Width = 800
-    Height = 231
-    Align = alClient
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssBoth
-    TabOrder = 4
-    WordWrap = False
-  end
   object PanelSummary: TPanel [5]
     Left = 0
-    Top = 519
+    Top = 314
     Width = 800
     Height = 25
     Align = alBottom
@@ -144,31 +118,10 @@ inherited TransformationForm: TTransformationForm
       Width = 3
       Height = 15
     end
-    object ButtonUncheckUp: TButton
-      Left = 616
-      Top = 0
-      Width = 120
-      Height = 25
-      Anchors = [akTop, akRight]
-      Caption = 'Odzna'#269'it Up v'#283't'#353#237' ne'#382
-      TabOrder = 0
-      OnClick = ButtonUncheckUpClick
-    end
-    object EditUpLimit: TEdit
-      Left = 740
-      Top = 1
-      Width = 56
-      Height = 23
-      Anchors = [akTop, akRight]
-      TabOrder = 1
-    end
   end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

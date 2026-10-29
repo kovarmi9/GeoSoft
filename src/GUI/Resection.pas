@@ -19,21 +19,17 @@ type
     EditStationKK: TLabeledEdit;
     Label1: TLabel;
     Grid: TGeoFieldsGrid;
-    Splitter1: TSplitter;
-    Memo1: TMemo;
     procedure EditStationNoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
   private
     FAlg: TResectionAlgorithm;
-    FFrame: TGeoDataFrame;        // the input and the output of the run
     FStored: Boolean;             // the station went to the list in this run
     function StationNo: string;
     function LoadPoint(ARow: Integer): Boolean;
-    procedure BuildFrame;
     procedure Recompute;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
@@ -56,13 +52,13 @@ constructor TResectionForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TResectionAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, HZ, KK, Poznamka]);
 end;
 
 destructor TResectionForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -109,7 +105,7 @@ begin
 end;
 
 // Rows 0 to 2 are the given points from the list, row 3 the station
-procedure TResectionForm.BuildFrame;
+function TResectionForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
@@ -117,6 +113,7 @@ var
   ListPoint: Point.TPoint;
   StationNumber: string;
 begin
+  Result := True;
   FFrame.ClearData;
   for R := Grid.FixedRows to Grid.FixedRows + RESECTION_POINTS - 1 do
   begin
@@ -168,7 +165,7 @@ begin
     EditStationKK.Text := '';
   end;
 
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 procedure TResectionForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -231,22 +228,7 @@ begin
   FFrame.Rows[RESECTION_POINTS].CB := Row.CB;
   EditStationNo.Text := string(Row.CB);
   FStored := True;
-  ShowProtocol(Memo1.Lines);
-end;
-
-// The four notebook rows into CSV
-procedure TResectionForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
-  BuildFrame;
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
+  ShowProtocol;
 end;
 
 // Rows 0 to 2 into the grid, row 3 is the station
@@ -254,7 +236,6 @@ procedure TResectionForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(Grid, Grid.FixedRows + RESECTION_POINTS);
   EditStationNo.Text := '';
   for I := 0 to Min(AFrame.Count, RESECTION_POINTS) - 1 do

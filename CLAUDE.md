@@ -83,8 +83,9 @@ Aktuální stav a plány jsou v `UKOLY.md`.
   7 konstrukční oměrné s vyrovnáním, 8 protínání zpět, 9 kontrolní
   oměrné, 51 nivelace, 65 transformace, 95 výměry.
 - Meze: KatV příloha 13.5 a 13.6: md = k·(d+12)/(d+20), k = √2·mxy,
-  ud = 2·md, rozhoduje horší kód kvality. Uxy = 2·Mxy. Technická nivelace
-  20 mm·√r (vyhl. 31/1995, 4.9). Úhel protnutí 30 až 170 gon.
+  ud = 2·md, rozhoduje horší kód kvality. Uxy = 2·Mxy. Technická nivelace:
+  tam a zpět 20 mm·√L (vyhl. 31/1995, 4.9), jen tam proti známým výškám
+  20 mm·√(L/2). Úhel protnutí 30 až 170 gon.
 
 ## Výpočty a formuláře
 

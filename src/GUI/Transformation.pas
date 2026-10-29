@@ -8,8 +8,8 @@ uses
   Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin, Vcl.ExtCtrls,
   Vcl.Grids, PointPrefixState, Point, PointsUtilsSingleton, GeoRow,
   GeoDataFrame, GeoGridBridge, GeoAlgorithmTransformation,
-  ProtocolTable, CoordOrderState, GeoGrid, GeoFieldsGrid, GeoColumnValidation,
-  CalcBase, Vcl.Menus;
+  ProtocolTable, CoordOrderState, GeoGrid, GeoFieldsGrid, CalcBase,
+  Vcl.Menus;
 
 type
   TTransformationForm = class(TCalcBaseForm)
@@ -18,26 +18,18 @@ type
     Grid: TGeoFieldsGrid;
     PanelSummary: TPanel;
     LabelSummary: TLabel;
-    ButtonUncheckUp: TButton;
-    EditUpLimit: TEdit;
-    Splitter1: TSplitter;
-    Memo1: TMemo;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure KeyChanged(Sender: TObject);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
     procedure GridGetEditText(Sender: TObject; ACol, ARow: Integer;
       var Value: string);
-    procedure ButtonUncheckUpClick(Sender: TObject);
   private
     FAlg: TTransformationFrameAlgorithm;
-    FFrame: TGeoDataFrame;
     FRows: TArray<Integer>;   // grid row each frame row came from
     FOldNumber: Int64;        // target number before the edit
     procedure FillFromList(ARow: Integer; ANumberField, AYField,
       AXField: TGeoField; const APoint: Point.TPoint);
     function IsGiven(APointNumber: Int64): Boolean;
-    procedure BuildFrame;
     procedure Recompute;
     procedure ShowSummary;
     procedure WriteResiduals(ARole: Integer; const ACaption: string);
@@ -45,6 +37,7 @@ type
     procedure WriteKey;
     procedure WriteDetermined;
   protected
+    function BuildFrame: Boolean; override;
     function GridNumber(AFrameRow: Integer): string; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
@@ -68,13 +61,13 @@ constructor TTransformationForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TTransformationFrameAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
     [Uloha, CB, Y, X, CBm, Ym, Xm, TypS, Vy, Vx, Sxy, KK, Poznamka]);
 end;
 
 destructor TTransformationForm.Destroy;
 begin
-  FFrame.Free;
   FAlg.Free;
   inherited;
 end;
@@ -178,38 +171,15 @@ begin
   Recompute;
 end;
 
-// Unticks every point with Up over the limit
-procedure TTransformationForm.ButtonUncheckUpClick(Sender: TObject);
-var
-  Limit, Up: Double;
-  R: Integer;
-  Over: TArray<Integer>;
-begin
-  if not TryEvaluateExpression(Trim(EditUpLimit.Text), Limit) then
-  begin
-    ShowMessage('Zadejte hodnotu Up.');
-    Exit;
-  end;
-
-  // Read first, every untick recomputes
-  for R := Grid.FixedRows to Grid.RowCount - 1 do
-    if Grid.Checked[R] and
-       TryStrToFloat(Grid.Cells[Grid.FieldToCol(Sxy), R], Up, FS) and
-       (Up > Limit) then
-      Over := Over + [R];
-
-  for R in Over do
-    Grid.Checked[R] := False;
-end;
-
 // One frame row per grid row, TypS by the box and the list
-procedure TTransformationForm.BuildFrame;
+function TTransformationForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
   PointNumber: Int64;
   Given: Boolean;
 begin
+  Result := True;
   FFrame.ClearData;
   SetLength(FRows, 0);
 
@@ -239,6 +209,7 @@ begin
     SetLength(FRows, Length(FRows) + 1);
     FRows[High(FRows)] := R;
   end;
+  TTransformationFrameAlgorithm.ClearResults(FFrame);   // input only
 end;
 
 // Every change rebuilds the frame and computes again
@@ -304,7 +275,7 @@ begin
   Recompute;
   if not FAlg.Info.Valid then
   begin
-    ShowProtocol(Memo1.Lines);   // the old one goes, the new says why
+    ShowProtocol;   // the old one goes, the new says why
     ShowMessage(Trim(FAlg.Warnings.Text));
     Exit;
   end;
@@ -336,7 +307,7 @@ begin
 
   // A renumbered point goes to the grid with its new number
   FrameToGrid(Grid, FFrame, FRows, [CB]);
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 
   Msg := Format('Do seznamu souřadnic uloženo bodů: %d', [Stored]);
   if Unnumbered > 0 then
@@ -345,35 +316,12 @@ begin
   ShowMessage(Msg);
 end;
 
-// Saves what was typed in, Načíst computes the results again
-procedure TTransformationForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-  BuildFrame;
-  TTransformationFrameAlgorithm.ClearResults(FFrame);   // input only
-
-  if FFrame.Count = 0 then
-  begin
-    ShowMessage('Zápisník je prázdný, nic se neuložilo.');
-    Exit;
-  end;
-
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
-end;
-
 // One row of the file is one row of the grid, TypS gives the check box
 procedure TTransformationForm.LoadFrame(AFrame: TGeoDataFrame;
   ABad: TStrings);
 var
   I, R: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
   Grid.DefaultChecked := True;   // all boxes ticked again
 

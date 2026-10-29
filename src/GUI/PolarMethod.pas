@@ -42,8 +42,6 @@ type
     GridOrientation: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
     Splitter1: TSplitter;
-    Splitter2: TSplitter;
-    Memo1: TMemo;
     Label1: TLabel;
     Label2: TLabel;
     CheckBox1: TCheckBox;
@@ -52,23 +50,21 @@ type
     procedure EditStationNoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditStationVSKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure CheckBox1Click(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
     procedure OrientationCellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TPolarMethodAlgorithm;
-    FFrame: TGeoDataFrame;        // the input and the output of the run
     FRows: TArray<Integer>;       // grid row of each frame row, -1 = elsewhere
     FDetailCB: TArray<string>;    // number each detail row was filled for
     function  StationNo: string;
     function  FillStation: Boolean;
-    function  BuildFrame: Boolean;
     procedure Recompute;
     procedure ClearResults;
     procedure ApplyColumnsToGrids;
     procedure WriteFit;
     procedure WriteOrientations;
   protected
+    function BuildFrame: Boolean; override;
     function GridNumber(AFrameRow: Integer): string; override;
     procedure Loaded; override;
     procedure ApplyCoordOrderToGrids; override;
@@ -95,6 +91,7 @@ begin
   inherited Create(AOwner);
 
   FAlg := TPolarMethodAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
     [Uloha, CB, X, Y, Z, VS, VC, HZ, SH, KK, Poznamka]);
 end;
@@ -102,7 +99,6 @@ end;
 destructor TPolarMethodForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -476,7 +472,7 @@ begin
     StorePoint(Station);
   end;
 
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 // No valid run: old results would look like new ones
@@ -498,7 +494,7 @@ begin
     EditStationY.Text := '';
     EditStationX.Text := '';
   end;
-  Memo1.Lines.Clear;
+  MemoProtocol.Clear;
 end;
 
 procedure TPolarMethodForm.CalculateClick(Sender: TObject);
@@ -517,30 +513,12 @@ begin
     ShowMessage(Trim(FAlg.Warnings.Text));
 end;
 
-// Saves the input only
-procedure TPolarMethodForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-  if not BuildFrame then
-    Exit;
-
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
-end;
-
 // Row 0 is the station. With X it is an orientation, without X a detail point
 procedure TPolarMethodForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, OrientRow, DetailRow: Integer;
   Row: TGeoRow;
 begin
-  Memo1.Clear;
   ClearGrid(GridOrientation, GridOrientation.FixedRows + AFrame.Count + 1);
   ClearGrid(GridDetail, GridDetail.FixedRows + AFrame.Count + 1);
   SetLength(FDetailCB, 0);

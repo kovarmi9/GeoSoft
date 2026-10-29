@@ -37,7 +37,7 @@ inherited LineAdjustmentForm: TLineAdjustmentForm
     Top = 116
     Width = 800
     Height = 200
-    Align = alTop
+    Align = alClient
     ColCount = 7
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
@@ -62,38 +62,9 @@ inherited LineAdjustmentForm: TLineAdjustmentForm
       70
       150)
   end
-  object Splitter1: TSplitter [4]
-    Left = 0
-    Top = 316
-    Width = 800
-    Height = 3
-    Cursor = crVSplit
-    Align = alTop
-    MinSize = 80
-  end
-  object Memo1: TMemo [5]
-    Left = 0
-    Top = 319
-    Width = 800
-    Height = 225
-    Align = alClient
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssBoth
-    TabOrder = 4
-    WordWrap = False
-  end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

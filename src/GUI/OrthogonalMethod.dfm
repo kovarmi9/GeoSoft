@@ -61,23 +61,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       24
       24)
   end
-  object Memo1: TMemo [2]
-    Left = 0
-    Top = 116
-    Width = 800
-    Height = 208
-    TabStop = False
-    Align = alTop
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 3
-  end
   object GridDetail: TGeoFieldsGrid [3]
     Left = 0
     Top = 324
@@ -123,9 +106,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = Button1Click
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
   inherited StatusBar1: TStatusBar

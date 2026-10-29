@@ -8,7 +8,7 @@ inherited RectangularAdjustmentForm: TRectangularAdjustmentForm
     Top = 35
     Width = 800
     Height = 200
-    Align = alTop
+    Align = alClient
     Constraints.MinHeight = 80
     ColCount = 9
     RowCount = 2
@@ -44,7 +44,7 @@ inherited RectangularAdjustmentForm: TRectangularAdjustmentForm
     Top = 235
     Width = 800
     Height = 25
-    Align = alTop
+    Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
     object LabelClosure: TLabel
@@ -54,38 +54,9 @@ inherited RectangularAdjustmentForm: TRectangularAdjustmentForm
       Height = 15
     end
   end
-  object Splitter1: TSplitter [4]
-    Left = 0
-    Top = 260
-    Width = 800
-    Height = 3
-    Cursor = crVSplit
-    Align = alTop
-    MinSize = 80
-  end
-  object Memo1: TMemo [5]
-    Left = 0
-    Top = 263
-    Width = 800
-    Height = 281
-    Align = alClient
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssBoth
-    TabOrder = 4
-    WordWrap = False
-  end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

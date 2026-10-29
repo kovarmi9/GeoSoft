@@ -15,26 +15,22 @@ type
     StringGrid1: TGeoFieldsGrid;
     PanelClosure: TPanel;
     LabelClosure: TLabel;
-    Splitter1: TSplitter;
-    Memo1: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
       var ASelectable: Boolean);
   private
     FAlg: TRectangularAdjustmentAlgorithm;
-    FFrame: TGeoDataFrame;          // the input and the output of the run
     FRows: TArray<Integer>;         // grid row of each frame row
     FRowNew: array of Boolean;      // listed point the user calls new
     FRowCB: array of string;        // last point number per row
     procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
     procedure FillRow(const R: Integer);
     procedure RecalcLocal;
-    procedure BuildFrame;
     procedure Recompute;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
     function GridNumber(AFrameRow: Integer): string; override;
@@ -62,13 +58,13 @@ constructor TRectangularAdjustmentForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TRectangularAdjustmentAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Xm, Ym, SH, Poznamka, KK]);
 end;
 
 destructor TRectangularAdjustmentForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited;
 end;
 
@@ -210,13 +206,14 @@ begin
 end;
 
 // Fills the frame from the grid and marks the given points
-procedure TRectangularAdjustmentForm.BuildFrame;
+function TRectangularAdjustmentForm.BuildFrame: Boolean;
 var
   I, GridRow: Integer;
   PointNumber: Int64;
   ListPoint: Point.TPoint;
   IsGiven: Boolean;
 begin
+  Result := True;
   GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI_VYROVNANI, FRows);
 
   for I := 0 to FFrame.Count - 1 do
@@ -289,7 +286,7 @@ begin
 
   FrameToGrid(StringGrid1, FFrame, Back, [CB, X, Y]);
   FrameToGrid(StringGrid1, FFrame, FRows, [Xm, Ym]);
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 procedure TRectangularAdjustmentForm.CalculateClick(Sender: TObject);
@@ -297,34 +294,13 @@ begin
   ForgetAnswers;     // a new run asks again
   if not CommitEditing then
     Exit;            // the typed value is invalid
-  Memo1.Lines.Clear;
+  MemoProtocol.Clear;
   Recompute;
 
   if FFrame.Count = 0 then
     ShowMessage('Zápisník je prázdný.')
   else if not FAlg.Valid then
     ShowMessage(Trim(FAlg.Warnings.Text));
-end;
-
-// Dumps the frame into CSV
-procedure TRectangularAdjustmentForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  BuildFrame;              // input only
-
-  if FFrame.Count = 0 then
-  begin
-    ShowMessage('Zápisník je prázdný, nic se neuložilo.');
-    Exit;
-  end;
-
-  FFrame.ToCSV(FileName, ';', ',');
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
 end;
 
 // Puts the loaded rows into the grid
@@ -334,7 +310,6 @@ var
   I, R: Integer;
 begin
   // Forget the old job
-  Memo1.Clear;
   ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
   SetLength(FRowCB, 0);
   SetLength(FRowNew, 0);

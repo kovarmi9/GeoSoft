@@ -54,16 +54,6 @@ inherited PolarMethodForm: TPolarMethodForm
       Align = alTop
       Caption = 'Podrobn'#233' body'
     end
-    object Splitter2: TSplitter
-      Left = 0
-      Top = 323
-      Width = 800
-      Height = 5
-      Cursor = crVSplit
-      Align = alBottom
-      MinSize = 60
-      ExplicitWidth = 675
-    end
     object PanelStation: TPanel
       Left = 0
       Top = 0
@@ -255,31 +245,10 @@ inherited PolarMethodForm: TPolarMethodForm
         87
         87)
     end
-    object Memo1: TMemo
-      Left = 0
-      Top = 328
-      Width = 800
-      Height = 181
-      TabStop = False
-      Align = alBottom
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Consolas'
-      Font.Style = []
-      ParentFont = False
-      ReadOnly = True
-      ScrollBars = ssBoth
-      TabOrder = 3
-      WordWrap = False
-    end
   end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

@@ -36,6 +36,8 @@ type
     ButtonLoad: TButton;
     ButtonReset: TButton;
     ButtonJobProtocol: TButton;
+    SplitterProtocol: TSplitter;
+    MemoProtocol: TMemo;
     procedure PrefixComboExit(Sender: TObject);
     procedure PrefixComboChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -80,11 +82,16 @@ type
     procedure ResetNotebook;
   protected
     FS: TFormatSettings;
+    FFrame: TGeoDataFrame;    // the notebook, the form creates it
+    FNotebookName: string;    // the notebook file next to the exe
     Prot: TProtocol;          // shared by every WriteProtocol
     FLoadLines: TArray<Integer>;   // line in the file of each loaded row
 
     /// <summary>A new showing asks again about existing points.</summary>
     procedure DoShow; override;
+
+    /// <summary>The grids into FFrame, False when they cannot be.</summary>
+    function BuildFrame: Boolean; virtual;
 
     /// <summary>The next run asks again about existing points.</summary>
     procedure ForgetAnswers;
@@ -163,8 +170,8 @@ type
     function PutRow(AGrid: TGeoFieldsGrid; ARow: Integer;
       const GRow: TGeoRow; AIndex: Integer; ABad: TStrings): Boolean;
 
-    /// <summary>Calls WriteProtocol without letting the memo flicker.</summary>
-    procedure ShowProtocol(ALines: TStrings);
+    /// <summary>WriteProtocol into the memo, without flicker.</summary>
+    procedure ShowProtocol;
 
     /// <summary>The four prefix combos on the toolbar, in one place.</summary>
     procedure LoadPrefix;
@@ -236,6 +243,7 @@ begin
   FNewPoints.Free;
   FAnswers.Free;
   FOriginals.Free;
+  FFrame.Free;
   inherited;
 end;
 
@@ -635,6 +643,7 @@ begin
     end;
     ForgetJob;                 // a new job
     FLoadLines := Frame.Lines;
+    MemoProtocol.Clear;        // the old job had its own
     LoadFrame(Frame, Bad);
     if Bad.Count > 0 then
       ShowMessage(Format('Přeskočeno %d řádků:', [Bad.Count]) +
@@ -651,10 +660,31 @@ begin
   ShowMessage('Tato úloha zatím neumí výpočet.');
 end;
 
-// The same for saving the notebook
-procedure TCalcBaseForm.ButtonSaveClick(Sender: TObject);
+// A form without a notebook has nothing to build
+function TCalcBaseForm.BuildFrame: Boolean;
 begin
-  ShowMessage('Tato úloha zatím neumí uložit zápisník.');
+  Result := False;
+end;
+
+// The notebook as typed, Načíst computes the results again
+procedure TCalcBaseForm.ButtonSaveClick(Sender: TObject);
+var
+  FileName: string;
+begin
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
+  if not BuildFrame then
+    Exit;
+  if FFrame.Count = 0 then
+  begin
+    ShowMessage('Zápisník je prázdný, nic se neuložilo.');
+    Exit;
+  end;
+
+  FileName := ExtractFilePath(Application.ExeName) + FNotebookName;
+  FFrame.ToCSV(FileName, ';', ',');
+  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
+    [FFrame.Count, sLineBreak, FileName]));
 end;
 
 // Asks first, Enter means No
@@ -687,6 +717,7 @@ begin
   Empty := TGeoDataFrame.Create;
   Bad := TStringList.Create;
   try
+    MemoProtocol.Clear;
     LoadFrame(Empty, Bad);     // empty file, empty form
   finally
     Bad.Free;
@@ -727,13 +758,13 @@ begin
   // nothing here, see the descendants
 end;
 
-procedure TCalcBaseForm.ShowProtocol(ALines: TStrings);
+procedure TCalcBaseForm.ShowProtocol;
 begin
-  ALines.BeginUpdate;
+  MemoProtocol.Lines.BeginUpdate;
   try
-    WriteProtocol(ALines);
+    WriteProtocol(MemoProtocol.Lines);
   finally
-    ALines.EndUpdate;
+    MemoProtocol.Lines.EndUpdate;
   end;
 end;
 

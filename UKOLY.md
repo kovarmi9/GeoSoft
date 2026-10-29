@@ -20,7 +20,7 @@ Verze 1.0 = všechny výpočty včetně nivelace.
 | úloha 7 konstrukční oměrné s vyrovnáním | uzávěr úměrně délkám, shodnostní klíč |
 | úloha 8 protínání zpět | Cassiniho řešení, docs |
 | úloha 9 kontrolní oměrné | mez podle KatV 13.6 |
-| úloha 51 technická nivelace | jeden pořad, uzavřený i otevřený, 20 mm·√r |
+| úloha 51 technická nivelace | jeden pořad, vetknutý, uzavřený i volný, 20 mm·√(L/2) |
 | úloha 65 transformace | shodnostní, podobnostní, afinní, KatV 13.8 |
 | úloha 95 výměry | celé m² podle § 82 |
 | protokoly | jednotný vzhled, jeden unit ProtocolTable, protokol úlohy ve formuláři, CHYBA i při neúspěšném výpočtu, Č. podle řádku gridu |

@@ -7,7 +7,7 @@ inherited ForwardIntersectionForm: TForwardIntersectionForm
     Top = 35
     Width = 800
     Height = 250
-    Align = alTop
+    Align = alClient
     ColCount = 8
     RowCount = 2
     Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goDrawFocusSelected, goEditing, goTabs, goFixedRowDefAlign]
@@ -40,7 +40,7 @@ inherited ForwardIntersectionForm: TForwardIntersectionForm
     Top = 285
     Width = 800
     Height = 25
-    Align = alTop
+    Align = alBottom
     BevelOuter = bvNone
     TabOrder = 3
     object LabelStations: TLabel
@@ -50,38 +50,9 @@ inherited ForwardIntersectionForm: TForwardIntersectionForm
       Height = 15
     end
   end
-  object Splitter1: TSplitter [4]
-    Left = 0
-    Top = 310
-    Width = 800
-    Height = 3
-    Cursor = crVSplit
-    Align = alTop
-    MinSize = 80
-  end
-  object Memo1: TMemo [5]
-    Left = 0
-    Top = 313
-    Width = 800
-    Height = 231
-    Align = alClient
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ReadOnly = True
-    ScrollBars = ssBoth
-    TabOrder = 4
-    WordWrap = False
-  end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

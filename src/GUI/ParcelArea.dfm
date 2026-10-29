@@ -53,22 +53,6 @@ inherited ParcelAreaForm: TParcelAreaForm
       24
       24)
   end
-  object Memo1: TMemo [3]
-    Left = 0
-    Top = 115
-    Width = 800
-    Height = 429
-    Align = alBottom
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ScrollBars = ssVertical
-    TabOrder = 3
-    ExplicitTop = 152
-  end
   object PanelParcel: TPanel [4]
     Left = 0
     Top = 35
@@ -93,9 +77,6 @@ inherited ParcelAreaForm: TParcelAreaForm
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

@@ -18,15 +18,6 @@ inherited ResectionForm: TResectionForm
       Align = alTop
       Caption = 'Dan'#233' body'
     end
-    object Splitter1: TSplitter
-      Left = 0
-      Top = 172
-      Width = 800
-      Height = 5
-      Cursor = crVSplit
-      Align = alTop
-      MinSize = 60
-    end
     object PanelStation: TPanel
       Left = 0
       Top = 0
@@ -95,7 +86,7 @@ inherited ResectionForm: TResectionForm
       Top = 67
       Width = 800
       Height = 105
-      Align = alTop
+      Align = alClient
       ColCount = 6
       RowCount = 4
       Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
@@ -123,31 +114,10 @@ inherited ResectionForm: TResectionForm
         87
         87)
     end
-    object Memo1: TMemo
-      Left = 0
-      Top = 177
-      Width = 800
-      Height = 332
-      TabStop = False
-      Align = alClient
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -13
-      Font.Name = 'Consolas'
-      Font.Style = []
-      ParentFont = False
-      ReadOnly = True
-      ScrollBars = ssBoth
-      TabOrder = 2
-      WordWrap = False
-    end
   end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

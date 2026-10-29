@@ -14,22 +14,18 @@ type
     Grid: TGeoFieldsGrid;
     PanelStations: TPanel;
     LabelStations: TLabel;
-    Splitter1: TSplitter;
-    Memo1: TMemo;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
       var ASelectable: Boolean);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
   private
     FAlg: TForwardIntersectionAlgorithm;
-    FFrame: TGeoDataFrame;        // the input and the output of the run
     FStored: Boolean;             // the points went to the list in this run
-    procedure BuildFrame;
     procedure Recompute;
     function StationsText: string;
     function RoleOfRow(ARow: Integer): TIntersectionRole;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
@@ -52,13 +48,13 @@ constructor TForwardIntersectionForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TForwardIntersectionAlgorithm.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([Uloha, CB, HZ, Zuhel, X, Y, KK, Poznamka]);
 end;
 
 destructor TForwardIntersectionForm.Destroy;
 begin
   FAlg.Free;
-  FFrame.Free;
   inherited Destroy;
 end;
 
@@ -90,13 +86,14 @@ begin
 end;
 
 // Every grid row up to the last filled one, the empty rows split the blocks
-procedure TForwardIntersectionForm.BuildFrame;
+function TForwardIntersectionForm.BuildFrame: Boolean;
 var
   R, LastRow: Integer;
   Row: TGeoRow;
   PointNumber: Int64;
   ListPoint: Point.TPoint;
 begin
+  Result := True;
   FFrame.ClearData;
   LastRow := Grid.FixedRows - 1;
   for R := Grid.FixedRows to Grid.RowCount - 1 do
@@ -184,7 +181,7 @@ begin
 
   LabelStations.Caption := StationsText;
   Grid.Invalidate;              // the locked cells follow the roles
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 procedure TForwardIntersectionForm.PointCommitted(Sender: TObject;
@@ -225,27 +222,7 @@ begin
       Grid.Cells[Grid.FieldToCol(CB), I + Grid.FixedRows] := string(Row.CB);
     end;
   FStored := True;
-  ShowProtocol(Memo1.Lines);
-end;
-
-// The notebook with its empty rows into CSV
-procedure TForwardIntersectionForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
-  BuildFrame;
-  if FFrame.Count = 0 then
-  begin
-    ShowMessage('Zápisník je prázdný, nic se neuložilo.');
-    Exit;
-  end;
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  FFrame.ToCSV(FileName, ';', ',');
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
+  ShowProtocol;
 end;
 
 // Row by row, the empty rows too, the points are computed again
@@ -254,7 +231,6 @@ procedure TForwardIntersectionForm.LoadFrame(AFrame: TGeoDataFrame;
 var
   I: Integer;
 begin
-  Memo1.Clear;
   ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
   for I := 0 to AFrame.Count - 1 do
     PutRow(Grid, I + Grid.FixedRows, AFrame.Rows[I], I, ABad);

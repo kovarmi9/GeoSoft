@@ -17,17 +17,13 @@ uses
 type
   TRectangularMeasurementsForm = class(TCalcBaseForm)
     StringGrid1: TGeoFieldsGrid;
-    Memo1: TMemo;
-    Splitter1: TSplitter;
     procedure FormCreate(Sender: TObject);
     procedure CalculateClick(Sender: TObject);
-    procedure SaveClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
       var ASelectable: Boolean);
   private
     FAlg: TRectangularMeasurementsAlgorithm;
-    FFrame: TGeoDataFrame;          // the input and the output of the run
     FRows: TArray<Integer>;         // grid row of each frame row
     FWarnings: TStringList;         // collected from all stretches
     FRowNew: array of Boolean;      // listed point the user calls new
@@ -35,9 +31,9 @@ type
     procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
     procedure FillRow(const R: Integer);
     procedure RecalcLocal;
-    procedure BuildFrame;
     procedure Recompute;
   protected
+    function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
     function GridNumber(AFrameRow: Integer): string; override;
@@ -66,6 +62,7 @@ begin
   inherited Create(AOwner);
   FAlg := TRectangularMeasurementsAlgorithm.Create;
   FWarnings := TStringList.Create;
+  FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Xm, Ym, SH, Poznamka, KK]);
 end;
 
@@ -73,7 +70,6 @@ destructor TRectangularMeasurementsForm.Destroy;
 begin
   FAlg.Free;
   FWarnings.Free;
-  FFrame.Free;
   inherited;
 end;
 
@@ -216,13 +212,14 @@ begin
 end;
 
 // Fills the frame from the grid and marks the given points
-procedure TRectangularMeasurementsForm.BuildFrame;
+function TRectangularMeasurementsForm.BuildFrame: Boolean;
 var
   I, GridRow: Integer;
   PointNumber: Int64;
   ListPoint: Point.TPoint;
   IsGiven: Boolean;
 begin
+  Result := True;
   GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI, FRows);
 
   for I := 0 to FFrame.Count - 1 do
@@ -297,7 +294,7 @@ begin
     end;
 
   FrameToGrid(StringGrid1, FFrame, Back, [CB, X, Y]);
-  ShowProtocol(Memo1.Lines);
+  ShowProtocol;
 end;
 
 procedure TRectangularMeasurementsForm.CalculateClick(Sender: TObject);
@@ -305,7 +302,7 @@ begin
   ForgetAnswers;     // a new run asks again
   if not CommitEditing then
     Exit;            // the typed value is invalid
-  Memo1.Lines.Clear;
+  MemoProtocol.Clear;
   Recompute;
 
   if FFrame.Count = 0 then
@@ -316,27 +313,6 @@ begin
     ShowMessage('V řetězci zatím není druhý známý bod s jiným číslem.');
 end;
 
-// Dumps the frame into CSV
-procedure TRectangularMeasurementsForm.SaveClick(Sender: TObject);
-var
-  FileName: string;
-begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-  FileName := ExtractFilePath(Application.ExeName) + CSV_NAME;
-  BuildFrame;              // input only
-
-  if FFrame.Count = 0 then
-  begin
-    ShowMessage('Zápisník je prázdný, nic se neuložilo.');
-    Exit;
-  end;
-
-  FFrame.ToCSV(FileName, ';', ',');
-  ShowMessage(Format('Uloženo %d řádků do souboru%s%s',
-    [FFrame.Count, sLineBreak, FileName]));
-end;
-
 // Puts the loaded rows into the grid
 procedure TRectangularMeasurementsForm.LoadFrame(AFrame: TGeoDataFrame;
   ABad: TStrings);
@@ -344,7 +320,6 @@ var
   I, R: Integer;
 begin
   // Forget the old job
-  Memo1.Clear;
   FWarnings.Clear;
   ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
   SetLength(FRowCB, 0);

@@ -196,6 +196,33 @@
       OnClick = ButtonJobProtocolClick
     end
   end
+  object SplitterProtocol: TSplitter
+    Left = 0
+    Top = 339
+    Width = 800
+    Height = 5
+    Cursor = crVSplit
+    Align = alBottom
+    MinSize = 60
+  end
+  object MemoProtocol: TMemo
+    Left = 0
+    Top = 344
+    Width = 800
+    Height = 200
+    TabStop = False
+    Align = alBottom
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Consolas'
+    Font.Style = []
+    ParentFont = False
+    ReadOnly = True
+    ScrollBars = ssBoth
+    TabOrder = 3
+    WordWrap = False
+  end
   object MainMenu1: TMainMenu
     Left = 704
     Top = 152

@@ -28,7 +28,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     Top = 35
     Width = 800
     Height = 200
-    Align = alTop
+    Align = alClient
     Constraints.MinHeight = 80
     ColCount = 9
     RowCount = 2
@@ -59,36 +59,9 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       80
       80)
   end
-  object Memo1: TMemo [3]
-    Left = 0
-    Top = 238
-    Width = 800
-    Height = 304
-    Align = alClient
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Consolas'
-    Font.Style = []
-    ParentFont = False
-    ScrollBars = ssVertical
-    TabOrder = 3
-  end
-  object Splitter1: TSplitter [4]
-    Left = 0
-    Top = 235
-    Width = 800
-    Height = 3
-    Cursor = crVSplit
-    Align = alTop
-    MinSize = 80
-  end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
       OnClick = CalculateClick
-    end
-    inherited ButtonSave: TButton
-      OnClick = SaveClick
     end
   end
 end

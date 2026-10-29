@@ -292,21 +292,33 @@ var
   P: TPoint;
   R: TPoint;
   Order: TCoordOrder;
+  TempName: string;
 begin
   Order := FileOrder(FileName);   // check before writing
-  AssignFile(BinaryFile, FileName);
+  // Written aside first, a failed save keeps the old file
+  TempName := FileName + '.tmp';
+  AssignFile(BinaryFile, TempName);
   Rewrite(BinaryFile);
   try
-    for P in FPointDict.Values do
-    begin
-      R := P;
-      if Order = coYX then
-        SwapXY(R);   // .yxz keeps Y first
-      Write(BinaryFile, R);
+    try
+      for P in FPointDict.Values do
+      begin
+        R := P;
+        if Order = coYX then
+          SwapXY(R);   // .yxz keeps Y first
+        Write(BinaryFile, R);
+      end;
+    finally
+      CloseFile(BinaryFile);
     end;
-  finally
-    CloseFile(BinaryFile);
+  except
+    DeleteFile(TempName);
+    raise;
   end;
+  // Only a whole file replaces the old one
+  if not MoveFileEx(PChar(TempName), PChar(FileName),
+    MOVEFILE_REPLACE_EXISTING or MOVEFILE_WRITE_THROUGH) then
+    RaiseLastOSError;
 end;
 
 procedure TPointDictionary.LoadFromBinary(const FileName: string);

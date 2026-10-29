@@ -244,6 +244,11 @@ object PointsManagementForm: TPointsManagementForm
         OnClick = SaveAsCSVClick
       end
     end
+    object MenuGoToPoint: TMenuItem
+      Caption = 'Jdi na bod'
+      ShortCut = 16454
+      OnClick = MenuGoToPointClick
+    end
   end
   object OpenDialog1: TOpenDialog
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]

@@ -31,6 +31,7 @@ type
     MenuImportTXT: TMenuItem;
     MenuImportCSV: TMenuItem;
     MenuExportTXT: TMenuItem;
+    MenuGoToPoint: TMenuItem;
     MenuExportCSV: TMenuItem;
     SaveDialog1: TSaveDialog;
     ToolBar2: TToolBar;
@@ -58,6 +59,7 @@ type
     procedure FileSaveAsClick(Sender: TObject);
     procedure FileOpenClick(Sender: TObject);
     procedure FileNewClick(Sender: TObject);
+    procedure MenuGoToPointClick(Sender: TObject);
     procedure GridCellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure GridSelectCell(Sender: TObject; ACol, ARow: Integer;
@@ -720,6 +722,28 @@ begin
     // A .ptk file has no program of its own
     ShellExecute(0, 'open', 'notepad.exe', PChar('"' + FileName + '"'),
       nil, SW_SHOWNORMAL);
+end;
+
+// Ctrl+F: the number as typed in the grid, the prefix from the toolbar
+procedure TPointsManagementForm.MenuGoToPointClick(Sender: TObject);
+var
+  Text: string;
+  PointNumber: Int64;
+  R: Integer;
+begin
+  Text := '';
+  if not InputQuery('Jdi na bod', 'Číslo bodu:', Text) then
+    Exit;
+  PointNumber := StrToInt64Def(BuildPointIdFromPrefixState(Trim(Text)), 0);
+  for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
+    if StrToInt64Def(StringGrid1.Cells[COL_POINTNO, R], 0) = PointNumber then
+    begin
+      StringGrid1.Row := R;
+      StringGrid1.Col := COL_POINTNO;
+      StringGrid1.SetFocus;
+      Exit;
+    end;
+  ShowMessage('Bod ' + Trim(Text) + ' v seznamu není.');
 end;
 
 procedure TPointsManagementForm.FileOpenClick(Sender: TObject);

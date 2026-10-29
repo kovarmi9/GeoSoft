@@ -180,7 +180,7 @@ inherited PolarMethodForm: TPolarMethodForm
         'VC=V'#253#353'ka c'#237'le'
         'HZ=Vod. '#250'hel'
         'Zuhel=Zenitov'#253' '#250'hel'
-        'PolarD=Pol'#225'rn'#237' om'#283'rek'
+        'PolarD=Dom'#283'rek'
         'PolarK=Kolmice'
         'KK=K'#243'd kvality'
         'Poznamka=Popis')
@@ -224,7 +224,7 @@ inherited PolarMethodForm: TPolarMethodForm
         'VC=V'#253#353'ka c'#237'le'
         'HZ=Vod. '#250'hel'
         'Zuhel=Zenitov'#253' '#250'hel'
-        'PolarD=Pol'#225'rn'#237' om'#283'rek'
+        'PolarD=Dom'#283'rek'
         'PolarK=Kolmice'
         'KK=K'#243'd kvality'
         'Poznamka=Popis')

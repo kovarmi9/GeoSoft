@@ -16,7 +16,7 @@ const
   // Task code from the survey notebook convention
   ULOHA_POLARNI = 1;
 
-  // [gon], Návod pro obnovu KO 4.3.5.1.2 c), provisional
+  // [gon], Návod pro obnovu KO 4.3.5.1.2 c), for m0 and v·√p
   MEZNI_DFI = 0.08;
 
 type
@@ -25,9 +25,13 @@ type
 
   // Residuals of one orientation
   TOrientResult = record
-    dPhi:    Double;   // direction residual [gon], NaN without direction
+    dPhi:    Double;   // the mean shift minus this one [gon]
     Dg:      Double;   // distance from coordinates [m]
-    Ds:      Double;   // distance residual [m], NaN without distance
+    Ds:      Double;   // computed minus measured [m]
+    Limit:   Double;   // ud of the distance, KatV 13.5 and 13.6
+    p:       Double;   // weight, its length over the longest one
+    Normed:  Double;   // dPhi · √p, compared with MEZNI_DFI
+    dZ:      Double;   // height from the station minus the given one
   end;
 
   // Results of the whole run
@@ -36,15 +40,18 @@ type
     FreeStation:   Boolean;
     OrientCount:   Integer;   // rows 1..OrientCount, row 0 is the station
     phi:           Double;    // orientation shift [gon]
-    mPhi:          Double;    // mean error of the shift
+    m0:            Double;    // √([pvv] / (n - 1)) [gon]
+    Longest:       Double;    // longest orientation, for the weights
     Congruent:     Boolean;   // how the free station was transformed
     q:             Double;    // scale of that transformation
+    HeightCount:   Integer;   // orientations in the free station height
   end;
 
   TPolarMethodAlgorithm = class(TFrameAlgorithm)
   private
     FInfo: TPolarInfo;
     FCongruent: Boolean;
+    FHeights: Boolean;
     FCongruentTr: TCongruentTransformation;
     FHelmertTr: TSimilarityTransformation;
 
@@ -56,9 +63,12 @@ type
 
     // The steps of Calculate, in order
     function CheckLayout(AFrame: TGeoDataFrame): Boolean;
+    class procedure ReduceSlopeLengths(AFrame: TGeoDataFrame);
     function SolveFreeStation(AFrame: TGeoDataFrame): Boolean;
     function CheckOrientations(AFrame: TGeoDataFrame): Double;
     procedure ComputeDetails(AFrame: TGeoDataFrame; AMaxDist: Double);
+    procedure StationHeight(AFrame: TGeoDataFrame);
+    procedure DetailHeights(AFrame: TGeoDataFrame);
 
     function LongestOrient(AFrame: TGeoDataFrame; const AStation: TGeoRow): Double;
     function GetResiduals: TPointResiduals;
@@ -75,9 +85,14 @@ type
     class function MeanShift(AFrame: TGeoDataFrame; const AStation: TGeoRow;
                              AFirst, ALast: Integer): Double;
 
-    /// <summary>Residuals of one orientation.</summary>
+    /// <summary>Height difference of one sight, NaN without zenith.</summary>
+    class function HeightDiff(const ARow: TGeoRow): Double;
+
+    /// <summary>Residuals of one orientation. Without ALongest the
+    /// weight is 1.</summary>
     class function ResultOf(const AStation, ARow: TGeoRow;
-                            APhi, AScale: Double): TOrientResult;
+                            APhi, AScale: Double;
+                            ALongest: Double = 0): TOrientResult;
 
     /// <summary>The job of the last run, for the protocol.</summary>
     property Info: TPolarInfo read FInfo;
@@ -85,11 +100,17 @@ type
     /// <summary>True: the free station is congruent, False: Helmert.</summary>
     property Congruent: Boolean read FCongruent write FCongruent;
 
+    /// <summary>Trigonometric heights of the station and the points.</summary>
+    property Heights: Boolean read FHeights write FHeights;
+
     /// <summary>Fit of the free station, empty otherwise.</summary>
     property Residuals: TPointResiduals read GetResiduals;
   end;
 
 implementation
+
+uses
+  ValidationUtils;
 
 const
   GON_TO_RAD = Pi / 200;
@@ -137,26 +158,39 @@ begin
     Result := 1;
 end;
 
-// What the row is, by the fields it has
+// What the row is, by the fields it has. The instrument height marks
+// the station, the target height may be empty.
 class function TPolarMethodAlgorithm.RoleOf(const ARow: TGeoRow): TPolarRole;
 var
-  HasVS, HasVC, HasDir, HasDist, Given: Boolean;
+  HasVS, HasDir, HasDist, Given: Boolean;
 begin
   HasVS   := not IsNan(ARow.VS);
-  HasVC   := not IsNan(ARow.VC);
   HasDir  := not IsNan(ARow.HZ);
   HasDist := not IsNan(ARow.SH);
   Given   := IsGiven(ARow);
 
   // Nothing is measured to the station itself
-  if HasVS and not HasVC and not HasDir and not HasDist then
+  if HasVS and not HasDir and not HasDist then
     Result := prStation
-  else if HasVC and not HasVS and Given and (HasDir or HasDist) then
+  else if not HasVS and Given and (HasDir or HasDist) then
     Result := prOrient
-  else if HasVC and not HasVS and not Given and HasDir and HasDist then
+  else if not HasVS and not Given and HasDir and HasDist then
     Result := prDetail
   else
     Result := prNone;
+end;
+
+// Without a correction for the curvature, z in gon
+class function TPolarMethodAlgorithm.HeightDiff(const ARow: TGeoRow): Double;
+begin
+  if IsNan(ARow.Zuhel) then
+    Result := NaN
+  else if not IsNan(ARow.SS) then
+    Result := ARow.SS * Cos(ARow.Zuhel * GON_TO_RAD)
+  else if not IsNan(ARow.SH) then
+    Result := ARow.SH / Tan(ARow.Zuhel * GON_TO_RAD)
+  else
+    Result := NaN;
 end;
 
 function TPolarMethodAlgorithm.GetResiduals: TPointResiduals;
@@ -170,9 +204,10 @@ begin
 end;
 
 class function TPolarMethodAlgorithm.ResultOf(const AStation, ARow: TGeoRow;
-  APhi, AScale: Double): TOrientResult;
+  APhi, AScale, ALongest: Double): TOrientResult;
 var
   sigma, psi: Double;
+  Quality: Integer;
 begin
   // An empty cell means it was not measured
   if IsNan(ARow.HZ) then
@@ -181,15 +216,41 @@ begin
   begin
     sigma := ArcTan2(ARow.Y - AStation.Y, ARow.X - AStation.X);
     psi   := ARow.HZ * GON_TO_RAD;
-    Result.dPhi := ArcTan2(Sin(sigma - psi - APhi * GON_TO_RAD),
-                          Cos(sigma - psi - APhi * GON_TO_RAD)) * RAD_TO_GON;
+    Result.dPhi := ArcTan2(Sin(APhi * GON_TO_RAD - sigma + psi),
+                          Cos(APhi * GON_TO_RAD - sigma + psi)) * RAD_TO_GON;
   end;
+
+  Result.p := Weight(AStation, ARow, ALongest);
+  Result.Normed := Result.dPhi * Sqrt(Result.p);
 
   Result.Dg := Dist(AStation, ARow);
   if IsNan(ARow.SH) then
-    Result.Ds := NaN
+  begin
+    Result.Ds := NaN;
+    Result.Limit := NaN;
+  end
   else
-    Result.Ds := ARow.SH * AScale - Result.Dg;
+  begin
+    Result.Ds := Result.Dg - ARow.SH * AScale;
+    // KatV 13.6, d is the longer one, the worse quality code. A point
+    // without a code takes the one of the other point.
+    Quality := TValidationUtils.LowerQuality(AStation.KK, ARow.KK);
+    if IsNan(TValidationUtils.MxyOfQuality(Quality)) then
+      if IsNan(TValidationUtils.MxyOfQuality(AStation.KK)) then
+        Quality := ARow.KK
+      else
+        Quality := AStation.KK;
+    Result.Limit := TValidationUtils.LengthLimit(
+      Max(ARow.SH * AScale, Result.Dg), Quality);
+  end;
+
+  // Z = 0 means no height
+  if IsNan(AStation.Z) or (AStation.Z = 0) or IsNan(ARow.Z) or
+     (ARow.Z = 0) or IsNan(ARow.VC) then
+    Result.dZ := NaN
+  else
+    Result.dZ := AStation.Z + AStation.VS + HeightDiff(ARow) - ARow.VC -
+      ARow.Z;
 end;
 
 // The orientations go into a local system around the instrument, which the
@@ -366,20 +427,19 @@ function TPolarMethodAlgorithm.CheckOrientations(AFrame: TGeoDataFrame): Double;
 var
   St: TGeoRow;
   I, NDir: Integer;
-  SumP, SumPdPhi, DMax, p, Limit: Double;
+  SumPvv: Double;
   R: TOrientResult;
   PtNo: string;
 begin
   Result := 0;
   St := AFrame.Rows[0];
   NDir := 0;
-  SumP := 0;
-  SumPdPhi := 0;
-  DMax := LongestOrient(AFrame, St);
+  SumPvv := 0;
+  FInfo.Longest := LongestOrient(AFrame, St);
 
   for I := 1 to FInfo.OrientCount do
   begin
-    R := ResultOf(St, AFrame.Rows[I], FInfo.phi, Scale);
+    R := ResultOf(St, AFrame.Rows[I], FInfo.phi, Scale, FInfo.Longest);
     PtNo := Trim(string(AFrame.Rows[I].CB));
     Result := Max(Result, R.Dg);
 
@@ -387,28 +447,31 @@ begin
     if not IsNan(R.dPhi) then
     begin
       Inc(NDir);
-      p := Weight(St, AFrame.Rows[I], DMax);
-      SumP := SumP + p;
-      SumPdPhi := SumPdPhi + p * Sqr(R.dPhi);
+      SumPvv := SumPvv + R.p * Sqr(R.dPhi);
 
-      if Abs(R.dPhi) > MEZNI_DFI then
-        AddWarning(Format('Orientace %s: odchylka or. posunu dfi = %.4f g ' +
+      if Abs(R.Normed) > MEZNI_DFI then
+        AddWarning(Format('Orientace %s: normovaná odchylka %.4f g ' +
           'překračuje mezní hodnotu %.2f g - Návod pro obnovu katastrálního ' +
-          'operátu, bod 4.3.5.1.2 c)', [PtNo, R.dPhi, MEZNI_DFI]));
+          'operátu, bod 4.3.5.1.2 c)', [PtNo, R.Normed, MEZNI_DFI]));
     end;
 
-    if not IsNan(R.Ds) then
-    begin
-      Limit := 0.012 * Sqrt(R.Dg) + 0.10;
-      if Abs(R.Ds) > Limit then
-        AddWarning(Format('Orientace %s: odchylka délky ds = %.3f m ' +
-          'překračuje mezní hodnotu %.3f m', [PtNo, R.Ds, Limit]));
-    end;
+    // KatV 13.5, the difference is less than ud
+    if not IsNan(R.Ds) and not IsNan(R.Limit) and
+       not (Abs(R.Ds) < R.Limit) then
+      AddWarning(Format('Orientace %s: rozdíl délek %.3f m není menší ' +
+        'než mezní rozdíl %.3f m - příloha, bod 13.5 katastrální vyhlášky',
+        [PtNo, R.Ds, R.Limit]));
   end;
 
-  // Mean error of a weighted mean
-  if (NDir > 1) and (SumP > 0) then
-    FInfo.mPhi := Sqrt(SumPdPhi / ((NDir - 1) * SumP));
+  // Unit mean error of the directions
+  if NDir > 1 then
+  begin
+    FInfo.m0 := Sqrt(SumPvv / (NDir - 1));
+    if FInfo.m0 > MEZNI_DFI then
+      AddWarning(Format('Střední chyba m0 = %.4f g překračuje mezní ' +
+        'hodnotu %.2f g - Návod pro obnovu katastrálního operátu, ' +
+        'bod 4.3.5.1.2 c)', [FInfo.m0, MEZNI_DFI]));
+  end;
 end;
 
 procedure TPolarMethodAlgorithm.ComputeDetails(AFrame: TGeoDataFrame;
@@ -416,7 +479,7 @@ procedure TPolarMethodAlgorithm.ComputeDetails(AFrame: TGeoDataFrame;
 var
   St: TGeoRow;
   I: Integer;
-  D, sigma: Double;
+  D, Along, Across, sigma: Double;
 begin
   St := AFrame.Rows[0];
 
@@ -425,8 +488,16 @@ begin
     D     := AFrame.Rows[I].SH * Scale;
     sigma := (FInfo.phi + AFrame.Rows[I].HZ) * GON_TO_RAD;
 
-    AFrame.Rows[I].X := St.X + D * Cos(sigma);
-    AFrame.Rows[I].Y := St.Y + D * Sin(sigma);
+    // Offset along the sight and to its right, negative back and left
+    Along := D;
+    if not IsNan(AFrame.Rows[I].PolarD) then
+      Along := (AFrame.Rows[I].SH + AFrame.Rows[I].PolarD) * Scale;
+    Across := 0;
+    if not IsNan(AFrame.Rows[I].PolarK) then
+      Across := AFrame.Rows[I].PolarK * Scale;
+
+    AFrame.Rows[I].X := St.X + Along * Cos(sigma) - Across * Sin(sigma);
+    AFrame.Rows[I].Y := St.Y + Along * Sin(sigma) + Across * Cos(sigma);
 
     if (AMaxDist > 0) and (D > AMaxDist) then
       AddWarning(Format('Bod %s: délka rajónu %.1f m je větší než ' +
@@ -436,12 +507,24 @@ begin
   end;
 end;
 
+// Slope length to horizontal, d = s · sin z, z in gon
+class procedure TPolarMethodAlgorithm.ReduceSlopeLengths(AFrame: TGeoDataFrame);
+var
+  I: Integer;
+begin
+  for I := 0 to AFrame.Count - 1 do
+    if not IsNan(AFrame.Rows[I].SS) and not IsNan(AFrame.Rows[I].Zuhel) then
+      AFrame.Rows[I].SH := AFrame.Rows[I].SS *
+        Sin(AFrame.Rows[I].Zuhel * Pi / 200);
+end;
+
 procedure TPolarMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   MaxDist: Double;   // distance to the farthest orientation
 begin
   ClearWarnings;
   FInfo := Default(TPolarInfo);
+  ReduceSlopeLengths(AFrame);
 
   if not CheckLayout(AFrame) then
     Exit;
@@ -463,7 +546,72 @@ begin
 
   MaxDist := CheckOrientations(AFrame);
   ComputeDetails(AFrame, MaxDist);
+  if FHeights then
+  begin
+    if FInfo.FreeStation then
+      StationHeight(AFrame);
+    DetailHeights(AFrame);
+  end;
   FInfo.Valid := True;
+end;
+
+// Mean of the orientations to points with a height, Z = 0 has none
+procedure TPolarMethodAlgorithm.StationHeight(AFrame: TGeoDataFrame);
+var
+  I: Integer;
+  Row: TGeoRow;
+  Dh, Sum: Double;
+begin
+  Sum := 0;
+  FInfo.HeightCount := 0;
+  for I := 1 to FInfo.OrientCount do
+  begin
+    Row := AFrame.Rows[I];
+    if IsNan(Row.Z) or (Row.Z = 0) then
+      Continue;
+    Dh := HeightDiff(Row);
+    if IsNan(Row.VC) then
+      AddWarning(Format('Orientace %s: chybí výška cíle, do výšky ' +
+        'stanoviska se nepočítá.', [Trim(string(Row.CB))]))
+    else if not IsNan(Dh) then
+    begin
+      Sum := Sum + Row.Z + Row.VC - AFrame.Rows[0].VS - Dh;
+      Inc(FInfo.HeightCount);
+    end;
+  end;
+
+  if FInfo.HeightCount > 0 then
+    AFrame.Rows[0].Z := Sum / FInfo.HeightCount;
+end;
+
+// The target height left empty is the last one, at first the instrument's
+procedure TPolarMethodAlgorithm.DetailHeights(AFrame: TGeoDataFrame);
+var
+  I: Integer;
+  St: TGeoRow;
+  Target, Dh: Double;
+begin
+  St := AFrame.Rows[0];
+  if IsNan(St.Z) or (St.Z = 0) then
+  begin
+    AddWarning('Stanovisko nemá výšku, výšky bodů se nepočítají.');
+    Exit;
+  end;
+
+  Target := St.VS;
+  for I := FInfo.OrientCount + 1 to AFrame.Count - 1 do
+  begin
+    if IsNan(AFrame.Rows[I].VC) then
+      AFrame.Rows[I].VC := Target
+    else
+      Target := AFrame.Rows[I].VC;
+
+    Dh := HeightDiff(AFrame.Rows[I]);
+    if IsNan(Dh) then
+      AFrame.Rows[I].Z := NaN
+    else
+      AFrame.Rows[I].Z := St.Z + St.VS + Dh - AFrame.Rows[I].VC;
+  end;
 end;
 
 end.

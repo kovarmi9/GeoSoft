@@ -63,6 +63,7 @@ type
     procedure ApplyColumnsToGrids;
     procedure WriteFit;
     procedure WriteOrientations;
+    function MeasuredColumns(ADetail: Boolean): TArray<TProtocolColumn>;
   protected
     function BuildFrame: Boolean; override;
     function GridNumber(AFrameRow: Integer): string; override;
@@ -93,7 +94,8 @@ begin
   FAlg := TPolarMethodAlgorithm.Create;
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, X, Y, Z, VS, VC, HZ, SH, KK, Poznamka]);
+    [Uloha, CB, X, Y, Z, VS, VC, HZ, SH, SS, Zuhel, PolarD, PolarK, KK,
+     Poznamka]);
 end;
 
 destructor TPolarMethodForm.Destroy;
@@ -112,6 +114,7 @@ procedure TPolarMethodForm.ApplySettings;
 begin
   FAlg.Scale := GSettings.Scale;
   FAlg.Congruent := GSettings.Polar.Congruent;
+  FAlg.Heights := GSettings.Polar.Heights;
   ApplyColumnsToGrids;
 end;
 
@@ -121,9 +124,21 @@ procedure TPolarMethodForm.ApplyColumnsToGrids;
 var
   Hidden: TGeoFields;
 begin
-  Hidden := [SS, Zuhel, PolarD, PolarK];
-  if not GSettings.Polar.ShowTargetHeight then
-    Include(Hidden, VC);
+  Hidden := [];
+  if not GSettings.Polar.Offset then
+    Include(Hidden, PolarD);
+  if not GSettings.Polar.Perpendicular then
+    Include(Hidden, PolarK);
+  // Horizontal length, or the slope one with its zenith angle
+  if GSettings.Polar.SlopeLengths then
+    Include(Hidden, SH)
+  else
+    Include(Hidden, SS);
+  // The zenith angle serves the slope length and the heights
+  if not GSettings.Polar.SlopeLengths and not GSettings.Polar.Heights then
+    Include(Hidden, Zuhel);
+  if not GSettings.Polar.Heights then
+    Hidden := Hidden + [Z, VC];
   if not GSettings.Polar.ShowDescription then
     Include(Hidden, Poznamka);
 
@@ -397,11 +412,6 @@ var
       Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
       Row.KK := ListPoint.Quality;
       Row.Poznamka := ListPoint.Description;
-
-      // The height marks the target, so it is never empty
-      if IsNan(Row.VC) then
-        Row.VC := 0;
-
       Add(-1);
     end;
   end;
@@ -428,8 +438,8 @@ begin
       Row.KK := StrToIntDef(Trim(GPointPrefix.KK), 0);
     // An old result read from the grid would look like an orientation
     Row.X := NaN;  Row.Y := NaN;
-    if IsNan(Row.VC) then
-      Row.VC := 0;
+    if GSettings.Polar.Heights then
+      Row.Z := NaN;
     // The toolbar gives the description when none is typed
     if Trim(string(Row.Poznamka)) = '' then
       Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
@@ -456,7 +466,10 @@ begin
       StorePoint(FFrame.Rows[I]);
 
   // Only the detail rows belong to the grid the run writes into
-  FrameToGrid(GridDetail, FFrame, FRows, [CB, X, Y]);
+  if GSettings.Polar.Heights then
+    FrameToGrid(GridDetail, FFrame, FRows, [CB, X, Y, Z])
+  else
+    FrameToGrid(GridDetail, FFrame, FRows, [CB, X, Y]);
 
   // A free station is a result as well, so it is shown and kept
   if FAlg.Info.Valid and FAlg.Info.FreeStation then
@@ -467,6 +480,9 @@ begin
       FloatToStrF(Station.Y, ffFixed, 18, GSettings.LengthDecimals, FS);
     EditStationX.Text :=
       FloatToStrF(Station.X, ffFixed, 18, GSettings.LengthDecimals, FS);
+    if GSettings.Polar.Heights and not IsNan(Station.Z) then
+      EditStationZ.Text :=
+        FloatToStrF(Station.Z, ffFixed, 18, GSettings.LengthDecimals, FS);
     EditStationKK.Text := IntToStr(Station.KK);
     EditStationPopis.Text := string(Station.Poznamka);
     StorePoint(Station);
@@ -478,14 +494,17 @@ end;
 // No valid run: old results would look like new ones
 procedure TPolarMethodForm.ClearResults;
 var
-  R, ColX, ColY: Integer;
+  R, ColX, ColY, ColZ: Integer;
 begin
   ColX := GridDetail.FieldToCol(X);
   ColY := GridDetail.FieldToCol(Y);
+  ColZ := GridDetail.FieldToCol(Z);
   for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
     if ColX >= 0 then GridDetail.Cells[ColX, R] := '';
     if ColY >= 0 then GridDetail.Cells[ColY, R] := '';
+    if (ColZ >= 0) and GSettings.Polar.Heights then
+      GridDetail.Cells[ColZ, R] := '';
   end;
 
   // A free station is a result as well
@@ -576,6 +595,7 @@ end;
 procedure TPolarMethodForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
+  Columns: TArray<TProtocolColumn>;
 begin
   if not BeginProtocol(ALines, 'Polární metoda', FAlg.Info.Valid, FFrame,
     FAlg.Warnings) then
@@ -586,8 +606,15 @@ begin
     Prot.Text('Pevné stanovisko');
 
   Prot.Section('STANOVISKO');
-  Prot.Columns([ColField(CB), ColPair]);
+  if GSettings.Polar.Heights then
+    Prot.Columns([ColField(CB), ColPair, ColField(Z),
+      ColField(VS, 'Výška stroje')])
+  else
+    Prot.Columns([ColField(CB), ColPair]);
   Prot.FrameRow(FFrame.Rows[0], []);
+  if GSettings.Polar.Heights and FAlg.Info.FreeStation then
+    Prot.Text('Výška stanoviska z orientací: ' +
+      IntToStr(FAlg.Info.HeightCount));
   if FAlg.Info.FreeStation then
     WriteFit;
   WriteOrientations;
@@ -596,8 +623,10 @@ begin
   if FFrame.Count > FAlg.Info.OrientCount + 1 then
   begin
     Prot.Section('PODROBNÉ BODY');
-    Prot.Columns([ColNumber, ColField(CB), ColField(HZ),
-      ColField(SH, 'Délka'), ColPair]);
+    Columns := MeasuredColumns(True) + [ColPair];
+    if GSettings.Polar.Heights then
+      Columns := Columns + [ColField(Z)];
+    Prot.Columns(Columns);
     for I := FAlg.Info.OrientCount + 1 to FFrame.Count - 1 do
       Prot.FrameRow(FFrame.Rows[I], [GridNumber(I)],
         UpdatedTail(FFrame.Rows[I]));
@@ -629,27 +658,51 @@ begin
   Prot.Text('Odchylky dle KatV, body přílohy 13.7 až 13.9');
 end;
 
+// What was measured, as the grid shows it by the settings
+function TPolarMethodForm.MeasuredColumns(ADetail: Boolean): TArray<TProtocolColumn>;
+begin
+  Result := [ColNumber, ColField(CB), ColField(HZ)];
+  if GSettings.Polar.SlopeLengths or GSettings.Polar.Heights then
+    Result := Result + [ColField(Zuhel, 'Zenit')];
+  if GSettings.Polar.SlopeLengths then
+    Result := Result + [ColField(SS, 'Šikmá délka')];
+  Result := Result + [ColField(SH, 'Délka')];
+  if ADetail and GSettings.Polar.Offset then
+    Result := Result + [ColField(PolarD, 'Doměrek')];
+  if ADetail and GSettings.Polar.Perpendicular then
+    Result := Result + [ColField(PolarK, 'Kolmice')];
+  if GSettings.Polar.Heights then
+    Result := Result + [ColField(VC, 'Výška cíle')];
+end;
+
 // The orientations with their residuals, then the shift
 procedure TPolarMethodForm.WriteOrientations;
 var
   I: Integer;
   Res: TOrientResult;
+  Columns: TArray<TProtocolColumn>;
 begin
   Prot.Section('ORIENTACE');
-  Prot.Columns([ColNumber, ColField(CB), ColField(HZ), ColField(SH, 'Délka'),
-    ColAngle('dfi'), ColLength('ds')]);
-  // What was not measured stays blank
+  Columns := MeasuredColumns(False) + [ColLength('ds'), ColLength('Mezní'),
+    ColAngle('dfi'), ColLength('Váha'), ColAngle('Normovaná')];
+  if GSettings.Polar.Heights then
+    Columns := Columns + [ColLength('dZ')];
+  Prot.Columns(Columns);
+  // What was not measured stays blank, dZ is for information only
   for I := 1 to FAlg.Info.OrientCount do
   begin
     Res := TPolarMethodAlgorithm.ResultOf(FFrame.Rows[0], FFrame.Rows[I],
-      FAlg.Info.phi, FAlg.Scale);
-    Prot.FrameRow(FFrame.Rows[I], [IntToStr(I), Ang(Res.dPhi), Num(Res.Ds)]);
+      FAlg.Info.phi, FAlg.Scale, FAlg.Info.Longest);
+    Prot.FrameRow(FFrame.Rows[I], [IntToStr(I), Num(Res.Ds), Num(Res.Limit),
+      Ang(Res.dPhi), Num(Res.p, 3), Ang(Res.Normed), Num(Res.dZ)]);
   end;
   Prot.Line;
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
   Prot.Text('Or. posun = ' + Ang(FAlg.Info.phi) +
-            '    Střední chyba or. pos. = ' + Ang(FAlg.Info.mPhi) +
+            '    m0 = √([pvv] / (n - 1)) = ' + Ang(FAlg.Info.m0) +
             '    Mezní = ' + Ang(MEZNI_DFI));
+  Prot.Text('Normovaná odchylka = v·√p, v je odchylka a p váha orientace');
+  Prot.Text(LimitSource);
 end;
 
 end.

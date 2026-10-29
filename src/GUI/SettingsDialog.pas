@@ -36,7 +36,10 @@ type
     ButtonBoth: TButton;
     TabTasks: TTabSheet;
     GroupPolar: TGroupBox;
-    CheckPolarTargetHeight: TCheckBox;
+    RadioGroupPolarLengths: TRadioGroup;
+    CheckPolarHeights: TCheckBox;
+    CheckPolarOffset: TCheckBox;
+    CheckPolarPerpendicular: TCheckBox;
     CheckPolarDescription: TCheckBox;
     CheckPolarCongruent: TCheckBox;
     TabProtocol: TTabSheet;
@@ -90,7 +93,10 @@ begin
     F.EditScaleX.Text      := GSettings.ScalePlace.X;
     F.EditScaleHeight.Text := GSettings.ScalePlace.Height;
     ApplyCoordOrder(F.EditScaleY, F.EditScaleX);
-    F.CheckPolarTargetHeight.Checked := GSettings.Polar.ShowTargetHeight;
+    F.RadioGroupPolarLengths.ItemIndex := Ord(GSettings.Polar.SlopeLengths);
+    F.CheckPolarHeights.Checked := GSettings.Polar.Heights;
+    F.CheckPolarOffset.Checked := GSettings.Polar.Offset;
+    F.CheckPolarPerpendicular.Checked := GSettings.Polar.Perpendicular;
     F.CheckPolarDescription.Checked  := GSettings.Polar.ShowDescription;
     F.CheckPolarCongruent.Checked    := GSettings.Polar.Congruent;
     F.SpinLengthDecimals.Value := GSettings.LengthDecimals;
@@ -110,7 +116,10 @@ begin
     GSettings.ScalePlace.Y      := F.EditScaleY.Text;
     GSettings.ScalePlace.X      := F.EditScaleX.Text;
     GSettings.ScalePlace.Height := F.EditScaleHeight.Text;
-    GSettings.Polar.ShowTargetHeight := F.CheckPolarTargetHeight.Checked;
+    GSettings.Polar.SlopeLengths := F.RadioGroupPolarLengths.ItemIndex = 1;
+    GSettings.Polar.Heights := F.CheckPolarHeights.Checked;
+    GSettings.Polar.Offset := F.CheckPolarOffset.Checked;
+    GSettings.Polar.Perpendicular := F.CheckPolarPerpendicular.Checked;
     GSettings.Polar.ShowDescription  := F.CheckPolarDescription.Checked;
     GSettings.Polar.Congruent       := F.CheckPolarCongruent.Checked;
     GSettings.LengthDecimals := F.SpinLengthDecimals.Value;

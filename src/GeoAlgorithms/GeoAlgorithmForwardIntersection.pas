@@ -159,7 +159,7 @@ begin
   // Deviation of each orientation from the mean shift
   for I := FStations[AIndex].Row + 1 to Last do
   begin
-    FdPhi[I] := TPolarMethodAlgorithm.ResultOf(Station,
+    FdPhi[I] := -TPolarMethodAlgorithm.ResultOf(Station,
       AFrame.Rows[I], FStations[AIndex].phi, 1).dPhi;
     if Abs(FdPhi[I]) > MEZNI_DFI then
       AddWarning(Format('Orientace %s: odchylka dfi = %.4f g překračuje ' +

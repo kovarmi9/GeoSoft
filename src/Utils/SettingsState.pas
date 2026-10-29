@@ -6,7 +6,10 @@ interface
 
 type
   TPolarSettings = record
-    ShowTargetHeight: Boolean;  // target height column
+    SlopeLengths:     Boolean;  // slope length with the zenith angle
+    Heights:          Boolean;  // trigonometric heights
+    Offset:           Boolean;  // polar offset along the sight
+    Perpendicular:    Boolean;  // polar offset across the sight
     ShowDescription:  Boolean;  // description column
     Congruent:        Boolean;  // else Helmert
   end;
@@ -42,8 +45,12 @@ initialization
   GSettings.AngleDecimals := 4;
   // Whole square metres as in the cadastre
   GSettings.AreaDecimals := 0;
-  // Not asked for by default
-  GSettings.Polar.ShowTargetHeight := False;
+  // Horizontal lengths, the slope ones are asked for
+  GSettings.Polar.SlopeLengths := False;
+  // Positions only, the heights are asked for
+  GSettings.Polar.Heights := False;
+  GSettings.Polar.Offset := False;
+  GSettings.Polar.Perpendicular := False;
   // Shown unless the settings hide it
   GSettings.Polar.ShowDescription  := True;
   // Lengths are reduced by Scale already

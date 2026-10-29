@@ -228,20 +228,49 @@ object SettingsForm: TSettingsForm
         Left = 8
         Top = 8
         Width = 380
-        Height = 96
+        Height = 196
         Caption = 'Pol'#225'rn'#237' metoda'
         TabOrder = 0
-        object CheckPolarTargetHeight: TCheckBox
+        object RadioGroupPolarLengths: TRadioGroup
           Left = 12
-          Top = 22
+          Top = 20
+          Width = 356
+          Height = 48
+          Caption = 'D'#233'lky'
+          Columns = 2
+          ItemIndex = 0
+          Items.Strings = (
+            'vodorovn'#233
+            #353'ikm'#233)
+          TabOrder = 3
+        end
+        object CheckPolarHeights: TCheckBox
+          Left = 12
+          Top = 76
           Width = 350
           Height = 17
-          Caption = 'V'#382'dy zad'#225'vat v'#253#353'ku c'#237'le'
+          Caption = 'Po'#269#237'tat v'#253#353'ky'
           TabOrder = 0
+        end
+        object CheckPolarOffset: TCheckBox
+          Left = 12
+          Top = 99
+          Width = 350
+          Height = 17
+          Caption = 'Pol'#225'rn'#237' dom'#283'rek'
+          TabOrder = 4
+        end
+        object CheckPolarPerpendicular: TCheckBox
+          Left = 12
+          Top = 122
+          Width = 350
+          Height = 17
+          Caption = 'Pol'#225'rn'#237' kolmice'
+          TabOrder = 5
         end
         object CheckPolarDescription: TCheckBox
           Left = 12
-          Top = 45
+          Top = 145
           Width = 350
           Height = 17
           Caption = 'V'#382'dy zad'#225'vat popis bodu'
@@ -249,7 +278,7 @@ object SettingsForm: TSettingsForm
         end
         object CheckPolarCongruent: TCheckBox
           Left = 12
-          Top = 68
+          Top = 168
           Width = 350
           Height = 17
           Caption = 'Shodnostn'#237' transformace u voln'#233'ho stanoviska'

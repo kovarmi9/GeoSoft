@@ -92,3 +92,15 @@ Desktop.ini
 
 # MkDocs output of a local build
 site/
+
+# Newer compiler platforms
+Win64x/
+WinARM64EC/
+
+# Package resource, the IDE makes it again
+*.otares
+
+# Notes for AI agents, kept only locally
+.agents/
+AGENTS.md
+CLAUDE.md

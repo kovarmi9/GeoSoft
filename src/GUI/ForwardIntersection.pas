@@ -131,7 +131,7 @@ begin
     begin
       Result := Result + Format('Stanovisko %s %s: %d orientace',
         [Copy('AB', I + 1, 1),
-        FormatPointId(string(FFrame.Rows[FAlg.Stations[I].Row].CB)),
+        PointId(string(FFrame.Rows[FAlg.Stations[I].Row].CB)),
         FAlg.Stations[I].OrientCount]);
       if not IsNan(FAlg.Stations[I].phi) then
         Result := Result + ', posun ' + Ang(FAlg.Stations[I].phi);
@@ -264,9 +264,7 @@ end;
 // Both stations with their orientations, then the new points
 procedure TForwardIntersectionForm.WriteProtocol(ALines: TStrings);
 var
-  I, J, Number: Integer;
-  Row: TGeoRow;
-  ListPoint: Point.TPoint;
+  I, J: Integer;
   Tail: string;
 begin
   if (FFrame.Count = 0) or (FAlg.Stations[0].Row < 0) then
@@ -280,53 +278,39 @@ begin
   begin
     if FAlg.Stations[J].Row < 0 then
       Continue;
-    Prot.Text('STANOVISKO ' + Copy('AB', J + 1, 1));
-    Prot.Table(['', 'Číslo bodu', 'Směr', 'dfi', CoordNames, 'KK'],
-               [-3, ColWPoint, AngleWidth(10), AngleWidth(8), ColWPair, 3]);
+    Prot.Section('STANOVISKO ' + Copy('AB', J + 1, 1));
+    Prot.Columns([ColNumber, ColText('', 3), ColField(CB), ColField(HZ),
+      ColAngle('dfi'), ColPair, ColField(KK)]);
+    // The station and its orientations, one frame row is one grid row
     for I := FAlg.Stations[J].Row to FFrame.Count - 1 do
     begin
       if (I > FAlg.Stations[J].Row) and
          (FAlg.Roles[I] <> irOrientation) then
         Break;
-      Row := FFrame.Rows[I];
-      ListPoint.X := Row.X;
-      ListPoint.Y := Row.Y;
       if I = FAlg.Stations[J].Row then
-        Prot.Row(['St:', FormatPointId(string(Row.CB)), '', '',
-                  CoordPair(ListPoint), IntToStr(Row.KK)])
+        Prot.FrameRow(FFrame.Rows[I], [GridNumber(I), 'St:', ''])
       else
-        Prot.Row(['', FormatPointId(string(Row.CB)), Ang(Row.HZ),
-                  Ang(FAlg.dPhi[I]), CoordPair(ListPoint),
-                  IntToStr(Row.KK)]);
+        Prot.FrameRow(FFrame.Rows[I], [GridNumber(I), '',
+          Ang(FAlg.dPhi[I])]);
     end;
     Prot.Line;
     Prot.Text('Or. posun = ' + Ang(FAlg.Stations[J].phi) +
       '    Mezní dfi = ' + Ang(MEZNI_DFI));
-    Prot.Text('');
   end;
 
-  Prot.Text('URČOVANÉ BODY');
-  Prot.Table(['Č.', 'Číslo bodu', 'Směr z A', 'Směr z B', 'Úhel',
-              CoordNames, 'KK'],
-             [ColWNo, ColWPoint, AngleWidth(10), AngleWidth(10),
-              AngleWidth(9), ColWPair, 3]);
-  Number := 0;
+  Prot.Section('URČOVANÉ BODY');
+  Prot.Columns([ColNumber, ColField(CB), ColField(HZ, 'Směr z A'),
+    ColField(Zuhel, 'Směr z B'), ColAngle('Úhel'), ColPair,
+    ColField(KK)]);
   for I := 0 to FFrame.Count - 1 do
-  begin
-    if FAlg.Roles[I] <> irPoint then
-      Continue;
-    Inc(Number);
-    Row := FFrame.Rows[I];
-    ListPoint.X := Row.X;
-    ListPoint.Y := Row.Y;
-    if FStored and WasInList(Row) then
-      Tail := '*** bod v seznamu aktualizován ***'
-    else
+    if FAlg.Roles[I] = irPoint then
+    begin
       Tail := '';
-    Prot.Row([IntToStr(Number), FormatPointId(string(Row.CB)), Ang(Row.HZ),
-              Ang(Row.Zuhel), Ang(FAlg.omega[I]), CoordPair(ListPoint),
-              IntToStr(Row.KK)], Tail);
-  end;
+      if FStored then
+        Tail := UpdatedTail(FFrame.Rows[I]);
+      Prot.FrameRow(FFrame.Rows[I], [GridNumber(I), Ang(FAlg.omega[I])],
+        Tail);
+    end;
 
   Prot.Finish(FAlg.Warnings);
 end;

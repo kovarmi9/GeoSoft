@@ -37,6 +37,7 @@ type
     MenuTransformation: TMenuItem;
     MenuParcelArea: TMenuItem;
     MenuTechnicalLevelling: TMenuItem;
+    MenuProtocol: TMenuItem;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
     procedure MenuShowListClick(Sender: TObject);
@@ -57,6 +58,7 @@ type
     procedure MenuTransformationClick(Sender: TObject);
     procedure MenuParcelAreaClick(Sender: TObject);
     procedure MenuTechnicalLevellingClick(Sender: TObject);
+    procedure MenuProtocolClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -87,6 +89,12 @@ end;
 procedure TForm1.MenuNastaveniClick(Sender: TObject);
 begin
   TSettingsForm.Execute;
+end;
+
+// The job protocol (.ptk) in Notepad
+procedure TForm1.MenuProtocolClick(Sender: TObject);
+begin
+  PointsManagementForm.ShowJobProtocol;
 end;
 
 // View menu: brings the list window up with whatever is loaded

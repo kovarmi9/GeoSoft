@@ -51,3 +51,12 @@ Celá čísla se používají:
 
 - **Polární metoda** – výška cíle, popis bodu a shodnostní transformace
   u volného stanoviska.
+
+## Protokol
+
+Kdy se protokol výpočtu zapisuje do protokolu zakázky (.ptk):
+
+- **Protokolovat vše** – po každém úspěšném výpočtu (výchozí).
+- **Protokolovat ručně** – zapisuje tlačítko **Zapsat do protokolu**,
+  které nejdřív spočítá a pak zapíše.
+- **Neprotokolovat** – nezapisuje se nic, tlačítko je skryté.

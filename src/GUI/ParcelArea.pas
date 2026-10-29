@@ -9,7 +9,7 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Types,
   PointsUtilsSingleton, PointPrefixState,
   Point,
-  CoordOrderState, ProtocolArea,
+  CoordOrderState, ProtocolTable, SettingsState,
   GeoRow, GeoDataFrame, GeoGrid, GeoFieldsGrid,
   GeoAlgorithmLHuilier,
   CalcBase, Vcl.Menus, Vcl.Mask;
@@ -26,7 +26,6 @@ type
   private
     FAlg: TLHuilierAlgorithm;
     FFrame: TGeoDataFrame;       // the input of the run
-    FProtocol: TAreaProtocol;
     procedure FillFromDict(const R: Integer);
     function  BuildFrame: Boolean;
   protected
@@ -53,12 +52,10 @@ begin
   inherited Create(AOwner);
   FAlg := TLHuilierAlgorithm.Create;
   FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y]);
-  FProtocol := TAreaProtocol.Create(Prot, FAlg, FFrame);
 end;
 
 destructor TParcelAreaForm.Destroy;
 begin
-  FProtocol.Free;
   FAlg.Free;
   FFrame.Free;
   inherited;
@@ -185,10 +182,21 @@ begin
   StringGrid1.RowCount := R + 1;
 end;
 
-// TAreaProtocol writes it
 procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);
 begin
-  FProtocol.Write(ALines, Trim(EditParcel.Text));
+  if not BeginProtocol(ALines, 'Výpočet výměr', not IsNan(FAlg.Area),
+    FFrame, FAlg.Warnings) then
+    Exit;
+  if Trim(EditParcel.Text) <> '' then
+    Prot.Text('Parcela ' + Trim(EditParcel.Text));
+  FrameTable('', FFrame, [ColNumber, ColField(CB), ColPair], 0,
+    FFrame.Count - 1);
+  Prot.Values(['Plocha', Num(FAlg.Area, GSettings.AreaDecimals) + ' m²']);
+  // KatV § 82 (2), whole m², at least 1 m², none after an error
+  if FAlg.Warnings.Count = 0 then
+    Prot.Values(['Výměra',
+      IntToStr(Max(1, Trunc(FAlg.Area + 0.5))) + ' m²']);
+  Prot.Finish(FAlg.Warnings);
 end;
 
 end.

@@ -222,6 +222,7 @@ begin
   if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
   begin
     ShowMessage('Zadejte číslo stanoviska, výsledek se neuložil.');
+    SkipJobProtocol;
     Exit;
   end;
 
@@ -265,50 +266,17 @@ end;
 
 // The given points, the angles and the station
 procedure TResectionForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Row: TGeoRow;
-  ListPoint: Point.TPoint;
-  Tail: string;
 begin
-  if not FAlg.Valid then
-  begin
-    ALines.Clear;
+  if not BeginProtocol(ALines, 'Protínání zpět', FAlg.Valid, FFrame,
+    FAlg.Warnings) then
     Exit;
-  end;
-
-  Prot.Title(ALines, 'Protínání zpět');
   Prot.Text('Cassiniho řešení');
-  Prot.Text('');
-  Prot.Text('DANÉ BODY');
-  Prot.Table(['Č.', 'Číslo bodu', 'Směr', CoordNames, 'KK'],
-             [ColWNo, ColWPoint, AngleWidth(10), ColWPair, 3]);
-  for I := 0 to RESECTION_POINTS - 1 do
-  begin
-    Row := FFrame.Rows[I];
-    ListPoint.X := Row.X;
-    ListPoint.Y := Row.Y;
-    Prot.Row([IntToStr(I + 1), FormatPointId(string(Row.CB)), Ang(Row.HZ),
-              CoordPair(ListPoint), IntToStr(Row.KK)]);
-  end;
-  Prot.Line;
-  Prot.Text('Úhel alfa 1-2 = ' + Ang(FAlg.alpha));
-  Prot.Text('Úhel beta 2-3 = ' + Ang(FAlg.beta));
-  Prot.Text('Délka TU = ' + Num(FAlg.sTU));
-
-  Prot.Text('');
-  Prot.Text('URČOVANÉ STANOVISKO');
-  Prot.Table(['Číslo bodu', CoordNames, 'KK'], [ColWPoint, ColWPair, 3]);
-  Row := FFrame.Rows[RESECTION_POINTS];
-  ListPoint.X := Row.X;
-  ListPoint.Y := Row.Y;
-  if FStored and WasInList(Row) then
-    Tail := '*** bod v seznamu aktualizován ***'
-  else
-    Tail := '';
-  Prot.Row([FormatPointId(string(Row.CB)), CoordPair(ListPoint),
-            IntToStr(Row.KK)], Tail);
-
+  FrameTable('DANÉ BODY', FFrame, [ColNumber, ColField(CB), ColField(HZ),
+    ColPair, ColField(KK)], 0, RESECTION_POINTS - 1);
+  Prot.Values(['Úhel alfa 1-2', Ang(FAlg.alpha), 'Úhel beta 2-3',
+    Ang(FAlg.beta), 'Délka TU', Num(FAlg.sTU)]);
+  FrameTable('URČOVANÉ STANOVISKO', FFrame, [ColField(CB), ColPair,
+    ColField(KK)], RESECTION_POINTS, RESECTION_POINTS, FStored);
   Prot.Finish(FAlg.Warnings);
 end;
 

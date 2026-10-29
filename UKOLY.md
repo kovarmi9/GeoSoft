@@ -1,6 +1,6 @@
 # GeoSoft - stav a plány
 
-Stav k 27. 10. 2026, větev `test`. Pravidla práce jsou v `CLAUDE.md`.
+Stav k 29. 10. 2026, větev `test`. Pravidla práce jsou v `CLAUDE.md`.
 Verze 1.0 = všechny výpočty včetně nivelace.
 
 ## Hotovo
@@ -17,18 +17,19 @@ Verze 1.0 = všechny výpočty včetně nivelace.
 | úloha 4 konstrukční oměrné | mez podle KatV 13.6, ověřeno na příkladu |
 | úloha 5 protínání z délek | strana znaménkem kontrolní délky, docs |
 | úloha 6 protínání ze směrů | bloky v jednom gridu, docs |
+| úloha 7 konstrukční oměrné s vyrovnáním | uzávěr úměrně délkám, shodnostní klíč |
+| úloha 8 protínání zpět | Cassiniho řešení, docs |
 | úloha 9 kontrolní oměrné | mez podle KatV 13.6 |
 | úloha 51 technická nivelace | jeden pořad, uzavřený i otevřený, 20 mm·√r |
 | úloha 65 transformace | shodnostní, podobnostní, afinní, KatV 13.8 |
 | úloha 95 výměry | celé m² podle § 82 |
-| protokoly | jednotný vzhled, CHYBA a UPOZORNĚNÍ |
+| protokoly | jednotný vzhled, jeden unit ProtocolTable, protokol úlohy ve formuláři, CHYBA i při neúspěšném výpočtu, Č. podle řádku gridu |
+| protokol zakázky | `.ptk` vedle seznamu, Nastavení → Protokol (vše, ručně, vypnuto), menu Protokol |
 | značení | jednotné podle ČVUT v kódu i v docs |
-| testy | 12 testů algoritmů v `tests/Algorithms` |
+| testy | 14 testů algoritmů v `tests/Algorithms` |
 
 ## C - výpočty do verze 1.0
 
-- Úloha 8 protínání zpět.
-- Úloha 7 konstrukční oměrné s vyrovnáním.
 - Polární metoda rozšířená: výšky, šikmé délky, zenitové úhly, doměrky,
   víc stanovisek, dávka.
 - Meze polární metody: orientace jako GEUS (m0 a normovaná odchylka).
@@ -69,7 +70,8 @@ Verze 1.0 = všechny výpočty včetně nivelace.
     - úloha 6: Zuhel = směr z B,
     - úloha 2: Xm, Ym = bod před posunem.
 - Hlavička frame, výměnný formát.
-- Sloupec Č. v protokolu podle řádku gridu i ve výměře a transformaci.
+- Sloupec Č. podle řádku gridu i u orientací polární metody a ve výměře
+  (obě přeskakují prázdné řádky).
 
 ## G - úklid
 
@@ -84,7 +86,7 @@ Verze 1.0 = všechny výpočty včetně nivelace.
 ## H - dokumentace a vydání
 
 - Prázdné stránky: komponenty (geofieldsgrid, index, kontrola-zadavani),
-  protokol, výpočty (index, konstrukční, kontrolní, ortogonální, polární,
+  výpočty (index, konstrukční, kontrolní, ortogonální, polární,
   výměra). Chybí nivelace.
 - README a verze 1.0, sloučit test do main a značka verze.
 

@@ -73,10 +73,6 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
     Font.Height = -13
     Font.Name = 'Consolas'
     Font.Style = []
-    Lines.Strings = (
-      
-        '  == 0   Ortogon'#225'ln'#237' metoda  ===================================' +
-        '==================')
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssVertical

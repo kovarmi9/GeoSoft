@@ -269,8 +269,6 @@ var
   Dict: TPointDictionary;
   Nums: array of Int64;
   Note: string;
-  Measured, ComputedOnly, Failed, Skipped, NoQuality: Integer;
-  MaxDiff: Double;
 
   // Every point of the job, in order of first use
   procedure AddNum(ANum: Int64);
@@ -296,11 +294,8 @@ begin
 
   Prot.Title(ALines, 'Kontrolní oměrné');
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Prot.Text('');
-
-  Prot.Text('POUŽITÉ BODY');
-  Prot.Table(['Č.', 'Číslo bodu', CoordNames, 'Z'],
-             [ColWNo, ColWPoint, ColWPair, ColWDist]);
+  Prot.Section('POUŽITÉ BODY');
+  Prot.Columns([ColNumber, ColPoint, ColPair, ColLength('Z')]);
   for I := 0 to N - 1 do
     if Dict.PointExists(Nums[I]) then
     begin
@@ -312,20 +307,10 @@ begin
       Prot.Row([IntToStr(I + 1), PointId(Nums[I])],
                '*** bod není v seznamu souřadnic ***');
 
-  Prot.Text('');
-  Prot.Text('OMĚRNÉ MÍRY');
-  Prot.Table(['Č.', 'Z bodu', 'Na bod', 'Měřená', 'Ze souřadnic',
-              'Rozdíl', 'Mezní', ''],
-             [ColWNo, ColWPoint, ColWPoint, ColWDist, LengthWidth(13),
-              LengthWidth(11), LengthWidth(9), ColWFlag]);
-
-  Measured     := 0;
-  ComputedOnly := 0;
-  Failed       := 0;
-  Skipped      := 0;
-  NoQuality    := 0;
-  MaxDiff      := 0;
-
+  Prot.Section('OMĚRNÉ MÍRY');
+  Prot.Columns([ColNumber, ColPoint('Z bodu'), ColPoint('Na bod'),
+    ColLength('Měřená'), ColLength('Ze souřadnic'), ColLength('Rozdíl'),
+    ColLength('Mezní'), ColText('')]);
   for I := 0 to FFrame.Count - 1 do
   begin
     PointNumberFrom := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
@@ -334,7 +319,6 @@ begin
 
     if not Check.Found then
     begin
-      Inc(Skipped);
       Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
                 PointId(PointNumberTo)],
                '*** nelze spočítat, chybí bod ***');
@@ -342,30 +326,16 @@ begin
     end;
 
     if Check.HasMeasured then
-    begin
-      Inc(Measured);
-      if Abs(Check.Diff) > Abs(MaxDiff) then
-        MaxDiff := Check.Diff;
-
-      if IsNan(Check.Tolerance) then
-        Inc(NoQuality)
-      else if not Check.Passed then
-        Inc(Failed);
-
       Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
                 PointId(PointNumberTo), Num(Check.Measured),
                 Num(Check.Computed), Num(Check.Diff),
                 Num(Check.Tolerance),
-                TCheckMeasurementsAlgorithm.Verdict(Check)]);
-    end
+                TCheckMeasurementsAlgorithm.Verdict(Check)])
     else
-    begin
-      Inc(ComputedOnly);
       // KatV annex 17.11 - a value that was not measured goes in brackets
       Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
                 PointId(PointNumberTo), '',
                 '(' + Num(Check.Computed) + ')', '', '', 'neměřeno']);
-    end;
 
     Note := string(FFrame.Rows[I].Poznamka);
     if Note <> '' then
@@ -373,22 +343,22 @@ begin
   end;
 
   Prot.Line;
-  Prot.Text('Měřených oměrných: ' + IntToStr(Measured) +
-            '    Nevyhovuje: ' + IntToStr(Failed) +
-            '    Největší rozdíl: ' + Num(MaxDiff));
+  Prot.Text('Měřených oměrných: ' + IntToStr(FAlg.Info.Measured) +
+            '    Nevyhovuje: ' + IntToStr(FAlg.Info.Failed) +
+            '    Největší rozdíl: ' + Num(FAlg.Info.MaxDiff));
   Prot.Text(LimitSource);
 
-  if ComputedOnly > 0 then
+  if FAlg.Info.ComputedOnly > 0 then
     Prot.Text('Neměřených, uvedených ze souřadnic v závorkách: ' +
-              IntToStr(ComputedOnly));
+              IntToStr(FAlg.Info.ComputedOnly));
 
-  if Skipped > 0 then
+  if FAlg.Info.Skipped > 0 then
     Prot.Text('Nespočítaných oměrných (chybí bod v seznamu): ' +
-              IntToStr(Skipped));
+              IntToStr(FAlg.Info.Skipped));
 
-  if NoQuality > 0 then
+  if FAlg.Info.NoQuality > 0 then
     Prot.Text('Bez mezního rozdílu (' + NoMxy + '): ' +
-              IntToStr(NoQuality));
+              IntToStr(FAlg.Info.NoQuality));
 
   Prot.Finish(FAlg.Warnings);
 end;

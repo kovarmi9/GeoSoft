@@ -218,7 +218,7 @@ procedure TLevellingForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
   Row: TGeoRow;
-  PointText, Tail: string;
+  Tail: string;
 
   // Millimetres, an empty cell stays empty
   function Mm(AValue: Double): string;
@@ -234,9 +234,10 @@ begin
   end;
 
   Prot.Title(ALines, 'Technická nivelace');
-  Prot.Table(['Č.', 'Číslo bodu', 'Vzad', 'Vpřed', 'Bočně', 'Délka',
-              'Převýšení', 'Oprava', 'Výška'],
-             [ColWNo, ColWPoint, 7, 7, 7, 7, 9, 7, 10]);
+  Prot.Columns([ColNumber, ColPoint, ColLength('Vzad', 7),
+    ColLength('Vpřed', 7), ColLength('Bočně', 7), ColLength('Délka', 7),
+    ColLength('Převýšení', 9), ColLength('Oprava', 7),
+    ColLength('Výška', 10)]);
 
   for I := 0 to FFrame.Count - 1 do
   begin
@@ -244,15 +245,12 @@ begin
     // Only a stored point, it has a number and no given height
     if FStored and (Trim(string(Row.CB)) <> '') and IsNan(Row.Z) and
        WasInList(Row) then
-      Tail := '*** bod v seznamu aktualizován ***'
+      Tail := UpdatedText
     else
       Tail := '';
     // A change point may have no number
-    if Trim(string(Row.CB)) = '' then
-      PointText := ''
-    else
-      PointText := FormatPointId(string(Row.CB));
-    Prot.Row([IntToStr(FRows[I] - Grid.FixedRows + 1), PointText,
+    Prot.Row([IntToStr(FRows[I] - Grid.FixedRows + 1),
+              PointId(string(Row.CB)),
               Mm(Row.Xm), Mm(Row.Ym),
               Mm(Row.Zm), Num(Row.SH, 2), Mm(Row.Vz), Mm(Row.Vy),
               Mm(Row.VC)], Tail);

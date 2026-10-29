@@ -40,6 +40,7 @@ type
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
+    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -367,13 +368,17 @@ begin
   RecalcLocal;
 end;
 
+// The number of the notebook row
+function TRectangularMeasurementsForm.GridNumber(AFrameRow: Integer): string;
+begin
+  Result := IntToStr(FRows[AFrameRow] - StringGrid1.FixedRows + 1);
+end;
+
 procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);
 var
   S, I: Integer;
   Segment: TSegmentInfo;
   Row: TGeoRow;
-  ListPoint: Point.TPoint;
-  Kind, Dist, Tail: string;
 begin
   Prot.Title(ALines, 'Konstrukční oměrné');
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
@@ -381,43 +386,23 @@ begin
   for S := 0 to High(FAlg.Segments) do
   begin
     Segment := FAlg.Segments[S];
+    Prot.Section(Format('Úsek %d: %s → %s', [S + 1,
+      PointId(string(FFrame.Rows[Segment.FromRow].CB)),
+      PointId(string(FFrame.Rows[Segment.ToRow].CB))]));
+    Prot.Columns([ColNumber, ColField(CB), ColLength('Délka'), ColPair,
+      ColText('Typ')]);
 
-    Prot.Text('');
-    Prot.Text(Format('Úsek %d: %s → %s', [S + 1,
-      FormatPointId(string(FFrame.Rows[Segment.FromRow].CB)),
-      FormatPointId(string(FFrame.Rows[Segment.ToRow].CB))]));
-
-    Prot.Table(['Č.', 'Číslo bodu', 'Délka', CoordNames, 'Typ'],
-               [ColWNo, ColWPoint, ColWDist, ColWPair, ColWFlag]);
-
+    // The given points are first and last, the first has no length
     for I := Segment.FromRow to Segment.ToRow do
     begin
       Row := FFrame.Rows[I];
-
-      // The notebook marks the given points by position: first and last
-      Tail := '';
-      if (I = Segment.FromRow) or (I = Segment.ToRow) then
-        Kind := 'daný'
-      else
-      begin
-        Kind := 'vypočtený';
-        if WasInList(Row) then
-          Tail := '*** bod v seznamu aktualizován ***';
-      end;
-
-      // the first point of a stretch has no length in front of it
       if I = Segment.FromRow then
-        Dist := ''
+        Prot.FrameRow(Row, [GridNumber(I), '', 'daný'])
+      else if I = Segment.ToRow then
+        Prot.FrameRow(Row, [GridNumber(I), Num(Row.SH), 'daný'])
       else
-        Dist := Num(Row.SH);
-
-      ListPoint.X := Row.X;
-      ListPoint.Y := Row.Y;
-
-      // the number of the notebook row
-      Prot.Row([IntToStr(FRows[I] - StringGrid1.FixedRows + 1),
-                FormatPointId(string(Row.CB)),
-                Dist, CoordPair(ListPoint), Kind], Tail);
+        Prot.FrameRow(Row, [GridNumber(I), Num(Row.SH), 'vypočtený'],
+          UpdatedTail(Row));
     end;
 
     Prot.Line;

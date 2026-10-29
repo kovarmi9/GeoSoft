@@ -19,7 +19,11 @@ markdown_extensions:
   - toc:
       permalink: true        # odkaz na každý nadpis
   - pymdownx.highlight       # barevné zvýraznění kódu
-  - pymdownx.superfences
+  - pymdownx.superfences:    # schémata Mermaid
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.arithmatex:     # vzorce v LaTeXu
       generic: true
 

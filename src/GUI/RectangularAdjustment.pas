@@ -37,6 +37,7 @@ type
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
+    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -356,12 +357,17 @@ begin
   RecalcLocal;
 end;
 
+// The number of the notebook row
+function TRectangularAdjustmentForm.GridNumber(AFrameRow: Integer): string;
+begin
+  Result := IntToStr(FRows[AFrameRow] - StringGrid1.FixedRows + 1);
+end;
+
 // Sides with their corrections, the closure, the key and the points
 procedure TRectangularAdjustmentForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
   Row: TGeoRow;
-  ListPoint: Point.TPoint;
   Residual: TPointResidual;
   Kind, Dist, Correction, Tail: string;
 begin
@@ -370,14 +376,13 @@ begin
 
   if FAlg.Valid then
   begin
-    Prot.Text('');
-    Prot.Text('Uzávěr podélný = ' + Num(FAlg.ClosureAlong));
-    Prot.Text('Uzávěr příčný = ' + Num(FAlg.ClosureAcross));
+    Prot.Section('');
+    Prot.Values(['Uzávěr podélný', Num(FAlg.ClosureAlong),
+      'Uzávěr příčný', Num(FAlg.ClosureAcross)]);
 
-    Prot.Text('');
-    Prot.Text('BODY OBRAZCE');
-    Prot.Table(['Č.', 'Číslo bodu', 'Délka', 'Oprava', CoordNames, 'Typ'],
-               [ColWNo, ColWPoint, ColWDist, ColWDist, ColWPair, ColWFlag]);
+    Prot.Section('BODY OBRAZCE');
+    Prot.Columns([ColNumber, ColField(CB), ColLength('Délka'),
+      ColLength('Oprava'), ColPair, ColText('Typ')]);
     for I := 0 to FFrame.Count - 1 do
     begin
       Row := FFrame.Rows[I];
@@ -388,8 +393,9 @@ begin
       else
       begin
         Kind := 'vypočtený';
-        if (I < FFrame.Count - 1) and WasInList(Row) then
-          Tail := '*** bod v seznamu aktualizován ***';
+        // The closing row repeats the first point
+        if I < FFrame.Count - 1 then
+          Tail := UpdatedTail(Row);
       end;
 
       // The first point has no side in front of it
@@ -404,25 +410,18 @@ begin
         Correction := Num(FAlg.Adjusted[I] - Row.SH * FAlg.Scale);
       end;
 
-      ListPoint.X := Row.X;
-      ListPoint.Y := Row.Y;
-
-      // the number of the notebook row
-      Prot.Row([IntToStr(FRows[I] - StringGrid1.FixedRows + 1),
-                FormatPointId(string(Row.CB)), Dist, Correction,
-                CoordPair(ListPoint), Kind], Tail);
+      Prot.FrameRow(Row, [GridNumber(I), Dist, Correction, Kind], Tail);
     end;
     Prot.Line;
 
-    Prot.Text('');
-    Prot.Text('SHODNOSTNÍ TRANSFORMACE NA DANÉ BODY');
-    Prot.Table(['Číslo bodu', 'vy', 'vx'], [ColWPoint, ColWDist, ColWDist]);
+    Prot.Section('SHODNOSTNÍ TRANSFORMACE NA DANÉ BODY');
+    Prot.Columns([ColPoint, ColLength('vy'), ColLength('vx')]);
     for Residual in FAlg.Residuals do
       Prot.Row([PointId(Residual.PointNumber), Num(Residual.Vy),
                 Num(Residual.Vx)]);
     Prot.Line;
     if not IsNan(FAlg.MeanError) then
-      Prot.Text('Střední chyba = ' + Num(FAlg.MeanError));
+      Prot.Values(['Střední chyba', Num(FAlg.MeanError)]);
   end;
 
   Prot.Finish(FAlg.Warnings);

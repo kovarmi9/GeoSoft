@@ -193,9 +193,6 @@
         <DCCReference Include="..\Utils\CoordOrderState.pas"/>
         <DCCReference Include="..\Utils\GeoGridBridge.pas"/>
         <DCCReference Include="..\Utils\PointPrefixState.pas"/>
-        <DCCReference Include="..\Utils\ProtocolArea.pas"/>
-        <DCCReference Include="..\Utils\ProtocolPolar.pas"/>
-        <DCCReference Include="..\Utils\ProtocolTransformation.pas"/>
         <DCCReference Include="..\Utils\ProtocolTable.pas"/>
         <DCCReference Include="..\Utils\SettingsState.pas"/>
         <DCCReference Include="..\Utils\ValidationUtils.pas"/>

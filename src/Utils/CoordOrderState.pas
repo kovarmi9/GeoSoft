@@ -8,7 +8,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Grids, Point, GeoRow,
-  GeoPointsGrid, GeoFieldsGrid, ProtocolTable;
+  GeoPointsGrid, GeoFieldsGrid;
 
 type
   /// <summary>Order of the coordinate pair: Y, X or X, Y.</summary>
@@ -22,12 +22,6 @@ var
 procedure CoordRead(const P: Point.TPoint; out AFirst, ASecond: Double);
 /// <summary>Coordinate pair in the current order.</summary>
 procedure CoordWrite(var P: Point.TPoint; const AFirst, ASecond: Double);
-
-/// <summary>Captions Y and X in the current order.</summary>
-function CoordNames: string;
-
-/// <summary>Both coordinates as text.</summary>
-function CoordPair(const P: Point.TPoint; ADecimals: Integer = -1): string;
 
 /// <summary>Column of Y, the pair starts at AFirstCol.</summary>
 function CoordColY(AFirstCol: Integer): Integer;
@@ -71,23 +65,6 @@ begin
     P.X := AFirst;
     P.Y := ASecond;
   end;
-end;
-
-function CoordNames: string;
-begin
-  if GCoordOrder = coYX then
-    Result := Pad('Y', ColWCoord) + ColGap + Pad('X', ColWCoord)
-  else
-    Result := Pad('X', ColWCoord) + ColGap + Pad('Y', ColWCoord);
-end;
-
-function CoordPair(const P: Point.TPoint; ADecimals: Integer): string;
-var
-  First, Second: Double;
-begin
-  CoordRead(P, First, Second);
-  Result := Pad(Num(First, ADecimals), ColWCoord) + ColGap +
-            Pad(Num(Second, ADecimals), ColWCoord);
 end;
 
 function CoordColY(AFirstCol: Integer): Integer;

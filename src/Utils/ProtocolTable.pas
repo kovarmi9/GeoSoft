@@ -1,121 +1,216 @@
 ﻿unit ProtocolTable;
 
-// Text tables for calculation protocols. Title starts one, Finish ends it.
-// Table declares the captions and the widths once, the header, the line
-// under it and every Row then use them. Values are strings, use Num for a
-// number.
-//
-//   Prot.Title(Memo1.Lines, 'Vypocet plochy parcely');
-//   Prot.Table(['C.', 'Cislo bodu'], [ColWNo, ColWPoint]);
-//   Prot.Row([IntToStr(i), '000000 00000 0001']);
-//   Prot.Finish(FAlg.Warnings);
+// Text protocols of calculations, Title starts one, Finish ends it
 
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Math;
+  System.SysUtils, System.Classes, System.Math, Point, GeoRow;
 
 const
-  // Width of the title and of the end line at 2 places. Keep it at least as
-  // wide as the widest table - today the check measurements, 106 + indent.
-  ProtWidth  = 107;
-  ProtIndent = ' ';    // every line starts with this
-  ColGap     = '  ';   // space between two columns
-
-  // Standard column widths. A minus width means left aligned.
-  ColWNo    = 3;      // row number
-  ColWPoint = -18;    // point id from FormatPointId, with a minus sign
-  ColWFlag  = -10;    // a short word like 'dany'
-
   // Where the length limits come from
   LimitSource = 'Mezní rozdíl dle KatV, body přílohy 13.5 a 13.6';
   // A quality code without Mxy gives no limit
   NoMxy = 'kód kvality bez Mxy';
+  // Behind a point the run has changed in the list
+  UpdatedText = '*** bod v seznamu aktualizován ***';
 
 type
-  TProtocol = class
-  private
-    FLines: TStrings;          // where the protocol is written
-    FCols:  array of Integer;  // widths of the current table
-    FWidth: Integer;           // how wide the current table is
-    function Cells(const AValues: array of string): string;
-  public
-    procedure Title(ALines: TStrings; const AText: string);   // clears ALines
-    procedure Text(const AText: string);       // '' writes a blank line
-    procedure Table(const ACaptions: array of string;
-                    const AWidths: array of Integer);
-    // ATail is free text written behind the last column
-    procedure Row(const AValues: array of string; const ATail: string = '');
-    procedure Line;                            // as wide as the table
-    procedure Finish(AWarnings: TStrings);     // messages and the end line
+  // What a column holds, it gives the width and the alignment
+  TColumnKind = (ckNumber, ckPoint, ckLength, ckAngle, ckInteger, ckPair,
+    ckText);
 
-    // A point number the way the protocol writes it: 000000 00000 0000
-    function FormatPointId(const S: string): string;
-    function PointId(ANum: Int64): string;
-
-    // Where the protocol was written, nil before the first Title
-    property Lines: TStrings read FLines;
+  // One column of a table
+  TProtocolColumn = record
+    Field: TGeoField;       // where FrameRow takes the value
+    Free: Boolean;          // the form gives the value
+    Kind: TColumnKind;
+    Caption: string;
+    Width: Integer;         // 0 = by the kind
   end;
 
-function Pad(const AText: string; AWidth: Integer): string;
+  TProtocol = class
+  private
+    FLines: TStrings;                    // where the protocol is written
+    FColumns: array of TProtocolColumn;  // the current table
+    FWidth: Integer;                     // how wide the current table is
+    FHasErrors: Boolean;                 // Finish wrote a CHYBA
+    FCount: Integer;                     // protocols started by Title
+    function Cells(const AValues: array of string): string;
+    class function MakeColumn(AKind: TColumnKind; AFree: Boolean; const ACaption: string): TProtocolColumn;
+    class function ColumnWidth(const AColumn: TProtocolColumn): Integer;
+    class function CoordWidth: Integer;
+    class function CoordNames: string;
+    class function FieldValue(const ARow: TGeoRow; AField: TGeoField): Double;
+    class function Pad(const AText: string; AWidth: Integer; ALeft: Boolean): string;
+  public
+    /// <summary>Clears ALines and writes the title.</summary>
+    procedure Title(ALines: TStrings; const AText: string);
+    /// <summary>A blank line and the caption of a part.</summary>
+    procedure Section(const ACaption: string);
+    /// <summary>One line, '' writes a blank line.</summary>
+    procedure Text(const AText: string);
+    /// <summary>Lines 'caption = value', in pairs.</summary>
+    procedure Values(const AValues: array of string);
+    /// <summary>Starts a table with its header.</summary>
+    procedure Columns(const AColumns: array of TProtocolColumn);
+    /// <summary>One row, the form gives every value.</summary>
+    procedure Row(const AValues: array of string; const ATail: string = '');
+    /// <summary>One row from the frame, free columns from AFree.</summary>
+    procedure FrameRow(const ARow: TGeoRow; const AFree: array of string; const ATail: string = '');
+    /// <summary>A line as wide as the table.</summary>
+    procedure Line;
+    /// <summary>Messages of the run and the end line.</summary>
+    procedure Finish(AWarnings: TStrings);
 
-/// <summary>Column of lengths, AWidth wide at 2 places.</summary>
-function LengthWidth(AWidth: Integer): Integer;
-/// <summary>Column of angles, AWidth wide at 4 places.</summary>
-function AngleWidth(AWidth: Integer): Integer;
-/// <summary>One coordinate.</summary>
-function ColWCoord: Integer;
-/// <summary>Both coordinates.</summary>
-function ColWPair: Integer;
-/// <summary>A length or a height in metres.</summary>
-function ColWDist: Integer;
+    /// <summary>Where the protocol was written, nil before Title.</summary>
+    property Lines: TStrings read FLines;
+    /// <summary>The last protocol ended with an error.</summary>
+    property HasErrors: Boolean read FHasErrors;
+    /// <summary>How many protocols Title has started.</summary>
+    property Count: Integer read FCount;
+  end;
+
+/// <summary>Č., the row of the grid.</summary>
+function ColNumber(AWidth: Integer = 0): TProtocolColumn;
+/// <summary>A point number the form gives.</summary>
+function ColPoint(const ACaption: string = 'Číslo bodu'): TProtocolColumn;
+/// <summary>A field of the row, ACaption replaces its name.</summary>
+function ColField(AField: TGeoField; const ACaption: string = ''): TProtocolColumn;
+/// <summary>Y and X of the row in the current order.</summary>
+function ColPair: TProtocolColumn;
+/// <summary>A length the form gives.</summary>
+function ColLength(const ACaption: string; AWidth: Integer = 0): TProtocolColumn;
+/// <summary>An angle the form gives.</summary>
+function ColAngle(const ACaption: string): TProtocolColumn;
+/// <summary>A short text the form gives.</summary>
+function ColText(const ACaption: string; AWidth: Integer = 0): TProtocolColumn;
+
+/// <summary>Both coordinates of a point in the current order.</summary>
+function CoordPair(const P: Point.TPoint; ADecimals: Integer = -1): string; overload;
+/// <summary>Both coordinates from X and Y in the current order.</summary>
+function CoordPair(AX, AY: Double; ADecimals: Integer = -1): string; overload;
+
+/// <summary>Point number as 000000 00000 0000, '' stays ''.</summary>
+function PointId(const AText: string): string; overload;
+/// <summary>Point number as 000000 00000 0000.</summary>
+function PointId(ANumber: Int64): string; overload;
 
 /// <summary>Difference against its limit, KatV 13.5: less than ud.</summary>
 function LimitText(ADifference, ALimit: Double): string;
+/// <summary>Band of Sxy: do Mxy, do Uxy, přes Uxy.</summary>
+function BandText(ASxy: Double; AQuality: Integer): string;
+/// <summary>The quality code with its Mxy and Uxy.</summary>
+function QualityText(AQuality: Integer): string;
+/// <summary>splněno or nesplněno.</summary>
+function Fulfilled(ACondition: Boolean): string;
 
 /// <summary>A length, coordinate or area, -1 = the setting.</summary>
 function Num(AValue: Double; ADecimals: Integer = -1): string;
 /// <summary>An angle in gon, by the setting.</summary>
 function Ang(AValue: Double): string;
 
-var
-  ProtFormat: TFormatSettings;   // decimal comma in every protocol
-
 implementation
 
 uses
-  SettingsState;
+  SettingsState, CoordOrderState, ValidationUtils;
 
-// More places, wider column, the sign stays
-function LengthWidth(AWidth: Integer): Integer;
+const
+  ProtIndent = ' ';    // every line starts with this
+  ColGap     = '  ';   // space between two columns
+
+var
+  ProtFormat: TFormatSettings;   // decimal comma in every protocol
+
+function ColNumber(AWidth: Integer): TProtocolColumn;
 begin
-  Result := Sign(AWidth) * (Abs(AWidth) + GSettings.LengthDecimals - 2);
+  Result := TProtocol.MakeColumn(ckNumber, True, 'Č.');
+  Result.Width := AWidth;
 end;
 
-function AngleWidth(AWidth: Integer): Integer;
+function ColPoint(const ACaption: string): TProtocolColumn;
 begin
-  Result := Sign(AWidth) * (Abs(AWidth) + GSettings.AngleDecimals - 4);
+  Result := TProtocol.MakeColumn(ckPoint, True, ACaption);
 end;
 
-function ColWCoord: Integer;
+function ColField(AField: TGeoField; const ACaption: string): TProtocolColumn;
 begin
-  Result := LengthWidth(14);
+  case AField of
+    CB, CBm:
+      Result := TProtocol.MakeColumn(ckPoint, False, 'Číslo bodu');
+    HZ, Zuhel:
+      Result := TProtocol.MakeColumn(ckAngle, False, 'Směr');
+    Uloha, TypS, KK:
+      Result := TProtocol.MakeColumn(ckInteger, False,
+        GeoFieldNames[AField]);
+    Poznamka:
+      Result := TProtocol.MakeColumn(ckText, False, 'Poznámka');
+  else
+    Result := TProtocol.MakeColumn(ckLength, False, GeoFieldNames[AField]);
+  end;
+  Result.Field := AField;
+  if ACaption <> '' then
+    Result.Caption := ACaption;
 end;
 
-function ColWPair: Integer;
+function ColPair: TProtocolColumn;
 begin
-  Result := -(2 * ColWCoord + Length(ColGap));
+  Result := TProtocol.MakeColumn(ckPair, False, '');
 end;
 
-function ColWDist: Integer;
+function ColLength(const ACaption: string; AWidth: Integer): TProtocolColumn;
 begin
-  Result := LengthWidth(10);
+  Result := TProtocol.MakeColumn(ckLength, True, ACaption);
+  Result.Width := AWidth;
 end;
 
-// Title and end line, the widest table has four length columns
-function ProtocolWidth: Integer;
+function ColAngle(const ACaption: string): TProtocolColumn;
 begin
-  Result := ProtWidth + 4 * (GSettings.LengthDecimals - 2);
+  Result := TProtocol.MakeColumn(ckAngle, True, ACaption);
+end;
+
+function ColText(const ACaption: string; AWidth: Integer): TProtocolColumn;
+begin
+  Result := TProtocol.MakeColumn(ckText, True, ACaption);
+  Result.Width := AWidth;
+end;
+
+function CoordPair(const P: Point.TPoint; ADecimals: Integer): string;
+var
+  First, Second: Double;
+begin
+  CoordRead(P, First, Second);
+  Result := TProtocol.Pad(Num(First, ADecimals), TProtocol.CoordWidth, False) +
+    ColGap + TProtocol.Pad(Num(Second, ADecimals), TProtocol.CoordWidth, False);
+end;
+
+function CoordPair(AX, AY: Double; ADecimals: Integer): string;
+var
+  P: Point.TPoint;
+begin
+  P.X := AX;
+  P.Y := AY;
+  Result := CoordPair(P, ADecimals);
+end;
+
+function PointId(const AText: string): string;
+var
+  N: Int64;
+  D: string;
+begin
+  if Trim(AText) = '' then
+    Exit('');
+  N := StrToInt64Def(Trim(AText), 0);
+  // %.15d pads with zeros, %015d would pad with spaces in Delphi
+  D := Format('%.15d', [Abs(N)]);
+  Result := Copy(D, 1, 6) + ' ' + Copy(D, 7, 5) + ' ' + Copy(D, 12, 4);
+  if N < 0 then
+    Result := '-' + Result;
+end;
+
+function PointId(ANumber: Int64): string;
+begin
+  Result := PointId(IntToStr(ANumber));
 end;
 
 function LimitText(ADifference, ALimit: Double): string;
@@ -130,10 +225,30 @@ begin
     Result := Result + 'nevyhovuje';
 end;
 
-// Puts the text into a column AWidth wide, minus width means left aligned
-function Pad(const AText: string; AWidth: Integer): string;
+function BandText(ASxy: Double; AQuality: Integer): string;
 begin
-  Result := Format('%' + IntToStr(AWidth) + 's', [AText]);
+  Result := TValidationUtils.MxyBandText(TValidationUtils.MxyBand(ASxy,
+    TValidationUtils.MxyOfQuality(AQuality)));
+end;
+
+function QualityText(AQuality: Integer): string;
+var
+  Mxy: Double;
+begin
+  Result := 'Kód kvality: ' + IntToStr(AQuality);
+  Mxy := TValidationUtils.MxyOfQuality(AQuality);
+  if IsNan(Mxy) then
+    Result := Result + '    ' + NoMxy
+  else
+    Result := Result + '    Mxy = ' + Num(Mxy) + '    Uxy = ' + Num(2 * Mxy);
+end;
+
+function Fulfilled(ACondition: Boolean): string;
+begin
+  if ACondition then
+    Result := 'splněno'
+  else
+    Result := 'nesplněno';
 end;
 
 function Num(AValue: Double; ADecimals: Integer): string;
@@ -162,52 +277,122 @@ end;
 
 { TProtocol }
 
-function TProtocol.FormatPointId(const S: string): string;
-var
-  N: Int64;
-  D: string;
+class function TProtocol.MakeColumn(AKind: TColumnKind; AFree: Boolean; const ACaption: string): TProtocolColumn;
 begin
-  N := StrToInt64Def(Trim(S), 0);
-  // %.15d pads with zeros, %015d would pad with spaces in Delphi
-  D := Format('%.15d', [Abs(N)]);
-  Result := Copy(D, 1, 6) + ' ' + Copy(D, 7, 5) + ' ' + Copy(D, 12, 4);
-  if N < 0 then
-    Result := '-' + Result;
+  Result.Field := CB;
+  Result.Free := AFree;
+  Result.Kind := AKind;
+  Result.Caption := ACaption;
+  Result.Width := 0;
 end;
 
-function TProtocol.PointId(ANum: Int64): string;
+// More decimal places, wider column, never narrower than the caption
+class function TProtocol.ColumnWidth(const AColumn: TProtocolColumn): Integer;
 begin
-  Result := FormatPointId(IntToStr(ANum));
+  Result := AColumn.Width;
+  if Result = 0 then
+    case AColumn.Kind of
+      ckNumber:  Result := 3;
+      ckPoint:   Result := 18;
+      ckLength:  Result := 8 + GSettings.LengthDecimals;
+      ckAngle:   Result := 6 + GSettings.AngleDecimals;
+      ckInteger: Result := 3;
+      ckPair:    Result := 2 * CoordWidth + Length(ColGap);
+      ckText:    Result := 10;
+    end;
+  Result := Max(Result, Length(AColumn.Caption));
+end;
+
+// One coordinate
+class function TProtocol.CoordWidth: Integer;
+begin
+  Result := 12 + GSettings.LengthDecimals;
+end;
+
+// Captions Y and X in the current order
+class function TProtocol.CoordNames: string;
+begin
+  if GCoordOrder = coYX then
+    Result := Pad('Y', CoordWidth, False) + ColGap +
+              Pad('X', CoordWidth, False)
+  else
+    Result := Pad('X', CoordWidth, False) + ColGap +
+              Pad('Y', CoordWidth, False);
+end;
+
+// A number field of the row, NaN for the others
+class function TProtocol.FieldValue(const ARow: TGeoRow; AField: TGeoField): Double;
+begin
+  case AField of
+    X:      Result := ARow.X;
+    Y:      Result := ARow.Y;
+    Z:      Result := ARow.Z;
+    Xm:     Result := ARow.Xm;
+    Ym:     Result := ARow.Ym;
+    Zm:     Result := ARow.Zm;
+    SH:     Result := ARow.SH;
+    SS:     Result := ARow.SS;
+    VS:     Result := ARow.VS;
+    VC:     Result := ARow.VC;
+    HZ:     Result := ARow.HZ;
+    Zuhel:  Result := ARow.Zuhel;
+    PolarD: Result := ARow.PolarD;
+    PolarK: Result := ARow.PolarK;
+    Vy:     Result := ARow.Vy;
+    Vx:     Result := ARow.Vx;
+    Vz:     Result := ARow.Vz;
+    Sxy:    Result := ARow.Sxy;
+  else
+    Result := NaN;
+  end;
+end;
+
+// Numbers to the right, texts to the left
+class function TProtocol.Pad(const AText: string; AWidth: Integer; ALeft: Boolean): string;
+begin
+  if ALeft then
+    Result := AText + StringOfChar(' ', AWidth - Length(AText))
+  else
+    Result := StringOfChar(' ', AWidth - Length(AText)) + AText;
 end;
 
 function TProtocol.Cells(const AValues: array of string): string;
 var
-  i: Integer;
+  I: Integer;
+  Left: Boolean;
 begin
   Result := ProtIndent;
-  for i := 0 to High(AValues) do
+  for I := 0 to High(AValues) do
   begin
-    if i > High(FCols) then
+    if I > High(FColumns) then
       Break;
-    if i > 0 then
+    if I > 0 then
       Result := Result + ColGap;
-    Result := Result + Pad(AValues[i], FCols[i]);
+    Left := FColumns[I].Kind in [ckPoint, ckPair, ckText];
+    Result := Result + Pad(AValues[I], FColumns[I].Width, Left);
   end;
 end;
 
 procedure TProtocol.Title(ALines: TStrings; const AText: string);
-var
-  S: string;
 begin
   FLines := ALines;
   FLines.Clear;
-  SetLength(FCols, 0);
+  SetLength(FColumns, 0);
   FWidth := 0;
-  S := ProtIndent + '== ' + AText + ' ';
-  while Length(S) < ProtocolWidth do
-    S := S + '=';
-  FLines.Add(S);
+  FHasErrors := False;
+  Inc(FCount);
+  // Finish pads it to the width of the protocol
+  FLines.Add(ProtIndent + '== ' + AText + ' ');
   FLines.Add('');
+end;
+
+procedure TProtocol.Section(const ACaption: string);
+begin
+  // Title ends with a blank line already
+  if FLines[FLines.Count - 1] <> '' then
+    Text('');
+  if ACaption <> '' then
+    Text(ACaption);
 end;
 
 procedure TProtocol.Text(const AText: string);
@@ -218,18 +403,38 @@ begin
     FLines.Add(ProtIndent + AText);
 end;
 
-procedure TProtocol.Table(const ACaptions: array of string;
-                          const AWidths: array of Integer);
+procedure TProtocol.Values(const AValues: array of string);
 var
-  i: Integer;
-  S: string;
+  I: Integer;
 begin
-  SetLength(FCols, Length(AWidths));
-  for i := 0 to High(FCols) do
-    FCols[i] := AWidths[i];
-  S := Cells(ACaptions);
-  FWidth := Length(S) - Length(ProtIndent);
-  FLines.Add(S);
+  I := 0;
+  while I < High(AValues) do
+  begin
+    Text(AValues[I] + ' = ' + AValues[I + 1]);
+    Inc(I, 2);
+  end;
+end;
+
+procedure TProtocol.Columns(const AColumns: array of TProtocolColumn);
+var
+  I: Integer;
+  Captions: array of string;
+  Header: string;
+begin
+  SetLength(FColumns, Length(AColumns));
+  SetLength(Captions, Length(AColumns));
+  for I := 0 to High(AColumns) do
+  begin
+    FColumns[I] := AColumns[I];
+    // The order of Y and X may change between two runs
+    if FColumns[I].Kind = ckPair then
+      FColumns[I].Caption := CoordNames;
+    FColumns[I].Width := ColumnWidth(FColumns[I]);
+    Captions[I] := FColumns[I].Caption;
+  end;
+  Header := Cells(Captions);
+  FWidth := Length(Header) - Length(ProtIndent);
+  FLines.Add(Header);
   Line;
 end;
 
@@ -241,6 +446,42 @@ begin
     FLines.Add(Cells(AValues) + ColGap + ATail);
 end;
 
+procedure TProtocol.FrameRow(const ARow: TGeoRow; const AFree: array of string; const ATail: string);
+var
+  I, NextFree: Integer;
+  Values: array of string;
+  Column: TProtocolColumn;
+begin
+  SetLength(Values, Length(FColumns));
+  NextFree := 0;
+  for I := 0 to High(FColumns) do
+  begin
+    Column := FColumns[I];
+    if Column.Free then
+    begin
+      // Free columns take the texts of the form in order
+      if NextFree <= High(AFree) then
+        Values[I] := AFree[NextFree];
+      Inc(NextFree);
+    end
+    else
+      case Column.Kind of
+        ckPoint:
+          Values[I] := PointId(GeoFieldToText(ARow, Column.Field, '',
+            ProtFormat));
+        ckInteger, ckText:
+          Values[I] := GeoFieldToText(ARow, Column.Field, '', ProtFormat);
+        ckPair:
+          Values[I] := CoordPair(ARow.X, ARow.Y);
+        ckAngle:
+          Values[I] := Ang(FieldValue(ARow, Column.Field));
+      else
+        Values[I] := Num(FieldValue(ARow, Column.Field));
+      end;
+  end;
+  Row(Values, ATail);
+end;
+
 procedure TProtocol.Line;
 begin
   FLines.Add(ProtIndent + StringOfChar('-', FWidth));
@@ -248,20 +489,31 @@ end;
 
 procedure TProtocol.Finish(AWarnings: TStrings);
 var
-  i: Integer;
+  I, Width: Integer;
 begin
+  // Title and end line as wide as the widest line, messages aside
+  Width := Length(FLines[0]) + 3;
+  for I := 1 to FLines.Count - 1 do
+    Width := Max(Width, Length(FLines[I]));
+  FLines[0] := FLines[0] + StringOfChar('=', Width - Length(FLines[0]));
+
   if (AWarnings <> nil) and (AWarnings.Count > 0) then
   begin
-    Line;
+    // No table, no line to draw, a table line is not drawn twice
+    if (FWidth > 0) and
+      (FLines[FLines.Count - 1] <> ProtIndent + StringOfChar('-', FWidth)) then
+      Line;
     // A message with an object is an error, the others are notes
-    for i := 0 to AWarnings.Count - 1 do
-      if AWarnings.Objects[i] <> nil then
-        FLines.Add(' CHYBA: ' + AWarnings[i])
+    for I := 0 to AWarnings.Count - 1 do
+      if AWarnings.Objects[I] <> nil then
+      begin
+        FLines.Add(ProtIndent + 'CHYBA: ' + AWarnings[I]);
+        FHasErrors := True;
+      end
       else
-        FLines.Add(' UPOZORNĚNÍ: ' + AWarnings[i]);
+        FLines.Add(ProtIndent + 'UPOZORNĚNÍ: ' + AWarnings[I]);
   end;
-  FLines.Add(ProtIndent +
-    StringOfChar('=', ProtocolWidth - Length(ProtIndent)));
+  FLines.Add(ProtIndent + StringOfChar('=', Width - Length(ProtIndent)));
 end;
 
 initialization

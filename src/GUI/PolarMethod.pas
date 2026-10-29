@@ -23,7 +23,7 @@ uses
   GeoDataFrame,
   GeoGridBridge,
   GeoAlgorithmPolar,
-  ProtocolPolar,
+  GeoAlgorithmTransformBase,
   PointsUtilsSingleton,
   PointPrefixState, CoordOrderState, ProtocolTable, GeoGrid, Vcl.Mask,
   Vcl.Menus, SettingsState;
@@ -58,7 +58,6 @@ type
   private
     FAlg: TPolarMethodAlgorithm;
     FFrame: TGeoDataFrame;        // the input and the output of the run
-    FProtocol: TPolarProtocol;
     FRows: TArray<Integer>;       // grid row of each frame row, -1 = elsewhere
     FDetailCB: TArray<string>;    // number each detail row was filled for
     function  StationNo: string;
@@ -67,7 +66,10 @@ type
     procedure Recompute;
     procedure ClearResults;
     procedure ApplyColumnsToGrids;
+    procedure WriteFit;
+    procedure WriteOrientations;
   protected
+    function GridNumber(AFrameRow: Integer): string; override;
     procedure Loaded; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
@@ -95,12 +97,10 @@ begin
   FAlg := TPolarMethodAlgorithm.Create;
   FFrame := TGeoDataFrame.Create(
     [Uloha, CB, X, Y, Z, VS, VC, HZ, SH, KK, Poznamka]);
-  FProtocol := TPolarProtocol.Create(Prot, FAlg, FFrame);
 end;
 
 destructor TPolarMethodForm.Destroy;
 begin
-  FProtocol.Free;
   FAlg.Free;
   FFrame.Free;
   inherited Destroy;
@@ -588,17 +588,90 @@ begin
   GridDetail.RowCount := DetailRow + 1;
 end;
 
-// TPolarProtocol writes it, the form only adds which points were in the
-// list before the run
+// A detail point by its row in the detail grid
+function TPolarMethodForm.GridNumber(AFrameRow: Integer): string;
+begin
+  Result := IntToStr(FRows[AFrameRow] - GridDetail.FixedRows + 1);
+end;
+
+// The station, its orientations and the detail points
 procedure TPolarMethodForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
-  Updated: TArray<Boolean>;
 begin
-  SetLength(Updated, FFrame.Count);
-  for I := 0 to FFrame.Count - 1 do
-    Updated[I] := WasInList(FFrame.Rows[I]);
-  FProtocol.Write(ALines, Updated);
+  if not BeginProtocol(ALines, 'Polární metoda', FAlg.Info.Valid, FFrame,
+    FAlg.Warnings) then
+    Exit;
+  if FAlg.Info.FreeStation then
+    Prot.Text('Volné stanovisko')
+  else
+    Prot.Text('Pevné stanovisko');
+
+  Prot.Section('STANOVISKO');
+  Prot.Columns([ColField(CB), ColPair]);
+  Prot.FrameRow(FFrame.Rows[0], []);
+  if FAlg.Info.FreeStation then
+    WriteFit;
+  WriteOrientations;
+
+  // The detail points follow the orientations
+  if FFrame.Count > FAlg.Info.OrientCount + 1 then
+  begin
+    Prot.Section('PODROBNÉ BODY');
+    Prot.Columns([ColNumber, ColField(CB), ColField(HZ),
+      ColField(SH, 'Délka'), ColPair]);
+    for I := FAlg.Info.OrientCount + 1 to FFrame.Count - 1 do
+      Prot.FrameRow(FFrame.Rows[I], [GridNumber(I)],
+        UpdatedTail(FFrame.Rows[I]));
+  end;
+
+  Prot.Finish(FAlg.Warnings);
+end;
+
+// How the free station fits, KatV 13.7 to 13.9
+procedure TPolarMethodForm.WriteFit;
+var
+  I, Quality: Integer;
+  Fit: TPointResiduals;
+begin
+  Fit := FAlg.Residuals;
+  Quality := FFrame.Rows[0].KK;
+  if FAlg.Info.Congruent then
+    Prot.Section('ODCHYLKY TRANSFORMACE (shodnostní)')
+  else
+    Prot.Section('ODCHYLKY TRANSFORMACE (Helmertova, q = ' +
+      Num(FAlg.Info.q, 7) + ')');
+  Prot.Columns([ColPoint, ColLength('Vy'), ColLength('Vx'), ColLength('Sxy'),
+    ColText('')]);
+  for I := 0 to High(Fit) do
+    Prot.Row([PointId(Fit[I].PointNumber), Num(Fit[I].Vy), Num(Fit[I].Vx),
+              Num(Fit[I].Sxy), BandText(Fit[I].Sxy, Quality)]);
+  Prot.Line;
+  Prot.Text(QualityText(Quality));
+  Prot.Text('Odchylky dle KatV, body přílohy 13.7 až 13.9');
+end;
+
+// The orientations with their residuals, then the shift
+procedure TPolarMethodForm.WriteOrientations;
+var
+  I: Integer;
+  Res: TOrientResult;
+begin
+  Prot.Section('ORIENTACE');
+  Prot.Columns([ColNumber, ColField(CB), ColField(HZ), ColField(SH, 'Délka'),
+    ColAngle('dfi'), ColLength('ds')]);
+  // What was not measured stays blank
+  for I := 1 to FAlg.Info.OrientCount do
+  begin
+    Res := TPolarMethodAlgorithm.ResultOf(FFrame.Rows[0], FFrame.Rows[I],
+      FAlg.Info.phi, FAlg.Scale);
+    Prot.FrameRow(FFrame.Rows[I], [IntToStr(I), Ang(Res.dPhi), Num(Res.Ds)]);
+  end;
+  Prot.Line;
+  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
+  Prot.Text('Or. posun = ' + Ang(FAlg.Info.phi) +
+            '    Střední chyba or. pos. = ' + Ang(FAlg.Info.mPhi) +
+            '    Mezní = ' + Ang(MEZNI_DFI));
 end;
 
 end.

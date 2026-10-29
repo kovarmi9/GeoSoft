@@ -49,6 +49,7 @@ type
   protected
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
+    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -375,68 +376,41 @@ begin
   GridDetail.Enabled := False;
 end;
 
+// P and K are the baseline, the others rows of the detail grid
+function TOrthogonalMethodForm.GridNumber(AFrameRow: Integer): string;
+begin
+  case AFrameRow of
+    0: Result := 'P';
+    1: Result := 'K';
+  else
+    Result := IntToStr(FRows[AFrameRow] - GridDetail.FixedRows + 1);
+  end;
+end;
+
 // The whole protocol is rewritten after every computed row, so an edited
 // row replaces its old line instead of adding a second one.
 procedure TOrthogonalMethodForm.WriteProtocol(ALines: TStrings);
 var
-  I, N: Integer;
-  Baseline: TBaselineInfo;
-  Tail: string;
-
-  // One line of either point table, wherever the row comes from
-  procedure PointLine(const ALabel: string; const ARow: TGeoRow;
-    const ATail: string = '');
-  var
-    ListPoint: Point.TPoint;
-  begin
-    ListPoint.X := ARow.X;
-    ListPoint.Y := ARow.Y;
-    Prot.Row([ALabel, FormatPointId(string(ARow.CB)),
-              Num(ARow.SH), Num(ARow.PolarK), CoordPair(ListPoint)], ATail);
-  end;
-
+  I: Integer;
+  Columns: TArray<TProtocolColumn>;
 begin
-  Baseline := FAlg.Baseline;
-  if not Baseline.Valid then
-  begin
-    ALines.Clear;
+  if not BeginProtocol(ALines, 'Ortogonální metoda', FAlg.Baseline.Valid,
+    FFrame, FAlg.Warnings) then
     Exit;
-  end;
-
-  Prot.Title(ALines, 'Ortogonální metoda');
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Prot.Text('');
-
-  Prot.Text('PŘIPOJOVACÍ BODY');
-  Prot.Table(['', 'Číslo bodu', 'Staničení', 'Kolmice', CoordNames],
-             [-4, ColWPoint, ColWDist, ColWDist, ColWPair]);
-  PointLine('P:', FFrame.Rows[0]);
-  PointLine('K:', FFrame.Rows[1]);
-  Prot.Line;
-
-  Prot.Text(LimitText(Baseline.Diff, Baseline.Tolerance));
+  Columns := [ColNumber, ColField(CB), ColField(SH, 'Staničení'),
+    ColField(PolarK, 'Kolmice'), ColPair];
+  FrameTable('PŘIPOJOVACÍ BODY', FFrame, Columns, 0, 1);
+  Prot.Text(LimitText(FAlg.Baseline.Diff, FAlg.Baseline.Tolerance));
   Prot.Text(LimitSource);
 
-  Prot.Text('');
-  Prot.Text('PODROBNÉ BODY');
-  Prot.Table(['Č.', 'Číslo bodu', 'Staničení', 'Kolmice', CoordNames],
-             [ColWNo, ColWPoint, ColWDist, ColWDist, ColWPair]);
-
-  N := 0;
+  // Only the detail points with a result
+  Prot.Section('PODROBNÉ BODY');
+  Prot.Columns(Columns);
   for I := 0 to FFrame.Count - 1 do
-  begin
-    if (FRows[I] < 0) or IsNan(FFrame.Rows[I].X) then
-      Continue;
-
-    Inc(N);
-    if WasInList(FFrame.Rows[I]) then
-      Tail := '*** bod v seznamu aktualizován ***'
-    else
-      Tail := '';
-
-    PointLine(IntToStr(N), FFrame.Rows[I], Tail);
-  end;
-
+    if (FRows[I] >= 0) and not IsNan(FFrame.Rows[I].X) then
+      Prot.FrameRow(FFrame.Rows[I], [GridNumber(I)],
+        UpdatedTail(FFrame.Rows[I]));
   Prot.Finish(FAlg.Warnings);
 end;
 

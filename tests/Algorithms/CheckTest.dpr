@@ -91,6 +91,12 @@ begin
       for I := 0 to Alg.Warnings.Count - 1 do
         Writeln('  ', Alg.Warnings[I]);
 
+      // The counts the protocol writes under the table
+      Writeln(Format('Měřených %d, nevyhovuje %d, neměřených %d, ' +
+        'nespočítaných %d, bez Mxy %d, největší rozdíl %.3f m',
+        [Alg.Info.Measured, Alg.Info.Failed, Alg.Info.ComputedOnly,
+         Alg.Info.Skipped, Alg.Info.NoQuality, Alg.Info.MaxDiff]));
+
       // 5. Measurement 1 with the scale 0,998, the length goes in reduced
       Alg.Scale := 0.998;
       R := TCheckMeasurementsAlgorithm.ResultOf(Frame.Rows[0], Alg.Scale);

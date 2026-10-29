@@ -15,6 +15,7 @@ type
     MenuUloha: TMenuItem;
     MenuUlozitProtokol: TMenuItem;
     MenuNastaveni: TMenuItem;
+    MenuProtocol: TMenuItem;
     MenuNapoveda: TMenuItem;
     SaveDialogProtokol: TSaveDialog;
     ToolBarPrefix: TToolBar;
@@ -34,6 +35,7 @@ type
     ButtonSave: TButton;
     ButtonLoad: TButton;
     ButtonReset: TButton;
+    ButtonJobProtocol: TButton;
     procedure PrefixComboExit(Sender: TObject);
     procedure PrefixComboChange(Sender: TObject);
     procedure FormActivate(Sender: TObject);
@@ -44,6 +46,8 @@ type
     procedure MenuResetClick(Sender: TObject);
     procedure ButtonCalculateClick(Sender: TObject);
     procedure ButtonSaveClick(Sender: TObject);
+    procedure ButtonJobProtocolClick(Sender: TObject);
+    procedure MenuProtocolClick(Sender: TObject);
     /// <summary>OnExit of each calculation grid, keeps a typed value.</summary>
     procedure GridExit(Sender: TObject);
   private
@@ -55,7 +59,21 @@ type
     FAnswers: TDictionary<Int64, Integer>;
     // those points as they were before this form changed them
     FOriginals: TDictionary<Int64, Point.TPoint>;
+    // Výpočet of the descendant, CalculateAndProtocol calls it
+    FCalculateClick: TNotifyEvent;
+    FSkipJobProtocol: Boolean;     // the run stored nothing
     function Points: TPointDictionary;
+    /// <summary>True when no row of the frame has a point number.</summary>
+    class function IsEmptyFrame(AFrame: TGeoDataFrame): Boolean;
+    /// <summary>Výpočet of the descendant, True if it wrote.</summary>
+    function RunCalculation(Sender: TObject): Boolean;
+    procedure CalculateAndProtocol(Sender: TObject);
+    /// <summary>Appends the window protocol to the .ptk.
+    /// AAsk shows why nothing was written.</summary>
+    procedure WriteJobProtocol(AAsk: Boolean);
+    procedure ShowStatus(const AText: string);
+    /// <summary>The button by Nastavení, Protokol.</summary>
+    procedure ApplyProtocolMode;
     /// <summary>Forgets the last job.</summary>
     procedure ForgetJob;
     /// <summary>Empties the form.</summary>
@@ -78,11 +96,6 @@ type
     /// <summary>Finds a point or offers to add it.</summary>
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
 
-    function FormatPointId(const S: string): string;
-
-    /// <summary>The same from a number.</summary>
-    function PointId(ANum: Int64): string;
-
     /// <summary>Saves a computed point, asks when its number is in the list.
     /// A new number from the user is written into ARow.CB.</summary>
     procedure StorePoint(var ARow: TGeoRow);
@@ -90,11 +103,31 @@ type
     /// <summary>True if a point from the list was overwritten.</summary>
     function WasInList(const ARow: TGeoRow): Boolean;
 
+    /// <summary>UpdatedText for a point the run overwrote, else ''.</summary>
+    function UpdatedTail(const ARow: TGeoRow): string;
+
+    /// <summary>Č. of a frame row, the grid row by default.</summary>
+    function GridNumber(AFrameRow: Integer): string; virtual;
+
+    /// <summary>Rows AFrom..ATo of FFrame as a table under ACaption.
+    /// AResults: the rows were stored, they get UpdatedTail.</summary>
+    procedure FrameTable(const ACaption: string; AFrame: TGeoDataFrame;
+      const AColumns: array of TProtocolColumn; AFrom, ATo: Integer;
+      AResults: Boolean = False);
+
+    /// <summary>The run stored nothing, keep it out of the .ptk.</summary>
+    procedure SkipJobProtocol;
+
     /// <summary>A list point as it was before this form changed it.</summary>
     function OriginalPoint(APointNumber: Int64; out APoint: Point.TPoint): Boolean;
 
     /// <summary>True for a point this form added to the list itself.</summary>
     function IsNewPoint(APointNumber: Int64): Boolean;
+
+    /// <summary>Starts the protocol, False when nothing more follows:
+    /// an empty notebook clears it, a failed run shows its errors.</summary>
+    function BeginProtocol(ALines: TStrings; const ATitle: string;
+      AValid: Boolean; AFrame: TGeoDataFrame; AWarnings: TStrings): Boolean;
 
     /// <summary>
     /// Descendants override this to set the column order of their grids.
@@ -149,7 +182,7 @@ implementation
 {$R *.dfm}
 
 uses
-  SettingsDialog, ExistingPoint, SettingsState;
+  SettingsDialog, ExistingPoint, SettingsState, PointsManagement;
 
 const
   // Fields shown with the length and the angle decimals
@@ -185,6 +218,11 @@ begin
   FNewPoints := TList<Int64>.Create;
   FAnswers := TDictionary<Int64, Integer>.Create;
   FOriginals := TDictionary<Int64, Point.TPoint>.Create;
+
+  // Every Výpočet passes the base, so it can protocol the result.
+  // The .dfm still shows the handler of the descendant.
+  FCalculateClick := ButtonCalculate.OnClick;
+  ButtonCalculate.OnClick := CalculateAndProtocol;
 
   LoadPrefix;
 
@@ -296,16 +334,6 @@ begin
   LoadPrefix;
 end;
 
-function TCalcBaseForm.FormatPointId(const S: string): string;
-begin
-  Result := Prot.FormatPointId(S);
-end;
-
-function TCalcBaseForm.PointId(ANum: Int64): string;
-begin
-  Result := Prot.PointId(ANum);
-end;
-
 procedure TCalcBaseForm.StorePoint(var ARow: TGeoRow);
 var
   PointNumber, NewPointNumber: Int64;
@@ -372,6 +400,39 @@ begin
   Result := True;
 end;
 
+function TCalcBaseForm.UpdatedTail(const ARow: TGeoRow): string;
+begin
+  if WasInList(ARow) then
+    Result := UpdatedText
+  else
+    Result := '';
+end;
+
+// Frame row 0 is grid row 1, a form with gaps overrides it
+function TCalcBaseForm.GridNumber(AFrameRow: Integer): string;
+begin
+  Result := IntToStr(AFrameRow + 1);
+end;
+
+procedure TCalcBaseForm.FrameTable(const ACaption: string;
+  AFrame: TGeoDataFrame; const AColumns: array of TProtocolColumn;
+  AFrom, ATo: Integer; AResults: Boolean);
+var
+  I: Integer;
+  Tail: string;
+begin
+  Prot.Section(ACaption);
+  Prot.Columns(AColumns);
+  for I := AFrom to ATo do
+  begin
+    Tail := '';
+    if AResults then
+      Tail := UpdatedTail(AFrame.Rows[I]);
+    Prot.FrameRow(AFrame.Rows[I], [GridNumber(I)], Tail);
+  end;
+  Prot.Line;
+end;
+
 function TCalcBaseForm.OriginalPoint(APointNumber: Int64; out APoint: Point.TPoint): Boolean;
 begin
   Result := FOriginals.TryGetValue(APointNumber, APoint);
@@ -387,6 +448,36 @@ begin
   Result := FNewPoints.Contains(APointNumber);
 end;
 
+// An empty notebook, nothing to report yet
+class function TCalcBaseForm.IsEmptyFrame(AFrame: TGeoDataFrame): Boolean;
+var
+  I: Integer;
+begin
+  for I := 0 to AFrame.Count - 1 do
+    if StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0) <> 0 then
+      Exit(False);
+  Result := True;
+end;
+
+function TCalcBaseForm.BeginProtocol(ALines: TStrings; const ATitle: string;
+  AValid: Boolean; AFrame: TGeoDataFrame; AWarnings: TStrings): Boolean;
+begin
+  Result := False;
+  // An empty notebook says nothing, a failed run says why
+  if not AValid and IsEmptyFrame(AFrame) then
+  begin
+    ALines.Clear;
+    Exit;
+  end;
+  Prot.Title(ALines, ATitle);
+  if not AValid then
+  begin
+    Prot.Finish(AWarnings);
+    Exit;
+  end;
+  Result := True;
+end;
+
 procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);
 begin
   if (Prot.Lines = nil) or (Prot.Lines.Count = 0) then
@@ -397,6 +488,92 @@ begin
 
   if SaveDialogProtokol.Execute then
     Prot.Lines.SaveToFile(SaveDialogProtokol.FileName, TEncoding.UTF8);
+end;
+
+// A run that stops early leaves the old protocol in the window
+function TCalcBaseForm.RunCalculation(Sender: TObject): Boolean;
+var
+  Before: Integer;
+begin
+  Before := Prot.Count;
+  FSkipJobProtocol := False;
+  FCalculateClick(Sender);
+  Result := (Prot.Count <> Before) and not FSkipJobProtocol;
+end;
+
+procedure TCalcBaseForm.SkipJobProtocol;
+begin
+  FSkipJobProtocol := True;
+end;
+
+// Výpočet of the descendant, then the protocol by Nastavení, Protokol
+procedure TCalcBaseForm.CalculateAndProtocol(Sender: TObject);
+begin
+  if RunCalculation(Sender) and (GSettings.ProtocolMode = pmAll) then
+    WriteJobProtocol(False);
+end;
+
+// Ručně: the run and the record together, nothing can be stale
+procedure TCalcBaseForm.ButtonJobProtocolClick(Sender: TObject);
+begin
+  if RunCalculation(Sender) then
+    WriteJobProtocol(True);
+end;
+
+// The job protocol lies next to the coordinate list
+procedure TCalcBaseForm.WriteJobProtocol(AAsk: Boolean);
+var
+  FileName, Msg: string;
+  Job: TStringList;
+begin
+  FileName := PointsManagementForm.JobProtocolFile;
+  if (Prot.Lines = nil) or (Prot.Lines.Count = 0) then
+    Msg := 'Protokol je prázdný, nic se nezapsalo.'
+  else if Prot.HasErrors then
+    Msg := 'Výpočet neprošel, do protokolu se nezapsal.'
+  else if FileName = '' then
+    Msg := 'Seznam souřadnic není uložený, protokol se nezapsal.'
+  else
+    Msg := '';
+
+  if Msg <> '' then
+  begin
+    if AAsk then
+      ShowMessage(Msg);
+    ShowStatus(Msg);
+    Exit;
+  end;
+
+  Job := TStringList.Create;
+  try
+    if FileExists(FileName) then
+      Job.LoadFromFile(FileName, TEncoding.UTF8);
+    Job.Add(Format(' Zapsáno %s    KÚ %s    ZPMZ %s',
+      [FormatDateTime('d. m. yyyy h:nn', Now), GPointPrefix.KU,
+       GPointPrefix.ZPMZ]));
+    Job.AddStrings(Prot.Lines);
+    Job.Add('');
+    Job.SaveToFile(FileName, TEncoding.UTF8);
+  finally
+    Job.Free;
+  end;
+  ShowStatus('Zapsáno do ' + FileName);
+end;
+
+procedure TCalcBaseForm.ShowStatus(const AText: string);
+begin
+  if StatusBar1.Panels.Count > 0 then
+    StatusBar1.Panels[0].Text := AText;
+end;
+
+procedure TCalcBaseForm.ApplyProtocolMode;
+begin
+  ButtonJobProtocol.Visible := GSettings.ProtocolMode = pmManual;
+end;
+
+procedure TCalcBaseForm.MenuProtocolClick(Sender: TObject);
+begin
+  PointsManagementForm.ShowJobProtocol;
 end;
 
 procedure TCalcBaseForm.ApplyCoordOrderToGrids;
@@ -416,6 +593,7 @@ begin
   ApplySettings;
   ApplyDecimals;
   ApplyCoordOrderToGrids;
+  ApplyProtocolMode;
 end;
 
 procedure TCalcBaseForm.ApplyDecimals;
@@ -565,6 +743,7 @@ begin
   ApplySettings;            // columns first, then their order
   ApplyDecimals;
   ApplyCoordOrderToGrids;
+  ApplyProtocolMode;        // Nastavení may have changed in the main window
 end;
 
 procedure TCalcBaseForm.FormDeactivate(Sender: TObject);

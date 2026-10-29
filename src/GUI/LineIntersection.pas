@@ -28,6 +28,7 @@ type
     procedure Recompute;
   protected
     procedure ApplyCoordOrderToGrids; override;
+    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -185,6 +186,7 @@ begin
   if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
   begin
     ShowMessage('Zadejte číslo průsečíku, výsledek se neuložil.');
+    SkipJobProtocol;
     Exit;
   end;
 
@@ -225,58 +227,24 @@ begin
   Recompute;
 end;
 
+// The row headers of the grid: I-1 .. II-2 and P
+function TLineIntersectionForm.GridNumber(AFrameRow: Integer): string;
+begin
+  Result := Grid.Cells[0, AFrameRow + 1];
+end;
+
 // The two lines, the angle, the place and the intersection
 procedure TLineIntersectionForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Row: TGeoRow;
-  Tail: string;
-
-  // One row of the table, coordinates in the current order
-  procedure PointLine(const ALabel: string; const ARow: TGeoRow;
-    const ATail: string = '');
-  var
-    ListPoint: Point.TPoint;
-    PointText: string;
-  begin
-    ListPoint.X := ARow.X;
-    ListPoint.Y := ARow.Y;
-    // An intersection may have no number yet
-    if Trim(string(ARow.CB)) = '' then
-      PointText := ''
-    else
-      PointText := FormatPointId(string(ARow.CB));
-    Prot.Row([ALabel, PointText, CoordPair(ListPoint), IntToStr(ARow.KK)],
-      ATail);
-  end;
-
 begin
-  if not FAlg.Valid then
-  begin
-    ALines.Clear;
+  if not BeginProtocol(ALines, 'Průsečík přímek', FAlg.Valid, FFrame,
+    FAlg.Warnings) then
     Exit;
-  end;
-
-  Prot.Title(ALines, 'Průsečík přímek');
-  Prot.Table(['', 'Číslo bodu', CoordNames, 'KK'],
-             [-5, ColWPoint, ColWPair, 3]);
-  for I := 0 to LINE_POINTS - 1 do
-    PointLine(Grid.Cells[0, I + 1] + ':', FFrame.Rows[I]);
-  Prot.Line;
-  Prot.Text('Úhel protnutí = ' + Ang(FAlg.omega));
+  FrameTable('', FFrame, [ColNumber(4), ColField(CB), ColPair, ColField(KK)],
+    0, LINE_POINTS - 1);
+  Prot.Values(['Úhel protnutí', Ang(FAlg.omega)]);
   Prot.Text(TLineIntersectionAlgorithm.PlaceText(FAlg.Place));
-
-  Prot.Text('');
-  Prot.Text('PRŮSEČÍK');
-  Prot.Table(['', 'Číslo bodu', CoordNames, 'KK'],
-             [-5, ColWPoint, ColWPair, 3]);
-  Row := FFrame.Rows[LINE_POINTS];
-  if FStored and WasInList(Row) then
-    Tail := '*** bod v seznamu aktualizován ***'
-  else
-    Tail := '';
-  PointLine('P:', Row, Tail);
-
+  FrameTable('PRŮSEČÍK', FFrame, [ColNumber(4), ColField(CB), ColPair,
+    ColField(KK)], LINE_POINTS, LINE_POINTS, FStored);
   Prot.Finish(FAlg.Warnings);
 end;
 

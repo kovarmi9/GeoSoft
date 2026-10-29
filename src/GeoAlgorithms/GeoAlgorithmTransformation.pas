@@ -35,6 +35,11 @@ type
     MeanError: Double;         // NaN for the affine key
     CircleRadius: Double;      // 3/4 of the longest identical pair
     OutsideRows: TArray<Integer>;   // measured points out of the circle
+    // Identical points by the band of Sxy, KatV 13.7 to 13.9
+    Total, InMxy, InUxy, OverUxy, Unknown: Integer;
+    Quality: Integer;          // shared quality code, -1 when they differ
+    CheckCount: Integer;       // check points with residuals
+    DeterminedCount: Integer;  // determined points with coordinates
   end;
 
   TTransformationFrameAlgorithm = class(TFrameAlgorithm)
@@ -43,6 +48,7 @@ type
     FInfo: TTransformationInfo;
     class procedure ApplyKey(AKey: TTransformationAlgorithm; var ARow: TGeoRow);
     procedure CheckCircle(AFrame: TGeoDataFrame; const GlobalPoints: TPointsArray);
+    procedure CountRows(AFrame: TGeoDataFrame);
   public
     class function TaskCode: Integer; override;
 
@@ -59,6 +65,9 @@ type
   end;
 
 implementation
+
+uses
+  ValidationUtils;
 
 class function TTransformationFrameAlgorithm.TaskCode: Integer;
 begin
@@ -251,6 +260,7 @@ begin
       FInfo.MeanError := Sqrt(Key.SumVV / Redundancy);
 
     CheckCircle(AFrame, GlobalPoints);
+    CountRows(AFrame);
     FInfo.Valid := True;
   finally
     Key.Free;
@@ -301,6 +311,49 @@ begin
     Distance := Sqrt(Sqr(Row.Y - CenterY) + Sqr(Row.X - CenterX));
     if Distance >= FInfo.CircleRadius then
       FInfo.OutsideRows := FInfo.OutsideRows + [I];
+  end;
+end;
+
+// Bands of the identical points, the rows of the other roles
+procedure TTransformationFrameAlgorithm.CountRows(AFrame: TGeoDataFrame);
+var
+  I: Integer;
+  Row: TGeoRow;
+begin
+  FInfo.Total := 0;
+  FInfo.InMxy := 0;
+  FInfo.InUxy := 0;
+  FInfo.OverUxy := 0;
+  FInfo.Unknown := 0;
+  FInfo.Quality := -1;
+  FInfo.CheckCount := 0;
+  FInfo.DeterminedCount := 0;
+
+  for I := 0 to AFrame.Count - 1 do
+  begin
+    Row := AFrame.Rows[I];
+    if (Row.TypS = DRUH_KONTROLNI) and not IsNan(Row.Sxy) then
+      Inc(FInfo.CheckCount);
+    if (Row.TypS = DRUH_URCOVANY) and not IsNan(Row.X) then
+      Inc(FInfo.DeterminedCount);
+    if (Row.TypS <> DRUH_IDENTICKY) or IsNan(Row.Sxy) then
+      Continue;
+
+    // One code for all, or -1
+    Inc(FInfo.Total);
+    if FInfo.Total = 1 then
+      FInfo.Quality := Row.KK
+    else if FInfo.Quality <> Row.KK then
+      FInfo.Quality := -1;
+
+    case TValidationUtils.MxyBand(Row.Sxy,
+           TValidationUtils.MxyOfQuality(Row.KK)) of
+      mbWithinMxy: Inc(FInfo.InMxy);
+      mbWithinUxy: Inc(FInfo.InUxy);
+      mbOverUxy:   Inc(FInfo.OverUxy);
+    else
+      Inc(FInfo.Unknown);
+    end;
   end;
 end;
 

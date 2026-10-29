@@ -28,6 +28,7 @@ type
     procedure Recompute;
   protected
     procedure ApplyCoordOrderToGrids; override;
+    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -182,41 +183,27 @@ begin
   ShowProtocol(Memo1.Lines);
 end;
 
+// A and B are rows of the line grid, the others of the point grid
+function TLineAdjustmentForm.GridNumber(AFrameRow: Integer): string;
+begin
+  if FRows[AFrameRow] < 0 then
+    Result := GridLine.Cells[0, AFrameRow + 1]
+  else
+    Result := IntToStr(FRows[AFrameRow] - GridPoints.FixedRows + 1);
+end;
+
 // The line, then every point before and after the move
 procedure TLineAdjustmentForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
   Row: TGeoRow;
   NewNumber, Verdict, Tail: string;
-
-  // Coordinates in the current order
-  function Pair(AX, AY: Double): string;
-  var
-    ListPoint: Point.TPoint;
-  begin
-    ListPoint.X := AX;
-    ListPoint.Y := AY;
-    Result := CoordPair(ListPoint);
-  end;
-
 begin
-  if IsNan(FAlg.LineLength) then
-  begin
-    ALines.Clear;
+  if not BeginProtocol(ALines, 'Vyrovnání do přímky',
+    not IsNan(FAlg.LineLength), FFrame, FAlg.Warnings) then
     Exit;
-  end;
-
-  Prot.Title(ALines, 'Vyrovnání do přímky');
-  Prot.Text('ŘÍDÍCÍ PŘÍMKA');
-  Prot.Table(['', 'Číslo bodu', CoordNames, 'KK'],
-             [-3, ColWPoint, ColWPair, 3]);
-  for I := 0 to LINE_ROWS - 1 do
-  begin
-    Row := FFrame.Rows[I];
-    Prot.Row([GridLine.Cells[0, I + 1] + ':', FormatPointId(string(Row.CB)),
-              Pair(Row.X, Row.Y), IntToStr(Row.KK)]);
-  end;
-  Prot.Line;
+  FrameTable('ŘÍDÍCÍ PŘÍMKA', FFrame, [ColNumber, ColField(CB), ColPair,
+    ColField(KK)], 0, LINE_ROWS - 1);
   if IsNan(FAlg.Limit) then
     Prot.Text('Délka přímky = ' + Num(FAlg.LineLength) +
       '    Kód kvality: ' + IntToStr(FAlg.Quality) + '    ' + NoMxy)
@@ -225,16 +212,15 @@ begin
       '    Kód kvality: ' + IntToStr(FAlg.Quality) +
       '    Uxy = ' + Num(FAlg.Limit));
 
-  Prot.Text('');
-  Prot.Text('VYROVNANÉ BODY');
-  Prot.Table(['Č.', '', 'Číslo bodu', CoordNames, 'Kolmice', ''],
-             [ColWNo, -3, ColWPoint, ColWPair, ColWDist, ColWFlag]);
+  Prot.Section('VYROVNANÉ BODY');
+  Prot.Columns([ColNumber, ColText('', 3), ColPoint, ColPair,
+    ColLength('Kolmice'), ColText('')]);
   for I := LINE_ROWS to FFrame.Count - 1 do
   begin
     Row := FFrame.Rows[I];
     // Z: the point as it was, Do: the foot of the perpendicular
-    Prot.Row([IntToStr(FRows[I] - GridPoints.FixedRows + 1), 'Z:',
-              FormatPointId(string(Row.CB)), Pair(Row.Xm, Row.Ym)]);
+    Prot.Row([GridNumber(I), 'Z:',
+              PointId(string(Row.CB)), CoordPair(Row.Xm, Row.Ym)]);
     if IsNan(Row.PolarK) then
     begin
       Prot.Row(['', 'Do:'], '*** nelze spočítat ***');
@@ -255,12 +241,9 @@ begin
       Verdict := 'nevyhovuje';
 
     Row.CB := ShortString(NewNumber);
-    if WasInList(Row) then
-      Tail := '*** bod v seznamu aktualizován ***'
-    else
-      Tail := '';
+    Tail := UpdatedTail(Row);
 
-    Prot.Row(['', 'Do:', FormatPointId(NewNumber), Pair(Row.X, Row.Y),
+    Prot.Row(['', 'Do:', PointId(NewNumber), CoordPair(Row.X, Row.Y),
               Num(Row.PolarK), Verdict], Tail);
   end;
 

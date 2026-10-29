@@ -181,6 +181,20 @@
       TabOrder = 3
       OnClick = MenuResetClick
     end
+    object ButtonJobProtocol: TButton
+      AlignWithMargins = True
+      Left = 99
+      Top = 3
+      Width = 130
+      Height = 31
+      Hint = 'Spo'#269#237't'#225' a p'#345'ip'#237#353'e protokol na konec protokolu zak'#225'zky (.ptk).'
+      Align = alLeft
+      Caption = 'Zapsat do protokolu'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 4
+      OnClick = ButtonJobProtocolClick
+    end
   end
   object MainMenu1: TMainMenu
     Left = 704
@@ -203,6 +217,10 @@
     object MenuNastaveni: TMenuItem
       Caption = 'Nastaven'#237
       OnClick = MenuNastaveniClick
+    end
+    object MenuProtocol: TMenuItem
+      Caption = 'Protokol'
+      OnClick = MenuProtocolClick
     end
     object MenuNapoveda: TMenuItem
       Caption = 'N'#225'pov'#283'da'

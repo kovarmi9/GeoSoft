@@ -257,6 +257,22 @@ object SettingsForm: TSettingsForm
         end
       end
     end
+    object TabProtocol: TTabSheet
+      Caption = 'Protokol'
+      ImageIndex = 3
+      object RadioGroupProtocol: TRadioGroup
+        Left = 8
+        Top = 8
+        Width = 380
+        Height = 96
+        Caption = 'Protokol zak'#225'zky (.ptk)'
+        Items.Strings = (
+          'Protokolovat v'#353'e'
+          'Protokolovat ru'#269'n'#283
+          'Neprotokolovat')
+        TabOrder = 0
+      end
+    end
   end
   object ButtonOK: TButton
     Left = 256

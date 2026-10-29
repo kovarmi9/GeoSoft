@@ -31,8 +31,6 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
     Font.Height = -12
     Font.Name = 'Consolas'
     Font.Style = []
-    Lines.Strings = (
-      'Protokol')
     ParentFont = False
     ReadOnly = True
     ScrollBars = ssBoth

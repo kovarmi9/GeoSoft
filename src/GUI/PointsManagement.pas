@@ -113,6 +113,10 @@ type
     /// <summary>Asks for a file name and saves into it.
     /// False when not saved.</summary>
     function SaveListAs: Boolean;
+    /// <summary>Job protocol by the list, empty before a save.</summary>
+    function JobProtocolFile: string;
+    /// <summary>Opens the job protocol in Notepad.</summary>
+    procedure ShowJobProtocol;
   end;
 
 var
@@ -123,7 +127,7 @@ implementation
 {$R *.dfm}
 
 uses
-  ExistingPoint, SettingsState;
+  Winapi.ShellAPI, ExistingPoint, SettingsState;
 
 const
   // The extension tells the order
@@ -692,6 +696,30 @@ begin
   else
     Name := ChangeFileExt(ExtractFileName(FCurrentFile), '');
   Result := ExecuteListSaveDialog(Name, FileName) and WriteListFile(FileName);
+end;
+
+function TPointsManagementForm.JobProtocolFile: string;
+begin
+  if FCurrentFile = '' then
+    Result := ''
+  else
+    Result := ChangeFileExt(FCurrentFile, '.ptk');
+end;
+
+procedure TPointsManagementForm.ShowJobProtocol;
+var
+  FileName: string;
+begin
+  FileName := JobProtocolFile;
+  if FileName = '' then
+    ShowMessage('Seznam souřadnic ještě není uložený, ' +
+      'protokol zakázky se ukládá vedle něj.')
+  else if not FileExists(FileName) then
+    ShowMessage('Do protokolu zakázky se zatím nic nezapsalo.')
+  else
+    // A .ptk file has no program of its own
+    ShellExecute(0, 'open', 'notepad.exe', PChar('"' + FileName + '"'),
+      nil, SW_SHOWNORMAL);
 end;
 
 procedure TPointsManagementForm.FileOpenClick(Sender: TObject);

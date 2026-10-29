@@ -3286,5 +3286,9 @@ object Form1: TForm1
       Caption = 'Nastaven'#237
       OnClick = MenuNastaveniClick
     end
+    object MenuProtocol: TMenuItem
+      Caption = 'Protokol'
+      OnClick = MenuProtocolClick
+    end
   end
 end

@@ -218,6 +218,7 @@ begin
   if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
   begin
     ShowMessage('Zadejte číslo určovaného bodu, výsledek se neuložil.');
+    SkipJobProtocol;
     Exit;
   end;
 
@@ -260,70 +261,28 @@ end;
 
 // The given points, the check, the angle and the new point
 procedure TDistanceIntersectionForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Row: TGeoRow;
-  Tail: string;
-
-  // One row of the table, coordinates in the current order
-  procedure PointLine(const ALabel: string; const ARow: TGeoRow;
-    const ATail: string = '');
-  var
-    ListPoint: Point.TPoint;
-    PointText: string;
-  begin
-    ListPoint.X := ARow.X;
-    ListPoint.Y := ARow.Y;
-    // A new point may have no number yet
-    if Trim(string(ARow.CB)) = '' then
-      PointText := ''
-    else
-      PointText := FormatPointId(string(ARow.CB));
-    Prot.Row([ALabel, PointText, Num(ARow.SH), CoordPair(ListPoint),
-              IntToStr(ARow.KK)], ATail);
-  end;
-
 begin
-  if not FAlg.Valid then
-  begin
-    ALines.Clear;
+  if not BeginProtocol(ALines, 'Protínání z délek', FAlg.Valid, FFrame,
+    FAlg.Warnings) then
     Exit;
-  end;
-
-  Prot.Title(ALines, 'Protínání z délek');
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Prot.Text('');
-  Prot.Text('VÝCHOZÍ BODY');
-  Prot.Table(['', 'Číslo bodu', 'Délka', CoordNames, 'KK'],
-             [-3, ColWPoint, ColWDist, ColWPair, 3]);
-  for I := 0 to GIVEN_POINTS - 1 do
-    PointLine(IntToStr(I + 1) + ':', FFrame.Rows[I]);
-  Prot.Line;
-  Prot.Text('Délka 1-2 ze souřadnic = ' + Num(FAlg.Base));
+  FrameTable('VÝCHOZÍ BODY', FFrame, [ColNumber, ColField(CB),
+    ColField(SH, 'Délka'), ColPair, ColField(KK)], 0, GIVEN_POINTS - 1);
+  Prot.Values(['Délka 1-2 ze souřadnic', Num(FAlg.Base)]);
   if not IsNan(FAlg.Measured) then
   begin
-    Prot.Text('Kontrolní délka 1-2 = ' + Num(FAlg.Measured));
+    Prot.Values(['Kontrolní délka 1-2', Num(FAlg.Measured)]);
     Prot.Text(LimitText(Abs(FAlg.Measured - FAlg.Base), FAlg.Limit));
     Prot.Text(LimitSource);
   end;
-  Prot.Text('Úhel protnutí = ' + Ang(FAlg.omega));
+  Prot.Values(['Úhel protnutí', Ang(FAlg.omega)]);
   if FAlg.Left then
     Prot.Text('Bod leží vlevo od 1→2')
   else
     Prot.Text('Bod leží vpravo od 1→2');
-
-  Prot.Text('');
-  Prot.Text('URČOVANÝ BOD');
-  Prot.Table(['', 'Číslo bodu', 'Délka', CoordNames, 'KK'],
-             [-3, ColWPoint, ColWDist, ColWPair, 3]);
-  Row := FFrame.Rows[GIVEN_POINTS];
-  Row.SH := NaN;                // the check length is shown above
-  if FStored and WasInList(Row) then
-    Tail := '*** bod v seznamu aktualizován ***'
-  else
-    Tail := '';
-  PointLine('3:', Row, Tail);
-
+  // The check length of row 3 is shown above
+  FrameTable('URČOVANÝ BOD', FFrame, [ColNumber, ColField(CB), ColPair,
+    ColField(KK)], GIVEN_POINTS, GIVEN_POINTS, FStored);
   Prot.Finish(FAlg.Warnings);
 end;
 

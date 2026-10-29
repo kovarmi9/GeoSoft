@@ -17,6 +17,9 @@ type
     Y, X, Height: string;
   end;
 
+  // Job protocol (.ptk): every run, by the button, or none
+  TProtocolMode = (pmAll, pmManual, pmOff);
+
   TSettings = record
     Scale: Double;              // length scale
     ScalePlace: TScalePlace;
@@ -24,6 +27,7 @@ type
     AngleDecimals: Integer;     // shown places of angles
     AreaDecimals: Integer;      // shown places of areas
     Polar: TPolarSettings;
+    ProtocolMode: TProtocolMode;
   end;
 
 var
@@ -44,5 +48,7 @@ initialization
   GSettings.Polar.ShowDescription  := True;
   // Lengths are reduced by Scale already
   GSettings.Polar.Congruent := True;
+  // Nothing computed is forgotten
+  GSettings.ProtocolMode := pmAll;
 
 end.

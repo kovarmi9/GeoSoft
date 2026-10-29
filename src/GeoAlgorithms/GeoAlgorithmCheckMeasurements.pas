@@ -30,7 +30,19 @@ type
     Passed:      Boolean;
   end;
 
+  // Counts for the summary of the protocol
+  TCheckInfo = record
+    Measured:     Integer;   // with a measured length
+    ComputedOnly: Integer;   // not measured, in brackets
+    Failed:       Integer;   // not less than ud
+    Skipped:      Integer;   // a point is not in the list
+    NoQuality:    Integer;   // no limit without Mxy
+    MaxDiff:      Double;    // the largest difference, with its sign
+  end;
+
   TCheckMeasurementsAlgorithm = class(TFrameAlgorithm)
+  private
+    FInfo: TCheckInfo;
   public
     class function TaskCode: Integer; override;
 
@@ -50,6 +62,9 @@ type
 
     /// <summary>The word for the notebook and the protocol.</summary>
     class function Verdict(const ACheck: TCheckResult): string;
+
+    /// <summary>Counts of the last Calculate.</summary>
+    property Info: TCheckInfo read FInfo;
   end;
 
 implementation
@@ -118,6 +133,7 @@ var
   R: TCheckResult;
 begin
   ClearWarnings;
+  FInfo := Default(TCheckInfo);
 
   for i := 0 to AFrame.Count - 1 do
   begin
@@ -125,7 +141,23 @@ begin
 
     R := ResultOf(AFrame.Rows[i], Scale);
     if not R.Found then
+    begin
+      Inc(FInfo.Skipped);
       Continue;
+    end;
+
+    if not R.HasMeasured then
+      Inc(FInfo.ComputedOnly)
+    else
+    begin
+      Inc(FInfo.Measured);
+      if Abs(R.Diff) > Abs(FInfo.MaxDiff) then
+        FInfo.MaxDiff := R.Diff;
+      if IsNan(R.Tolerance) then
+        Inc(FInfo.NoQuality)
+      else if not R.Passed then
+        Inc(FInfo.Failed);
+    end;
 
     if R.Computed < MIN_DIST then
       AddError(Format(

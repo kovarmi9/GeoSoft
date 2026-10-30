@@ -25,7 +25,6 @@ type
       var Value: string);
   private
     FAlg: TTransformationFrameAlgorithm;
-    FRows: TArray<Integer>;   // grid row each frame row came from
     FOldNumber: Int64;        // target number before the edit
     procedure FillFromList(ARow: Integer; ANumberField, AYField,
       AXField: TGeoField; const APoint: Point.TPoint);
@@ -38,7 +37,6 @@ type
     procedure WriteDetermined;
   protected
     function BuildFrame: Boolean; override;
-    function GridNumber(AFrameRow: Integer): string; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
     procedure WriteProtocol(ALines: TStrings); override;
@@ -181,7 +179,6 @@ var
 begin
   Result := True;
   FFrame.ClearData;
-  SetLength(FRows, 0);
 
   for R := Grid.FixedRows to Grid.RowCount - 1 do
   begin
@@ -205,9 +202,7 @@ begin
     else
       Row.TypS := DRUH_KONTROLNI;
 
-    FFrame.AddRow(Row);
-    SetLength(FRows, Length(FRows) + 1);
-    FRows[High(FRows)] := R;
+    AddRow(Row, R);
   end;
   TTransformationFrameAlgorithm.ClearResults(FFrame);   // input only
 end;
@@ -334,12 +329,6 @@ begin
     end;
   Grid.RowCount := R + 1;
   Recompute;
-end;
-
-// Č. is the row of the grid
-function TTransformationForm.GridNumber(AFrameRow: Integer): string;
-begin
-  Result := IntToStr(FRows[AFrameRow] - Grid.FixedRows + 1);
 end;
 
 // The key with its check, then the determined points

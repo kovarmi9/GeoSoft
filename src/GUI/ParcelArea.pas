@@ -126,7 +126,7 @@ begin
     Row.Uloha := ULOHA_VYMERA;
     Row.X := ListPoint.X;
     Row.Y := ListPoint.Y;
-    FFrame.AddRow(Row);
+    AddRow(Row, R);
   end;
 end;
 

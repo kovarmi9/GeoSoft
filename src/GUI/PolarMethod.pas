@@ -54,7 +54,7 @@ type
     procedure DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TPolarMethodAlgorithm;
-    FRows: TArray<Integer>;       // grid row of each frame row, -1 = elsewhere
+    FOrientRows: TArray<Integer>; // orientation grid row of each orientation
     FDetailCB: TArray<string>;    // number each detail row was filled for
     function  StationNo: string;
     function  FillStation: Boolean;
@@ -66,7 +66,6 @@ type
     function MeasuredColumns(ADetail: Boolean): TArray<TProtocolColumn>;
   protected
     function BuildFrame: Boolean; override;
-    function GridNumber(AFrameRow: Integer): string; override;
     procedure Loaded; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
@@ -94,8 +93,8 @@ begin
   FAlg := TPolarMethodAlgorithm.Create;
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, X, Y, Z, VS, VC, HZ, SH, SS, Zuhel, PolarD, PolarK, KK,
-     Poznamka]);
+    [Uloha, CB, X, Y, Z, VS, VC, HZ, TypS, SH, SS, Zuhel, PolarD, PolarK,
+     KK, Poznamka]);
 end;
 
 destructor TPolarMethodForm.Destroy;
@@ -341,9 +340,11 @@ var
   procedure Add(AGridRow: Integer);
   begin
     Row.Uloha := ULOHA_POLARNI;
-    FFrame.AddRow(Row);
-    SetLength(FRows, FFrame.Count);
-    FRows[FFrame.Count - 1] := AGridRow;
+    if GSettings.Polar.SlopeLengths then
+      Row.TypS := TYP_DELKY_SIKMA
+    else
+      Row.TypS := TYP_DELKY_VODOROVNA;
+    AddRow(Row, AGridRow);
   end;
 
   procedure AddStation;
@@ -412,13 +413,14 @@ var
       Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
       Row.KK := ListPoint.Quality;
       Row.Poznamka := ListPoint.Description;
+      FOrientRows := FOrientRows + [I];
       Add(-1);
     end;
   end;
 
 begin
   FFrame.ClearData;
-  SetLength(FRows, 0);
+  SetLength(FOrientRows, 0);
   FreeMode := not CheckBox1.Checked;
   Msg := '';
 
@@ -552,6 +554,13 @@ begin
     Exit;
   end;
 
+  // The notebook says which lengths were measured
+  if TypS in AFrame.Fields then
+  begin
+    GSettings.Polar.SlopeLengths := AFrame.Rows[0].TypS = TYP_DELKY_SIKMA;
+    ApplyColumnsToGrids;
+  end;
+
   // Station, X means fixed
   Row := AFrame.Rows[0];
   EditStationNo.Text := string(Row.CB);
@@ -583,12 +592,6 @@ begin
   end;
   GridOrientation.RowCount := OrientRow + 1;
   GridDetail.RowCount := DetailRow + 1;
-end;
-
-// A detail point by its row in the detail grid
-function TPolarMethodForm.GridNumber(AFrameRow: Integer): string;
-begin
-  Result := IntToStr(FRows[AFrameRow] - GridDetail.FixedRows + 1);
 end;
 
 // The station, its orientations and the detail points
@@ -693,7 +696,7 @@ begin
   begin
     Res := TPolarMethodAlgorithm.ResultOf(FFrame.Rows[0], FFrame.Rows[I],
       FAlg.Info.phi, FAlg.Scale, FAlg.Info.Longest);
-    Prot.FrameRow(FFrame.Rows[I], [IntToStr(I), Num(Res.Ds), Num(Res.Limit),
+    Prot.FrameRow(FFrame.Rows[I], [IntToStr(FOrientRows[I - 1]), Num(Res.Ds), Num(Res.Limit),
       Ang(Res.dPhi), Num(Res.p, 3), Ang(Res.Normed), Num(Res.dZ)]);
   end;
   Prot.Line;

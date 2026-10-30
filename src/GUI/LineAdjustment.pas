@@ -18,7 +18,6 @@ type
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TLineAdjustmentAlgorithm;
-    FRows: TArray<Integer>;       // grid row of each frame row, -1 = A or B
     function LoadLinePoint(ARow: Integer): Boolean;
     procedure Recompute;
   protected
@@ -94,9 +93,7 @@ var
   procedure Add(AGridRow: Integer);
   begin
     Row.Uloha := ULOHA_PRIMKA;
-    FFrame.AddRow(Row);
-    SetLength(FRows, FFrame.Count);
-    FRows[FFrame.Count - 1] := AGridRow;
+    AddRow(Row, AGridRow);
   end;
 
   // The list decides the coordinates, before this form moved the point
@@ -124,7 +121,6 @@ var
 begin
   Result := True;
   FFrame.ClearData;
-  SetLength(FRows, 0);
 
   for R := 1 to 2 do
   begin
@@ -186,7 +182,7 @@ begin
   if FRows[AFrameRow] < 0 then
     Result := GridLine.Cells[0, AFrameRow + 1]
   else
-    Result := IntToStr(FRows[AFrameRow] - GridPoints.FixedRows + 1);
+    Result := inherited GridNumber(AFrameRow);
 end;
 
 // The line, then every point before and after the move

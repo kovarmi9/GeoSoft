@@ -86,6 +86,7 @@ type
     FNotebookName: string;    // the notebook file next to the exe
     Prot: TProtocol;          // shared by every WriteProtocol
     FLoadLines: TArray<Integer>;   // line in the file of each loaded row
+    FRows: TArray<Integer>;   // grid row of each frame row, -1 = none
 
     /// <summary>A new showing asks again about existing points.</summary>
     procedure DoShow; override;
@@ -112,6 +113,9 @@ type
 
     /// <summary>UpdatedText for a point the run overwrote, else ''.</summary>
     function UpdatedTail(const ARow: TGeoRow): string;
+
+    /// <summary>Adds a frame row and remembers its grid row.</summary>
+    procedure AddRow(const ARow: TGeoRow; AGridRow: Integer = -1);
 
     /// <summary>Č. of a frame row, the grid row by default.</summary>
     function GridNumber(AFrameRow: Integer): string; virtual;
@@ -416,10 +420,21 @@ begin
     Result := '';
 end;
 
-// Frame row 0 is grid row 1, a form with gaps overrides it
+// The protocol numbers a row by its grid row
+procedure TCalcBaseForm.AddRow(const ARow: TGeoRow; AGridRow: Integer);
+begin
+  FFrame.AddRow(ARow);
+  SetLength(FRows, FFrame.Count);
+  FRows[FFrame.Count - 1] := AGridRow;
+end;
+
+// The grids have one header row, so the grid row is Č.
 function TCalcBaseForm.GridNumber(AFrameRow: Integer): string;
 begin
-  Result := IntToStr(AFrameRow + 1);
+  if (AFrameRow < Length(FRows)) and (FRows[AFrameRow] >= 0) then
+    Result := IntToStr(FRows[AFrameRow])
+  else
+    Result := IntToStr(AFrameRow + 1);
 end;
 
 procedure TCalcBaseForm.FrameTable(const ACaption: string;

@@ -37,7 +37,6 @@ type
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TOrthogonalMethodAlgorithm;
-    FRows: TArray<Integer>;       // grid row of each frame row, -1 = P or K
     FDetailCB: TArray<string>;    // number each detail row was filled for
     procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
@@ -137,9 +136,7 @@ var
   procedure Add(AGridRow: Integer);
   begin
     Row.Uloha := ULOHA_ORTOGONALNI;
-    FFrame.AddRow(Row);
-    SetLength(FRows, FFrame.Count);
-    FRows[FFrame.Count - 1] := AGridRow;
+    AddRow(Row, AGridRow);
   end;
 
   procedure AddBaseline(AGridRow: Integer);
@@ -169,7 +166,6 @@ var
 begin
   Result := True;
   FFrame.ClearData;
-  SetLength(FRows, 0);
 
   AddBaseline(1);   // P
   AddBaseline(2);   // K
@@ -362,7 +358,7 @@ begin
     0: Result := 'P';
     1: Result := 'K';
   else
-    Result := IntToStr(FRows[AFrameRow] - GridDetail.FixedRows + 1);
+    Result := inherited GridNumber(AFrameRow);
   end;
 end;
 

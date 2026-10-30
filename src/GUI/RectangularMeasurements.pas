@@ -24,7 +24,6 @@ type
       var ASelectable: Boolean);
   private
     FAlg: TRectangularMeasurementsAlgorithm;
-    FRows: TArray<Integer>;         // grid row of each frame row
     FWarnings: TStringList;         // collected from all stretches
     FRowNew: array of Boolean;      // listed point the user calls new
     FRowCB: array of string;        // last point number per row
@@ -36,7 +35,6 @@ type
     function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
-    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -341,12 +339,6 @@ begin
   // One empty row at the end
   StringGrid1.RowCount := R + 1;
   RecalcLocal;
-end;
-
-// The number of the notebook row
-function TRectangularMeasurementsForm.GridNumber(AFrameRow: Integer): string;
-begin
-  Result := IntToStr(FRows[AFrameRow] - StringGrid1.FixedRows + 1);
 end;
 
 procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);

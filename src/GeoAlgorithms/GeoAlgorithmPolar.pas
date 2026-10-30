@@ -15,6 +15,8 @@ uses
 const
   // Task code from the survey notebook convention
   ULOHA_POLARNI = 1;
+  TYP_DELKY_VODOROVNA = 0;   // horizontal length
+  TYP_DELKY_SIKMA     = 2;   // slope length with zenith angle
 
   // [gon], Návod pro obnovu KO 4.3.5.1.2 c), for m0 and v·√p
   MEZNI_DFI = 0.08;

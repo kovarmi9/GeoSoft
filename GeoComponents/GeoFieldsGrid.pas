@@ -161,7 +161,7 @@ implementation
 procedure TGeoFieldsInplaceEdit.KeyPress(var Key: Char);
 begin
   if Owner is TGeoFieldsGrid then
-    TGeoFieldsGrid(Owner).EditorKeyPress(Text, Key);
+    TGeoFieldsGrid(Owner).EditorKeyPress(TextWithoutSelection, Key);
   inherited KeyPress(Key);
 end;
 

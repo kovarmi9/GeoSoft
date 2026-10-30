@@ -49,6 +49,8 @@ type
     /// and skip our validation. KeyDown handles navigation instead.
     /// </summary>
     procedure KeyPress(var Key: Char); override;
+    /// <summary>Text left after the typed key replaces the selection.</summary>
+    function TextWithoutSelection: string;
   end;
 
   /// <summary>
@@ -273,6 +275,13 @@ begin
   inherited KeyPress(Key);
 end;
 
+// Selected text is replaced by the typed key
+function TGeoInplaceEdit.TextWithoutSelection: string;
+begin
+  Result := Copy(Text, 1, SelStart) +
+    Copy(Text, SelStart + SelLength + 1, MaxInt);
+end;
+
 // Handle Enter/Tab inside inplace editor
 procedure TGeoInplaceEdit.KeyDown(var Key: Word; Shift: TShiftState);
 begin
@@ -348,7 +357,10 @@ end;
 procedure TGeoGrid.OpenEditor;
 begin
   if (goEditing in Options) and (Col <> FCheckColumn) then
+  begin
     EditorMode := True;
+    InplaceEditor.SelectAll;
+  end;
 end;
 
 // No typing into the check box column, Space is handled by KeyDown
@@ -840,6 +852,8 @@ end;
 procedure TGeoGrid.Loaded;
 begin
   inherited Loaded;
+  // Every grid lets the user resize columns
+  Options := Options + [goColSizing];
   UpdateHeaders;
 end;
 

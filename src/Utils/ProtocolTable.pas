@@ -200,7 +200,9 @@ var
 begin
   if Trim(AText) = '' then
     Exit('');
-  N := StrToInt64Def(Trim(AText), 0);
+  // Keep text that is not a number
+  if not TryStrToInt64(Trim(AText), N) then
+    Exit(Trim(AText));
   // %.15d pads with zeros, %015d would pad with spaces in Delphi
   D := Format('%.15d', [Abs(N)]);
   Result := Copy(D, 1, 6) + ' ' + Copy(D, 7, 5) + ' ' + Copy(D, 12, 4);
@@ -219,7 +221,7 @@ begin
   if IsNan(ALimit) then
     Exit(Result + 'Mezní rozdíl neurčen, ' + NoMxy);
   Result := Result + 'Mezní rozdíl = ' + Num(ALimit) + '    ';
-  if ADifference < ALimit then
+  if Abs(ADifference) < ALimit then
     Result := Result + 'vyhovuje'
   else
     Result := Result + 'nevyhovuje';

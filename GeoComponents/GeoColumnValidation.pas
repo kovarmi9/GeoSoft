@@ -592,6 +592,9 @@ begin
   Value := 0;
   try
     Value := ParseExpression;
+    // NaN or Inf is not a valid value
+    if IsNan(Value) or IsInfinite(Value) then
+      Exit(False);
     SkipSpaces;
     // Any trailing non-whitespace means the expression did not fully parse
     Result := AtEnd;

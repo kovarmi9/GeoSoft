@@ -114,7 +114,7 @@ procedure TGeoPointsInplaceEdit.KeyPress(var Key: Char);
 begin
   // Apply validation only if editor belongs to TGeoPointsGrid
   if Owner is TGeoPointsGrid then
-    TGeoPointsGrid(Owner).FilterTypedChar(Text, Key);
+    TGeoPointsGrid(Owner).FilterTypedChar(TextWithoutSelection, Key);
 
   inherited KeyPress(Key);
 end;

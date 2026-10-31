@@ -205,7 +205,7 @@ var
   Row: TGeoRow;
   Tail: string;
 
-  // Millimetres, an empty cell stays empty
+  // Metres to the mm, an empty cell stays empty
   function Mm(AValue: Double): string;
   begin
     Result := Num(AValue, 3);

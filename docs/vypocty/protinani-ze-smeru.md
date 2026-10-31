@@ -27,49 +27,75 @@ stanoviscích. Pokrývá i protínání z úhlů.
 | `GeoAlgorithms/GeoAlgorithmForwardIntersection.pas` | bloky, orientace stanovisek, určované body, úhel protnutí |
 | `GeoAlgorithms/GeoAlgorithmPolar.pas` | orientační posun a odchylky orientací, společné s polární metodou |
 
+```mermaid
+flowchart LR
+  T["Bloky A, B, určované body<br>ForwardIntersection.pas"] -->|BuildFrame| F["frame"]
+  F -->|Calculate| A["GeoAlgorithmForwardIntersection.pas"]
+  A -->|"orientační posun A a B"| M["GeoAlgorithmPolar.pas<br>MeanShift, ResultOf"]
+  M --> A
+  A --> F
+  F -->|"FrameToGrid, StorePoint"| T
+  F -->|WriteProtocol| P["Protokol"]
+```
+
 ## Matematika
 
 ### Značení
 
 | značka | v kódu | význam |
 |---|---|---|
-| Y, X | `Y`, `X` | souřadnice S-JTSK |
-| ΔX, ΔY | — | rozdíly ze stanoviska do bodu |
-| ψ | `psi`, pole `HZ`, `Zuhel` | měřený směr, z A a z B |
-| σ | `sigma`, `sigmaAP`, `sigmaBP` | směrník |
-| φ | `phi` | orientační posun stanoviska |
-| p | `p` | váha orientace, s / smax |
-| dφ | `dPhi` | odchylka orientace |
-| sin ω | `sinOmega` | sinus úhlu protnutí, 0 = rovnoběžné směry |
-| sAP | `sAP` | délka ze stanoviska A na určovaný bod |
-| ω | `omega` | úhel protnutí |
+| $Y, X$ | `Y`, `X` | souřadnice S-JTSK |
+| $\Delta X, \Delta Y$ | — | rozdíly ze stanoviska do bodu |
+| $\psi$ | `psi`, pole `HZ`, `Zuhel` | měřený směr, z A a z B |
+| $\sigma$ | `sigma`, `sigmaAP`, `sigmaBP` | směrník |
+| $\varphi$ | `phi` | orientační posun stanoviska |
+| $p$ | `p` | váha orientace, $s / s_{max}$ |
+| $d\varphi$ | `dPhi` | odchylka orientace |
+| $\sin\omega$ | `sinOmega` | sinus úhlu protnutí, 0 = rovnoběžné směry |
+| $s_{AP}$ | `sAP` | délka ze stanoviska A na určovaný bod |
+| $\omega$ | `omega` | úhel protnutí |
 
 ### Orientační posun
 
 Stejně jako v polární metodě:
 
-```
-σi  = arctg2(ΔYi, ΔXi)
-φ   = arctg2(Σ pi·sin(σi − ψi), Σ pi·cos(σi − ψi))
-dφi = σi − (ψi + φ)
-```
+$$
+\sigma_i = \operatorname{atan2}(\Delta Y_i, \Delta X_i)
+$$
+
+$$
+\varphi = \operatorname{atan2}\left( \sum p_i \sin(\sigma_i - \psi_i),\ \sum p_i \cos(\sigma_i - \psi_i) \right), \qquad
+d\varphi_i = \varphi - (\sigma_i - \psi_i)
+$$
 
 ### Určovaný bod
 
-```
-σAP   = ψA + φA                  σBP = ψB + φB
-sin ω = cos σAP·sin σBP − sin σAP·cos σBP
-sAP   = (ΔXAB·sin σBP − ΔYAB·cos σBP) / sin ω
-XP    = XA + sAP·cos σAP         YP = YA + sAP·sin σAP
-ω     = |arctg2(sin ω, cos σAP·cos σBP + sin σAP·sin σBP)| · 200/π
-```
+$$
+\sigma_{AP} = \psi_A + \varphi_A, \qquad \sigma_{BP} = \psi_B + \varphi_B
+$$
+
+$$
+\sin\omega = \cos\sigma_{AP} \sin\sigma_{BP} - \sin\sigma_{AP} \cos\sigma_{BP}
+$$
+
+$$
+s_{AP} = \frac{\Delta X_{AB} \sin\sigma_{BP} - \Delta Y_{AB} \cos\sigma_{BP}}{\sin\omega}
+$$
+
+$$
+X_P = X_A + s_{AP} \cos\sigma_{AP}, \qquad Y_P = Y_A + s_{AP} \sin\sigma_{AP}
+$$
+
+$$
+\omega = \left| \operatorname{atan2}\left( \sin\omega,\ \cos\sigma_{AP} \cos\sigma_{BP} + \sin\sigma_{AP} \sin\sigma_{BP} \right) \right| \cdot \frac{200}{\pi}
+$$
 
 ## Přesnost
 
 - Kód kvality určovaného bodu je horší ze stanovisek A a B.
-- Odchylka orientace dφ nad 0,08 gon vypíše upozornění (Návod pro
-  obnovu katastrálního operátu, bod 4.3.5.1.2 c).
+- Odchylka orientace $d\varphi$ nad $0{,}08$ gon vypíše upozornění
+  (Návod pro obnovu katastrálního operátu, bod 4.3.5.1.2 c).
 - Úhel protnutí mimo 30 až 170 gon vypíše upozornění.
-- Bod, který vyjde za stanoviskem A (sAP < 0), vypíše upozornění.
+- Bod, který vyjde za stanoviskem A ($s_{AP} < 0$), vypíše upozornění.
 - Chybějící stanovisko, orientace, souřadnice nebo směr a rovnoběžné
   směry jsou chyba.

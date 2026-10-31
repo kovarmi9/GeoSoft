@@ -1,6 +1,7 @@
 inherited ForwardIntersectionForm: TForwardIntersectionForm
   ActiveControl = Grid
   Caption = 'Prot'#237'n'#225'n'#237' ze sm'#283'r'#367
+  HelpKeyword = 'vypocty/protinani-ze-smeru/'
   TextHeight = 15
   object Grid: TGeoFieldsGrid [2]
     Left = 0

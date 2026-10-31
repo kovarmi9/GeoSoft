@@ -20,14 +20,20 @@ ho uvádí. Tlačítko **1,0** vrátí výchozí hodnotu.
 Měřítko se dá určit pro bod nebo místo. **Najít bod** vezme ze seznamu
 souřadnic Y, X a výšku bodu, hodnoty jde napsat i ručně.
 
-- **Jen ze zobrazení** – zkreslení Křovákova zobrazení,
-  m = 0,9999 + 1,22822·10⁻¹⁴·Δρ² − 3,154·10⁻²¹·Δρ³ + 1,848·10⁻²⁷·Δρ⁴,
-  kde ρ = √(X² + Y²) a Δρ = ρ − 1 298 039 m.
-- **Jen z výšky** – m = R / (R + H), R = 6 381 km.
+- **Jen ze zobrazení** – zkreslení Křovákova zobrazení:
+
+    $$
+    m = 0{,}9999 + 1{,}22822 \cdot 10^{-14}\, \Delta\rho^2 - 3{,}154 \cdot 10^{-21}\, \Delta\rho^3 + 1{,}848 \cdot 10^{-27}\, \Delta\rho^4
+    $$
+
+    kde $\rho = \sqrt{X^2 + Y^2}$ a $\Delta\rho = \rho - 1\,298\,039\ \mathrm{m}$.
+
+- **Jen z výšky** – $m = \dfrac{R}{R + H}$, $R = 6\,381\ \mathrm{km}$.
 - **Obojí** – součin obou měřítek.
 
 Výsledek se ukáže vedle tlačítka a přepíše Měřítko délek. Souřadnice musí
-ležet v S-JTSK (1 100 000 m < ρ < 1 500 000 m), výška mezi 100 a 3 000 m.
+ležet v S-JTSK ($1\,100\,000\ \mathrm{m} < \rho < 1\,500\,000\ \mathrm{m}$),
+výška mezi 100 a 3 000 m.
 Zadané místo si okno pamatuje do ukončení programu.
 
 ## Přesnost a desetinná místa

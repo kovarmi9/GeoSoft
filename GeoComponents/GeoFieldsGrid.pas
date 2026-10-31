@@ -1,8 +1,6 @@
 ﻿unit GeoFieldsGrid;
 
-// Descendant of TGeoGrid with dynamic columns driven by a TGeoFields set.
-// Column headers and per-column validation filters come from per-instance
-// copies of GeoFieldColumns (GeoFieldsDef).
+// TGeoGrid with columns from the TGeoRow fields
 
 interface
 
@@ -18,17 +16,13 @@ uses
   GeoRow;
 
 type
-  /// <summary>
-  /// Custom inplace editor that delegates KeyPress filtering to the grid.
-  /// </summary>
+  /// <summary>Inplace editor, the grid filters the keys.</summary>
   TGeoFieldsInplaceEdit = class(TGeoInplaceEdit)
   protected
     procedure KeyPress(var Key: Char); override;
   end;
 
-  /// <summary>
-  /// Field-driven grid. Setting GeoFields rebuilds columns, headers, filters.
-  /// </summary>
+  /// <summary>Grid whose columns are TGeoRow fields.</summary>
   TGeoFieldsGrid = class(TGeoGrid)
   private
     FGeoFields: TGeoFields;
@@ -60,59 +54,38 @@ type
     // Column headers are derived from ColumnFields, not set from outside
     property ColumnHeaders;
 
-    /// <summary>
-    /// Validates and commits cell value.
-    /// Invalid value is kept as-is (navigation is not blocked).
-    /// </summary>
+    /// <summary>Validates and commits the cell value.</summary>
     procedure CommitCell; override;
 
-    /// <summary>
-    /// Delegate from the inplace editor's KeyPress.
-    /// </summary>
+    /// <summary>Delegate from the inplace editor's KeyPress.</summary>
     procedure EditorKeyPress(const AText: string; var Key: Char); virtual;
 
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    /// <summary>
-    /// Sets the column order. The listed fields go into the columns they
-    /// already use, in the order given. Other fields never move.
-    /// An empty list restores the TGeoField order.
-    /// </summary>
+    /// <summary>Sets the column order, an empty list resets it.</summary>
     procedure SetFieldOrder(const AOrder: array of TGeoField);
 
-    /// <summary>
-    /// Return grid column index for a field (or -1 if inactive).
-    /// </summary>
+    /// <summary>Column of a field, -1 if not shown.</summary>
     function FieldToCol(F: TGeoField): Integer;
 
-    /// <summary>
-    /// Return TGeoField for a data column (raises if out of range).
-    /// </summary>
+    /// <summary>Field of a data column, raises out of range.</summary>
     function ColToField(ACol: Integer): TGeoField;
 
     /// <summary>How many data columns carry a field.</summary>
     function DataFieldCount: Integer;
 
-    /// <summary>
-    /// Override display name for a single field on this instance.
-    /// </summary>
+    /// <summary>Display name of a field on this grid.</summary>
     procedure SetColumnDisplayName(F: TGeoField; const ADisplayName: string);
 
-    /// <summary>
-    /// Override filter data for a single field on this instance.
-    /// </summary>
+    /// <summary>Filter of a field on this grid.</summary>
     procedure SetColumnFilterData(F: TGeoField; const AData: TColumnFilterData);
 
-    /// <summary>
-    /// Reset one field back to the global default from GeoFieldColumns.
-    /// </summary>
+    /// <summary>Resets one field to GeoFieldColumns.</summary>
     procedure ResetColumnData(F: TGeoField);
 
-    /// <summary>
-    /// Reset all fields to global defaults.
-    /// </summary>
+    /// <summary>Reset all fields to global defaults.</summary>
     procedure ResetAllColumnData;
 
     procedure SetGeoRow(ARow: Integer; const GRow: TGeoRow);
@@ -121,35 +94,22 @@ type
     /// <summary>Decimal places shown for the given fields.</summary>
     procedure SetFieldDecimals(const AFields: TGeoFields; APlaces: Integer);
 
-    /// <summary>
-    /// Checks a row like typing does. Returns '' or the bad value.
-    /// </summary>
+    /// <summary>Checks a row like typing, '' or the bad value.</summary>
     function CheckGeoRow(const GRow: TGeoRow): string;
 
   published
     // Row headers are free for the form to use
     property RowHeaders;
 
-    /// <summary>
-    /// Active set of fields. ColumnFields rewrites it while the form loads,
-    /// so it is only stored for grids that have no ColumnFields.
-    /// </summary>
+    /// <summary>Shown fields, stored only without ColumnFields.</summary>
     property GeoFields: TGeoFields
       read FGeoFields write SetGeoFields stored GeoFieldsStored;
 
-    /// <summary>
-    /// The columns of this grid, one per line, in order:
-    ///   FieldName            caption from GeoFieldsDef
-    ///   FieldName=Caption    caption for this grid only
-    /// An empty list leaves everything to GeoFields.
-    /// </summary>
+    /// <summary>Columns, one per line: Field or Field=Caption.</summary>
     property ColumnFields: TStrings
       read FColumnFields write SetColumnFields;
 
-    /// <summary>
-    /// Fields the program fills. The cursor skips their columns and they
-    /// cannot be clicked or edited, writing from code still works.
-    /// </summary>
+    /// <summary>Fields the program fills, the cursor skips them.</summary>
     property ReadOnlyFields: TGeoFields
       read FReadOnlyFields write SetReadOnlyFields;
   end;
@@ -440,7 +400,8 @@ var
   Text: string;
 begin
   // Skip header cells and cells without active editor
-  if IsHeaderCell(Col, Row) or not EditorMode or not Assigned(InplaceEditor) then
+  if IsHeaderCell(Col, Row) or not EditorMode or
+    not Assigned(InplaceEditor) then
   begin
     inherited;
     Exit;
@@ -454,7 +415,7 @@ begin
     Exit;
   end;
 
-  // Reset před validací
+  // Reset before the check
   FLastCommitFailed := False;
 
   Text := InplaceEditor.Text;
@@ -462,7 +423,7 @@ begin
     Cells[Col, Row] := Text
   else
   begin
-    // Chování při neplatném vstupu - stejný mechanismus jako TGeoPointsGrid
+    // Invalid value, the same as TGeoPointsGrid
     case Filter.OnInvalidCommit of
       ciaBeepAndClear:
       begin

@@ -18,11 +18,11 @@ begin
   try
     // --- Test r1 ---
 
-    // Globální proměnná má nuly, NaN dá až ClearGeoRow
+    // A global has zeros, ClearGeoRow gives NaN
     Writeln('Výpis řádku bez ClearGeoRow (nuly z paměti, ne NaN)');
     Writeln(PrintGeoRow(r1));
 
-    // Naplnění řádku
+    // Fill the row
     r1.Uloha := 1;
     r1.CB := '751261478500012';
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
@@ -40,32 +40,32 @@ begin
     r1.Poznamka := 'Testovací řádek';
     r1.kk := 10;
 
-    // Výpis vplněného řádku
+    // Print the filled row
     Writeln('Výpis vyplněného řádku');
     Writeln(PrintGeoRow(r1));
 
-    // Uložení řádku: soubor se přepíše jedním řádkem
+    // Save the row, the file holds one row
     SaveRow('Radek1', r1);
 
-    // Připsání druhého řádku na konec souboru
+    // Append a second row to the file
     r2 := r1;
     r2.CB := 'druhy';
     SaveRow('Radek1', r2, True);
 
-    // Vyčištění řádku
+    // Clear the row
     ClearGeoRow(r1);
 
-    // Výpis vymazaného řádku
+    // Print the cleared row
     Writeln('Výpis vymazaného řádku');
     Writeln(PrintGeoRow(r1));
 
-    // Načtení obou řádků podle indexu
+    // Load both rows by index
     Writeln('Načtený řádek 0 (CB ahoj)');
     Writeln(PrintGeoRow(LoadRow('Radek1', 0)));
     Writeln('Načtený řádek 1 (CB druhy)');
     Writeln(PrintGeoRow(LoadRow('Radek1', 1)));
 
-    // Načtení všech řádků najednou
+    // Load all rows at once
     Writeln('Počet řádků v souboru: ', Length(LoadRows('Radek1')));
 
   except

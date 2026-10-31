@@ -8,6 +8,10 @@ Souřadnice se ukládají v plné přesnosti.
 Soubor se při otevření nejdřív celý přečte; když se to nepovede,
 otevřený seznam zůstane beze změny.
 
+Uložení je bezpečné: seznam se nejdřív zapíše do dočasného souboru
+`.tmp` vedle cílového a teprve celý zapsaný nahradí původní soubor.
+Když zápis selže, původní soubor zůstane beze změny.
+
 Ukládá `ExportToBinary`, otevírá `LoadFromBinary`; pořadí z přípony
 zjistí `FileOrder`. Popis bodu se ukládá jeden znak na bajt v kódování
 Windows, znaky mimo něj se změní na `?`.

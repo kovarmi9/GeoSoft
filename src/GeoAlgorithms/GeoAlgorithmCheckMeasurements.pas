@@ -1,10 +1,6 @@
 ﻿unit GeoAlgorithmCheckMeasurements;
 
-// Check measurements (kontrolni omerne) - KatV § 81 point 8.
-// Compares a distance measured in the field, reduced by Scale, with the
-// distance from coordinates, limit by KatV annex 13.5 and 13.6.
-// A row with no measured length is valid, not an error: KatV annex 17.11 allows
-// it and the computed value is then reported in round brackets.
+// Check measurements, KatV § 81 point 8
 
 interface
 
@@ -46,11 +42,7 @@ type
   public
     class function TaskCode: Integer; override;
 
-    /// <summary>
-    /// The frame is the input and the output: SS gets the length computed
-    /// from the coordinates. Under task 9 SS is that length, not a slant
-    /// distance.
-    /// </summary>
+    /// <summary>SS gets the length from the coordinates.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     /// <summary>Distance from the coordinates, NaN without them.</summary>

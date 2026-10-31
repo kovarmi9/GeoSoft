@@ -24,7 +24,7 @@ begin
   P.SH := 0;              // chainage
   P.PolarK := 0;          // offset
 
-  // K - end of the measuring line, 8.485 m from P
+  // K - end of the measuring line, 8,485 m from P
   ClearGeoRow(K);
   K.Uloha := ULOHA_ORTOGONALNI;
   K.CB := '5200';

@@ -8,5 +8,15 @@ Výpočty ukládají data do dvou typů:
 Tabulka se naplní z gridu, algoritmus počítá přímo v jejích řádcích a výsledky
 se z ní zapíší zpět do gridu nebo do souboru CSV.
 
+```mermaid
+flowchart LR
+  G["Grid okna"] -->|GetGeoRow| R["TGeoRow"]
+  R -->|AddRow| F["TGeoDataFrame"]
+  F -->|Calculate| A["algoritmus"]
+  A --> F
+  F -->|FrameToGrid| G
+  F <-->|"ToCSV, FromCSV"| C["zápisník CSV"]
+```
+
 Nevyplněné číslo je v řádku NaN („není číslo“), ne nula, protože nula může
 být skutečně změřená hodnota.

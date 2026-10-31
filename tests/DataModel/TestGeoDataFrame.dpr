@@ -36,7 +36,7 @@ begin
 
     gdf1 := TGeoDataFrame.Create([Uloha, CB, X, Y, Z]);
 
-    // Vynulování gdf1 - se všemi sloupci
+    // Reset gdf1 with all columns
 
     Writeln('Stav po defaultu');
     Writeln('Pole (Fields): ', PrintGeoFields(gdf1.Fields));
@@ -44,7 +44,7 @@ begin
     Writeln('Kapacita (Capacity): ', gdf1.Capacity);
     Writeln('Délka pole Rows (= Capacity): ', Length(gdf1.Rows));
 
-    // Přidány dva řádky
+    // Two rows added
     gdf1.AddRow(2);
 
     gdf1.Rows[0].Uloha := 1;
@@ -81,10 +81,10 @@ begin
     gdf1.Rows[1].PolarK := 0.15;
     gdf1.Rows[1].Poznamka := '+-*/""'';,';
 
-    // Přidání hotového z r1
+    // Add the ready row r1
     gdf1.AddRow(r1);
 
-    // Stav po přidání tří řádků
+    // State after three rows
     writeln('');
     Writeln('Stav po přidání tří řádků');
     Writeln('Pole (Fields): ', PrintGeoFields(gdf1.Fields));
@@ -95,70 +95,70 @@ begin
     Writeln(sLineBreak,'Co je v gdf1 v řádku [2] na pozici Úloha?');
     writeln(gdf1.Rows[2].Uloha);
 
-    // Výpis pomocí funkce
+    // Print by the function
     writeln('');
     writeln('Kontrolní výpis celého GeoDataFrame:');
     Writeln(gdf1.Print);
 
-    // Uloření do stringlistu CSV
+    // Save into a CSV string list
     csv1 := TStringList.Create;
     csv1.Text := gdf1.ToCSV;
 
-    // Vypsání CSV
+    // Print the CSV
     Writeln('Výpis StringListu CSV:');
     Writeln(csv1.Text);
 
-    // Uložení do souboru CSV
+    // Save into a CSV file
     gdf1.ToCSV('gdf1.csv');
 
-    // Vymazání dat
+    // Clear the data
     gdf1.ClearData;
 
-    // Výpis souboru s vymazanými daty
+    // Print the cleared data
     Writeln('Výpis gdf1 s vymazanými daty:');
     Writeln(gdf1.Print);
 
-    // Načtení z CSV
+    // Load from CSV
     gdf1.FromCSV('gdf1.csv');
 
-    // Výpis souboru po opětovném načtení
+    // Print after loading again
     Writeln('Výpis gdf1 po opětovném načtení:');
     Writeln(gdf1.Print);
 
-    // Vytvoření GeoDataFrame s obsahem csv1
+    // New GeoDataFrame from csv1
     gdf2 := TGeoDataFrame.Create;
-    // Prázdné řádky na konci se mají přeskočit
+    // Empty rows at the end are skipped
     csv1.Add('');
     csv1.Add('   ');
     gdf2.FromCSV(csv1);
 
-    // Kontrolní vypsání gdf2
+    // Check print of gdf2
     Writeln('Ukazka gdf2:');
     Writeln(gdf2.Print);
 
-    // Úprva gdf2
+    // Change gdf2
     gdf2.Rows[1].X := 0;
     gdf2.Rows[1].Y := 0;
     gdf2.Rows[1].Z := 0;
     gdf2.Rows[2].CB := '1';
 
-    // Uložení gdf2 do binárního souboru
+    // Save gdf2 into a binary file
     gdf2.SaveToFile('soubor.gdf');
 
-    // Vyčištění
+    // Clean up
     gdf1.ClearData;
     gdf2.ClearData;
 
-    // Uvolnění paměti
+    // Free the memory
     gdf1.Free;
     gdf2.Free;
     csv1.Free;
 
-    // Znovuvytvoření a načtení gdf ze souboru
+    // Create again and load from the file
     gdf1 := TGeoDataFrame.Create;
     gdf1.LoadFromFile('soubor.gdf');
 
-    // Výtisk výsledků
+    // Print the results
     Writeln('Vytištění nově načteného gdf1 ze souboru:');
     Writeln(gdf1.Print);
     gdf1.Free;

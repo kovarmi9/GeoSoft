@@ -26,7 +26,6 @@ type
     procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TCheckMeasurementsAlgorithm;
-    FRows: TArray<Integer>;   // grid row each frame row came from
     procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
     procedure RefreshComputed;
     procedure Recompute;
@@ -127,7 +126,7 @@ begin
   for R := GridPairs.FixedRows to GridPairs.RowCount - 1 do
     ClearComputed(R);
 
-  for I := 0 to High(FRows) do
+  for I := 0 to FFrame.Count - 1 do
   begin
     R   := FRows[I];
     Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I], FAlg.Scale);
@@ -165,7 +164,6 @@ var
 begin
   Result := True;
   FFrame.ClearData;
-  SetLength(FRows, 0);
   Dict := TPointDictionary.GetInstance;
 
   for R := GridPairs.FixedRows to GridPairs.RowCount - 1 do
@@ -192,9 +190,7 @@ begin
         ListPointTo.Quality);
     end;
 
-    FFrame.AddRow(Row);
-    SetLength(FRows, Length(FRows) + 1);
-    FRows[High(FRows)] := R;
+    AddRow(Row, R);
   end;
 end;
 
@@ -316,21 +312,21 @@ begin
 
     if not Check.Found then
     begin
-      Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
+      Prot.Row([GridNumber(I), PointId(PointNumberFrom),
                 PointId(PointNumberTo)],
                '*** nelze spočítat, chybí bod ***');
       Continue;
     end;
 
     if Check.HasMeasured then
-      Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
+      Prot.Row([GridNumber(I), PointId(PointNumberFrom),
                 PointId(PointNumberTo), Num(Check.Measured),
                 Num(Check.Computed), Num(Check.Diff),
                 Num(Check.Tolerance),
                 TCheckMeasurementsAlgorithm.Verdict(Check)])
     else
       // KatV annex 17.11 - a value that was not measured goes in brackets
-      Prot.Row([IntToStr(I + 1), PointId(PointNumberFrom),
+      Prot.Row([GridNumber(I), PointId(PointNumberFrom),
                 PointId(PointNumberTo), '',
                 '(' + Num(Check.Computed) + ')', '', '', 'neměřeno']);
 

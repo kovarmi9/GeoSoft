@@ -1,6 +1,7 @@
 inherited TransformationForm: TTransformationForm
   ActiveControl = Grid
   Caption = 'Transformace'
+  HelpKeyword = 'vypocty/transformace/'
   StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar

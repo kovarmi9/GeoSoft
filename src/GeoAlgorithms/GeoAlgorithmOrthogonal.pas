@@ -1,10 +1,6 @@
 ﻿unit GeoAlgorithmOrthogonal;
 
-// Orthogonal (rectangular) survey method.
-// The frame is the whole job: rows 0 and 1 are the measuring line P and K,
-// every further row is a detail point. SH carries the stationing and PolarK
-// the perpendicular offset, X and Y the S-JTSK coordinates -
-// given on P and K, computed on the detail points.
+// Orthogonal method, rows 0 and 1 are P and K
 
 interface
 
@@ -48,7 +44,6 @@ const
   MIN_BASELINE     = 0.01;  // shorter means P and K coincide [m]
   MAX_OFFSET_ABS   = 30.0;  // absolute max perpendicular offset [m]
   MAX_OFFSET_RATIO = 0.75;  // max offset as fraction of baseline length
-  WARN_RATIO       = 0.50;  // soft warning threshold for offset/L ratio
 
 class function TOrthogonalMethodAlgorithm.TaskCode: Integer;
 begin
@@ -58,15 +53,15 @@ end;
 procedure TOrthogonalMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   P, K: TGeoRow;        // the measuring line, rows 0 and 1
-  dx, dy: Double;       // S-JTSK vector P→K
-  dS, dQ: Double;       // tape vector P→K scaled to S-JTSK
-  sP, qP: Double;       // connection point P - tape coords in S-JTSK
-  j: Double;            // denominator dS² + dQ²
-  A, B: Double;         // Helmert coefficients
-  si, qi: Double;       // detail point tape coords in S-JTSK
-  offS, offQ: Double;   // offsets from P
-  L, Lg: Double;        // L = measured tape length, Lg = JTSK baseline length
-  qMax: Double;         // effective offset limit for this baseline
+  dx, dy: Double;
+  dS, dQ: Double;
+  sP, qP: Double;
+  j: Double;
+  A, B: Double;
+  si, qi: Double;
+  offS, offQ: Double;
+  L, Lg: Double;
+  qMax: Double;
   PtNo: string;
   i: Integer;
 begin
@@ -97,7 +92,6 @@ begin
     Exit;
   end;
 
-  // Step 1: convert connection point tape measurements to S-JTSK
   sP := P.SH * Scale;
   qP := P.PolarK * Scale;
   dS := (K.SH - P.SH) * Scale;
@@ -112,7 +106,6 @@ begin
 
   L := Sqrt(j);
 
-  // Step 2: the tape against the coordinates
   FBaseline.Valid     := True;
   FBaseline.L         := L;
   FBaseline.Lg        := Lg;
@@ -127,17 +120,15 @@ begin
       'rozdíl %.3f m - příloha, bod 13.5 katastrální vyhlášky',
       [FBaseline.Diff, FBaseline.Tolerance]));
 
-  // Step 3: Helmert similarity transform coefficients
   dx := K.X - P.X;
   dy := K.Y - P.Y;
 
   A := (dx * dS + dy * dQ) / j;
   B := (dy * dS - dx * dQ) / j;
 
-  // Effective offset limit: min(30 m, 0.75 * L)
+  // Effective offset limit: min(30 m, 0,75 * L)
   qMax := Min(MAX_OFFSET_ABS, MAX_OFFSET_RATIO * L);
 
-  // Step 4: compute detail point coordinates
   for i := BASELINE_ROWS to AFrame.Count - 1 do
   begin
     // Nothing measured yet, so the row keeps no coordinates
@@ -172,10 +163,7 @@ begin
     if Abs(offQ) > qMax then
       AddWarning(Format('Bod %s: délka kolmice je větší než povolených ' +
         '%.1f m - bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění',
-        [PtNo, qMax]))
-    else if Abs(offQ) / L > WARN_RATIO then
-      AddWarning(Format('Bod %s: kolmice/přímka = %.2f - přibližuje se ' +
-        'mezní hodnotě %.2f', [PtNo, Abs(offQ) / L, MAX_OFFSET_RATIO]));
+        [PtNo, qMax]));
 
     AFrame.Rows[i].X := P.X + A * offS - B * offQ;
     AFrame.Rows[i].Y := P.Y + B * offS + A * offQ;

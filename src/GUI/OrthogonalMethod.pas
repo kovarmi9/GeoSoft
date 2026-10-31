@@ -114,7 +114,7 @@ var
 begin
   Result := False;
   PointNumber := StrToInt64Def(
-    GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], -1);
+    GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], 0);
   if PointNumber = 0 then
   begin
     ShowMessage(Format('Zadejte číslo bodu v řádku %s.',

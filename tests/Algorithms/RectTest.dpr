@@ -54,7 +54,7 @@ begin
   P1.CB := '1';
   P1.SH := 100;           // side length, + turns right, - left
 
-  // 102 - given end, 100.01 m from the corner, turning left
+  // 102 - given end, 100,01 m from the corner, turning left
   ClearGeoRow(P102);
   P102.Uloha := ULOHA_KONSTRUKCNI;
   P102.CB := '102';
@@ -67,7 +67,7 @@ begin
   Alg := TRectangularMeasurementsAlgorithm.Create;
   try
     try
-      // 1. Right angle, expected corner 1 in X 0.00, Y 100.00
+      // 1. Right angle, expected corner 1 in X 0,00, Y 100,00
       RunChain('Pravý úhel (očekáváno bod 1: X 0,00, Y 100,00):');
 
       // 2. The given end is 0,1 m off, still within ud

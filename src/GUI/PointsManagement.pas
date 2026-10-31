@@ -104,16 +104,13 @@ type
   public
     /// <summary>Asks for a file and starts an empty list in it.</summary>
     function CreateNewList: Boolean;
-    /// <summary>Asks for a file and loads it.
-    /// On failure the open list stays.</summary>
+    /// <summary>Loads a chosen file, failure keeps the list.</summary>
     function OpenList: Boolean;
     /// <summary>Asks to save changes. False when the user cancels.</summary>
     function AskSaveChanges: Boolean;
-    /// <summary>Saves into the open file, or asks for one.
-    /// False when not saved.</summary>
+    /// <summary>Saves the list or asks for a file, False if not.</summary>
     function DoSave: Boolean;
-    /// <summary>Asks for a file name and saves into it.
-    /// False when not saved.</summary>
+    /// <summary>Saves under a new name, False if not saved.</summary>
     function SaveListAs: Boolean;
     /// <summary>Job protocol by the list, empty before a save.</summary>
     function JobProtocolFile: string;
@@ -161,7 +158,7 @@ begin
   // Point number: digits and a minus sign, empty deletes
   Filter := StringGrid1.ColumnFilters[COL_POINTNO];
   Filter.DataType   := cdtInteger;
-  Filter.MaxLength  := TValidationUtils.PointNumberDigits + 1;   // and a minus sign
+  Filter.MaxLength  := TValidationUtils.PointNumberDigits + 1; // with a minus
   Filter.AllowEmpty := True;
   // 16 digits without a minus sign would not fit
   Filter.HasMinValue := True;
@@ -395,10 +392,12 @@ begin
   if Points.PointExists(RowPoint(ARow)) then
     P := Points.GetPoint(RowPoint(ARow))
   else
-    P := TPoint.Create(RowPoint(ARow), 0, 0, 0, CurrentQuality, Trim(ComboBoxPopis.Text));
+    P := TPoint.Create(RowPoint(ARow), 0, 0, 0, CurrentQuality,
+      Trim(ComboBoxPopis.Text));
 
   Description := StringGrid1.Cells[COL_DESC, ARow];
-  if Description = '' then
+  // An emptied cell clears the description of a listed point
+  if (Description = '') and not Points.PointExists(RowPoint(ARow)) then
     Description := string(P.Description);
 
   Points.AddOrUpdatePoint(TPoint.Create(P.PointNumber,
@@ -732,7 +731,8 @@ var
   R: Integer;
 begin
   Text := '';
-  if not InputQuery('Jdi na bod', 'Číslo bodu:', Text) then
+  if not InputQuery('Jdi na bod', 'Číslo bodu:', Text) or
+    (Trim(Text) = '') then
     Exit;
   PointNumber := StrToInt64Def(BuildPointIdFromPrefixState(Trim(Text)), 0);
   for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
@@ -807,9 +807,8 @@ begin
 
   Points.Clear;
   FCurrentFile := '';
-  WriteListFile(FileName);
+  Result := WriteListFile(FileName);
   RefreshGrid;
-  Result := True;
 end;
 
 // Adds the points of a TXT or CSV file, asks about the existing ones
@@ -900,6 +899,7 @@ begin
   end;
 
   RefreshGrid;
+  UpdateStatusBar;
 
   // Counts, zeros left out
   Msg := Format('Nové body: %d.', [Added]);
@@ -918,7 +918,8 @@ begin
   // Dialog filter and extension by format
   if AFormat = ffTXT then
   begin
-    SaveDialog1.Filter     := 'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
+    SaveDialog1.Filter     :=
+      'Textové soubory (*.txt)|*.txt|Všechny soubory|*.*';
     SaveDialog1.DefaultExt := 'txt';
   end
   else

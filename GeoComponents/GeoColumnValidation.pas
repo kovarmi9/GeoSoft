@@ -10,9 +10,7 @@ uses
   System.Math;
 
 type
-  /// <summary>
-  /// Supported data types for a single column.
-  /// </summary>
+  /// <summary>Supported data types for a single column.</summary>
   TColumnDataType = (
     cdtNone,        // any text, no type restriction
     cdtInteger,     // whole number
@@ -26,17 +24,10 @@ type
     ciaBeepAndClear  // beep + clear the cell
   );
 
-  /// <summary>
-  /// Called when committing an empty cell that has ciaBlock set.
-  /// Set AHandled := True and fill AText to provide a default value.
-  /// If not handled, navigation is blocked and the user must fill the cell.
-  /// Assign this in FormCreate, not in the form designer.
-  /// </summary>
+  /// <summary>Default text for an empty cell, set AHandled.</summary>
   TGetDefaultTextEvent = procedure(var AText: string; var AHandled: Boolean) of object;
 
-  /// <summary>
-  /// Validation and formatting rules for one column.
-  /// </summary>
+  /// <summary>Validation and formatting rules for one column.</summary>
   TColumnFilter = class(TCollectionItem)
   private
     FDataType: TColumnDataType;
@@ -72,11 +63,7 @@ type
     constructor Create(Collection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
 
-    /// <summary>
-    /// Called when the cell is empty at commit time.
-    /// Assign this in FormCreate to supply a toolbar/UI default value.
-    /// Not stored in DFM.
-    /// </summary>
+    /// <summary>Default text for an empty cell, set in code.</summary>
     property OnGetDefaultText: TGetDefaultTextEvent
       read FOnGetDefaultText write FOnGetDefaultText;
 
@@ -112,47 +99,29 @@ type
     property MaxValue: Double
       read FMaxValue write SetMaxValue;
 
-    /// <summary>
-    /// Decimal places shown for Float / Expression, the cell keeps the
-    /// full value. -1 = show the value as it is.
-    /// </summary>
+    /// <summary>Decimals shown, -1 as is, the cell keeps all.</summary>
     property DecimalPlaces: Integer
       read FDecimalPlaces write SetDecimalPlaces default -1;
 
-    /// <summary>
-    /// True  - an empty cell is a valid value and stays empty.
-    /// False - an empty cell in a numeric column becomes '0' on commit.
-    /// </summary>
+    /// <summary>True keeps an empty cell, False makes it 0.</summary>
     property AllowEmpty: Boolean
       read FAllowEmpty write SetAllowEmpty default False;
 
-    /// <summary>
-    /// Period of a value that repeats, 0 for none. On commit the value is
-    /// moved into 0..WrapAt by whole periods. Use 400 for gon.
-    /// </summary>
+    /// <summary>Period of the value, 400 for gon, 0 for none.</summary>
     property WrapAt: Double
       read FWrapAt write SetWrapAt;
 
-    /// <summary>
-    /// Controls what happens when commit validation fails.
-    ///   ciaBlock        - beep + keep cell content, cursor stays (default)
-    ///   ciaBeepAndClear - beep + clear cell, cursor moves on
-    /// </summary>
+    /// <summary>ciaBlock keeps the value, ciaBeepAndClear clears it.</summary>
     property OnInvalidCommit: TCommitInvalidAction
       read FOnInvalidCommit write SetOnInvalidCommit
       default ciaBlock;
 
-    /// <summary>
-    /// True when the program fills this column. The cursor skips it, it
-    /// cannot be clicked and it is drawn grey. Code still writes into it.
-    /// </summary>
+    /// <summary>Filled by the program, the cursor skips it.</summary>
     property ReadOnly: Boolean
       read FReadOnly write SetReadOnly default False;
   end;
 
-  /// <summary>
-  /// Owned collection of TColumnFilter items, one per grid column.
-  /// </summary>
+  /// <summary>Filters of a grid, one per column.</summary>
   TColumnFilters = class(TOwnedCollection)
   private
     FOnChanged: TNotifyEvent;
@@ -180,42 +149,26 @@ type
       read FOnChanged write FOnChanged;
   end;
 
-/// <summary>
-/// Filters a key press based on the column rules.
-/// Sets Key to #0 to block characters that are not allowed.
-/// Call this from a KeyPress event handler.
-/// </summary>
+/// <summary>Drops a typed character the column does not allow.</summary>
 procedure FilterKeyPress(AFilter: TColumnFilter;
                          const AText: string; var Key: Char);
 
-/// <summary>
-/// Validates the full text after editing is done.
-/// Checks length, data type and value range.
-/// Returns True when the text passes all rules.
-/// </summary>
+/// <summary>True if the text passes length, type and range.</summary>
 function ValidateText(AFilter: TColumnFilter;
                       const AText: string): Boolean;
 
-/// <summary>
-/// Validates the text and formats it on success.
-/// For expressions: replaces AText with the computed result.
-/// Returns True if the value was accepted.
-/// </summary>
+/// <summary>Validates the text, an expression becomes its value.</summary>
 function TryCommitText(AFilter: TColumnFilter;
                        var AText: string): Boolean;
 
-/// <summary>A number with ADecimals places, -1 = all of them. Half rounds
-/// up, 0,125 gives 0,13.</summary>
+/// <summary>A number with ADecimals places, half rounds up.</summary>
 function FormatDouble(AValue: Double; ADecimals: Integer): string;
 
 /// <summary>The filter of the column, or nil if there is none.</summary>
 function ResolveFilter(AFilters: TColumnFilters;
                        AColumn: Integer): TColumnFilter;
 
-/// <summary>
-/// Evaluate arithmetic expression: + - * / ^ ( ) unary- decimals.
-/// Returns True on success.
-/// </summary>
+/// <summary>Evaluates + - * / ^ ( ), True on success.</summary>
 function TryEvaluateExpression(const Expr: string;
                                out Value: Double): Boolean;
 
@@ -394,7 +347,7 @@ begin
     FOnChanged(Self);
 end;
 
-{ --- Phase 5: Expression parser (recursive descent) --- }
+{ --- Expression parser --- }
 //
 //  Grammar:
 //    Expression := Term   (('+' | '-') Term)*            left-associative
@@ -683,7 +636,7 @@ begin
   end;
 end;
 
-{ --- Phase 3: Text validation (private helpers) --- }
+{ --- Text validation --- }
 
 function ValidateIntegerText(const AText: string): Boolean;
 var
@@ -741,7 +694,7 @@ begin
   Result := TryEvaluateExpression(AText, V);
 end;
 
-{ --- Phase 2 + 6: Keypress filtering (private helpers) --- }
+{ --- Key filtering --- }
 
 procedure FilterIntegerKey(const AText: string; var Key: Char);
 begin

@@ -488,6 +488,9 @@ begin
     EditStationKK.Text := IntToStr(Station.KK);
     EditStationPopis.Text := string(Station.Poznamka);
     StorePoint(Station);
+    // A number given in the dialog goes to the edit
+    FFrame.Rows[0].CB := Station.CB;
+    EditStationNo.Text := string(Station.CB);
   end;
 
   ShowProtocol;
@@ -696,8 +699,9 @@ begin
   begin
     Res := TPolarMethodAlgorithm.ResultOf(FFrame.Rows[0], FFrame.Rows[I],
       FAlg.Info.phi, FAlg.Scale, FAlg.Info.Longest);
-    Prot.FrameRow(FFrame.Rows[I], [IntToStr(FOrientRows[I - 1]), Num(Res.Ds), Num(Res.Limit),
-      Ang(Res.dPhi), Num(Res.p, 3), Ang(Res.Normed), Num(Res.dZ)]);
+    Prot.FrameRow(FFrame.Rows[I], [IntToStr(FOrientRows[I - 1]),
+      Num(Res.Ds), Num(Res.Limit), Ang(Res.dPhi), Num(Res.p, 3),
+      Ang(Res.Normed), Num(Res.dZ)]);
   end;
   Prot.Line;
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));

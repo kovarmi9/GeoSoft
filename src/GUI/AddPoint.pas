@@ -31,8 +31,7 @@ type
     class function ClampQuality(const AText: string; ADefault: Integer): Integer; static;
     class function ReadDefaultQuality: Integer; static;
   public
-    /// <summary>Asks for the missing point and saves it.
-    /// False on Cancel.</summary>
+    /// <summary>Asks for the missing point, False on Cancel.</summary>
     function Execute(PointNumber: Int64; out NewP: TPoint): Boolean;
   end;
 
@@ -103,7 +102,8 @@ end;
 class function TAddPointForm.ClampQuality(const AText: string; ADefault: Integer): Integer;
 begin
   Result := StrToIntDef(Trim(AText), ADefault);
-  if (Result < TValidationUtils.MinQuality) or (Result > TValidationUtils.MaxQuality) then
+  if (Result < TValidationUtils.MinQuality) or
+    (Result > TValidationUtils.MaxQuality) then
     Result := ADefault;
 end;
 
@@ -158,14 +158,13 @@ end;
 
 function TAddPointForm.Execute(PointNumber: Int64; out NewP: TPoint): Boolean;
 var
-  StoredPointNumber: Int64;
   Desc: string;
 begin
   // The caller passes the full 15-digit number
-  StoredPointNumber := PointNumber;
   StringGrid.Cells[COL_POINTNO, DATA_ROW] := Format('%.15d', [PointNumber]);
   lblWarning.Caption :=
-    Format('Bod %.15d nebyl nalezen. Přejete si jej přidat?', [StoredPointNumber]);
+    Format('Bod %.15d nebyl nalezen. Přejete si jej přidat?',
+      [PointNumber]);
 
   Result := ShowModal = mrOk;
   if not Result then
@@ -177,24 +176,13 @@ begin
     Desc := Trim(GPointPrefix.Popis);
 
   NewP := TPoint.Create(
-    StoredPointNumber,
+    PointNumber,
     StrToFloatDef(StringGrid.Cells[CoordColX(COL_COORD), DATA_ROW], 0.0),
     StrToFloatDef(StringGrid.Cells[CoordColY(COL_COORD), DATA_ROW], 0.0),
     StrToFloatDef(StringGrid.Cells[COL_Z, DATA_ROW], 0.0),
     ClampQuality(StringGrid.Cells[COL_QUALITY, DATA_ROW], ReadDefaultQuality),
     Desc
   );
-
-  // Ask before overwriting
-  if TPointDictionary.GetInstance.PointExists(NewP.PointNumber) then
-    if Application.MessageBox(
-      PChar(Format('Bod %.15d již existuje. Chcete ho přepsat?',
-        [NewP.PointNumber])),
-      'Dotaz', MB_YESNO or MB_ICONQUESTION) <> IDYES then
-    begin
-      Result := False;
-      Exit;
-    end;
 
   TPointDictionary.GetInstance.AddOrUpdatePoint(NewP);
 end;

@@ -1,9 +1,7 @@
 ﻿unit GeoAlgorithmLHuilier;
 
-// Výpočet plochy pomocí L'Huillierových vzorců (rozklad na lichoběžníky).
-// Algebraicky shodné se shoelace vzorcem, výsledek bere Abs(), takže
-// nezávisí na směru číslování lomových bodů (po i proti směru
-// hodinových ručiček).
+// Parcel area by the L'Huilier formula
+//   P = |sum(Y[i] * X[i+1] - Y[i+1] * X[i])| / 2
 
 interface
 

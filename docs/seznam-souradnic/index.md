@@ -16,3 +16,11 @@ Seznam se skládá z vrstev, od nejmenší po okno:
 
 Každá vrstva používá jen vrstvy nad sebou: okno pracuje se seznamem,
 seznam s body, bod se o seznamu ani o okně nedozví.
+
+```mermaid
+flowchart TB
+  O["Okna<br>PointsManagement.pas, AddPoint.pas"] --> L["Seznam bodů<br>PointsUtilsSingleton.pas"]
+  O --> H["Pomocné<br>CoordOrderState.pas, PointPrefixState.pas"]
+  L --> B["Bod<br>Point.pas, ValidationUtils.pas"]
+  L --> F["Soubory .yxz .xyz .txt .csv"]
+```

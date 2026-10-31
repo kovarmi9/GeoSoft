@@ -50,6 +50,7 @@ type
     procedure ButtonSaveClick(Sender: TObject);
     procedure ButtonJobProtocolClick(Sender: TObject);
     procedure MenuProtocolClick(Sender: TObject);
+    procedure MenuNapovedaClick(Sender: TObject);
     /// <summary>OnExit of each calculation grid, keeps a typed value.</summary>
     procedure GridExit(Sender: TObject);
   private
@@ -70,8 +71,7 @@ type
     /// <summary>Výpočet of the descendant, True if it wrote.</summary>
     function RunCalculation(Sender: TObject): Boolean;
     procedure CalculateAndProtocol(Sender: TObject);
-    /// <summary>Appends the window protocol to the .ptk.
-    /// AAsk shows why nothing was written.</summary>
+    /// <summary>Appends the protocol to the .ptk, AAsk tells why not.</summary>
     procedure WriteJobProtocol(AAsk: Boolean);
     procedure ShowStatus(const AText: string);
     /// <summary>The button by Nastavení, Protokol.</summary>
@@ -97,15 +97,13 @@ type
     /// <summary>The next run asks again about existing points.</summary>
     procedure ForgetAnswers;
 
-    /// <summary>Confirms the cell being typed in, as Enter would.
-    /// False when the value is invalid, the cursor stays in the cell.</summary>
+    /// <summary>Confirms the typed cell, False if invalid.</summary>
     function CommitEditing: Boolean;
 
     /// <summary>Finds a point or offers to add it.</summary>
     function LookupPoint(PointNo: Int64; out pt: Point.TPoint): Boolean;
 
-    /// <summary>Saves a computed point, asks when its number is in the list.
-    /// A new number from the user is written into ARow.CB.</summary>
+    /// <summary>Saves a computed point, asks if its number exists.</summary>
     procedure StorePoint(var ARow: TGeoRow);
 
     /// <summary>True if a point from the list was overwritten.</summary>
@@ -120,8 +118,7 @@ type
     /// <summary>Č. of a frame row, the grid row by default.</summary>
     function GridNumber(AFrameRow: Integer): string; virtual;
 
-    /// <summary>Rows AFrom..ATo of FFrame as a table under ACaption.
-    /// AResults: the rows were stored, they get UpdatedTail.</summary>
+    /// <summary>Rows AFrom..ATo as a table, stored ones marked.</summary>
     procedure FrameTable(const ACaption: string; AFrame: TGeoDataFrame;
       const AColumns: array of TProtocolColumn; AFrom, ATo: Integer;
       AResults: Boolean = False);
@@ -135,32 +132,20 @@ type
     /// <summary>True for a point this form added to the list itself.</summary>
     function IsNewPoint(APointNumber: Int64): Boolean;
 
-    /// <summary>Starts the protocol, False when nothing more follows:
-    /// an empty notebook clears it, a failed run shows its errors.</summary>
+    /// <summary>Starts the protocol, False if nothing follows.</summary>
     function BeginProtocol(ALines: TStrings; const ATitle: string;
       AValid: Boolean; AFrame: TGeoDataFrame; AWarnings: TStrings): Boolean;
 
-    /// <summary>
-    /// Descendants override this to set the column order of their grids.
-    /// A field grid and a pair of edits check the order themselves, a plain
-    /// grid cannot, so that form has to remember what it already applied.
-    /// </summary>
+    /// <summary>Sets the Y, X column order of the grids.</summary>
     procedure ApplyCoordOrderToGrids; virtual;
 
-    /// <summary>
-    /// Descendants override this to take over GSettings: the scale for
-    /// their algorithm, the columns of their grids.
-    /// </summary>
+    /// <summary>Takes over GSettings, the scale and the columns.</summary>
     procedure ApplySettings; virtual;
 
-    /// <summary>Shows the decimals of GSettings in every field grid.
-    /// A form with a plain grid adds its own columns.</summary>
+    /// <summary>Shows the GSettings decimals in the grids.</summary>
     procedure ApplyDecimals; virtual;
 
-    /// <summary>
-    /// Writes the whole protocol into ALines, starting with Prot.Title and
-    /// ending with Prot.Finish. Every calculation form overrides it.
-    /// </summary>
+    /// <summary>Writes the whole protocol, Title to Finish.</summary>
     procedure WriteProtocol(ALines: TStrings); virtual;
 
     /// <summary>Puts loaded rows into the grids. Bad rows go to ABad.</summary>
@@ -169,8 +154,7 @@ type
     /// <summary>Empties the data cells and sets the row count.</summary>
     procedure ClearGrid(AGrid: TGeoGrid; ARowCount: Integer);
 
-    /// <summary>Puts one row into the grid. A bad row goes to ABad.
-    /// AIndex is the row in the file.</summary>
+    /// <summary>Puts one row into the grid, a bad one to ABad.</summary>
     function PutRow(AGrid: TGeoFieldsGrid; ARow: Integer;
       const GRow: TGeoRow; AIndex: Integer; ABad: TStrings): Boolean;
 
@@ -193,9 +177,11 @@ implementation
 {$R *.dfm}
 
 uses
-  SettingsDialog, ExistingPoint, SettingsState, PointsManagement;
+  Winapi.ShellAPI, SettingsDialog, ExistingPoint, SettingsState,
+  PointsManagement;
 
 const
+  DOCS_URL = 'https://kovarmi9.github.io/GeoSoft/';
   // Fields shown with the length and the angle decimals
   LENGTH_FIELDS = [X, Y, Z, Xm, Ym, Zm, SH, SS, VS, VC, PolarD, PolarK,
     Vy, Vx, Vz, Sxy];
@@ -340,8 +326,10 @@ end;
 // Zeros for KU and ZPMZ
 procedure TCalcBaseForm.PrefixComboExit(Sender: TObject);
 begin
-  ComboBoxKU.Text   := NormalizeNumericPrefix(ComboBoxKU.Text, ComboBoxKU.MaxLength);
-  ComboBoxZPMZ.Text := NormalizeNumericPrefix(ComboBoxZPMZ.Text, ComboBoxZPMZ.MaxLength);
+  ComboBoxKU.Text :=
+    NormalizeNumericPrefix(ComboBoxKU.Text, ComboBoxKU.MaxLength);
+  ComboBoxZPMZ.Text :=
+    NormalizeNumericPrefix(ComboBoxZPMZ.Text, ComboBoxZPMZ.MaxLength);
   SavePrefix;
   LoadPrefix;
 end;
@@ -406,10 +394,9 @@ begin
   PointNumber := StrToInt64Def(Trim(string(ARow.CB)), 0);
   if FNewPoints.Contains(PointNumber) then
     Exit(False);
-  // Only an overwritten point was updated
-  if FAnswers.TryGetValue(PointNumber, Answer) then
-    Exit((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
-  Result := True;
+  // Only a point the user let overwrite was updated
+  Result := FAnswers.TryGetValue(PointNumber, Answer) and
+    ((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
 end;
 
 function TCalcBaseForm.UpdatedTail(const ARow: TGeoRow): string;
@@ -597,6 +584,13 @@ end;
 procedure TCalcBaseForm.MenuProtocolClick(Sender: TObject);
 begin
   PointsManagementForm.ShowJobProtocol;
+end;
+
+// HelpKeyword is the page of the task in the docs
+procedure TCalcBaseForm.MenuNapovedaClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', PChar(DOCS_URL + HelpKeyword), nil, nil,
+    SW_SHOWNORMAL);
 end;
 
 procedure TCalcBaseForm.ApplyCoordOrderToGrids;

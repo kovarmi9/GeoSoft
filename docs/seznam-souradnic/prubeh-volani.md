@@ -1,69 +1,59 @@
 # Průběh volání
 
+Šipka vede od procedury k proceduře, kterou volá.
+
 ## Ukládání
 
-```text
-WriteListFile    ← jediný zápis na disk
-   ↑
-SaveListAs       ← dialog na jméno
-   ↑
-DoSave           ← bez souboru → SaveListAs
-   ↑
-AskSaveChanges   ← „Uložit změny?“
+```mermaid
+flowchart TB
+  A["AskSaveChanges<br>„Uložit změny?“"] --> D["DoSave<br>bez souboru → SaveListAs"]
+  D --> S["SaveListAs<br>dialog na jméno"]
+  S --> W["WriteListFile<br>jediný zápis na disk"]
+  W --> E["ExportToBinary<br>dočasný soubor, pak nahradí"]
 ```
 
 ## Otevření a nový seznam
 
-```text
-LoadFromBinary   ← pořadí Y/X podle přípony
-   ↑
-OpenList         ← AskSaveChanges → dialog → načtení
+```mermaid
+flowchart TB
+  O["OpenList<br>AskSaveChanges → dialog → načtení"] --> L["LoadFromBinary<br>pořadí Y/X podle přípony"]
 ```
 
-```text
-WriteListFile    ← prázdný seznam hned na disk
-   ↑
-CreateNewList    ← AskSaveChanges → dialog → Clear
+```mermaid
+flowchart TB
+  N["CreateNewList<br>AskSaveChanges → dialog → Clear"] --> W["WriteListFile<br>prázdný seznam hned na disk"]
 ```
 
 ## Import a export
 
-```text
-AskExistingPoint ← existující bod: ponechat, nový, průměr, nové číslo
-   ↑
-DoImport         ← nejdřív ReadFromTXT / ReadFromCSV (jen čte), pak přidává
+```mermaid
+flowchart TB
+  I["DoImport<br>nejdřív ReadFromTXT / ReadFromCSV (jen čte), pak přidává"] --> A["AskExistingPoint<br>existující bod: ponechat, nový, průměr, nové číslo"]
 ```
 
-```text
-ExportText       ← seřazeno podle čísla
-   ↑
-DoExport         ← jméno seznamu + .txt / .csv
+```mermaid
+flowchart TB
+  X["DoExport<br>jméno seznamu + .txt / .csv"] --> T["ExportText<br>seřazeno podle čísla"]
 ```
 
 ## Tabulka
 
-```text
-AddOrUpdatePoint ← změna hned v seznamu
-   ↑
-StoreRow         ← nový bod: KK a popis z lišty
-   ↑
-NumberCommitted  ← předčíslí, přečíslování
-   ↑
-GridCellCommitted
+```mermaid
+flowchart TB
+  G["GridCellCommitted"] --> N["NumberCommitted<br>předčíslí, přečíslování"]
+  N --> S["StoreRow<br>nový bod: KK a popis z lišty"]
+  S --> A["AddOrUpdatePoint<br>změna hned v seznamu"]
 ```
 
-```text
-RemovePoint
-   ↑
-DeleteSelected   ← jeden dotaz na všechny označené
-   ↑
-Delete na čísle
+```mermaid
+flowchart TB
+  K["Delete na čísle"] --> D["DeleteSelected<br>jeden dotaz na všechny označené"]
+  D --> R["RemovePoint"]
 ```
 
 ## Návrat do okna
 
-```text
-RefreshGrid      ← jen po změně z výpočtu
-   ↑
-FormActivate
+```mermaid
+flowchart TB
+  F["FormActivate"] --> R["RefreshGrid<br>jen po změně z výpočtu"]
 ```

@@ -1,9 +1,6 @@
 ﻿unit GeoPointsGrid;
 
-/// <summary>
-/// Grid with column-based validation filters.
-/// ColumnFilters are indexed only for data columns (excluding fixed columns).
-/// </summary>
+// TGeoGrid with a filter per data column
 
 interface
 
@@ -19,20 +16,14 @@ uses
 type
   TGeoPointsGrid = class;
 
-  /// <summary>
-  /// Custom inplace editor with character-level validation.
-  /// </summary>
+  /// <summary>Custom inplace editor with character-level validation.</summary>
   TGeoPointsInplaceEdit = class(TGeoInplaceEdit)
   protected
-    /// <summary>
-    /// Intercepts key press and applies column filter validation.
-    /// </summary>
+    /// <summary>Filters the typed key by the column.</summary>
     procedure KeyPress(var Key: Char); override;
   end;
 
-  /// <summary>
-  /// Grid with validation filters applied per data column.
-  /// </summary>
+  /// <summary>Grid with validation filters applied per data column.</summary>
   TGeoPointsGrid = class(TGeoGrid)
   private
     /// <summary>Collection of validation filters.</summary>
@@ -53,9 +44,7 @@ type
     /// <summary>Called when filters are modified.</summary>
     procedure ColumnFiltersChanged(Sender: TObject);
 
-    /// <summary>
-    /// First validation layer: filters invalid characters during typing.
-    /// </summary>
+    /// <summary>Drops characters the column does not allow.</summary>
     procedure FilterTypedChar(const AText: string; var Key: Char);
 
   protected
@@ -71,21 +60,15 @@ type
     /// <summary>Called when grid size (columns/rows) changes.</summary>
     procedure SizeChanged(OldColCount, OldRowCount: Longint); override;
 
-    /// <summary>
-    /// Validates and commits cell value.
-    /// On failure sets FLastCommitFailed (inherited) when ciaBlock is active -
-    /// TGeoGrid.SelectCell then blocks navigation automatically.
-    /// </summary>
+    /// <summary>Validates and commits the cell value.</summary>
     procedure CommitCell; override;
 
     /// <summary>A column the program fills is not for the cursor.</summary>
     function CellSelectable(ACol, ARow: Integer): Boolean; override;
 
   public
-    /// <summary>Constructor.</summary>
     constructor Create(AOwner: TComponent); override;
 
-    /// <summary>Destructor.</summary>
     destructor Destroy; override;
 
   published
@@ -93,15 +76,7 @@ type
     property ColumnHeaders;
     property RowHeaders;
 
-    /// <summary>
-    /// Validation filters for data columns only.
-    /// Item index 0 corresponds to first data column (after FixedCols).
-    ///
-    /// They can be set here in the designer or in code. GeoSoft sets them
-    /// in FormCreate: the designer shows the items by index only, while
-    /// code can name the column (ColumnFilters[COL_QUALITY]) and comment
-    /// it, and OnGetDefaultText cannot be assigned in the designer at all.
-    /// </summary>
+    /// <summary>Filters of the data columns, set in FormCreate.</summary>
     property ColumnFilters: TColumnFilters
       read FColumnFilters write SetColumnFilters;
   end;
@@ -125,7 +100,6 @@ constructor TGeoPointsGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  // Create filter collection owned by grid
   FColumnFilters := TColumnFilters.Create(Self);
 
   // React to filter changes
@@ -137,14 +111,12 @@ end;
 
 destructor TGeoPointsGrid.Destroy;
 begin
-  // Free filter collection
   FColumnFilters.Free;
   inherited Destroy;
 end;
 
 function TGeoPointsGrid.CreateEditor: TInplaceEdit;
 begin
-  // Use custom inplace editor with validation support
   Result := TGeoPointsInplaceEdit.Create(Self);
 end;
 
@@ -198,7 +170,6 @@ begin
   // Ensure correct count
   EnsureFilterCount;
 
-  // Redraw grid
   Invalidate;
 end;
 
@@ -256,7 +227,7 @@ begin
     Exit;
   end;
 
-  // Reset před validací - FLastCommitFailed je zděděný z TGeoGrid
+  // Reset before the check, inherited flag
   FLastCommitFailed := False;
 
   Text := InplaceEditor.Text;

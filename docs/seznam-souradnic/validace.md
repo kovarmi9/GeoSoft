@@ -19,7 +19,13 @@ konstanty – podle nich nastavují tabulky svou kontrolu zadávání.
 
 Pro posouzení přesnosti bodu (transformace, polární metoda) slouží:
 
-- `MxyOfQuality` – Mxy kódu kvality podle KatV 13.9 a 15.6
-  (3 = 0,14, 4 = 0,26, 5 = 0,50, 6 = 0,21, 7 = 0,50, 8 = 1,00 m), jinak neurčeno
-- `MxyBand` – pásmo bodu podle Sxy: do Mxy (menší než Mxy), do Uxy
-  (nepřekročí Uxy = 2·Mxy), přes Uxy, podle KatV 13.7 a 13.8
+- `MxyOfQuality` – $M_{xy}$ kódu kvality podle KatV 13.9 a 15.6, pro
+  ostatní kódy neurčeno:
+
+    | kód kvality | 3 | 4 | 5 | 6 | 7 | 8 |
+    |---|---|---|---|---|---|---|
+    | $M_{xy}$ [m] | 0,14 | 0,26 | 0,50 | 0,21 | 0,50 | 1,00 |
+
+- `MxyBand` – pásmo bodu podle $S_{xy}$: do Mxy ($S_{xy} < M_{xy}$),
+  do Uxy ($S_{xy} \le U_{xy}$, $U_{xy} = 2\,M_{xy}$), přes Uxy, podle
+  KatV 13.7 a 13.8

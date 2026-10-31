@@ -1,9 +1,6 @@
 ﻿unit GeoAlgorithmPolar;
 
-// Polar method, fixed or free station.
-// Row 0 is the station, then the orientations, then the detail points.
-// The free station is congruent by default: lengths are already reduced
-// by Scale, so a scale left to estimate would be error, not signal.
+// Polar method, fixed or free station
 
 interface
 
@@ -90,8 +87,7 @@ type
     /// <summary>Height difference of one sight, NaN without zenith.</summary>
     class function HeightDiff(const ARow: TGeoRow): Double;
 
-    /// <summary>Residuals of one orientation. Without ALongest the
-    /// weight is 1.</summary>
+    /// <summary>Orientation residuals, weight 1 without ALongest.</summary>
     class function ResultOf(const AStation, ARow: TGeoRow;
                             APhi, AScale: Double;
                             ALongest: Double = 0): TOrientResult;
@@ -121,7 +117,7 @@ const
 constructor TPolarMethodAlgorithm.Create;
 begin
   inherited Create;
-  FCongruent := True;
+  FCongruent := True;    // lengths are scaled already
   FCongruentTr := TCongruentTransformation.Create;
   FHelmertTr := TSimilarityTransformation.Create;
 end;

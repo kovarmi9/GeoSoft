@@ -27,11 +27,7 @@ type
     // Messages of the last run, an error has ErrorMark in Objects
     property Warnings: TStringList read FWarnings;
 
-    /// <summary>
-    /// Turns a measured length into a length of the S-JTSK plane: the
-    /// cartographic distortion and the reduction from elevation in one
-    /// number. Prepared, the program keeps it at 1.0.
-    /// </summary>
+    /// <summary>Length scale to the S-JTSK plane, 1 by default.</summary>
     property Scale: Double read FScale write FScale;
   end;
 

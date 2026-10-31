@@ -53,9 +53,7 @@ type
     /// <summary>Saves the frame to a CSV file.</summary>
     procedure ToCSV(const AFileName: string; const ACellSep: Char = ';'; const ADecSep: Char = ','); overload;
 
-    /// <summary>Reads CSV lines. Fields come from the header.
-    /// Takes any TStrings, e.g. a TStringList or Memo1.Lines.
-    /// A row with a non-number cell is left out, see ABad.</summary>
+    /// <summary>Reads CSV lines, fields from the header, bad to ABad.</summary>
     procedure FromCSV(const ACSV: TStrings; const ACellSep: Char = ';'; const ADecSep: Char = ',';
       ABad: TStrings = nil); overload;
     /// <summary>Reads a CSV file. Fields come from the header.</summary>
@@ -90,10 +88,10 @@ end;
 // Splits one CSV line into cells, handles quotes and ""
 function SplitCsvLine(const ALine: string; ASep: Char): TStrArray;
 var
-  I, N: Integer;     // I = current char index, N = number of stored cells
-  InQuotes: Boolean; // True while inside a quoted field
-  Ch: Char;          // current character
-  Buf: string;       // the current cell
+  I, N: Integer;
+  InQuotes: Boolean;
+  Ch: Char;
+  Buf: string;
 begin
   SetLength(Result, 0);
   Buf := '';
@@ -105,7 +103,6 @@ begin
   begin
     Ch := ALine[I];
 
-    // Handle double-quote characters
     if Ch = '"' then
     begin
       // "" inside quotes means one " in the cell
@@ -117,14 +114,12 @@ begin
       end
       else
       begin
-        // Toggle in/out of quoted mode
         InQuotes := not InQuotes;
         I := I + 1;
         Continue;
       end;
     end;
 
-    // Unquoted separator - close the current cell and start a new one
     if (not InQuotes) and (Ch = ASep) then
     begin
       SetLength(Result, N + 1);
@@ -135,12 +130,10 @@ begin
       Continue;
     end;
 
-    // Regular character - append to current cell
     Buf := Buf + Ch;
     I := I + 1;
   end;
 
-  // Store the last cell
   SetLength(Result, N + 1);
   Result[N] := Buf;
 end;
@@ -281,10 +274,8 @@ begin
 
   CSV := TStringList.Create;
   try
-    // Header row
     CSV.Add(PrintGeoFields(Fields, string(ACellSep)));
 
-    // Data rows
     for RowIndex := 0 to Count - 1 do
     begin
       Line := '';
@@ -338,6 +329,7 @@ var
   UsedFields: TGeoFields;
   S, Bad: string;
   Number: Double;
+  Whole: Integer;
 begin
   if (ACSV = nil) or (ACSV.Count = 0) then
   begin
@@ -347,7 +339,6 @@ begin
 
   FS := CsvFormat(ACellSep, ADecSep);
 
-  // Parse header row to build column-to-field mapping
   Header := SplitCsvLine(ACSV[0], ACellSep);
   ColCount := Length(Header);
 
@@ -377,7 +368,6 @@ begin
   FFields := UsedFields;
   Reserve(ACSV.Count - 1);   // room for all lines at once
 
-  // Parse data rows, skip empty lines
   for I := 1 to ACSV.Count - 1 do
     if Trim(ACSV[I]) <> '' then
     begin
@@ -395,6 +385,10 @@ begin
           // Only the point numbers and the note are text
           if not (ColMap[J] in [CB, CBm, Poznamka]) and (Trim(S) <> '') and
              not TryStrToFloat(Trim(S), Number, FS) and (Bad = '') then
+            Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
+          // Task, length type and quality are whole numbers
+          if (ColMap[J] in [Uloha, TypS, KK]) and (Trim(S) <> '') and
+             not TryStrToInt(Trim(S), Whole) and (Bad = '') then
             Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
         end;
 
@@ -430,7 +424,6 @@ var
   Header: TGeoRow;
   I: Integer;
 begin
-  // Allocate buffer for header record + data rows
   SetLength(Buffer, FCount + 1);
 
   // Header record at Buffer[0] encodes the active field mask
@@ -441,7 +434,6 @@ begin
 
   Buffer[0] := Header;
 
-  // Copy data rows into Buffer[1..FCount]
   for I := 0 to FCount - 1 do
     Buffer[I + 1] := FRows[I];
 
@@ -457,7 +449,6 @@ var
 begin
   AllRows := LoadRows(AFileName);
 
-  // Empty file - reset and exit
   if Length(AllRows) = 0 then
   begin
     ClearData;

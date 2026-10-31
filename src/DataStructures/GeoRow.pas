@@ -54,7 +54,7 @@ type
     Poznamka:      string[MAX_POPIS]; // note
     KK:            Integer;           // quality code 0..8
     Vy, Vx, Vz:    Double;            // computed minus given position
-    Sxy:           Double;            // mean coordinate error, sqrt((Vy^2 + Vx^2) / 2)
+    Sxy:           Double;            // mean error, sqrt((Vy^2 + Vx^2) / 2)
   end;
 
   /// <summary>Array of rows.</summary>

@@ -9,9 +9,7 @@ uses
   GeoRow;
 
 type
-  /// <summary>
-  /// Plain filter definition for one column.
-  /// </summary>
+  /// <summary>Plain filter definition for one column.</summary>
   TColumnFilterData = record
     MinLength: Integer;
     MaxLength: Integer;
@@ -24,9 +22,7 @@ type
     WrapAt: Double;
   end;
 
-  /// <summary>
-  /// One field definition for one grid column.
-  /// </summary>
+  /// <summary>One field definition for one grid column.</summary>
   TGeoFieldColumn = record
     DisplayName: string;
     DataType: TColumnDataType;
@@ -34,22 +30,16 @@ type
   end;
 
 var
-  /// <summary>
-  /// Default column definitions for all geodetic fields.
-  /// </summary>
+  /// <summary>Default column definitions for all geodetic fields.</summary>
   GeoFieldColumns: array[TGeoField] of TGeoFieldColumn;
 
-/// <summary>
-/// Copy record-based field definition into runtime TColumnFilter.
-/// </summary>
+/// <summary>Copies a field definition into a TColumnFilter.</summary>
 procedure ApplyFieldColumnToFilter(const AData: TGeoFieldColumn;
   AFilter: TColumnFilter);
 
 implementation
 
-/// <summary>
-/// No value limits, only decimal places.
-/// </summary>
+/// <summary>No value limits, only decimal places.</summary>
 function MakeFloat(ADecimalPlaces: Integer): TColumnFilterData;
 begin
   Result.MinLength := 0;
@@ -63,9 +53,7 @@ begin
   Result.WrapAt := 0;
 end;
 
-/// <summary>
-/// Minimum numeric value.
-/// </summary>
+/// <summary>Minimum numeric value.</summary>
 function MakeMin(AMinValue: Double; ADecimalPlaces: Integer): TColumnFilterData;
 begin
   Result.MinLength := 0;
@@ -79,9 +67,7 @@ begin
   Result.WrapAt := 0;
 end;
 
-/// <summary>
-/// Numeric value range.
-/// </summary>
+/// <summary>Numeric value range.</summary>
 function MakeRange(AMinValue, AMaxValue: Double;
   ADecimalPlaces: Integer): TColumnFilterData;
 begin
@@ -96,9 +82,7 @@ begin
   Result.WrapAt := 0;
 end;
 
-/// <summary>
-/// Text length limit.
-/// </summary>
+/// <summary>Text length limit.</summary>
 function MakeText(AMaxLength: Integer): TColumnFilterData;
 begin
   Result.MinLength := 0;
@@ -112,11 +96,8 @@ begin
   Result.WrapAt := 0;
 end;
 
-/// <summary>
-/// Integer length limit.
-/// </summary>
-function MakeInteger(AMaxLength: Integer;
-  AAllowEmpty: Boolean = False): TColumnFilterData;
+/// <summary>Integer length limit.</summary>
+function MakeInteger(AMaxLength: Integer): TColumnFilterData;
 begin
   Result.MinLength := 0;
   Result.MaxLength := AMaxLength;
@@ -125,13 +106,11 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := -1;
-  Result.AllowEmpty := AAllowEmpty;
+  Result.AllowEmpty := False;
   Result.WrapAt := 0;
 end;
 
-/// <summary>
-/// Integer with a length limit and a value range.
-/// </summary>
+/// <summary>Integer with a length limit and a value range.</summary>
 function MakeIntegerRange(AMaxLength: Integer;
   AMinValue, AMaxValue: Double): TColumnFilterData;
 begin
@@ -146,9 +125,7 @@ begin
   Result.WrapAt := 0;
 end;
 
-/// <summary>
-/// Point number: 15 digits and a minus sign, may be empty.
-/// </summary>
+/// <summary>Point number: 15 digits and a minus sign, may be empty.</summary>
 function MakePointNumber: TColumnFilterData;
 begin
   // The length lets the minus sign in, the range keeps 16 digits out
@@ -156,9 +133,7 @@ begin
   Result.AllowEmpty := True;
 end;
 
-/// <summary>
-/// Angle in gon: no limits, the value wraps into 0..400.
-/// </summary>
+/// <summary>Angle in gon: no limits, the value wraps into 0..400.</summary>
 function MakeGon(ADecimalPlaces: Integer): TColumnFilterData;
 begin
   Result.MinLength := 0;
@@ -172,9 +147,7 @@ begin
   Result.WrapAt := 400;
 end;
 
-/// <summary>
-/// Store one field definition into global defaults.
-/// </summary>
+/// <summary>Store one field definition into global defaults.</summary>
 procedure SetField(AField: TGeoField; const ADisplayName: string;
   ADataType: TColumnDataType; const AFilter: TColumnFilterData);
 begin
@@ -183,9 +156,7 @@ begin
   GeoFieldColumns[AField].Filter := AFilter;
 end;
 
-/// <summary>
-/// Copy record definition into runtime filter object.
-/// </summary>
+/// <summary>Copy record definition into runtime filter object.</summary>
 procedure ApplyFieldColumnToFilter(const AData: TGeoFieldColumn;
   AFilter: TColumnFilter);
 begin

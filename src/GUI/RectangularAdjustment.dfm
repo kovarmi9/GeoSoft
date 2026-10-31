@@ -1,6 +1,7 @@
 inherited RectangularAdjustmentForm: TRectangularAdjustmentForm
   ActiveControl = StringGrid1
   Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233' s vyrovn'#225'n'#237'm'
+  HelpKeyword = 'vypocty/konstrukcni-omerne-s-vyrovnanim/'
   OnCreate = FormCreate
   TextHeight = 15
   object StringGrid1: TGeoFieldsGrid [2]

@@ -1,5 +1,6 @@
 inherited PolarMethodForm: TPolarMethodForm
   Caption = 'Pol'#225'rn'#237' metoda'
+  HelpKeyword = 'vypocty/polarni-metoda/'
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
     object ToolButton4: TToolButton

@@ -1,7 +1,6 @@
 ﻿unit GeoAlgorithmTransformation;
 
 // Transformation (task 65) over a frame
-//   Y, X target, Ym, Xm source, TypS role of the row
 
 interface
 
@@ -129,11 +128,10 @@ var
   KeyRows: TArray<Integer>;   // frame row of each identical point
 begin
   ClearWarnings;
-  FInfo.Valid := False;
+  FInfo := Default(TTransformationInfo);   // nothing of the last run stays
   FInfo.Scale := NaN;
   FInfo.MeanError := NaN;
   FInfo.CircleRadius := NaN;
-  SetLength(FInfo.OutsideRows, 0);
 
   ClearResults(AFrame);     // old results must not survive a failed run
 

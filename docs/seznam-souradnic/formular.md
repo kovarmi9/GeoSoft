@@ -14,6 +14,9 @@ seznam mezitím změnil, třeba výpočtem; rozepsaná buňka tak zůstane.
 - **Označení** ve sloupci čísla: klik, Ctrl+klik (přidat nebo ubrat),
   Shift+klik nebo Shift+šipky (rozsah), Ctrl+A (vše).
 - **Smazání** – klávesa Delete smaže označené body po potvrzení.
+- **Jdi na bod** (Ctrl+F) – zeptá se na číslo bodu, krátké číslo doplní
+  předčíslím z lišty a přesune kurzor na řádek bodu. Bod, který
+  v seznamu není, ohlásí.
 - **Lišta** – KÚ a ZPMZ přijímají jen číslice a při opuštění se doplní
   nulami; Enter přeskočí na další pole, z popisu do tabulky. KK a popis
   z lišty dostane nový bod.

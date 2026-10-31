@@ -1,6 +1,7 @@
 inherited DistanceIntersectionForm: TDistanceIntersectionForm
   ActiveControl = Grid
   Caption = 'Prot'#237'n'#225'n'#237' z d'#233'lek'
+  HelpKeyword = 'vypocty/protinani-z-delek/'
   TextHeight = 15
   object Grid: TGeoFieldsGrid [2]
     Left = 0

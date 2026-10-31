@@ -51,7 +51,8 @@ begin
 
   Row := Frame.Rows[RESECTION_POINTS];
 
-  Writeln('  ', string(Row.CB), ': Y ', Row.Y:0:3, '  X ', Row.X:0:3, '  KK ', Row.KK);
+  Writeln('  ', string(Row.CB), ': Y ', Row.Y:0:3, '  X ', Row.X:0:3,
+    '  KK ', Row.KK);
 
   Writeln;
 end;

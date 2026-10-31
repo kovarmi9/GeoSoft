@@ -7,9 +7,7 @@ uses
   Vcl.Forms, Point, CoordOrderState;
 
 type
-  /// <summary>
-  /// The one point list. The form asks before overwriting.
-  /// </summary>
+  /// <summary>The one point list of the program.</summary>
   TPointDictionary = class
   private
     FPointDict: TDictionary<Int64, TPoint>;
@@ -17,7 +15,7 @@ type
     FChangeCount: Integer;
     class var FInstance: TPointDictionary;
     procedure CheckFileError(const FileName: string);
-    procedure ReportImport(AImported, AUpdated, ASkipped: Integer);
+    procedure ReportImport(AImported: Integer);
     // .yxz keeps Y first
     class procedure SwapXY(var P: TPoint); static;
     // True when nothing changed
@@ -29,7 +27,6 @@ type
       APoints: TList<TPoint>): Integer;
     procedure ExportText(const FileName: string; ADelimiter: Char);
 
-    function GetValues: TEnumerable<TPoint>;
   public
     /// <summary>Use GetInstance instead.</summary>
     constructor Create;
@@ -64,8 +61,7 @@ type
     procedure ExportToTXT(const FileName: string);
     /// <summary>Saves a CSV file, sorted by number.</summary>
     procedure ExportToCSV(const FileName: string);
-    /// <summary>Reads points of a TXT file into APoints, the list stays.
-    /// Returns the number of bad lines.</summary>
+    /// <summary>Reads a TXT file into APoints, returns bad lines.</summary>
     function ReadFromTXT(const FileName: string; APoints: TList<TPoint>): Integer;
     /// <summary>The same for a CSV file.</summary>
     function ReadFromCSV(const FileName: string; APoints: TList<TPoint>): Integer;
@@ -77,8 +73,6 @@ type
     /// <summary>Order by extension, others refused.</summary>
     class function FileOrder(const FileName: string): TCoordOrder;
 
-    /// <summary>All points.</summary>
-    property Values: TEnumerable<TPoint> read GetValues;
   end;
 
 implementation
@@ -130,7 +124,8 @@ procedure TPointDictionary.AddOrUpdatePoint(const APoint: TPoint);
 var
   Old: TPoint;
 begin
-  if FPointDict.TryGetValue(APoint.PointNumber, Old) and SamePoint(Old, APoint) then
+  if FPointDict.TryGetValue(APoint.PointNumber, Old) and
+    SamePoint(Old, APoint) then
     Exit;
   FPointDict.AddOrSetValue(APoint.PointNumber, APoint);
   FModified := True;
@@ -327,7 +322,7 @@ var
   P: TPoint;
   Loaded: TList<TPoint>;
   Order: TCoordOrder;
-  Count: Integer;
+  Count, OldMode: Integer;
 begin
   Order := FileOrder(FileName);
   CheckFileError(FileName);
@@ -335,7 +330,13 @@ begin
   try
     // Read all first, a bad file keeps the list
     AssignFile(BinaryFile, FileName);
-    Reset(BinaryFile);
+    OldMode := FileMode;
+    FileMode := fmOpenRead;      // Reset opens by the global FileMode
+    try
+      Reset(BinaryFile);
+    finally
+      FileMode := OldMode;
+    end;
     try
       while not Eof(BinaryFile) do
       begin
@@ -356,7 +357,7 @@ begin
   finally
     Loaded.Free;
   end;
-  ReportImport(Count, 0, 0);
+  ReportImport(Count);
 end;
 
 class procedure TPointDictionary.SwapXY(var P: TPoint);
@@ -382,16 +383,10 @@ begin
 end;
 
 // Message after import
-procedure TPointDictionary.ReportImport(AImported, AUpdated, ASkipped: Integer);
-var
-  Msg: string;
+procedure TPointDictionary.ReportImport(AImported: Integer);
 begin
-  Msg := Format('Importováno %d bodů.', [AImported]);
-  if AUpdated > 0 then
-    Msg := Msg + Format(' Z toho přepsáno: %d.', [AUpdated]);
-  if ASkipped > 0 then
-    Msg := Msg + Format(' Přeskočeno chybných řádků: %d.', [ASkipped]);
-  Application.MessageBox(PChar(Msg), 'Informace', MB_OK or MB_ICONINFORMATION);
+  Application.MessageBox(PChar(Format('Importováno %d bodů.', [AImported])),
+    'Informace', MB_OK or MB_ICONINFORMATION);
 end;
 
 // Error if the file is missing
@@ -399,12 +394,6 @@ procedure TPointDictionary.CheckFileError(const FileName: string);
 begin
   if not FileExists(FileName) then
     raise Exception.CreateFmt('Soubor %s neexistuje.', [FileName]);
-end;
-
-// Getter of Values
-function TPointDictionary.GetValues: TEnumerable<TPoint>;
-begin
-  Result := FPointDict.Values;
 end;
 
 initialization

@@ -25,29 +25,44 @@ a vyrovnaný bod leží v její patě.
 | `GUI/LineAdjustment.pas` | tabulky → frame, výsledky zpět, protokol, uložení bodů, zápisník |
 | `GeoAlgorithms/GeoAlgorithmLineAdjustment.pas` | pata kolmice, délka kolmice, kód kvality, mez |
 
+```mermaid
+flowchart LR
+  T["Přímka A-B a vyrovnávané body<br>LineAdjustment.pas"] -->|BuildFrame| F["frame<br>A, B a body ze seznamu"]
+  F -->|Calculate| A["GeoAlgorithmLineAdjustment.pas<br>pata kolmice, mez"]
+  A --> F
+  F -->|"FrameToGrid, StorePoint"| T
+  F -->|WriteProtocol| P["Protokol"]
+```
+
 ## Matematika
 
 ### Značení
 
 | značka | v kódu | význam |
 |---|---|---|
-| Y, X | `Y`, `X` | souřadnice S-JTSK |
-| ΔXAB, ΔYAB | `DeltaXAB`, `DeltaYAB` | rozdíly z A do B |
-| sAB | `sAB` | délka přímky |
-| k | `k` | kolmice bodu P, vpravo od A→B kladná |
+| $Y, X$ | `Y`, `X` | souřadnice S-JTSK |
+| $\Delta X_{AB}, \Delta Y_{AB}$ | `DeltaXAB`, `DeltaYAB` | rozdíly z A do B |
+| $s_{AB}$ | `sAB` | délka přímky |
+| $k$ | `k` | kolmice bodu P, vpravo od A→B kladná |
 
 ### Výpočet
 
-```
-sAB = √(ΔXAB² + ΔYAB²)
-k   = ((YP − YA)·ΔXAB − (XP − XA)·ΔYAB) / sAB
-XP' = XP + k·ΔYAB / sAB          YP' = YP − k·ΔXAB / sAB
-```
+$$
+s_{AB} = \sqrt{\Delta X_{AB}^2 + \Delta Y_{AB}^2}
+$$
+
+$$
+k = \frac{(Y_P - Y_A)\, \Delta X_{AB} - (X_P - X_A)\, \Delta Y_{AB}}{s_{AB}}
+$$
+
+$$
+X_P' = X_P + \frac{k\, \Delta Y_{AB}}{s_{AB}}, \qquad Y_P' = Y_P - \frac{k\, \Delta X_{AB}}{s_{AB}}
+$$
 
 ## Přesnost
 
 - Kód kvality vyrovnaného bodu je horší z bodů A a B.
-- Mez délky kolmice je Uxy = 2·Mxy toho kódu. Delší kolmice
+- Mez délky kolmice je $U_{xy} = 2\,M_{xy}$ toho kódu. Delší kolmice
   vypíše upozornění, bod se přesto vyrovná. Pro kódy bez Mxy se
   mez nekontroluje.
 - Body A a B blíž než 1 mm a bod bez souřadnic jsou chyba.

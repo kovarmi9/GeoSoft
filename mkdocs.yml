@@ -50,6 +50,7 @@ nav:
       - Polární metoda: vypocty/polarni-metoda.md
       - Ortogonální metoda: vypocty/ortogonalni-metoda.md
       - Konstrukční oměrné: vypocty/konstrukcni-omerne.md
+      - Konstrukční oměrné s vyrovnáním: vypocty/konstrukcni-omerne-s-vyrovnanim.md
       - Kontrolní oměrné: vypocty/kontrolni-omerne.md
       - Výpočet výměr: vypocty/vymera.md
       - Transformace: vypocty/transformace.md
@@ -58,6 +59,7 @@ nav:
       - Protínání z délek: vypocty/protinani-z-delek.md
       - Protínání ze směrů: vypocty/protinani-ze-smeru.md
       - Protínání zpět: vypocty/protinani-zpet.md
+      - Technická nivelace: vypocty/technicka-nivelace.md
   - Nastavení: nastaveni.md
   - Protokol: protokol.md
   - Datová struktura:

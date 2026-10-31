@@ -73,34 +73,6 @@ begin
     Add('29', 741001.12, 1041014.48, NaN, 4);
     Add('50', NaN, NaN, NaN);
     Run('1. Příklad z Gromy');
-
-//    // 2. Crossing beyond the end of line II, 100 gon.
-//    // Expected Y 5,000  X 0,000, KK 3
-//    Frame.ClearData;
-//    Add('1', 0, 0);
-//    Add('2', 10, 0);
-//    Add('3', 5, 5);
-//    Add('4', 5, 2);
-//    Add('5', NaN, NaN);
-//    Run('2. Na úsečce I, mimo úsečku II');
-//
-//    // 3. A sharp angle of about 6 gon (expected warning)
-//    Frame.ClearData;
-//    Add('1', 0, 0);
-//    Add('2', 100, 0);
-//    Add('3', 0, 5);
-//    Add('4', 100, -5);
-//    Add('5', NaN, NaN);
-//    Run('3. Ostrý úhel (očekáváno upozornění)');
-//
-//    // 4. Parallel lines (expected error)
-//    Frame.ClearData;
-//    Add('1', 0, 0);
-//    Add('2', 10, 0);
-//    Add('3', 0, 5);
-//    Add('4', 10, 5);
-//    Add('5', NaN, NaN);
-//    Run('4. Rovnoběžky (očekávána chyba)');
   finally
     Alg.Free;
     Frame.Free;

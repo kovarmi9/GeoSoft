@@ -29,7 +29,8 @@ begin
   Self.Z := TValidationUtils.ValidateCoordinate(Z);
   Self.Quality := TValidationUtils.ValidateQuality(Quality);
   // One byte per character
-  Self.Description := ShortString(TValidationUtils.ValidateDescription(Description));
+  Self.Description :=
+    ShortString(TValidationUtils.ValidateDescription(Description));
 end;
 
 end.

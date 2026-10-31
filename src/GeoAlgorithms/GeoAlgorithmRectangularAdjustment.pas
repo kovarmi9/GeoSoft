@@ -1,9 +1,7 @@
 ﻿unit GeoAlgorithmRectangularAdjustment;
 
-// Construction distances with adjustment, a closed right-angled figure.
-//   closure per axis, split in proportion to the side lengths:
+// Construction distances with adjustment, a closed figure
 //   a' = a - D * |a| / sum |a|
-//   then a congruent key on all given points.
 
 interface
 

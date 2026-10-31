@@ -43,8 +43,7 @@ type
   public
     class function TaskCode: Integer; override;
 
-    /// <summary>Readings Xm, Ym, Zm, SH length, Z given, Vy the correction
-    /// on a back reading, VC out.</summary>
+    /// <summary>Readings in Xm, Ym, Zm, heights out in VC.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     /// <summary>The reading filled in on the row.</summary>

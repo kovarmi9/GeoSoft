@@ -251,6 +251,7 @@
     end
     object MenuNapoveda: TMenuItem
       Caption = 'N'#225'pov'#283'da'
+      OnClick = MenuNapovedaClick
     end
   end
   object SaveDialogProtokol: TSaveDialog

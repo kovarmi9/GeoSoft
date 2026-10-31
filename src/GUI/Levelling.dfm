@@ -1,6 +1,7 @@
 inherited LevellingForm: TLevellingForm
   ActiveControl = Grid
   Caption = 'Technick'#225' nivelace'
+  HelpKeyword = 'vypocty/technicka-nivelace/'
   TextHeight = 15
   object PanelWays: TPanel [2]
     Left = 0

@@ -1,5 +1,6 @@
 inherited ParcelAreaForm: TParcelAreaForm
   Caption = 'V'#253'po'#269'et v'#253'm'#283'r'
+  HelpKeyword = 'vypocty/vymera/'
   StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar

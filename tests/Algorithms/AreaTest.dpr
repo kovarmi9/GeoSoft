@@ -54,7 +54,7 @@ begin
   Alg := TLHuilierAlgorithm.Create;
   try
     try
-      // 1. The square, expected 100.00 m2
+      // 1. The square, expected 100,00 m2
       Frame.AddRow(P1);
       Frame.AddRow(P2);
       Frame.AddRow(P3);

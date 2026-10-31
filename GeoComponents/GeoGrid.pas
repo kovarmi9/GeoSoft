@@ -14,9 +14,7 @@ uses
   GeoColumnValidation;
 type
 
-  /// <summary>
-  /// Defines behavior when navigation reaches last cell.
-  /// </summary>
+  /// <summary>Defines behavior when navigation reaches last cell.</summary>
   TEnterEndBehavior = (
     ebStayOnLastCell, // stay on last cell
     ebWrapToStart,    // wrap to first cell
@@ -24,38 +22,24 @@ type
     ebMoveFocusNext   // move focus to next control
   );
 
-  /// <summary>
-  /// Fired after a cell value is committed (user left the cell).
-  /// ACol/ARow identify the cell that was just committed.
-  /// </summary>
+  /// <summary>Fired after a cell value is committed.</summary>
   TCellCommittedEvent = procedure(Sender: TObject; ACol, ARow: Integer) of object;
 
-  /// <summary>
-  /// Asks the form about one cell. Set ASelectable to False for a cell that
-  /// is not for typing, it is drawn grey and the cursor skips it.
-  /// </summary>
+  /// <summary>Asks the form whether a cell is for typing.</summary>
   TCellSelectableEvent = procedure(Sender: TObject; ACol, ARow: Integer;
     var ASelectable: Boolean) of object;
 
-  /// <summary>
-  /// Custom inplace editor handling Enter/Tab navigation.
-  /// </summary>
+  /// <summary>Custom inplace editor handling Enter/Tab navigation.</summary>
   TGeoInplaceEdit = class(TInplaceEdit)
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-    /// <summary>
-    /// Blocks the Enter key (#13) before it reaches the built-in editor.
-    /// Without this, the built-in editor would close itself on Enter
-    /// and skip our validation. KeyDown handles navigation instead.
-    /// </summary>
+    /// <summary>Blocks Enter, KeyDown navigates and validates.</summary>
     procedure KeyPress(var Key: Char); override;
     /// <summary>Text left after the typed key replaces the selection.</summary>
     function TextWithoutSelection: string;
   end;
 
-  /// <summary>
-  /// Custom grid with custom navigation and header support.
-  /// </summary>
+  /// <summary>Custom grid with custom navigation and header support.</summary>
   TGeoGrid = class(TStringGrid)
   private
     FEnterEndBehavior: TEnterEndBehavior;
@@ -85,10 +69,7 @@ type
     procedure SetRowHeaders(const Value: TStrings);
 
   protected
-    /// <summary>
-    /// Set to True by CommitCell when validation fails.
-    /// SelectCell reads it to block navigation and reopen the editor.
-    /// </summary>
+    /// <summary>Set by CommitCell when the value is invalid.</summary>
     FLastCommitFailed: Boolean;
 
     /// <summary>Returns True if cell is header (fixed row/col).</summary>
@@ -112,53 +93,31 @@ type
     /// <summary>Main navigation logic (Enter/Tab behavior).</summary>
     procedure MoveToNextCell(PressedKey: Word; Shift: TShiftState); virtual;
 
-    /// <summary>
-    /// Descendants can refuse a cell, the cursor never lands there and no
-    /// editor opens on it. Default: every cell is selectable, unless
-    /// OnCellSelectable says otherwise.
-    /// </summary>
+    /// <summary>False for a cell the cursor must skip.</summary>
     function CellSelectable(ACol, ARow: Integer): Boolean; virtual;
 
-    /// <summary>
-    /// First cell at or after ACol in ARow the cursor may land on. ADelta
-    /// is 1 forwards, -1 backwards. ACol is undefined when False.
-    /// </summary>
+    /// <summary>First selectable cell from ACol, ADelta 1 or -1.</summary>
     function SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;
 
     /// <summary>First column of a row the cursor may land on.</summary>
     function FirstSelectableCol(ARow: Integer): Integer;
 
-    /// <summary>
-    /// Next cell to the right the cursor may land on, wrapping to the next
-    /// row. False at the end of the grid, ACol and ARow are then undefined.
-    /// </summary>
+    /// <summary>Next selectable cell, False at the grid end.</summary>
     function NextSelectable(var ACol, ARow: Integer): Boolean;
 
-    /// <summary>
-    /// Previous cell to the left the cursor may land on, wrapping to the
-    /// end of the row above. False at the first cell, ACol and ARow are
-    /// then undefined.
-    /// </summary>
+    /// <summary>Previous selectable cell, False at the first.</summary>
     function PrevSelectable(var ACol, ARow: Integer): Boolean;
 
     /// <summary>Esc in the editor, drops the typed text.</summary>
     procedure CancelEdit;
 
-    /// <summary>
-    /// Steps one cell back. False at the first cell, so the caller can hand
-    /// the focus to the previous control.
-    /// </summary>
+    /// <summary>Steps one cell back, False at the first cell.</summary>
     function MoveToPrevCell(AOpenEditor: Boolean): Boolean;
 
     /// <summary>Moves the focus to the next or previous control.</summary>
     procedure LeaveGrid(ABackwards: Boolean);
 
-    /// <summary>
-    /// Commits current cell value before leaving it.
-    /// Base: writes InplaceEditor.Text into Cells[Col, Row].
-    /// Override in descendants to add validation or formatting.
-    /// Called automatically before any navigation (Enter, Tab, mouse, arrows).
-    /// </summary>
+    /// <summary>Writes the editor text and fires OnCellCommitted.</summary>
     procedure CommitCell; virtual;
 
     /// <summary>Fires before every cell change - calls CommitCell.</summary>
@@ -192,34 +151,21 @@ type
     property RowHeaders: TStrings
       read FRowHeaders write SetRowHeaders;
 
-    /// <summary>
-    /// Validates the current cell. Returns True if navigation can proceed,
-    /// False if the cell value is invalid and navigation is blocked.
-    /// </summary>
+    /// <summary>Commits the cell, False blocks the navigation.</summary>
     function CommitCurrentCell: Boolean;
 
-    /// <summary>
-    /// Beeps and keeps the cursor on the cell, with the editor open.
-    /// Used by ciaBlock and by forms that refuse a value from
-    /// OnCellCommitted.
-    /// </summary>
+    /// <summary>Beeps and keeps the editor open on the cell.</summary>
     procedure RejectCommit;
 
-    /// <summary>
-    /// State of the check box on one row. Row 0 is the header box, which
-    /// switches all the others.
-    /// </summary>
+    /// <summary>Check box of a row, row 0 switches all.</summary>
     property Checked[ARow: Integer]: Boolean read GetChecked write SetChecked;
 
   published
-    /// <summary>
-    /// Column that shows a check box instead of text, -1 for none. As a
-    /// data column the cursor reaches it and Space toggles the box.
-    /// </summary>
+    /// <summary>Column with check boxes, -1 for none.</summary>
     property CheckColumn: Integer
       read FCheckColumn write SetCheckColumn default -1;
 
-    /// <summary>All boxes start ticked, a new row takes the header box.</summary>
+    /// <summary>Boxes start ticked, new rows as the header.</summary>
     property DefaultChecked: Boolean
       read FDefaultChecked write SetDefaultChecked default False;
 
@@ -236,17 +182,11 @@ type
       read FEnterEndBehavior write FEnterEndBehavior
       default ebStayOnLastCell;
 
-    /// <summary>
-    /// Fired after the user leaves a cell and its value is committed.
-    /// ACol/ARow identify the cell that was just committed.
-    /// </summary>
+    /// <summary>Fired after a cell value is committed.</summary>
     property OnCellCommitted: TCellCommittedEvent
       read FOnCellCommitted write FOnCellCommitted;
 
-    /// <summary>
-    /// Lets the form close single cells, e.g. a value the first row has not.
-    /// Whole columns are closed by ReadOnlyFields instead.
-    /// </summary>
+    /// <summary>Lets the form close single cells.</summary>
     property OnCellSelectable: TCellSelectableEvent
       read FOnCellSelectable write FOnCellSelectable;
 
@@ -644,7 +584,7 @@ begin
     end;
   end;
 
-  // Close editor after Enter
+  // Open the editor after Enter
   if PressedKey = VK_RETURN then
     OpenEditor;
 end;

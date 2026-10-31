@@ -1,6 +1,7 @@
 inherited LineAdjustmentForm: TLineAdjustmentForm
   ActiveControl = GridLine
   Caption = 'Vyrovn'#225'n'#237' do p'#345#237'mky'
+  HelpKeyword = 'vypocty/vyrovnani-do-primky/'
   TextHeight = 15
   object GridLine: TGeoFieldsGrid [2]
     Left = 0

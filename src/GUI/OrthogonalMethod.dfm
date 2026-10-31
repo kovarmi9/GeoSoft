@@ -1,6 +1,7 @@
 inherited OrthogonalMethodForm: TOrthogonalMethodForm
   ActiveControl = GridBaseline
   Caption = 'Ortogon'#225'ln'#237' metoda'
+  HelpKeyword = 'vypocty/ortogonalni-metoda/'
   StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar

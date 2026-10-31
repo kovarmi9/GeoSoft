@@ -6,14 +6,16 @@ body vypočtené.
 
 ## Co program umí
 
-- **Seznam souřadnic**: zadávání, mazání a úpravy bodů, ukládání do souborů
-  `.yxz` a `.xyz`, import a export TXT a CSV
-- **Polární metoda**: pevné i volné stanovisko
-- **Ortogonální metoda**: měřická přímka a podrobné body
-- **Konstrukční oměrné**: výpočet bodů z řetězce délek
-- **Kontrolní oměrné**: porovnání měřených délek s vypočtenými
-- **Výpočet výměr**: plocha parcely ze souřadnic lomových bodů
-- **Protokol**: každý výpočet vytvoří protokol, který lze uložit
+- **Seznam souřadnic**: zadávání, mazání, úpravy a hledání bodů, ukládání
+  do `.yxz` a `.xyz`, import a export TXT a CSV
+- **Měřické metody**: polární metoda (pevné i volné stanovisko),
+  ortogonální metoda
+- **Přímky**: vyrovnání do přímky, průsečík přímek
+- **Protínání**: z délek, ze směrů, zpět
+- **Oměrné míry**: konstrukční, konstrukční s vyrovnáním, kontrolní
+- **Transformace**: shodnostní, podobnostní, afinní
+- **Výpočet výměr** a **technická nivelace**
+- **Protokol**: každý výpočet vytvoří protokol, zápis do protokolu zakázky
 
 ## Základní konvence
 
@@ -29,6 +31,17 @@ desetinných míst se mění v okně [Nastavení](nastaveni.md).
 **Desetinná čárka.** Na obrazovce se používá oddělovač podle nastavení
 Windows, v protokolu a v souborech vždy čárka. Při čtení souborů program
 přijme čárku i tečku.
+
+## Jak spolu části souvisí
+
+```mermaid
+flowchart LR
+  S["Seznam souřadnic<br>.yxz, .xyz"] -->|dané body| V["Výpočty<br>jedno okno na úlohu"]
+  V -->|vypočtené body| S
+  Z["Zápisník CSV"] <-->|"Načíst, Uložit"| V
+  V --> P["Protokol<br>okno a protokol zakázky .ptk"]
+  S <-->|"import, export"| T["TXT, CSV"]
+```
 
 ## Spuštění
 

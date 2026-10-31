@@ -13,7 +13,7 @@ Unit `src/DataStructures/GeoRow.pas`.
 | `X`, `Y`, `Z` | `Double` | souřadnice S-JTSK a výška [m] |
 | `CBm` | `string[16]` | číslo druhého bodu (kontrolní oměrné), zdrojového bodu (transformace) |
 | `Xm`, `Ym`, `Zm` | `Double` | místní souřadnice, v transformaci zdrojové souřadnice [m] |
-| `TypS` | `Integer` | typ délky; v transformaci role řádku (1 identický, 2 kontrolní, 3 určovaný) |
+| `TypS` | `Integer` | typ délky: v polární metodě 0 vodorovná, 2 šikmá; v transformaci role řádku (1 identický, 2 kontrolní, 3 určovaný) |
 | `SH`, `SS` | `Double` | vodorovná a šikmá délka, SH v ortogonální metodě staničení [m] |
 | `VS`, `VC` | `Double` | výška přístroje a cíle [m] |
 | `HZ`, `Zuhel` | `Double` | vodorovný a zenitový úhel [gon] |
@@ -22,7 +22,7 @@ Unit `src/DataStructures/GeoRow.pas`.
 | `Poznamka` | `string[32]` | poznámka |
 | `KK` | `Integer` | kód kvality 0–8 |
 | `Vy`, `Vx`, `Vz` | `Double` | odchylka: vypočtená minus daná poloha a výška [m] |
-| `Sxy` | `Double` | střední souřadnicová chyba bodu, √((Vy² + Vx²) / 2) [m] |
+| `Sxy` | `Double` | střední souřadnicová chyba bodu, $\sqrt{(V_y^2 + V_x^2) / 2}$ [m] |
 
 ## Práce s řádkem
 

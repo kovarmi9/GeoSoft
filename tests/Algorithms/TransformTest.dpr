@@ -155,9 +155,9 @@ begin
       PrintResult(Frame, Alg);
 
       // 4. Test data of the CTU course 154GED4, task U_1. Published are
-      //    podobnostní: A11 0,8945555188, A12 0,4470344788, scale
+      //    similarity: A11 0,8945555188, A12 0,4470344788, scale
       //    1,0000347, shift Y -99,86, X 99,78, Vy 0,05 -0,06 0,01 0,00,
-      //    Vx 0,01 0,03 -0,04 0,00, shodnostní: A11 0,8945244787,
+      //    Vx 0,01 0,03 -0,04 0,00, congruent: A11 0,8945244787,
       //    A12 0,4470189672, shift Y -99,83, X 99,80,
       //    Vy 0,06 -0,05 0,01 -0,01, Vx 0,02 0,02 -0,05 0,01
       Frame.ClearData;

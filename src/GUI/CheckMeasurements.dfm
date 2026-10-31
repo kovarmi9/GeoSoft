@@ -1,5 +1,6 @@
 inherited CheckMeasurementsForm: TCheckMeasurementsForm
   Caption = 'Kontroln'#237' om'#283'rn'#233
+  HelpKeyword = 'vypocty/kontrolni-omerne/'
   StyleElements = [seFont, seClient, seBorder]
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar

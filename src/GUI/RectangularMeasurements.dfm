@@ -1,5 +1,6 @@
 inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233
+  HelpKeyword = 'vypocty/konstrukcni-omerne/'
   ClientHeight = 598
   StyleElements = [seFont, seClient, seBorder]
   OnCreate = FormCreate

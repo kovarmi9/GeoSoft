@@ -83,8 +83,6 @@ var
   I, Count: Integer;
   Residual: TPointResidual;
 begin
-  ClearWarnings;
-
   // No residuals of the last key
   SetLength(FResiduals, 0);
   FSumVV := 0;

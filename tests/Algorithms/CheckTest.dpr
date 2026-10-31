@@ -15,7 +15,7 @@ var
   R: TCheckResult;
   I: Integer;
 begin
-  // 1. Points 1 (0, 0) and 2 (0, 10), measured 10.02 m, small difference
+  // 1. Points 1 (0, 0) and 2 (0, 10), measured 10,02 m, small difference
   ClearGeoRow(M1);
   M1.Uloha := ULOHA_KONTROLNI;
   M1.KK := 3;              // worse quality code of the pair
@@ -27,7 +27,7 @@ begin
   M1.Ym := 10;
   M1.SH := 10.02;         // measured length [m]
 
-  // 2. Points 2 (0, 10) and 3 (10, 10), measured 10.30 m, too much
+  // 2. Points 2 (0, 10) and 3 (10, 10), measured 10,30 m, too much
   ClearGeoRow(M2);
   M2.Uloha := ULOHA_KONTROLNI;
   M2.KK := 3;

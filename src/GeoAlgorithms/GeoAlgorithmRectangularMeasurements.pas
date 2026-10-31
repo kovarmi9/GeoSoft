@@ -1,10 +1,6 @@
 ﻿unit GeoAlgorithmRectangularMeasurements;
 
-// Rectangular measurements method (konstrukční oměrné).
-// Determines unknown points along a building outline from measured
-// distances and 90-degree turn signs. Known points anywhere in the
-// chain serve as identical points for a congruent transformation
-// that maps local (chain-built) coordinates into S-JTSK.
+// Construction distances, a congruent key per stretch
 
 interface
 
@@ -52,26 +48,12 @@ type
     // IdenticalPoints must hold the two given ends before the call.
     function TransformChain(const AChain: TPointsArray): TPointsArray;
   public
-    constructor Create;
-
-    property IdenticalPoints: TPointsArray
-      read FIdenticalPoints write FIdenticalPoints;
-
-    // Local coordinates built from the chain (before transformation)
-    property LocalPoints: TPointsArray read FLocalPoints;
-
-    property Closure: Double read FClosure;
-
     class function TaskCode: Integer; override;
 
     // Walks the chain in the frame and fills Xm, Ym of every row
     procedure BuildLocalFrame(AFrame: TGeoDataFrame);
 
-    /// <summary>
-    /// A given point is one that already has coordinates. During a run
-    /// the computed ones are empty, afterwards the protocol tells them
-    /// apart by the stretch boundaries, as the notebook does.
-    /// </summary>
+    /// <summary>A given point already has coordinates.</summary>
     class function IsGiven(const ARow: TGeoRow): Boolean;
 
     // Splits the frame into stretches between two different given points
@@ -93,12 +75,6 @@ end;
 class function TRectangularMeasurementsAlgorithm.TaskCode: Integer;
 begin
   Result := ULOHA_KONSTRUKCNI;
-end;
-
-constructor TRectangularMeasurementsAlgorithm.Create;
-begin
-  inherited Create;
-  FClosure := 0;
 end;
 
 procedure TRectangularMeasurementsAlgorithm.BuildLocalPoints(
@@ -173,9 +149,6 @@ var
 begin
   ClearWarnings;
   N := Length(AChain);
-
-  if N < 3 then
-    raise Exception.Create('Pro výpočet jsou potřeba alespoň 3 body.');
 
   BuildLocalPoints(AChain);
 

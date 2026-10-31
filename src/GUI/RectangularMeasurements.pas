@@ -111,7 +111,7 @@ var
   Known: Boolean;
 begin
   CBText := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
-  PointNumber := StrToInt64Def(CBText, -1);
+  PointNumber := StrToInt64Def(CBText, 0);
   if PointNumber = 0 then Exit;
 
   // Only a new number refills the row, so user edits survive

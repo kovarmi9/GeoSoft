@@ -1,8 +1,6 @@
 ﻿unit CoordOrderState;
 
-// Order of Y and X on screen and in text files.
-// Default Y, X, kept only for this run.
-// It never changes the fields: TPoint.X is always X.
+// Order of Y and X on screen and in files, TPoint.X is X
 
 interface
 

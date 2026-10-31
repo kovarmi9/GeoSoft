@@ -69,7 +69,7 @@ begin
 
   try
     // Priklad protinani z delek
-    // Ocekavany vysledek: Y = 853262.19, X = 1010898.28
+    // Expected result: Y = 853262,19, X = 1010898,28
 
     Add('202', 703.84, 853704.65, 1011445.66);
     Add('229', 846.61, 852501.72, 1011270.35);

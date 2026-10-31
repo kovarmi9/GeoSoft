@@ -1,6 +1,7 @@
 inherited LineIntersectionForm: TLineIntersectionForm
   ActiveControl = Grid
   Caption = 'Pr'#367'se'#269#237'k p'#345#237'mek'
+  HelpKeyword = 'vypocty/prusecik-primek/'
   TextHeight = 15
   object Grid: TGeoFieldsGrid [2]
     Left = 0

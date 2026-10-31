@@ -26,7 +26,7 @@ type
 
     /// <summary>Validates the point number, returns 0 if invalid.</summary>
     class function ValidatePointNumber(const APointNumber: Int64): Int64; static;
-    /// <summary>Validates the coordinate, 0.0 if infinite or NaN.</summary>
+    /// <summary>Validates the coordinate, 0 if infinite or NaN.</summary>
     class function ValidateCoordinate(const ACoordinate: Double): Double; static;
     /// <summary>Validates the quality, returns 0 if invalid.</summary>
     class function ValidateQuality(const AQuality: Integer): Integer; static;
@@ -40,7 +40,7 @@ type
     class function MxyBandText(const ABand: TMxyBand): string; static;
     /// <summary>Limit ud of a length difference [m], NaN if none.</summary>
     class function LengthLimit(const ALength: Double; const AQuality: Integer): Double; static;
-    /// <summary>Quality code of the less accurate point, 0 if unknown.</summary>
+    /// <summary>Quality code of the worse point, 0 if unknown.</summary>
     class function LowerQuality(const AFirst, ASecond: Integer): Integer; static;
   end;
 

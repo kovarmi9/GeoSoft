@@ -69,7 +69,7 @@ var
   ListPoint: Point.TPoint;
 begin
   PointNumber := StrToInt64Def(
-    StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], -1);
+    StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], 0);
   if PointNumber = 0 then Exit;
 
   if LookupPoint(PointNumber, ListPoint) then

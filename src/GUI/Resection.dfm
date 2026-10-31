@@ -1,6 +1,7 @@
 inherited ResectionForm: TResectionForm
   ActiveControl = EditStationNo
   Caption = 'Prot'#237'n'#225'n'#237' zp'#283't'
+  HelpKeyword = 'vypocty/protinani-zpet/'
   TextHeight = 15
   object Panel1: TPanel [2]
     Left = 0

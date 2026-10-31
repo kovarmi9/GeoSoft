@@ -12,17 +12,14 @@ const
   ANS_AVERAGE = 102;
   ANS_NUMBER  = 103;
 
-/// <summary>Asks what to do with a point whose number is in the list.
-/// AForAll shows the box "for all next points", AAll returns it.</summary>
+/// <summary>Asks what to do with an existing point.</summary>
 function AskExistingPoint(const AOld, ANew: Point.TPoint; AForAll: Boolean;
   out AAll: Boolean): Integer;
 
-/// <summary>Asks for a free point number.
-/// A short one gets the toolbar prefix.</summary>
+/// <summary>Asks for a free number, a short one gets the prefix.</summary>
 function AskNewNumber(out ANum: Int64): Boolean;
 
-/// <summary>Average of Y, X, Z.
-/// Quality and description come from the new point.</summary>
+/// <summary>Mean of Y, X, Z, the rest from the new point.</summary>
 function AveragePoint(const AOld, ANew: Point.TPoint): Point.TPoint;
 
 implementation

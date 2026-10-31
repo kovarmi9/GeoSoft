@@ -1,0 +1,2242 @@
+
+<!doctype html>
+<html lang="cs" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Dokumentace programu GeoSoft pro geodetické výpočty">
+      
+      
+      
+        <link rel="canonical" href="https://kovarmi9.github.io/GeoSoft/vypocty/protinani-zpet/">
+      
+      
+        <link rel="prev" href="../protinani-ze-smeru/">
+      
+      
+        <link rel="next" href="../technicka-nivelace/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
+    
+    
+      
+        <title>Protínání zpět - GeoSoft</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#protinani-zpet" class="md-skip">
+          Přeskočit obsah
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Záhlaví">
+    <a href="../.." title="GeoSoft" class="md-header__button md-logo" aria-label="GeoSoft" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            GeoSoft
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Protínání zpět
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Hledat" placeholder="Hledat" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Vyhledávání">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Vyčistit" aria-label="Vyčistit" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializace vyhledávání
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Karty" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Úvod
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../seznam-souradnic/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Seznam souřadnic
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Geodetické výpočty
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../nastaveni/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Nastavení
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../protokol/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Protokol
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../geodataframe/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Datová struktura
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../komponenty/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Komponenty
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigace" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="GeoSoft" class="md-nav__button md-logo" aria-label="GeoSoft" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    GeoSoft
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Úvod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../seznam-souradnic/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seznam souřadnic
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Seznam souřadnic
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/bod/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/validace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/seznam-bodu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Seznam bodů
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/ukladani/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ukládání
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/import-export/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Import a export
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/poradi-souradnic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pořadí souřadnic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/cisla-bodu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Čísla bodů
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/formular/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formulář
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/prubeh-volani/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Průběh volání
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../seznam-souradnic/pridat-bod/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Přidat bod
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Geodetické výpočty
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Geodetické výpočty
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../polarni-metoda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Polární metoda
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ortogonalni-metoda/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ortogonální metoda
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../konstrukcni-omerne/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Konstrukční oměrné
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../konstrukcni-omerne-s-vyrovnanim/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Konstrukční oměrné s vyrovnáním
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kontrolni-omerne/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kontrolní oměrné
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vymera/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Výpočet výměr
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transformace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transformace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vyrovnani-do-primky/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vyrovnání do přímky
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../prusecik-primek/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Průsečík přímek
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protinani-z-delek/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protínání z délek
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protinani-ze-smeru/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protínání ze směrů
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protínání zpět
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protínání zpět
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Obsah">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Obsah
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#matematika" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matematika
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Matematika">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zadani" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zadání
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#znaceni" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Značení
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#princip-cassiniho-reseni" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Princip Cassiniho řešení
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-souradnicove-rozdily-danych-bodu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Souřadnicové rozdíly daných bodů
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-pomocny-bod-t" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Pomocný bod \(T\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-pomocny-bod-u" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Pomocný bod \(U\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-souradnicove-rozdily-pomocnych-bodu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Souřadnicové rozdíly pomocných bodů
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-pata-kolmice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Pata kolmice
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-souradnice-urcovaneho-bodu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Souřadnice určovaného bodu
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-kontrola" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Kontrola
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#podminky-resitelnosti" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Podmínky řešitelnosti
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priklad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Příklad
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technicka-nivelace/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technická nivelace
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../nastaveni/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nastavení
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../protokol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protokol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../geodataframe/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Datová struktura
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_6" id="__nav_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Datová struktura
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../geodataframe/georow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Řádek TGeoRow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../geodataframe/geodataframe/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tabulka TGeoDataFrame
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../komponenty/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Komponenty
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7" id="__nav_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Komponenty
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../komponenty/geogrid/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TGeoGrid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../komponenty/geofieldsgrid/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TGeoFieldsGrid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../komponenty/kontrola-zadavani/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Kontrola zadávání
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Obsah">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Obsah
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#matematika" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Matematika
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Matematika">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#zadani" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zadání
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#znaceni" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Značení
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#princip-cassiniho-reseni" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Princip Cassiniho řešení
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-souradnicove-rozdily-danych-bodu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Souřadnicové rozdíly daných bodů
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-pomocny-bod-t" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Pomocný bod \(T\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-pomocny-bod-u" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Pomocný bod \(U\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-souradnicove-rozdily-pomocnych-bodu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Souřadnicové rozdíly pomocných bodů
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-pata-kolmice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Pata kolmice
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-souradnice-urcovaneho-bodu" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Souřadnice určovaného bodu
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-kontrola" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Kontrola
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#podminky-resitelnosti" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Podmínky řešitelnosti
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#priklad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Příklad
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="protinani-zpet">Protínání zpět<a class="headerlink" href="#protinani-zpet" title="Permanent link">&para;</a></h1>
+<p>Úloha 8 určí souřadnice stanoviska ze dvou úhlů měřených na tři dané
+body. Program počítá Cassiniho řešením.</p>
+<h2 id="matematika">Matematika<a class="headerlink" href="#matematika" title="Permanent link">&para;</a></h2>
+<h3 id="zadani">Zadání<a class="headerlink" href="#zadani" title="Permanent link">&para;</a></h3>
+<p><strong>Dáno:</strong> souřadnice tří daných bodů <span class="arithmatex">\(P_1(Y_1, X_1)\)</span>, <span class="arithmatex">\(P_2(Y_2, X_2)\)</span>,
+<span class="arithmatex">\(P_3(Y_3, X_3)\)</span>, kde <span class="arithmatex">\(P_2\)</span> je prostřední bod.</p>
+<p><strong>Měřeno:</strong> na určovaném bodě <span class="arithmatex">\(S\)</span> vodorovné úhly</p>
+<div class="arithmatex">\[
+\alpha = \angle P_1 S P_2, \qquad \beta = \angle P_2 S P_3 .
+\]</div>
+<p>Z osnovy směrů <span class="arithmatex">\(\psi_1, \psi_2, \psi_3\)</span>:</p>
+<div class="arithmatex">\[
+\alpha = \psi_2 - \psi_1, \qquad \beta = \psi_3 - \psi_2 \pmod{400^{\mathrm{g}}} .
+\]</div>
+<p><strong>Určujeme:</strong> souřadnice <span class="arithmatex">\(Y_S\)</span>, <span class="arithmatex">\(X_S\)</span> bodu <span class="arithmatex">\(S\)</span>.</p>
+<h3 id="znaceni">Značení<a class="headerlink" href="#znaceni" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>značka</th>
+<th>význam</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(Y\)</span>, <span class="arithmatex">\(X\)</span></td>
+<td>souřadnice S-JTSK</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(P_1\)</span>, <span class="arithmatex">\(P_2\)</span>, <span class="arithmatex">\(P_3\)</span></td>
+<td>dané body, <span class="arithmatex">\(P_2\)</span> je prostřední</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(S\)</span></td>
+<td>určovaný bod (stanovisko)</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\psi\)</span></td>
+<td>měřený směr</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\alpha\)</span>, <span class="arithmatex">\(\beta\)</span></td>
+<td>úhly na <span class="arithmatex">\(S\)</span> mezi <span class="arithmatex">\(P_1, P_2\)</span> a mezi <span class="arithmatex">\(P_2, P_3\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(T\)</span>, <span class="arithmatex">\(U\)</span></td>
+<td>Cassiniho pomocné body</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\Delta Y_{12} = Y_2 - Y_1\)</span></td>
+<td>souřadnicový rozdíl, koncový minus počáteční</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\sigma\)</span>, <span class="arithmatex">\(d\)</span></td>
+<td>směrník, délka</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(R\)</span></td>
+<td>pravý úhel, <span class="arithmatex">\(100^{\mathrm{g}}\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(k\)</span></td>
+<td>koeficient paty kolmice</td>
+</tr>
+</tbody>
+</table>
+<h3 id="princip-cassiniho-reseni">Princip Cassiniho řešení<a class="headerlink" href="#princip-cassiniho-reseni" title="Permanent link">&para;</a></h3>
+<p>Kružnice <span class="arithmatex">\(k_1\)</span> je opsaná bodům <span class="arithmatex">\(P_1, P_2, S\)</span> a kružnice <span class="arithmatex">\(k_2\)</span> bodům
+<span class="arithmatex">\(P_2, P_3, S\)</span>. Spojnice bodu <span class="arithmatex">\(P_2\)</span> se středem <span class="arithmatex">\(s_1\)</span> kružnice <span class="arithmatex">\(k_1\)</span> ji
+protne v bodě <span class="arithmatex">\(T\)</span>, spojnice <span class="arithmatex">\(P_2\)</span> se středem <span class="arithmatex">\(s_2\)</span> kružnice <span class="arithmatex">\(k_2\)</span> ji
+protne v bodě <span class="arithmatex">\(U\)</span>. Trojúhelníky <span class="arithmatex">\(S P_2 T\)</span> a <span class="arithmatex">\(S P_2 U\)</span> jsou pravoúhlé,
+protože jde o obvodové úhly nad průměrem. Body <span class="arithmatex">\(T\)</span>, <span class="arithmatex">\(S\)</span>, <span class="arithmatex">\(U\)</span> proto leží
+na jedné přímce (Cassiniho přímce) a bod <span class="arithmatex">\(S\)</span> je <strong>patou kolmice spuštěné
+z bodu <span class="arithmatex">\(P_2\)</span> na přímku <span class="arithmatex">\(TU\)</span></strong>.</p>
+<p>Výpočet má dva kroky: rajóny k pomocným bodům <span class="arithmatex">\(T\)</span> a <span class="arithmatex">\(U\)</span>, potom pata
+kolmice z <span class="arithmatex">\(P_2\)</span> na přímku <span class="arithmatex">\(TU\)</span>.</p>
+<h3 id="1-souradnicove-rozdily-danych-bodu">1. Souřadnicové rozdíly daných bodů<a class="headerlink" href="#1-souradnicove-rozdily-danych-bodu" title="Permanent link">&para;</a></h3>
+<div class="arithmatex">\[
+\Delta Y_{12} = Y_2 - Y_1, \qquad \Delta X_{12} = X_2 - X_1
+\]</div>
+<div class="arithmatex">\[
+\Delta Y_{23} = Y_3 - Y_2, \qquad \Delta X_{23} = X_3 - X_2
+\]</div>
+<h3 id="2-pomocny-bod-t">2. Pomocný bod <span class="arithmatex">\(T\)</span><a class="headerlink" href="#2-pomocny-bod-t" title="Permanent link">&para;</a></h3>
+<p>Rajón z bodu <span class="arithmatex">\(P_1\)</span>:</p>
+<div class="arithmatex">\[
+Y_T = Y_1 + d_{1T} \sin\sigma_{1T}, \qquad X_T = X_1 + d_{1T} \cos\sigma_{1T}
+\]</div>
+<div class="arithmatex">\[
+\sigma_{1T} = \sigma_{12} + R, \qquad d_{1T} = d_{12} \cot\alpha
+\]</div>
+<p>Platí <span class="arithmatex">\(\sin(\sigma + R) = \cos\sigma\)</span>, <span class="arithmatex">\(\cos(\sigma + R) = -\sin\sigma\)</span>,
+<span class="arithmatex">\(d_{12}\sin\sigma_{12} = \Delta Y_{12}\)</span> a
+<span class="arithmatex">\(d_{12}\cos\sigma_{12} = \Delta X_{12}\)</span>, proto</p>
+<div class="arithmatex">\[
+X_T = X_1 - \Delta Y_{12} \cot\alpha
+\]</div>
+<div class="arithmatex">\[
+Y_T = Y_1 + \Delta X_{12} \cot\alpha
+\]</div>
+<h3 id="3-pomocny-bod-u">3. Pomocný bod <span class="arithmatex">\(U\)</span><a class="headerlink" href="#3-pomocny-bod-u" title="Permanent link">&para;</a></h3>
+<p>Rajón z bodu <span class="arithmatex">\(P_3\)</span>:</p>
+<div class="arithmatex">\[
+Y_U = Y_3 + d_{3U} \sin\sigma_{3U}, \qquad X_U = X_3 + d_{3U} \cos\sigma_{3U}
+\]</div>
+<div class="arithmatex">\[
+\sigma_{3U} = \sigma_{32} - R = \sigma_{23} + R, \qquad d_{3U} = d_{23} \cot\beta
+\]</div>
+<p>Stejnou úpravou:</p>
+<div class="arithmatex">\[
+X_U = X_3 - \Delta Y_{23} \cot\beta
+\]</div>
+<div class="arithmatex">\[
+Y_U = Y_3 + \Delta X_{23} \cot\beta
+\]</div>
+<h3 id="4-souradnicove-rozdily-pomocnych-bodu">4. Souřadnicové rozdíly pomocných bodů<a class="headerlink" href="#4-souradnicove-rozdily-pomocnych-bodu" title="Permanent link">&para;</a></h3>
+<div class="arithmatex">\[
+\Delta Y_{TU} = Y_U - Y_T, \qquad \Delta X_{TU} = X_U - X_T
+\]</div>
+<div class="arithmatex">\[
+\Delta Y_{2T} = Y_T - Y_2, \qquad \Delta X_{2T} = X_T - X_2
+\]</div>
+<h3 id="5-pata-kolmice">5. Pata kolmice<a class="headerlink" href="#5-pata-kolmice" title="Permanent link">&para;</a></h3>
+<p>Bod <span class="arithmatex">\(S\)</span> je průsečíkem přímky <span class="arithmatex">\(TU\)</span> a přímky <span class="arithmatex">\(P_2 S\)</span>, která je na ni
+kolmá.</p>
+<p>Přímka <span class="arithmatex">\(TU\)</span>:</p>
+<div class="arithmatex">\[
+Y_S - Y_T = \frac{\Delta Y_{TU}}{\Delta X_{TU}}\,(X_S - X_T)
+\]</div>
+<p>Kolmice z <span class="arithmatex">\(P_2\)</span>:</p>
+<div class="arithmatex">\[
+Y_S - Y_2 = -\frac{\Delta X_{TU}}{\Delta Y_{TU}}\,(X_S - X_2)
+\]</div>
+<p>Odečtením rovnic a úpravou vyjde koeficient</p>
+<div class="arithmatex">\[
+k = \frac{\Delta Y_{2T}\,\Delta X_{TU} - \Delta Y_{TU}\,\Delta X_{2T}}
+         {\Delta Y_{TU}^2 + \Delta X_{TU}^2}
+\]</div>
+<h3 id="6-souradnice-urcovaneho-bodu">6. Souřadnice určovaného bodu<a class="headerlink" href="#6-souradnice-urcovaneho-bodu" title="Permanent link">&para;</a></h3>
+<div class="arithmatex">\[
+X_S = X_2 - k\,\Delta Y_{TU}
+\]</div>
+<div class="arithmatex">\[
+Y_S = Y_2 + k\,\Delta X_{TU}
+\]</div>
+<h3 id="7-kontrola">7. Kontrola<a class="headerlink" href="#7-kontrola" title="Permanent link">&para;</a></h3>
+<p>Ze souřadnic bodu <span class="arithmatex">\(S\)</span> se vypočtou směrníky na dané body a musí platit</p>
+<div class="arithmatex">\[
+\alpha = \sigma_{S2} - \sigma_{S1}, \qquad \beta = \sigma_{S3} - \sigma_{S2} \pmod{400^{\mathrm{g}}} .
+\]</div>
+<h3 id="podminky-resitelnosti">Podmínky řešitelnosti<a class="headerlink" href="#podminky-resitelnosti" title="Permanent link">&para;</a></h3>
+<ul>
+<li><span class="arithmatex">\(\sin\alpha \neq 0\)</span> a <span class="arithmatex">\(\sin\beta \neq 0\)</span>, tedy
+  <span class="arithmatex">\(\alpha, \beta \neq 0^{\mathrm{g}}, 200^{\mathrm{g}}\)</span>.</li>
+<li><span class="arithmatex">\(\Delta Y_{TU}^2 + \Delta X_{TU}^2 \neq 0\)</span>, tedy <span class="arithmatex">\(T \neq U\)</span>. Rovnost
+  nastane, když bod <span class="arithmatex">\(S\)</span> leží na kružnici opsané bodům <span class="arithmatex">\(P_1, P_2, P_3\)</span>
+  (nebezpečná kružnice). Úloha pak nemá jednoznačné řešení a v blízkosti
+  kružnice je výsledek nepřesný.</li>
+</ul>
+<h3 id="priklad">Příklad<a class="headerlink" href="#priklad" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>bod</th>
+<th><span class="arithmatex">\(Y\)</span></th>
+<th><span class="arithmatex">\(X\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(P_1\)</span> (103)</td>
+<td>739 936,78</td>
+<td>1 044 454,82</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(P_2\)</span> (22)</td>
+<td>737 998,12</td>
+<td>1 045 881,67</td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(P_3\)</span> (30)</td>
+<td>739 331,21</td>
+<td>1 046 906,56</td>
+</tr>
+</tbody>
+</table>
+<p><span class="arithmatex">\(\alpha = 141{,}0182^{\mathrm{g}}\)</span>, <span class="arithmatex">\(\beta = 93{,}5052^{\mathrm{g}}\)</span></p>
+<table>
+<thead>
+<tr>
+<th>mezivýsledek</th>
+<th>hodnota</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="arithmatex">\(\cot\alpha\)</span>, <span class="arithmatex">\(\cot\beta\)</span></td>
+<td><span class="arithmatex">\(-0{,}751\,268\)</span>, <span class="arithmatex">\(0{,}102\,376\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(T\)</span></td>
+<td><span class="arithmatex">\(Y_T = 738\,864{,}83\)</span>, <span class="arithmatex">\(X_T = 1\,042\,998{,}37\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(U\)</span></td>
+<td><span class="arithmatex">\(Y_U = 739\,436{,}13\)</span>, <span class="arithmatex">\(X_U = 1\,046\,770{,}08\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(\Delta Y_{TU}\)</span>, <span class="arithmatex">\(\Delta X_{TU}\)</span></td>
+<td><span class="arithmatex">\(571{,}30\)</span>, <span class="arithmatex">\(3\,771{,}71\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(k\)</span></td>
+<td><span class="arithmatex">\(0{,}337\,83\)</span></td>
+</tr>
+<tr>
+<td><span class="arithmatex">\(S\)</span> (104)</td>
+<td><span class="arithmatex">\(Y_S = 739\,272{,}33\)</span>, <span class="arithmatex">\(X_S = 1\,045\,688{,}67\)</span></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Zpět na začátek
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.indexes", "navigation.top", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Zkop\u00edrov\u00e1no do schr\u00e1nky", "clipboard.copy": "Kop\u00edrovat do schr\u00e1nky", "search.result.more.one": "1 dal\u0161\u00ed na t\u00e9to str\u00e1nce", "search.result.more.other": "# v\u00edce na t\u00e9to str\u00e1nce", "search.result.none": "Nenalezeny \u017e\u00e1dn\u00e9 dokumenty", "search.result.one": "Nalezen\u00fd dokument: 1", "search.result.other": "Nalezen\u00e9 dokumenty: #", "search.result.placeholder": "Pi\u0161te co se m\u00e1 vyhledat", "search.result.term.missing": "Chyb\u011bj\u00edc\u00ed", "select.version": "Vyberte verzi"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
+      
+        <script src="../../javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

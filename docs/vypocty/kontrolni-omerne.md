@@ -23,7 +23,7 @@ ze souřadnic (KatV § 81 bod 8).
 |---|---|
 | `GUI/CheckMeasurements.pas` | tabulka → frame, body ze seznamu, horší kód kvality, výsledky do tabulky, zápisník, protokol |
 | `GeoAlgorithms/GeoAlgorithmCheckMeasurements.pas` | délka ze souřadnic, rozdíl, mez, souhrn |
-| `Utils/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
+| `GeoAlgorithms/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
 
 ```mermaid
 flowchart LR

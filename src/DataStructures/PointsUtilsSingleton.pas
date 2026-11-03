@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.Generics.Collections, System.SysUtils, System.Classes,
-  Vcl.Forms, Point, CoordOrderState;
+  Point, CoordOrderState, PointNumber;
 
 type
   /// <summary>The one point list of the program.</summary>
@@ -14,18 +14,19 @@ type
     FModified: Boolean;
     FChangeCount: Integer;
     class var FInstance: TPointDictionary;
-    procedure CheckFileError(const FileName: string);
-    procedure ReportImport(AImported: Integer);
+    function GetCount: Integer;
+    // TXT and CSV, one point per line
+    function ReadText(const FileName: string; ADelimiter: Char;
+      APoints: TList<TPoint>): Integer;
+    procedure ExportText(const FileName: string; ADelimiter: Char;
+      APlaces: Integer);
+    procedure CheckFileExists(const FileName: string);
     // .yxz keeps Y first
     class procedure SwapXY(var P: TPoint); static;
     // True when nothing changed
     class function SamePoint(const A, B: TPoint): Boolean; static;
     // Reads 1,5 and 1.5
     class function FileStrToFloat(const AText: string): Double; static;
-    // TXT and CSV, one point per line
-    function ReadText(const FileName: string; ADelimiter: Char;
-      APoints: TList<TPoint>): Integer;
-    procedure ExportText(const FileName: string; ADelimiter: Char);
 
   public
     /// <summary>Use GetInstance instead.</summary>
@@ -36,6 +37,8 @@ type
     property Modified: Boolean read FModified write FModified;
     /// <summary>Grows with every change.</summary>
     property ChangeCount: Integer read FChangeCount;
+    /// <summary>Number of points.</summary>
+    property Count: Integer read GetCount;
 
     /// <summary>The one point list.</summary>
     class function GetInstance: TPointDictionary;
@@ -47,8 +50,6 @@ type
     function GetPoint(const PointNumber: Int64): TPoint;
     /// <summary>Deletes the point, error if missing.</summary>
     procedure RemovePoint(const PointNumber: Int64);
-    /// <summary>Number of points.</summary>
-    function GetPointCount: Integer;
     /// <summary>True if the point is in the list.</summary>
     function PointExists(const PointNumber: Int64): Boolean;
     /// <summary>Deletes all points.</summary>
@@ -56,42 +57,32 @@ type
     /// <summary>Point numbers, sorted.</summary>
     function SortedNumbers: TArray<Int64>;
 
-    // File import and export
-    /// <summary>Saves a TXT file, sorted by number.</summary>
-    procedure ExportToTXT(const FileName: string);
-    /// <summary>Saves a CSV file, sorted by number.</summary>
-    procedure ExportToCSV(const FileName: string);
+    // Text files
+    /// <summary>Saves a TXT file, APlaces decimals, sorted by number.</summary>
+    procedure ExportToTXT(const FileName: string; APlaces: Integer);
+    /// <summary>Saves a CSV file, APlaces decimals, sorted by number.</summary>
+    procedure ExportToCSV(const FileName: string; APlaces: Integer);
     /// <summary>Reads a TXT file into APoints, returns bad lines.</summary>
     function ReadFromTXT(const FileName: string; APoints: TList<TPoint>): Integer;
     /// <summary>The same for a CSV file.</summary>
     function ReadFromCSV(const FileName: string; APoints: TList<TPoint>): Integer;
+
+    // List files
     /// <summary>Saves a .yxz or .xyz file.</summary>
     procedure ExportToBinary(const FileName: string);
-    /// <summary>Opens a .yxz or .xyz file, a bad file keeps the list.</summary>
-    procedure LoadFromBinary(const FileName: string);
-
+    /// <summary>Opens a .yxz or .xyz file, returns the point count.</summary>
+    function LoadFromBinary(const FileName: string): Integer;
     /// <summary>Order by extension, others refused.</summary>
     class function FileOrder(const FileName: string): TCoordOrder;
-
   end;
 
 implementation
-
-uses
-  SettingsState;
 
 var
   CommaFormat: TFormatSettings;   // files use a comma
   DotFormat: TFormatSettings;     // reading also accepts a dot
 
-class function TPointDictionary.FileStrToFloat(const AText: string): Double;
-var
-  S: string;
-begin
-  S := Trim(AText);
-  if not TryStrToFloat(S, Result, CommaFormat) then
-    Result := StrToFloat(S, DotFormat);
-end;
+{ --- Singleton --- }
 
 constructor TPointDictionary.Create;
 begin
@@ -114,11 +105,7 @@ begin
   Result := FInstance;
 end;
 
-class function TPointDictionary.SamePoint(const A, B: TPoint): Boolean;
-begin
-  Result := (A.X = B.X) and (A.Y = B.Y) and (A.Z = B.Z) and
-            (A.Quality = B.Quality) and (A.Description = B.Description);
-end;
+{ --- Points --- }
 
 procedure TPointDictionary.AddOrUpdatePoint(const APoint: TPoint);
 var
@@ -135,7 +122,8 @@ end;
 function TPointDictionary.GetPoint(const PointNumber: Int64): TPoint;
 begin
   if not FPointDict.TryGetValue(PointNumber, Result) then
-    raise Exception.CreateFmt('Bod %.15d v seznamu není.', [PointNumber]);
+    raise Exception.CreateFmt('Bod %s v seznamu není.',
+      [TPointNumber.ToDisplay(PointNumber)]);
 end;
 
 procedure TPointDictionary.RemovePoint(const PointNumber: Int64);
@@ -147,10 +135,11 @@ begin
     Inc(FChangeCount);
   end
   else
-    raise Exception.CreateFmt('Bod %.15d v seznamu není.', [PointNumber]);
+    raise Exception.CreateFmt('Bod %s v seznamu není.',
+      [TPointNumber.ToDisplay(PointNumber)]);
 end;
 
-function TPointDictionary.GetPointCount: Integer;
+function TPointDictionary.GetCount: Integer;
 begin
   Result := FPointDict.Count;
 end;
@@ -173,15 +162,18 @@ begin
   TArray.Sort<Int64>(Result);
 end;
 
-// Text files
-procedure TPointDictionary.ExportToTXT(const FileName: string);
+{ --- Text files --- }
+
+procedure TPointDictionary.ExportToTXT(const FileName: string;
+  APlaces: Integer);
 begin
-  ExportText(FileName, #9);
+  ExportText(FileName, #9, APlaces);
 end;
 
-procedure TPointDictionary.ExportToCSV(const FileName: string);
+procedure TPointDictionary.ExportToCSV(const FileName: string;
+  APlaces: Integer);
 begin
-  ExportText(FileName, ';');
+  ExportText(FileName, ';', APlaces);
 end;
 
 function TPointDictionary.ReadFromTXT(const FileName: string; APoints: TList<TPoint>): Integer;
@@ -194,27 +186,26 @@ begin
   Result := ReadText(FileName, ';', APoints);
 end;
 
-procedure TPointDictionary.ExportText(const FileName: string; ADelimiter: Char);
+procedure TPointDictionary.ExportText(const FileName: string;
+  ADelimiter: Char; APlaces: Integer);
 var
   TxtFile: TextFile;
   Key: Int64;
   P: TPoint;
   C1, C2: Double;
-  Places: Integer;
 begin
-  Places := GSettings.LengthDecimals;   // the same as the screen
   AssignFile(TxtFile, FileName);
   Rewrite(TxtFile);
   try
-    for Key in SortedNumbers do      // sorted by number
+    for Key in SortedNumbers do
     begin
       P := FPointDict[Key];
       CoordRead(P, C1, C2);
       WriteLn(TxtFile,
-        Format('%.15d', [P.PointNumber]) + ADelimiter +
-        FloatToStrF(C1, ffFixed, 18, Places, CommaFormat) + ADelimiter +
-        FloatToStrF(C2, ffFixed, 18, Places, CommaFormat) + ADelimiter +
-        FloatToStrF(P.Z, ffFixed, 18, Places, CommaFormat) + ADelimiter +
+        TPointNumber.ToText(P.PointNumber) + ADelimiter +
+        FloatToStrF(C1, ffFixed, 18, APlaces, CommaFormat) + ADelimiter +
+        FloatToStrF(C2, ffFixed, 18, APlaces, CommaFormat) + ADelimiter +
+        FloatToStrF(P.Z, ffFixed, 18, APlaces, CommaFormat) + ADelimiter +
         IntToStr(P.Quality) + ADelimiter +
         string(P.Description));
     end;
@@ -223,16 +214,16 @@ begin
   end;
 end;
 
-// Reads one point per line, bad lines are counted
+// Bad lines are counted
 function TPointDictionary.ReadText(const FileName: string; ADelimiter: Char;
   APoints: TList<TPoint>): Integer;
 var
   TxtFile: TextFile;
   Line: string;
   Fields: TStringList;
-  Tmp, P: TPoint;
+  Coords, P: TPoint;
 begin
-  CheckFileError(FileName);
+  CheckFileExists(FileName);
   Result := 0;
 
   AssignFile(TxtFile, FileName);
@@ -248,7 +239,6 @@ begin
       if Trim(Line) = '' then
         Continue;                    // empty lines are not counted
 
-      // Bad lines are counted
       Fields.DelimitedText := Line;
       if Fields.Count < 6 then
       begin
@@ -256,11 +246,14 @@ begin
         Continue;
       end;
       try
-        CoordWrite(Tmp, FileStrToFloat(Fields[1]), FileStrToFloat(Fields[2]));
-        P := TPoint.Create(StrToInt64(Trim(Fields[0])), Tmp.X, Tmp.Y,
+        // Y and X in file order
+        CoordWrite(Coords, FileStrToFloat(Fields[1]),
+          FileStrToFloat(Fields[2]));
+        P := TPoint.Create(StrToInt64(Trim(Fields[0])), Coords.X, Coords.Y,
                            FileStrToFloat(Fields[3]), StrToInt(Trim(Fields[4])),
                            Fields[5]);
       except
+        // Non-number marks bad line
         on EConvertError do
         begin
           Inc(Result);
@@ -281,13 +274,16 @@ begin
   end;
 end;
 
+{ --- List files --- }
+
 procedure TPointDictionary.ExportToBinary(const FileName: string);
 var
   BinaryFile: File of TPoint;
-  P: TPoint;
-  R: TPoint;
+  Key: Int64;
+  Stored: TPoint;
   Order: TCoordOrder;
   TempName: string;
+  Error: Cardinal;
 begin
   Order := FileOrder(FileName);   // check before writing
   // Written aside first, a failed save keeps the old file
@@ -296,12 +292,13 @@ begin
   Rewrite(BinaryFile);
   try
     try
-      for P in FPointDict.Values do
+      // Sorted, every save the same file
+      for Key in SortedNumbers do
       begin
-        R := P;
+        Stored := FPointDict[Key];
         if Order = coYX then
-          SwapXY(R);   // .yxz keeps Y first
-        Write(BinaryFile, R);
+          SwapXY(Stored);
+        Write(BinaryFile, Stored);
       end;
     finally
       CloseFile(BinaryFile);
@@ -313,22 +310,26 @@ begin
   // Only a whole file replaces the old one
   if not MoveFileEx(PChar(TempName), PChar(FileName),
     MOVEFILE_REPLACE_EXISTING or MOVEFILE_WRITE_THROUGH) then
-    RaiseLastOSError;
+  begin
+    Error := GetLastError;    // DeleteFile would overwrite it
+    DeleteFile(TempName);
+    RaiseLastOSError(Error);
+  end;
 end;
 
-procedure TPointDictionary.LoadFromBinary(const FileName: string);
+// Read all first, a bad file keeps the list
+function TPointDictionary.LoadFromBinary(const FileName: string): Integer;
 var
   BinaryFile: File of TPoint;
   P: TPoint;
   Loaded: TList<TPoint>;
   Order: TCoordOrder;
-  Count, OldMode: Integer;
+  OldMode: Integer;
 begin
   Order := FileOrder(FileName);
-  CheckFileError(FileName);
+  CheckFileExists(FileName);
   Loaded := TList<TPoint>.Create;
   try
-    // Read all first, a bad file keeps the list
     AssignFile(BinaryFile, FileName);
     OldMode := FileMode;
     FileMode := fmOpenRead;      // Reset opens by the global FileMode
@@ -342,7 +343,7 @@ begin
       begin
         Read(BinaryFile, P);
         if Order = coYX then
-          SwapXY(P);   // .yxz keeps Y first
+          SwapXY(P);
         Loaded.Add(P);
       end;
     finally
@@ -353,20 +354,10 @@ begin
     for P in Loaded do
       AddOrUpdatePoint(P);
     FModified := False;
-    Count := Loaded.Count;
+    Result := Loaded.Count;
   finally
     Loaded.Free;
   end;
-  ReportImport(Count);
-end;
-
-class procedure TPointDictionary.SwapXY(var P: TPoint);
-var
-  T: Double;
-begin
-  T   := P.X;
-  P.X := P.Y;
-  P.Y := T;
 end;
 
 class function TPointDictionary.FileOrder(const FileName: string): TCoordOrder;
@@ -382,18 +373,37 @@ begin
     raise Exception.Create('Neznámý formát seznamu, použijte .yxz nebo .xyz.');
 end;
 
-// Message after import
-procedure TPointDictionary.ReportImport(AImported: Integer);
-begin
-  Application.MessageBox(PChar(Format('Importováno %d bodů.', [AImported])),
-    'Informace', MB_OK or MB_ICONINFORMATION);
-end;
+{ --- Helpers --- }
 
-// Error if the file is missing
-procedure TPointDictionary.CheckFileError(const FileName: string);
+procedure TPointDictionary.CheckFileExists(const FileName: string);
 begin
   if not FileExists(FileName) then
     raise Exception.CreateFmt('Soubor %s neexistuje.', [FileName]);
+end;
+
+class procedure TPointDictionary.SwapXY(var P: TPoint);
+var
+  T: Double;
+begin
+  T   := P.X;
+  P.X := P.Y;
+  P.Y := T;
+end;
+
+class function TPointDictionary.SamePoint(const A, B: TPoint): Boolean;
+begin
+  Result := (A.X = B.X) and (A.Y = B.Y) and (A.Z = B.Z) and
+            (A.Quality = B.Quality) and (A.Description = B.Description);
+end;
+
+// ReadText counts EConvertError
+class function TPointDictionary.FileStrToFloat(const AText: string): Double;
+var
+  S: string;
+begin
+  S := Trim(AText);
+  if not TryStrToFloat(S, Result, CommaFormat) then
+    Result := StrToFloat(S, DotFormat);
 end;
 
 initialization
@@ -408,4 +418,3 @@ finalization
   FreeAndNil(TPointDictionary.FInstance);
 
 end.
-

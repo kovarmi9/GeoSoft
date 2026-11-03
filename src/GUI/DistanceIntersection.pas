@@ -8,7 +8,7 @@ uses
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
   GeoFieldsDef, SettingsState, GeoAlgorithmDistanceIntersection,
-  ProtocolTable;
+  ProtocolTable, PointNumber;
 
 type
   TDistanceIntersectionForm = class(TCalcBaseForm)
@@ -20,7 +20,6 @@ type
   private
     FAlg: TDistanceIntersectionAlgorithm;
     FStored: Boolean;             // the point went to the list in this run
-    function LoadPoint(ARow: Integer): Boolean;
     procedure Recompute;
     function SideText: string;
   protected
@@ -77,28 +76,11 @@ begin
 end;
 
 // Fills Y, X and KK of point 1 or 2 from the list, offers to add it
-function TDistanceIntersectionForm.LoadPoint(ARow: Integer): Boolean;
-var
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
-begin
-  PointNumber := StrToInt64Def(Trim(Grid.Cells[Grid.FieldToCol(CB), ARow]), 0);
-  Result := (PointNumber <> 0) and LookupPoint(PointNumber, ListPoint);
-  if not Result then
-    Exit;
-
-  Grid.Cells[Grid.FieldToCol(Y), ARow] := FloatToStr(ListPoint.Y, FS);
-  Grid.Cells[Grid.FieldToCol(X), ARow] := FloatToStr(ListPoint.X, FS);
-  Grid.Cells[Grid.FieldToCol(KK), ARow] := IntToStr(ListPoint.Quality);
-end;
-
 // Rows 0 and 1 are the given points from the list, row 2 the new one
 function TDistanceIntersectionForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
 begin
   Result := True;
   FFrame.ClearData;
@@ -106,14 +88,12 @@ begin
   begin
     Grid.GetGeoRow(R, Row);
     Row.Uloha := ULOHA_PROTINANI_DELKY;
-    Row.X := NaN;
-    Row.Y := NaN;
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
-    if (R < RESULT_ROW) and OriginalPoint(PointNumber, ListPoint) then
+    if R < RESULT_ROW then
+      TakeFromList(Row)
+    else
     begin
-      Row.X := ListPoint.X;
-      Row.Y := ListPoint.Y;
-      Row.KK := ListPoint.Quality;
+      Row.X := NaN;
+      Row.Y := NaN;
     end;
     FFrame.AddRow(Row);
   end;
@@ -173,7 +153,7 @@ begin
     NormalizePointCell(Grid, ACol, ARow);
     // An empty cell is a row not filled in yet, not a mistake
     if (ARow < RESULT_ROW) and (Trim(Grid.Cells[ACol, ARow]) <> '') and
-       not LoadPoint(ARow) then
+       not LoadGridPoint(Grid, ARow) then
     begin
       Grid.RejectCommit;
       Exit;
@@ -185,7 +165,6 @@ end;
 
 procedure TDistanceIntersectionForm.CalculateClick(Sender: TObject);
 var
-  R: Integer;
   Row: TGeoRow;
 begin
   ForgetAnswers;     // a new run asks again
@@ -193,16 +172,8 @@ begin
     Exit;            // the typed value is invalid
 
   // Both given points from the list
-  for R := 1 to GIVEN_POINTS do
-    if not LoadPoint(R) then
-    begin
-      ShowMessage(Format('Zadejte bod %s.', [Grid.Cells[0, R]]));
-      Grid.Row := R;
-      Grid.Col := Grid.FieldToCol(CB);
-      if Grid.CanFocus then
-        Grid.SetFocus;
-      Exit;
-    end;
+  if not CheckGivenPoints(Grid, 1, GIVEN_POINTS, 'Zadejte bod %s.') then
+    Exit;
 
   Recompute;
   if not FAlg.Valid then
@@ -212,7 +183,7 @@ begin
   end;
 
   Row := FFrame.Rows[GIVEN_POINTS];
-  if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
+  if Row.CB = 0 then
   begin
     ShowMessage('Zadejte číslo určovaného bodu, výsledek se neuložil.');
     SkipJobProtocol;
@@ -223,7 +194,7 @@ begin
   Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
   StorePoint(Row);
   FFrame.Rows[GIVEN_POINTS].CB := Row.CB;
-  Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := string(Row.CB);
+  Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);
   FStored := True;
   ShowProtocol;
 end;

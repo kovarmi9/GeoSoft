@@ -26,7 +26,7 @@ uses
   GeoAlgorithmTransformBase,
   PointsUtilsSingleton,
   PointPrefixState, CoordOrderState, ProtocolTable, GeoGrid, Vcl.Mask,
-  Vcl.Menus, SettingsState;
+  Vcl.Menus, SettingsState, PointNumber;
 
 type
   TPolarMethodForm = class(TCalcBaseForm)
@@ -198,7 +198,7 @@ begin
   EditStationX.Text := '';
   EditStationZ.Text := '';
 
-  PointNumber := StrToInt64Def(EditStationNo.Text, 0);
+  TPointNumber.TryParse(EditStationNo.Text, PointNumber);
   Result := PointNumber <> 0;
   if not Result or not CheckBox1.Checked then
     Exit;
@@ -248,7 +248,7 @@ begin
   if (ACol <> PointNumberCol) or (ARow < Grid.FixedRows) then Exit;
 
   NormalizePointCell(Grid, PointNumberCol, ARow);
-  PointNumber := StrToInt64Def(Trim(Grid.Cells[PointNumberCol, ARow]), 0);
+  TPointNumber.TryParse(Grid.Cells[PointNumberCol, ARow], PointNumber);
   if PointNumber = 0 then Exit;
 
   if not LookupPoint(PointNumber, ListPoint) then Exit;
@@ -291,7 +291,7 @@ begin
   if ACol = PointNumberCol then
   begin
     NormalizePointCell(Grid, PointNumberCol, ARow);
-    PointNumber := StrToInt64Def(Grid.Cells[PointNumberCol, ARow], 0);
+    TPointNumber.TryParse(Grid.Cells[PointNumberCol, ARow], PointNumber);
 
     // A new number brings its own height, quality and description
     if ARow >= Length(FDetailCB) then
@@ -348,13 +348,10 @@ var
   end;
 
   procedure AddStation;
-  var
-    StationNumber: string;
   begin
     ClearGeoRow(Row);
-    StationNumber := StationNo;
-    Row.CB := ShortString(StationNumber);
-    PointNumber := StrToInt64Def(StationNumber, 0);
+    TPointNumber.TryParse(StationNo, PointNumber);
+    Row.CB := PointNumber;
 
     if PointNumber = 0 then
       Msg := 'Zadejte číslo stanoviska.'
@@ -381,7 +378,7 @@ var
     else
       // Without coordinates it would turn into a free station
       Msg := Format('Stanovisko %s není v seznamu souřadnic.',
-        [StationNumber]);
+        [TPointNumber.ToDisplay(PointNumber)]);
 
     // The height marks the station, so it is never empty
     if not TryStrToFloat(Trim(EditStationVS.Text), Row.VS, FS) then
@@ -396,7 +393,7 @@ var
     for I := GridOrientation.FixedRows to GridOrientation.RowCount - 1 do
     begin
       GridOrientation.GetGeoRow(I, Row);
-      PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+      PointNumber := Row.CB;
       if PointNumber = 0 then
         Continue;
 
@@ -405,7 +402,7 @@ var
       begin
         if Msg = '' then
           Msg := Format('Orientace %s není v seznamu souřadnic.',
-            [Trim(string(Row.CB))]);
+            [TPointNumber.ToDisplay(Row.CB)]);
         Continue;
       end;
 
@@ -432,7 +429,7 @@ begin
   for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
     GridDetail.GetGeoRow(R, Row);
-    if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
+    if Row.CB = 0 then
       Continue;
 
     // A typed quality wins, the toolbar fills the rest
@@ -490,7 +487,7 @@ begin
     StorePoint(Station);
     // A number given in the dialog goes to the edit
     FFrame.Rows[0].CB := Station.CB;
-    EditStationNo.Text := string(Station.CB);
+    EditStationNo.Text := TPointNumber.ToText(Station.CB);
   end;
 
   ShowProtocol;
@@ -566,7 +563,7 @@ begin
 
   // Station, X means fixed
   Row := AFrame.Rows[0];
-  EditStationNo.Text := string(Row.CB);
+  EditStationNo.Text := TPointNumber.ToText(Row.CB);
   EditStationVS.Text := FloatToStr(Row.VS, FS);
   CheckBox1.OnClick := nil;           // no second FillStation
   try

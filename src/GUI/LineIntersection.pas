@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
-  GeoAlgorithmLineIntersection, ProtocolTable;
+  GeoAlgorithmLineIntersection, ProtocolTable, PointNumber;
 
 type
   TLineIntersectionForm = class(TCalcBaseForm)
@@ -19,7 +19,6 @@ type
   private
     FAlg: TLineIntersectionAlgorithm;
     FStored: Boolean;             // the point went to the list in this run
-    function LoadPoint(ARow: Integer): Boolean;
     procedure Recompute;
   protected
     function BuildFrame: Boolean; override;
@@ -63,28 +62,11 @@ begin
 end;
 
 // Fills Y, X and KK of a line point from the list, offers to add it
-function TLineIntersectionForm.LoadPoint(ARow: Integer): Boolean;
-var
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
-begin
-  PointNumber := StrToInt64Def(Trim(Grid.Cells[Grid.FieldToCol(CB), ARow]), 0);
-  Result := (PointNumber <> 0) and LookupPoint(PointNumber, ListPoint);
-  if not Result then
-    Exit;
-
-  Grid.Cells[Grid.FieldToCol(Y), ARow] := FloatToStr(ListPoint.Y, FS);
-  Grid.Cells[Grid.FieldToCol(X), ARow] := FloatToStr(ListPoint.X, FS);
-  Grid.Cells[Grid.FieldToCol(KK), ARow] := IntToStr(ListPoint.Quality);
-end;
-
 // Rows 0 to 3 are the lines from the list, row 4 the intersection
 function TLineIntersectionForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
 begin
   Result := True;
   FFrame.ClearData;
@@ -92,14 +74,12 @@ begin
   begin
     Grid.GetGeoRow(R, Row);
     Row.Uloha := ULOHA_PRUSECIK;
-    Row.X := NaN;
-    Row.Y := NaN;
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
-    if (R < RESULT_ROW) and OriginalPoint(PointNumber, ListPoint) then
+    if R < RESULT_ROW then
+      TakeFromList(Row)
+    else
     begin
-      Row.X := ListPoint.X;
-      Row.Y := ListPoint.Y;
-      Row.KK := ListPoint.Quality;
+      Row.X := NaN;
+      Row.Y := NaN;
     end;
     FFrame.AddRow(Row);
   end;
@@ -142,7 +122,7 @@ begin
   NormalizePointCell(Grid, ACol, ARow);
   // An empty cell is a row not filled in yet, not a mistake
   if (ARow < RESULT_ROW) and (Trim(Grid.Cells[ACol, ARow]) <> '') and
-     not LoadPoint(ARow) then
+     not LoadGridPoint(Grid, ARow) then
   begin
     Grid.RejectCommit;
     Exit;
@@ -153,7 +133,6 @@ end;
 
 procedure TLineIntersectionForm.CalculateClick(Sender: TObject);
 var
-  R: Integer;
   Row: TGeoRow;
 begin
   ForgetAnswers;     // a new run asks again
@@ -161,16 +140,8 @@ begin
     Exit;            // the typed value is invalid
 
   // Both lines need their points from the list
-  for R := 1 to LINE_POINTS do
-    if not LoadPoint(R) then
-    begin
-      ShowMessage(Format('Zadejte bod %s.', [Grid.Cells[0, R]]));
-      Grid.Row := R;
-      Grid.Col := Grid.FieldToCol(CB);
-      if Grid.CanFocus then
-        Grid.SetFocus;
-      Exit;
-    end;
+  if not CheckGivenPoints(Grid, 1, LINE_POINTS, 'Zadejte bod %s.') then
+    Exit;
 
   Recompute;
   if not FAlg.Valid then
@@ -180,7 +151,7 @@ begin
   end;
 
   Row := FFrame.Rows[LINE_POINTS];
-  if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
+  if Row.CB = 0 then
   begin
     ShowMessage('Zadejte číslo průsečíku, výsledek se neuložil.');
     SkipJobProtocol;
@@ -191,7 +162,7 @@ begin
   Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
   StorePoint(Row);
   FFrame.Rows[LINE_POINTS].CB := Row.CB;
-  Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := string(Row.CB);
+  Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);
   FStored := True;
   ShowProtocol;
 end;

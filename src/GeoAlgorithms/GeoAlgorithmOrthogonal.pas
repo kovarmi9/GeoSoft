@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  Accuracy;
+  Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -145,7 +145,7 @@ begin
     offS := si - sP;
     offQ := qi - qP;
 
-    PtNo := Trim(string(AFrame.Rows[i].CB));
+    PtNo := TPointNumber.ToDisplay(AFrame.Rows[i].CB);
 
     // Extension beyond P or K
     if offS < -L / 3 then

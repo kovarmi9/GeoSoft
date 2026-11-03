@@ -3,7 +3,7 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Math, GeoRow;
+  System.SysUtils, System.Classes, System.Math, GeoRow, PointNumber;
 
 type
   /// <summary>Rows of one task and the fields it uses.</summary>
@@ -330,6 +330,7 @@ var
   S, Bad: string;
   Number: Double;
   Whole: Integer;
+  PointNumber: Int64;
 begin
   if (ACSV = nil) or (ACSV.Count = 0) then
   begin
@@ -382,9 +383,14 @@ begin
           if ColMap[J] <> Poznamka then
             S := StringReplace(S, '.', ADecSep, [rfReplaceAll]);
           TextToGeoField(FRows[FCount - 1], ColMap[J], S, FS);
-          // Only the point numbers and the note are text
+          // Only the note is text
           if not (ColMap[J] in [CB, CBm, Poznamka]) and (Trim(S) <> '') and
              not TryStrToFloat(Trim(S), Number, FS) and (Bad = '') then
+            Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
+          // Digits only, 0 means none
+          if (ColMap[J] in [CB, CBm]) and (Trim(S) <> '') and
+             (Trim(S) <> '0') and not TPointNumber.TryParse(S, PointNumber) and
+             (Bad = '') then
             Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
           // Task, length type and quality are whole numbers
           if (ColMap[J] in [Uloha, TypS, KK]) and (Trim(S) <> '') and
@@ -429,7 +435,6 @@ begin
   // Header record at Buffer[0] encodes the active field mask
   ClearGeoRow(Header);
   Header.Uloha := -1;                                // marks the header
-  Header.CB    := '__HEADER__';                      // readable marker
   Header.TypS  := Integer(GeoFieldsToMask(FFields)); // bitmask of active fields
 
   Buffer[0] := Header;
@@ -457,7 +462,7 @@ begin
 
   // A header record carries Fields. A file without it has all fields
   Header := AllRows[0];
-  if (Header.Uloha = -1) and SameText(string(Header.CB), '__HEADER__') then
+  if Header.Uloha = -1 then
   begin
     UsedFields := MaskToGeoFields(LongWord(Header.TypS));
     First := 1;            // data start after the header

@@ -3,7 +3,14 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, Point, GeoDataFrame;
+  System.SysUtils, System.Classes, Point, GeoRow, GeoDataFrame;
+
+const
+  GON_TO_RAD = Pi / 200;
+  RAD_TO_GON = 200 / Pi;
+
+  MIN_ANGLE = 30;       // [gon] a sharper intersection is weak
+  MAX_ANGLE = 170;
 
 type
   // Dynamic array of points, e.g. the input of a transformation
@@ -39,6 +46,9 @@ type
 
     // The code this algorithm writes into TGeoRow.Uloha
     class function TaskCode: Integer; virtual; abstract;
+
+    /// <summary>A given point has coordinates.</summary>
+    class function IsGiven(const ARow: TGeoRow): Boolean;
   end;
 
 var
@@ -46,6 +56,9 @@ var
   ErrorMark: TObject;
 
 implementation
+
+uses
+  System.Math;
 
 constructor TAlgorithmBase.Create;
 begin
@@ -73,6 +86,11 @@ end;
 procedure TAlgorithmBase.ClearWarnings;
 begin
   FWarnings.Clear;
+end;
+
+class function TFrameAlgorithm.IsGiven(const ARow: TGeoRow): Boolean;
+begin
+  Result := not (IsNan(ARow.X) or IsNan(ARow.Y));
 end;
 
 initialization

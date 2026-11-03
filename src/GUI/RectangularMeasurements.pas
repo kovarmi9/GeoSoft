@@ -12,7 +12,7 @@ uses
   GeoFieldsDef, ProtocolTable,
   GeoAlgorithmBase,
   GeoAlgorithmRectangularMeasurements,
-  CalcBase, Vcl.Mask;
+  CalcBase, Vcl.Mask, PointNumber;
 
 type
   TRectangularMeasurementsForm = class(TCalcBaseForm)
@@ -111,7 +111,7 @@ var
   Known: Boolean;
 begin
   CBText := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
-  PointNumber := StrToInt64Def(CBText, 0);
+  TPointNumber.TryParse(CBText, PointNumber);
   if PointNumber = 0 then Exit;
 
   // Only a new number refills the row, so user edits survive
@@ -223,7 +223,7 @@ begin
   for I := 0 to FFrame.Count - 1 do
   begin
     GridRow := FRows[I];
-    PointNumber := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
+    PointNumber := FFrame.Rows[I].CB;
 
     // A listed point is given, unless the user said it is a new one
     IsGiven := TPointDictionary.GetInstance.PointExists(PointNumber)
@@ -354,8 +354,8 @@ begin
   begin
     Segment := FAlg.Segments[S];
     Prot.Section(Format('Úsek %d: %s → %s', [S + 1,
-      PointId(string(FFrame.Rows[Segment.FromRow].CB)),
-      PointId(string(FFrame.Rows[Segment.ToRow].CB))]));
+      PointId(FFrame.Rows[Segment.FromRow].CB),
+      PointId(FFrame.Rows[Segment.ToRow].CB)]));
     Prot.Columns([ColNumber, ColField(CB), ColLength('Délka'), ColPair,
       ColText('Typ')]);
 

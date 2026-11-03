@@ -22,7 +22,7 @@ var
 begin
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_PROTINANI_SMERY;
-  Row.CB := ShortString(APointNumber);
+  Row.CB := StrToInt64Def(APointNumber, 0);
   Row.HZ := ADirection;
   Row.Zuhel := ADirectionB;
   Row.Y := AY;
@@ -50,7 +50,7 @@ begin
     begin
       Row := Frame.Rows[I];
       Writeln(Format('  %s: Y %.3f  X %.3f  úhel %.1f  KK %d',
-        [string(Row.CB), Row.Y, Row.X, Alg.omega[I], Row.KK]));
+        [IntToStr(Row.CB), Row.Y, Row.X, Alg.omega[I], Row.KK]));
     end;
   Writeln;
 end;

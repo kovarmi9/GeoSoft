@@ -32,8 +32,6 @@ type
     /// <summary>Number of data columns, without fixed columns.</summary>
     function DataColumnCount: Integer;
 
-    /// <summary>Returns filter for given grid column.</summary>
-    function FilterForCol(ACol: Integer): TColumnFilter;
 
     /// <summary>Ensures filter count matches number of data columns.</summary>
     procedure EnsureFilterCount;
@@ -60,8 +58,6 @@ type
     /// <summary>Called when grid size (columns/rows) changes.</summary>
     procedure SizeChanged(OldColCount, OldRowCount: Longint); override;
 
-    /// <summary>Validates and commits the cell value.</summary>
-    procedure CommitCell; override;
 
     /// <summary>A column the program fills is not for the cursor.</summary>
     function CellSelectable(ACol, ARow: Integer): Boolean; override;
@@ -153,11 +149,6 @@ end;
 
 function TGeoPointsGrid.CellFilter(ACol: Integer): TColumnFilter;
 begin
-  Result := FilterForCol(ACol);
-end;
-
-function TGeoPointsGrid.FilterForCol(ACol: Integer): TColumnFilter;
-begin
   // Map grid column index to filter index
   Result := ResolveFilter(FColumnFilters, ACol - FixedCols);
 end;
@@ -188,7 +179,7 @@ begin
     Exit;
 
   // Apply filter to typed character
-  Filter := FilterForCol(Col);
+  Filter := CellFilter(Col);
   if Filter <> nil then
     FilterKeyPress(Filter, AText, Key);
 end;
@@ -201,67 +192,8 @@ begin
   if not Result then
     Exit;
 
-  Filter := FilterForCol(ACol);
+  Filter := CellFilter(ACol);
   Result := (Filter = nil) or not Filter.ReadOnly;
-end;
-
-procedure TGeoPointsGrid.CommitCell;
-var
-  Filter:         TColumnFilter;
-  Text:           string;
-  DefaultText:    string;
-  DefaultHandled: Boolean;
-begin
-  // Skip header cells and cells without active editor
-  if IsHeaderCell(Col, Row) or not EditorMode or
-    not Assigned(InplaceEditor) then
-  begin
-    inherited;
-    Exit;
-  end;
-
-  Filter := FilterForCol(Col);
-  if Filter = nil then
-  begin
-    inherited;
-    Exit;
-  end;
-
-  // Reset before the check, inherited flag
-  FLastCommitFailed := False;
-
-  Text := InplaceEditor.Text;
-
-  // Empty cell + default provider → try to fill before validating
-  if (Trim(Text) = '') and Assigned(Filter.OnGetDefaultText) then
-  begin
-    DefaultText    := '';
-    DefaultHandled := False;
-    Filter.OnGetDefaultText(DefaultText, DefaultHandled);
-    if DefaultHandled then
-      Text := DefaultText;
-  end;
-
-  if TryCommitText(Filter, Text) then
-  begin
-    Cells[Col, Row] := Text;
-    if Assigned(OnCellCommitted) then
-      OnCellCommitted(Self, Col, Row);
-  end
-  else
-  begin
-    case Filter.OnInvalidCommit of
-      ciaBeepAndClear:
-      begin
-        // Clear cell + notify - cursor moves on normally
-        Cells[Col, Row]    := '';
-        InplaceEditor.Text := '';
-        MessageBeep(MB_ICONWARNING);
-      end;
-      ciaBlock:
-        RejectCommit;
-    end;
-  end;
 end;
 
 

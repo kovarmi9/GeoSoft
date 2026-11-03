@@ -9,7 +9,7 @@ uses
   Vcl.Grids, PointPrefixState, Point, PointsUtilsSingleton, GeoRow,
   GeoDataFrame, GeoGridBridge, GeoAlgorithmTransformation,
   ProtocolTable, CoordOrderState, GeoGrid, GeoFieldsGrid, CalcBase,
-  Vcl.Menus;
+  Vcl.Menus, PointNumber;
 
 type
   TTransformationForm = class(TCalcBaseForm)
@@ -81,7 +81,7 @@ procedure TTransformationForm.FillFromList(ARow: Integer; ANumberField,
   AYField, AXField: TGeoField; const APoint: Point.TPoint);
 begin
   Grid.Cells[Grid.FieldToCol(ANumberField), ARow] :=
-    Format('%.15d', [APoint.PointNumber]);
+    TPointNumber.ToText(APoint.PointNumber);
   Grid.Cells[Grid.FieldToCol(AYField), ARow] := FloatToStr(APoint.Y, FS);
   Grid.Cells[Grid.FieldToCol(AXField), ARow] := FloatToStr(APoint.X, FS);
 end;
@@ -99,7 +99,7 @@ procedure TTransformationForm.GridGetEditText(Sender: TObject;
   ACol, ARow: Integer; var Value: string);
 begin
   if ACol = Grid.FieldToCol(CB) then
-    FOldNumber := StrToInt64Def(Trim(Value), 0);
+    TPointNumber.TryParse(Value, FOldNumber);
 end;
 
 // A given target fills itself and suggests the source -n
@@ -116,7 +116,7 @@ begin
   if ACol = Grid.FieldToCol(CB) then
   begin
     NormalizePointCell(Grid, ACol, ARow);
-    PointNumber := StrToInt64Def(Trim(Grid.Cells[ACol, ARow]), 0);
+    TPointNumber.TryParse(Grid.Cells[ACol, ARow], PointNumber);
 
     if PointNumber <> FOldNumber then
     begin
@@ -128,8 +128,8 @@ begin
       end;
 
       // Source of the old number goes too
-      SourceNumber :=
-        StrToInt64Def(Trim(Grid.Cells[Grid.FieldToCol(CBm), ARow]), 0);
+      TPointNumber.TryParse(Grid.Cells[Grid.FieldToCol(CBm), ARow],
+        SourceNumber);
       if (FOldNumber <> 0) and (SourceNumber = -FOldNumber) then
       begin
         Grid.Cells[Grid.FieldToCol(CBm), ARow] := '';
@@ -154,7 +154,7 @@ begin
   else if ACol = Grid.FieldToCol(CBm) then
   begin
     NormalizePointCell(Grid, ACol, ARow);
-    PointNumber := StrToInt64Def(Trim(Grid.Cells[ACol, ARow]), 0);
+    TPointNumber.TryParse(Grid.Cells[ACol, ARow], PointNumber);
     // A source may be typed by hand
     if (PointNumber <> 0) and Points.PointExists(PointNumber) then
       FillFromList(ARow, CBm, Ym, Xm, Points.GetPoint(PointNumber));
@@ -183,11 +183,11 @@ begin
   for R := Grid.FixedRows to Grid.RowCount - 1 do
   begin
     Grid.GetGeoRow(R, Row);
-    if (Trim(string(Row.CB)) = '') and (Trim(string(Row.CBm)) = '') then
+    if (Row.CB = 0) and (Row.CBm = 0) then
       Continue;                        // an empty row
 
     Row.Uloha := FAlg.TaskCode;
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+    PointNumber := Row.CB;
     Given := IsGiven(PointNumber);
 
     // A point from the list brings its own quality code
@@ -283,7 +283,7 @@ begin
        IsNan(FFrame.Rows[I].X) then
       Continue;
 
-    PointNumber := StrToInt64Def(Trim(string(FFrame.Rows[I].CB)), 0);
+    PointNumber := FFrame.Rows[I].CB;
     if PointNumber = 0 then
     begin
       Inc(Unnumbered);       // the list needs a number
@@ -353,9 +353,9 @@ begin
     Row := FFrame.Rows[I];
     if (Row.TypS <> DRUH_IDENTICKY) or IsNan(Row.Sxy) then
       Continue;
-    Prot.Row([GridNumber(I), 'Z:', PointId(string(Row.CBm)),
+    Prot.Row([GridNumber(I), 'Z:', PointId(Row.CBm),
               CoordPair(Row.Xm, Row.Ym)]);
-    Prot.Row(['', 'Do:', PointId(string(Row.CB)),
+    Prot.Row(['', 'Do:', PointId(Row.CB),
               CoordPair(Row.X, Row.Y)]);
   end;
 
@@ -433,10 +433,10 @@ begin
   for I := 0 to High(Info.OutsideRows) do
   begin
     Row := FFrame.Rows[Info.OutsideRows[I]];
-    if Trim(string(Row.CB)) = '' then
-      Prot.Text('  mimo kružnici: ' + PointId(string(Row.CBm)))
+    if Row.CB = 0 then
+      Prot.Text('  mimo kružnici: ' + PointId(Row.CBm))
     else
-      Prot.Text('  mimo kružnici: ' + PointId(string(Row.CB)));
+      Prot.Text('  mimo kružnici: ' + PointId(Row.CB));
   end;
 end;
 
@@ -473,13 +473,13 @@ begin
     Row := FFrame.Rows[I];
     if (Row.TypS <> DRUH_URCOVANY) or IsNan(Row.X) then
       Continue;
-    Prot.Row([GridNumber(I), 'Z:', PointId(string(Row.CBm)),
+    Prot.Row([GridNumber(I), 'Z:', PointId(Row.CBm),
               CoordPair(Row.Xm, Row.Ym)]);
-    if Trim(string(Row.CB)) = '' then
+    if Row.CB = 0 then
       Prot.Row(['', 'Do:', '', CoordPair(Row.X, Row.Y), ''],
                '*** neuloženo, chybí číslo bodu ***')
     else
-      Prot.Row(['', 'Do:', PointId(string(Row.CB)),
+      Prot.Row(['', 'Do:', PointId(Row.CB),
                 CoordPair(Row.X, Row.Y), IntToStr(Row.KK)],
                UpdatedTail(Row));
   end;

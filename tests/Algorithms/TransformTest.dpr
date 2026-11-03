@@ -19,10 +19,10 @@ begin
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_TRANSFORMACE;
   Row.TypS := ARole;
-  Row.CB := ShortString(ANumber);
+  Row.CB := StrToInt64Def(ANumber, 0);
   Row.Y := AY;
   Row.X := AX;
-  Row.CBm := ShortString(ASourceNumber);
+  Row.CBm := StrToInt64Def(ASourceNumber, 0);
   Row.Ym := AYm;
   Row.Xm := AXm;
   AFrame.AddRow(Row);
@@ -56,13 +56,13 @@ begin
     case Row.TypS of
       DRUH_IDENTICKY:
         Write(Format('  %-16s identický  Vy %6.2f  Vx %6.2f  Sxy %5.2f',
-          [string(Row.CB), Row.Vy, Row.Vx, Row.Sxy]));
+          [IntToStr(Row.CB), Row.Vy, Row.Vx, Row.Sxy]));
       DRUH_KONTROLNI:
         Write(Format('  %-16s kontrolní  Vy %6.2f  Vx %6.2f  Sxy %5.2f',
-          [string(Row.CB), Row.Vy, Row.Vx, Row.Sxy]));
+          [IntToStr(Row.CB), Row.Vy, Row.Vx, Row.Sxy]));
     else
       Write(Format('  %-16s určovaný   Y %.2f  X %.2f',
-        [string(Row.CB), Row.Y, Row.X]));
+        [IntToStr(Row.CB), Row.Y, Row.X]));
     end;
     Writeln;
   end;

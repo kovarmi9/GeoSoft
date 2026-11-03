@@ -7,7 +7,7 @@ interface
 
 uses
   System.SysUtils, Math, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase,
-  GeoAlgorithmTransformCongruent, GeoRow, GeoDataFrame;
+  GeoAlgorithmTransformCongruent, GeoRow, GeoDataFrame, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -27,8 +27,6 @@ type
   public
     class function TaskCode: Integer; override;
 
-    /// <summary>A given point has coordinates from the list.</summary>
-    class function IsGiven(const ARow: TGeoRow): Boolean;
 
     /// <summary>SH: signed sides, last row closes on the first.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
@@ -51,12 +49,6 @@ implementation
 class function TRectangularAdjustmentAlgorithm.TaskCode: Integer;
 begin
   Result := ULOHA_KONSTRUKCNI_VYROVNANI;
-end;
-
-class function TRectangularAdjustmentAlgorithm.IsGiven(
-  const ARow: TGeoRow): Boolean;
-begin
-  Result := not (IsNan(ARow.X) or IsNan(ARow.Y));
 end;
 
 procedure TRectangularAdjustmentAlgorithm.Calculate(AFrame: TGeoDataFrame);
@@ -95,7 +87,7 @@ begin
     if IsNan(AFrame.Rows[I].SH) or (AFrame.Rows[I].SH = 0) then
     begin
       AddError(Format('Bod %s nemá délku.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
 
@@ -155,7 +147,7 @@ begin
     end;
     AFrame.Rows[I].Xm := Xm;
     AFrame.Rows[I].Ym := Ym;
-    Local[I].PointNumber := StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0);
+    Local[I].PointNumber := AFrame.Rows[I].CB;
     Local[I].X := Xm;
     Local[I].Y := Ym;
   end;

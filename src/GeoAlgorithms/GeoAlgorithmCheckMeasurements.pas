@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoRow, GeoDataFrame, GeoAlgorithmBase,
-  Accuracy;
+  Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -123,6 +123,7 @@ procedure TCheckMeasurementsAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   i: Integer;
   R: TCheckResult;
+  Head: string;
 begin
   ClearWarnings;
   FInfo := Default(TCheckInfo);
@@ -151,21 +152,19 @@ begin
         Inc(FInfo.Failed);
     end;
 
+    Head := Format('Oměrná %d (body %s - %s): ', [i + 1,
+      TPointNumber.ToDisplay(AFrame.Rows[i].CB),
+      TPointNumber.ToDisplay(AFrame.Rows[i].CBm)]);
+
     if R.Computed < MIN_DIST then
-      AddError(Format(
-        'Oměrná %d (body %s - %s): body mají shodné souřadnice.',
-        [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm)]));
+      AddError(Head + 'body mají shodné souřadnice.');
 
     if R.HasMeasured and IsNan(R.Tolerance) then
-      AddWarning(Format('Oměrná %d (body %s - %s): mezní rozdíl ' +
-        'neurčen, chybí kód kvality bodu.',
-        [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm)]))
+      AddWarning(Head + 'mezní rozdíl neurčen, chybí kód kvality bodu.')
     else if R.HasMeasured and not R.Passed then
-      AddWarning(Format('Oměrná %d (body %s - %s): rozdíl %.3f m ' +
-        'není menší než mezní rozdíl %.3f m - příloha, bod 13.5 ' +
-        'katastrální vyhlášky',
-        [i + 1, string(AFrame.Rows[i].CB), string(AFrame.Rows[i].CBm),
-         R.Diff, R.Tolerance]));
+      AddWarning(Head + Format('rozdíl %.3f m není menší než mezní rozdíl ' +
+        '%.3f m - příloha, bod 13.5 katastrální vyhlášky',
+        [R.Diff, R.Tolerance]));
   end;
 end;
 

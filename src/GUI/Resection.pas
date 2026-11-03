@@ -7,7 +7,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, GeoGrid,
   GeoFieldsGrid, Math, Point, PointPrefixState, GeoRow, GeoDataFrame,
-  CoordOrderState, SettingsState, GeoAlgorithmResection, ProtocolTable;
+  CoordOrderState, SettingsState, GeoAlgorithmResection, ProtocolTable,
+  PointNumber;
 
 type
   TResectionForm = class(TCalcBaseForm)
@@ -26,7 +27,6 @@ type
     FAlg: TResectionAlgorithm;
     FStored: Boolean;             // the station went to the list in this run
     function StationNo: string;
-    function LoadPoint(ARow: Integer): Boolean;
     procedure Recompute;
   protected
     function BuildFrame: Boolean; override;
@@ -89,29 +89,12 @@ begin
 end;
 
 // Fills Y, X and KK of a given point from the list, offers to add it
-function TResectionForm.LoadPoint(ARow: Integer): Boolean;
-var
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
-begin
-  PointNumber := StrToInt64Def(Trim(Grid.Cells[Grid.FieldToCol(CB), ARow]), 0);
-  Result := (PointNumber <> 0) and LookupPoint(PointNumber, ListPoint);
-  if not Result then
-    Exit;
-
-  Grid.Cells[Grid.FieldToCol(Y), ARow] := FloatToStr(ListPoint.Y, FS);
-  Grid.Cells[Grid.FieldToCol(X), ARow] := FloatToStr(ListPoint.X, FS);
-  Grid.Cells[Grid.FieldToCol(KK), ARow] := IntToStr(ListPoint.Quality);
-end;
-
 // Rows 0 to 2 are the given points from the list, row 3 the station
 function TResectionForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
   PointNumber: Int64;
-  ListPoint: Point.TPoint;
-  StationNumber: string;
 begin
   Result := True;
   FFrame.ClearData;
@@ -119,22 +102,14 @@ begin
   begin
     Grid.GetGeoRow(R, Row);
     Row.Uloha := ULOHA_PROTINANI_ZPET;
-    Row.X := NaN;
-    Row.Y := NaN;
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
-    if OriginalPoint(PointNumber, ListPoint) then
-    begin
-      Row.X := ListPoint.X;
-      Row.Y := ListPoint.Y;
-      Row.KK := ListPoint.Quality;
-    end;
+    TakeFromList(Row);
     FFrame.AddRow(Row);
   end;
 
-  StationNumber := StationNo;
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_PROTINANI_ZPET;
-  Row.CB := ShortString(StationNumber);
+  TPointNumber.TryParse(StationNo, PointNumber);
+  Row.CB := PointNumber;
   Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
   FFrame.AddRow(Row);
 end;
@@ -177,7 +152,8 @@ begin
   begin
     NormalizePointCell(Grid, ACol, ARow);
     // An empty cell is a row not filled in yet, not a mistake
-    if (Trim(Grid.Cells[ACol, ARow]) <> '') and not LoadPoint(ARow) then
+    if (Trim(Grid.Cells[ACol, ARow]) <> '') and
+       not LoadGridPoint(Grid, ARow) then
     begin
       Grid.RejectCommit;
       Exit;
@@ -189,7 +165,6 @@ end;
 
 procedure TResectionForm.CalculateClick(Sender: TObject);
 var
-  R: Integer;
   Row: TGeoRow;
 begin
   ForgetAnswers;     // a new run asks again
@@ -197,16 +172,9 @@ begin
     Exit;            // the typed value is invalid
 
   // All three given points from the list
-  for R := Grid.FixedRows to Grid.FixedRows + RESECTION_POINTS - 1 do
-    if not LoadPoint(R) then
-    begin
-      ShowMessage(Format('Zadejte bod %s.', [Grid.Cells[0, R]]));
-      Grid.Row := R;
-      Grid.Col := Grid.FieldToCol(CB);
-      if Grid.CanFocus then
-        Grid.SetFocus;
-      Exit;
-    end;
+  if not CheckGivenPoints(Grid, Grid.FixedRows,
+    Grid.FixedRows + RESECTION_POINTS - 1, 'Zadejte bod %s.') then
+    Exit;
 
   Recompute;
   if not FAlg.Valid then
@@ -216,7 +184,7 @@ begin
   end;
 
   Row := FFrame.Rows[RESECTION_POINTS];
-  if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
+  if Row.CB = 0 then
   begin
     ShowMessage('Zadejte číslo stanoviska, výsledek se neuložil.');
     SkipJobProtocol;
@@ -226,7 +194,7 @@ begin
   // A number given in the dialog goes to the edit
   StorePoint(Row);
   FFrame.Rows[RESECTION_POINTS].CB := Row.CB;
-  EditStationNo.Text := string(Row.CB);
+  EditStationNo.Text := TPointNumber.ToText(Row.CB);
   FStored := True;
   ShowProtocol;
 end;
@@ -241,7 +209,7 @@ begin
   for I := 0 to Min(AFrame.Count, RESECTION_POINTS) - 1 do
     PutRow(Grid, Grid.FixedRows + I, AFrame.Rows[I], I, ABad);
   if AFrame.Count > RESECTION_POINTS then
-    EditStationNo.Text := string(AFrame.Rows[RESECTION_POINTS].CB);
+    EditStationNo.Text := TPointNumber.ToText(AFrame.Rows[RESECTION_POINTS].CB);
   Recompute;
 end;
 

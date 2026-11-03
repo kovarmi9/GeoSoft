@@ -6,7 +6,7 @@ Kontroly hodnot jsou rozdělené podle vrstev. Každý unit hlídá jednu věc:
 |---|---|---|
 | `GeoColumnValidation.pas` | komponenty | zadávání do tabulky, viz [Kontrola zadávání](../komponenty/kontrola-zadavani.md) |
 | `Validation.pas` | datové struktury, i v balíčku komponent | meze a platné hodnoty bodu |
-| `Accuracy.pas` | program | přesnost výsledků podle katastrální vyhlášky |
+| `Accuracy.pas` | algoritmy | přesnost výsledků podle katastrální vyhlášky |
 
 ```mermaid
 flowchart TB
@@ -43,9 +43,25 @@ se řídí bod, `TGeoRow` i filtry tabulek:
 | `MIN_KK`, `MAX_KK` | 0, 8 | rozsah kódu kvality |
 | `MAX_POPIS` | 32 | délka popisu |
 
+## Číslo bodu
+
+Číslo bodu je všude jedno celé číslo `Int64`: úplné číslo s 15 číslicemi
+(KÚ 6, ZPMZ 5, vlastní číslo 4), kladné i záporné, 0 znamená bez čísla.
+Záporné číslo program používá pro druhou soustavu souřadnic. Text se z něj
+dělá jen pro tabulky, protokol a soubory. Převody má na starosti
+`TPointNumber` v unitu `src/DataStructures/PointNumber.pas`:
+
+| funkce | co dělá | příklad |
+|---|---|---|
+| `ToText` | 15 číslic, do tabulek a souborů | `000000000014001` |
+| `ToDisplay` | s mezerami, do protokolu a hlášek | `000000 00001 4001` |
+| `TryParse` | text na číslo, jen číslice a mínus, nejvýš 15 číslic | `4006A` neprojde |
+
+Pro 0 dávají `ToText` i `ToDisplay` prázdný text.
+
 ## Přesnost výsledků
 
-`TAccuracy` (unit `src/Utils/Accuracy.pas`) počítá meze přesnosti podle
+`TAccuracy` (unit `src/GeoAlgorithms/Accuracy.pas`) počítá meze přesnosti podle
 katastrální vyhlášky. Používají ho výpočty a protokoly.
 
 - `MxyOfQuality` – $M_{xy}$ kódu kvality podle KatV 13.9 a 15.6, pro

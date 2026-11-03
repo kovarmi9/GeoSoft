@@ -7,7 +7,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   Math, Point, PointsUtilsSingleton, PointPrefixState, GeoRow, GeoDataFrame,
-  GeoGridBridge, CoordOrderState, GeoAlgorithmLineAdjustment, ProtocolTable;
+  GeoGridBridge, CoordOrderState, GeoAlgorithmLineAdjustment, ProtocolTable,
+  PointNumber;
 
 type
   TLineAdjustmentForm = class(TCalcBaseForm)
@@ -18,7 +19,6 @@ type
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TLineAdjustmentAlgorithm;
-    function LoadLinePoint(ARow: Integer): Boolean;
     procedure Recompute;
   protected
     function BuildFrame: Boolean; override;
@@ -64,23 +64,6 @@ begin
 end;
 
 // Fills Y, X and KK of A or B from the list, offers to add a new point
-function TLineAdjustmentForm.LoadLinePoint(ARow: Integer): Boolean;
-var
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
-begin
-  PointNumber := StrToInt64Def(
-    Trim(GridLine.Cells[GridLine.FieldToCol(CB), ARow]), 0);
-  Result := (PointNumber <> 0) and LookupPoint(PointNumber, ListPoint);
-  if not Result then
-    Exit;
-
-  GridLine.Cells[GridLine.FieldToCol(Y), ARow] := FloatToStr(ListPoint.Y, FS);
-  GridLine.Cells[GridLine.FieldToCol(X), ARow] := FloatToStr(ListPoint.X, FS);
-  GridLine.Cells[GridLine.FieldToCol(KK), ARow] :=
-    IntToStr(ListPoint.Quality);
-end;
-
 // Rows 0 and 1 are A and B, the rest are the points to move
 function TLineAdjustmentForm.BuildFrame: Boolean;
 var
@@ -99,7 +82,7 @@ var
   // The list decides the coordinates, before this form moved the point
   procedure TakeFromList;
   begin
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+    PointNumber := Row.CB;
     if OriginalPoint(PointNumber, ListPoint) then
     begin
       Row.X := ListPoint.X;
@@ -132,7 +115,7 @@ begin
   for R := GridPoints.FixedRows to GridPoints.RowCount - 1 do
   begin
     GridPoints.GetGeoRow(R, Row);
-    if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
+    if Row.CB = 0 then
       Continue;
     TakeFromList;
     Row.PolarK := NaN;            // an old result is no input
@@ -162,7 +145,7 @@ begin
     if not IsNan(FFrame.Rows[I].PolarK) then
     begin
       Row := FFrame.Rows[I];
-      if Trim(string(Row.CBm)) <> '' then
+      if Row.CBm <> 0 then
         Row.CB := Row.CBm;
       StorePoint(Row);
       // A number given in the dialog goes to the grid
@@ -190,7 +173,8 @@ procedure TLineAdjustmentForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
   Row: TGeoRow;
-  NewNumber, Verdict, Tail: string;
+  NewNumber: Int64;
+  Verdict, Tail: string;
 begin
   if not BeginProtocol(ALines, 'Vyrovnání do přímky',
     not IsNan(FAlg.LineLength), FFrame, FAlg.Warnings) then
@@ -213,7 +197,7 @@ begin
     Row := FFrame.Rows[I];
     // Z: the point as it was, Do: the foot of the perpendicular
     Prot.Row([GridNumber(I), 'Z:',
-              PointId(string(Row.CB)), CoordPair(Row.Xm, Row.Ym)]);
+              PointId(Row.CB), CoordPair(Row.Xm, Row.Ym)]);
     if IsNan(Row.PolarK) then
     begin
       Prot.Row(['', 'Do:'], '*** nelze spočítat ***');
@@ -221,10 +205,10 @@ begin
     end;
 
     // An empty new number moves the point itself
-    if Trim(string(Row.CBm)) = '' then
-      NewNumber := string(Row.CB)
+    if Row.CBm = 0 then
+      NewNumber := Row.CB
     else
-      NewNumber := string(Row.CBm);
+      NewNumber := Row.CBm;
 
     if IsNan(FAlg.Limit) then
       Verdict := ''
@@ -233,7 +217,7 @@ begin
     else
       Verdict := 'nevyhovuje';
 
-    Row.CB := ShortString(NewNumber);
+    Row.CB := NewNumber;
     Tail := UpdatedTail(Row);
 
     Prot.Row(['', 'Do:', PointId(NewNumber), CoordPair(Row.X, Row.Y),
@@ -252,7 +236,7 @@ begin
   NormalizePointCell(GridLine, ACol, ARow);
   // An empty cell is a row not filled in yet, not a mistake
   if (Trim(GridLine.Cells[ACol, ARow]) <> '') and
-     not LoadLinePoint(ARow) then
+     not LoadGridPoint(GridLine, ARow) then
   begin
     GridLine.RejectCommit;
     Exit;
@@ -274,7 +258,7 @@ begin
   if ACol = GridPoints.FieldToCol(CB) then
   begin
     NormalizePointCell(GridPoints, ACol, ARow);
-    PointNumber := StrToInt64Def(Trim(GridPoints.Cells[ACol, ARow]), 0);
+    TPointNumber.TryParse(GridPoints.Cells[ACol, ARow], PointNumber);
     // The perpendicular starts on a point of the list
     if (PointNumber <> 0) and not LookupPoint(PointNumber, ListPoint) then
     begin
@@ -289,25 +273,15 @@ begin
 end;
 
 procedure TLineAdjustmentForm.CalculateClick(Sender: TObject);
-var
-  R: Integer;
 begin
   ForgetAnswers;     // a new run asks again
   if not CommitEditing then
     Exit;            // the typed value is invalid
 
   // The line needs both points from the list
-  for R := 1 to 2 do
-    if not LoadLinePoint(R) then
-    begin
-      ShowMessage(Format('Zadejte bod %s řídící přímky.',
-        [GridLine.Cells[0, R]]));
-      GridLine.Row := R;
-      GridLine.Col := GridLine.FieldToCol(CB);
-      if GridLine.CanFocus then
-        GridLine.SetFocus;
-      Exit;
-    end;
+  if not CheckGivenPoints(GridLine, 1, 2,
+    'Zadejte bod %s řídící přímky.') then
+    Exit;
 
   Recompute;
   if FAlg.Warnings.Count > 0 then

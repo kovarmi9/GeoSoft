@@ -28,25 +28,25 @@ begin
   // Square 10 x 10 m, corners in clockwise order
   ClearGeoRow(P1);
   P1.Uloha := ULOHA_VYMERA;
-  P1.CB := '1';
+  P1.CB := 1;
   P1.X := 0;
   P1.Y := 0;
 
   ClearGeoRow(P2);
   P2.Uloha := ULOHA_VYMERA;
-  P2.CB := '2';
+  P2.CB := 2;
   P2.X := 0;
   P2.Y := 10;
 
   ClearGeoRow(P3);
   P3.Uloha := ULOHA_VYMERA;
-  P3.CB := '3';
+  P3.CB := 3;
   P3.X := 10;
   P3.Y := 10;
 
   ClearGeoRow(P4);
   P4.Uloha := ULOHA_VYMERA;
-  P4.CB := '4';
+  P4.CB := 4;
   P4.X := 10;
   P4.Y := 0;
 

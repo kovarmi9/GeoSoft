@@ -5,7 +5,7 @@
 interface
 
 uses
-  System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame;
+  System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame, PointNumber;
 
 const
   // Task code of levelling, not in the MAPA2 list
@@ -124,7 +124,7 @@ begin
 
   if IsNan(AFrame.Rows[0].Z) then
     AddError(Format('Začátek pořadu %s nemá danou výšku.',
-      [Trim(string(AFrame.Rows[0].CB))]));
+      [TPointNumber.ToDisplay(AFrame.Rows[0].CB)]));
 
   Result := Warnings.Count = 0;
 end;
@@ -138,7 +138,7 @@ begin
   for I := 0 to AFrame.Count - 2 do
     if (ReadingOf(AFrame.Rows[I]) = lrFore) and
        (ReadingOf(AFrame.Rows[I + 1]) = lrBack) and
-       (Trim(string(AFrame.Rows[I].CB)) <> '') and
+       (AFrame.Rows[I].CB <> 0) and
        (AFrame.Rows[I].CB = AFrame.Rows[I + 1].CB) then
     begin
       if Result >= 0 then
@@ -255,7 +255,7 @@ begin
   LastRow := AFrame.Count - 1;
   if AFrame.Rows[0].CB <> AFrame.Rows[LastRow].CB then
     AddError(Format('Tam a zpět musí skončit na bodě začátku %s.',
-      [Trim(string(AFrame.Rows[0].CB))]));
+      [TPointNumber.ToDisplay(AFrame.Rows[0].CB)]));
   Turn := FindTurn(AFrame);
   if Warnings.Count > 0 then
     Exit;
@@ -288,7 +288,7 @@ begin
   for I := 0 to Turn do
   begin
     if (ReadingOf(AFrame.Rows[I]) = lrSide) or
-       (Trim(string(AFrame.Rows[I].CB)) = '') or
+       (AFrame.Rows[I].CB = 0) or
        (AFrame.Rows[I].CB = AFrame.Rows[0].CB) then
       Continue;
     for J := Turn + 1 to LastRow do
@@ -300,14 +300,14 @@ begin
         AFrame.Rows[J].VC := Mean;
       end;
   end;
-  if Trim(string(AFrame.Rows[0].CB)) <> '' then
+  if AFrame.Rows[0].CB <> 0 then
     for I := 0 to LastRow do
       if AFrame.Rows[I].CB = AFrame.Rows[0].CB then
         AFrame.Rows[I].VC := AFrame.Rows[0].Z;
   // A back row without a number is the point of the fore row above it
   for I := 1 to LastRow do
     if (ReadingOf(AFrame.Rows[I]) = lrBack) and
-       (Trim(string(AFrame.Rows[I].CB)) = '') and
+       (AFrame.Rows[I].CB = 0) and
        (ReadingOf(AFrame.Rows[I - 1]) = lrFore) then
       AFrame.Rows[I].VC := AFrame.Rows[I - 1].VC;
 
@@ -344,7 +344,7 @@ begin
   end;
 
   LastRow := AFrame.Count - 1;
-  FInfo.Closed := (Trim(string(AFrame.Rows[0].CB)) <> '') and
+  FInfo.Closed := (AFrame.Rows[0].CB <> 0) and
     (AFrame.Rows[0].CB = AFrame.Rows[LastRow].CB);
   FInfo.Open := not FInfo.Closed and IsNan(AFrame.Rows[LastRow].Z);
 
@@ -358,7 +358,7 @@ begin
   if FInfo.Open then
   begin
     AddWarning(Format('Konec pořadu %s nemá danou výšku, výšky jsou ' +
-      'bez kontroly.', [Trim(string(AFrame.Rows[LastRow].CB))]));
+      'bez kontroly.', [TPointNumber.ToDisplay(AFrame.Rows[LastRow].CB)]));
     ChainHeights(AFrame, 0, LastRow, AFrame.Rows[0].Z);
   end
   else

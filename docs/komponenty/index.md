@@ -13,7 +13,7 @@ a znovu nainstalovat.
 | `GeoFieldsGrid.pas` | `TGeoFieldsGrid` | výpočetní okna, sloupce jsou pole `TGeoRow` |
 | `GeoColumnValidation.pas` | `TColumnFilter` | kontrola zadávání a výrazy |
 | `GeoFieldsDef.pas` | | popisky a filtry všech polí |
-| `GeoRow.pas`, `Validation.pas` | | datové struktury z `src/DataStructures`: řádek a meze hodnot |
+| `GeoRow.pas`, `Validation.pas`, `PointNumber.pas` | | datové struktury z `src/DataStructures`: řádek, meze hodnot a číslo bodu |
 
 ```mermaid
 classDiagram
@@ -35,8 +35,11 @@ classDiagram
 - Delete vymaže buňku.
 - Sloupce jdou roztáhnout myší ve všech tabulkách.
 - Řádky jsou v levém sloupci očíslované (`RowNumbers`).
-- Po potvrzení buňky přijde událost `OnCellCommitted`, buňku jde
-  zašedit a přeskočit přes `OnCellSelectable`.
+- Po potvrzení buňky přijde událost `OnCellCommitted`, právě jednou:
+  po Enteru a Tabu, i na poslední buňce, po kliknutí myší do jiné
+  buňky a po tlačítku Výpočet, když se v buňce zrovna píše.
+  Neplatná hodnota událost nespustí.
+- Buňku jde zašedit a přeskočit přes `OnCellSelectable`.
 
 ## Stránky
 

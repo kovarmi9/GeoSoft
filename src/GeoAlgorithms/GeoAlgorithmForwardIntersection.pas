@@ -6,14 +6,11 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoAlgorithmPolar, GeoRow,
-  GeoDataFrame, Accuracy;
+  GeoDataFrame, Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
   ULOHA_PROTINANI_SMERY = 6;
-
-  MIN_ANGLE = 30;       // [gon] a sharper intersection is weak
-  MAX_ANGLE = 170;
 
 type
   // What a frame row is
@@ -52,10 +49,6 @@ type
 
 implementation
 
-const
-  GON_TO_RAD = Pi / 200;
-  RAD_TO_GON = 200 / Pi;
-
 class function TForwardIntersectionAlgorithm.TaskCode: Integer;
 begin
   Result := ULOHA_PROTINANI_SMERY;
@@ -78,7 +71,7 @@ begin
   InBlock := False;
   for I := 0 to AFrame.Count - 1 do
   begin
-    if Trim(string(AFrame.Rows[I].CB)) = '' then
+    if AFrame.Rows[I].CB = 0 then
     begin
       FRoles[I] := irEmpty;
       if InBlock then
@@ -113,7 +106,7 @@ begin
   if IsNan(Station.X) or IsNan(Station.Y) then
   begin
     AddError(Format('Stanovisko %s nemá souřadnice.',
-      [Trim(string(Station.CB))]));
+      [TPointNumber.ToDisplay(Station.CB)]));
     Exit;
   end;
 
@@ -128,13 +121,13 @@ begin
     if IsNan(AFrame.Rows[I].X) or IsNan(AFrame.Rows[I].Y) then
     begin
       AddError(Format('Orientace %s nemá souřadnice.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
     if IsNan(AFrame.Rows[I].HZ) then
     begin
       AddError(Format('Orientace %s nemá směr.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
     LongestLength := Max(LongestLength, Sqrt(Sqr(AFrame.Rows[I].X -
@@ -145,7 +138,7 @@ begin
   if (FStations[AIndex].OrientCount = 0) or (LongestLength < 0.001) then
   begin
     AddError(Format('Stanovisko %s nemá orientaci.',
-      [Trim(string(Station.CB))]));
+      [TPointNumber.ToDisplay(Station.CB)]));
     Exit;
   end;
 
@@ -162,7 +155,7 @@ begin
     if Abs(FdPhi[I]) > MEZNI_DFI then
       AddWarning(Format('Orientace %s: odchylka dfi = %.4f g překračuje ' +
         'mezní hodnotu %.2f g - Návod pro obnovu katastrálního operátu, ' +
-        'bod 4.3.5.1.2 c)', [Trim(string(AFrame.Rows[I].CB)),
+        'bod 4.3.5.1.2 c)', [TPointNumber.ToDisplay(AFrame.Rows[I].CB),
         FdPhi[I], MEZNI_DFI]));
   end;
   Result := True;
@@ -224,7 +217,7 @@ begin
   begin
     if FRoles[I] <> irPoint then
       Continue;
-    PointNumber := Trim(string(AFrame.Rows[I].CB));
+    PointNumber := TPointNumber.ToDisplay(AFrame.Rows[I].CB);
     if IsNan(AFrame.Rows[I].HZ) or IsNan(AFrame.Rows[I].Zuhel) then
     begin
       AddError(Format('Bod %s: chybí směr z A nebo z B.', [PointNumber]));

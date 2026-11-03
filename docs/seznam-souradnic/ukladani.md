@@ -1,7 +1,8 @@
 # Ukládání
 
 Seznam souřadnic se ukládá do binárního souboru: body jsou zapsány
-za sebou přesně tak, jak leží v paměti (69 bajtů na bod), bez hlavičky.
+za sebou seřazené podle čísla bodu, tak jak leží v paměti (69 bajtů
+na bod), bez hlavičky.
 Pořadí souřadnic určuje přípona: `.yxz` ukládá Y před X (výchozí),
 `.xyz` ukládá X před Y. Soubor s jinou příponou program odmítne.
 Souřadnice se ukládají v plné přesnosti.
@@ -12,6 +13,6 @@ Uložení je bezpečné: seznam se nejdřív zapíše do dočasného souboru
 `.tmp` vedle cílového a teprve celý zapsaný nahradí původní soubor.
 Když zápis selže, původní soubor zůstane beze změny.
 
-Ukládá `ExportToBinary`, otevírá `LoadFromBinary`; pořadí z přípony
+Ukládá `ExportToBinary`, otevírá `LoadFromBinary`, který vrátí počet bodů a okno ho ohlásí; pořadí z přípony
 zjistí `FileOrder`. Popis bodu se ukládá jeden znak na bajt v kódování
 Windows, znaky mimo něj se změní na `?`.

@@ -42,7 +42,6 @@ type
     procedure RefreshHeaders;
     procedure RefreshFilters;
     function CountActiveFields: Integer;
-    function GetColumnFilter(ADataCol: Integer): TColumnFilter;
 
   protected
     function CellSelectable(ACol, ARow: Integer): Boolean; override;
@@ -54,8 +53,6 @@ type
     // Column headers are derived from ColumnFields, not set from outside
     property ColumnHeaders;
 
-    /// <summary>Validates and commits the cell value.</summary>
-    procedure CommitCell; override;
 
     /// <summary>Delegate from the inplace editor's KeyPress.</summary>
     procedure EditorKeyPress(const AText: string; var Key: Char); virtual;
@@ -374,11 +371,6 @@ begin
     ApplyFieldColumnToFilter(FColumnData[FColToField[I]], FColumnFilters[I]);
 end;
 
-function TGeoFieldsGrid.GetColumnFilter(ADataCol: Integer): TColumnFilter;
-begin
-  Result := ResolveFilter(FColumnFilters, ADataCol);
-end;
-
 procedure TGeoFieldsGrid.Loaded;
 begin
   inherited Loaded;
@@ -389,52 +381,9 @@ procedure TGeoFieldsGrid.EditorKeyPress(const AText: string; var Key: Char);
 var
   Filter: TColumnFilter;
 begin
-  Filter := GetColumnFilter(Col - FixedCols);
+  Filter := CellFilter(Col);
   if Filter <> nil then
     FilterKeyPress(Filter, AText, Key);
-end;
-
-procedure TGeoFieldsGrid.CommitCell;
-var
-  Filter: TColumnFilter;
-  Text: string;
-begin
-  // Skip header cells and cells without active editor
-  if IsHeaderCell(Col, Row) or not EditorMode or
-    not Assigned(InplaceEditor) then
-  begin
-    inherited;
-    Exit;
-  end;
-
-  Filter := GetColumnFilter(Col - FixedCols);
-  if Filter = nil then
-  begin
-    // No filter - default commit
-    inherited;
-    Exit;
-  end;
-
-  // Reset before the check
-  FLastCommitFailed := False;
-
-  Text := InplaceEditor.Text;
-  if TryCommitText(Filter, Text) then
-    Cells[Col, Row] := Text
-  else
-  begin
-    // Invalid value, the same as TGeoPointsGrid
-    case Filter.OnInvalidCommit of
-      ciaBeepAndClear:
-      begin
-        Cells[Col, Row]    := '';
-        InplaceEditor.Text := '';
-        MessageBeep(MB_ICONWARNING);
-      end;
-      ciaBlock:
-        RejectCommit;
-    end;
-  end;
 end;
 
 { Column mapping helpers }
@@ -480,7 +429,7 @@ end;
 // Filters start at the first data column
 function TGeoFieldsGrid.CellFilter(ACol: Integer): TColumnFilter;
 begin
-  Result := GetColumnFilter(ACol - FixedCols);
+  Result := ResolveFilter(FColumnFilters, ACol - FixedCols);
 end;
 
 // Only the places change, the rest of each column stays as it is

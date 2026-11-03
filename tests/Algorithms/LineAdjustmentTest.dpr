@@ -21,8 +21,8 @@ var
 begin
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_PRIMKA;
-  Row.CB := ShortString(APointNumber);
-  Row.CBm := ShortString(ANewNumber);
+  Row.CB := StrToInt64Def(APointNumber, 0);
+  Row.CBm := StrToInt64Def(ANewNumber, 0);
   Row.Y := AY;
   Row.X := AX;
   Row.KK := AQuality;
@@ -45,7 +45,7 @@ begin
   begin
     Row := Frame.Rows[I];
     Writeln(Format('  %-4s -> %-4s Y %.3f  X %.3f  kolmice %.3f  KK %d',
-      [string(Row.CB), string(Row.CBm), Row.Y, Row.X, Row.PolarK, Row.KK]));
+      [IntToStr(Row.CB), IntToStr(Row.CBm), Row.Y, Row.X, Row.PolarK, Row.KK]));
   end;
   Writeln;
 end;

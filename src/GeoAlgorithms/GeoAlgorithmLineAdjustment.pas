@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  Accuracy;
+  Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -77,7 +77,7 @@ begin
 
   for I := LINE_ROWS to AFrame.Count - 1 do
   begin
-    PointNumber := Trim(string(AFrame.Rows[I].CB));
+    PointNumber := TPointNumber.ToDisplay(AFrame.Rows[I].CB);
     if IsNan(AFrame.Rows[I].X) or IsNan(AFrame.Rows[I].Y) then
     begin
       AddError(Format('Bod %s nemá souřadnice.', [PointNumber]));

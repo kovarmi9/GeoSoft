@@ -9,6 +9,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Graphics, Vcl.Grids, Vcl.StdCtrls,
   Point,
   PointsUtilsSingleton, PointPrefixState, CoordOrderState, Validation,
+  PointNumber,
   GeoGrid, GeoPointsGrid, GeoColumnValidation;
 
 type
@@ -160,10 +161,10 @@ var
   Desc: string;
 begin
   // The caller passes the full 15-digit number
-  StringGrid.Cells[COL_POINTNO, DATA_ROW] := Format('%.15d', [PointNumber]);
+  StringGrid.Cells[COL_POINTNO, DATA_ROW] := TPointNumber.ToText(PointNumber);
   lblWarning.Caption :=
-    Format('Bod %.15d nebyl nalezen. Přejete si jej přidat?',
-      [PointNumber]);
+    Format('Bod %s nebyl nalezen. Přejete si jej přidat?',
+      [TPointNumber.ToDisplay(PointNumber)]);
 
   Result := ShowModal = mrOk;
   if not Result then

@@ -39,6 +39,7 @@ contains
   GeoPointsGrid in 'GeoPointsGrid.pas',
   GeoGridReg in 'GeoGridReg.pas',
   GeoRow in '..\src\DataStructures\GeoRow.pas',
-  Validation in '..\src\DataStructures\Validation.pas';
+  Validation in '..\src\DataStructures\Validation.pas',
+  PointNumber in '..\src\DataStructures\PointNumber.pas';
 
 end.

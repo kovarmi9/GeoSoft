@@ -37,7 +37,7 @@ Transformace je rovinná, výšky se netransformují.
 | `GeoAlgorithms/GeoAlgorithmTransformSimilarity.pas` | podobnostní, λ1 a λ2 |
 | `GeoAlgorithms/GeoAlgorithmTransformCongruent.pas` | shodnostní, potomek podobnostní |
 | `GeoAlgorithms/GeoAlgorithmTransformAffine.pas` | afinní |
-| `Utils/Accuracy.pas` | Mxy kódu kvality a pásma |
+| `GeoAlgorithms/Accuracy.pas` | Mxy kódu kvality a pásma |
 
 ```mermaid
 flowchart LR

@@ -7,7 +7,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
-  GeoAlgorithmPolar, GeoAlgorithmForwardIntersection, ProtocolTable;
+  GeoAlgorithmPolar, GeoAlgorithmForwardIntersection, ProtocolTable,
+  PointNumber;
 
 type
   TForwardIntersectionForm = class(TCalcBaseForm)
@@ -90,8 +91,6 @@ function TForwardIntersectionForm.BuildFrame: Boolean;
 var
   R, LastRow: Integer;
   Row: TGeoRow;
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
 begin
   Result := True;
   FFrame.ClearData;
@@ -104,15 +103,7 @@ begin
   begin
     Grid.GetGeoRow(R, Row);
     Row.Uloha := ULOHA_PROTINANI_SMERY;
-    Row.X := NaN;
-    Row.Y := NaN;
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
-    if OriginalPoint(PointNumber, ListPoint) then
-    begin
-      Row.X := ListPoint.X;
-      Row.Y := ListPoint.Y;
-      Row.KK := ListPoint.Quality;
-    end;
+    TakeFromList(Row);
     FFrame.AddRow(Row);
   end;
 end;
@@ -128,7 +119,7 @@ begin
     begin
       Result := Result + Format('Stanovisko %s %s: %d orientace',
         [Copy('AB', I + 1, 1),
-        PointId(string(FFrame.Rows[FAlg.Stations[I].Row].CB)),
+        PointId(FFrame.Rows[FAlg.Stations[I].Row].CB),
         FAlg.Stations[I].OrientCount]);
       if not IsNan(FAlg.Stations[I].phi) then
         Result := Result + ', posun ' + Ang(FAlg.Stations[I].phi);
@@ -165,7 +156,7 @@ begin
       Grid.Cells[Grid.FieldToCol(KK), R] := IntToStr(Row.KK);
     end
     else if (FAlg.Roles[I] in [irStation, irOrientation]) and
-      OriginalPoint(StrToInt64Def(Trim(string(Row.CB)), 0), ListPoint) then
+      OriginalPoint(Row.CB, ListPoint) then
     begin
       Grid.Cells[Grid.FieldToCol(Y), R] := FloatToStr(ListPoint.Y, FS);
       Grid.Cells[Grid.FieldToCol(X), R] := FloatToStr(ListPoint.X, FS);
@@ -219,7 +210,8 @@ begin
         Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
       StorePoint(Row);
       FFrame.Rows[I].CB := Row.CB;
-      Grid.Cells[Grid.FieldToCol(CB), I + Grid.FixedRows] := string(Row.CB);
+      Grid.Cells[Grid.FieldToCol(CB), I + Grid.FixedRows] :=
+        TPointNumber.ToText(Row.CB);
     end;
   FStored := True;
   ShowProtocol;

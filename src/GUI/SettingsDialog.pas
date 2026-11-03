@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Classes, System.UITypes, System.Math, Vcl.Controls,
   Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.Dialogs,
-  Vcl.Samples.Spin, GeoColumnValidation, SettingsState, Vcl.Mask;
+  Vcl.Samples.Spin, GeoColumnValidation, SettingsState, Vcl.Mask, PointNumber;
 
 type
   TSettingsForm = class(TForm)
@@ -194,7 +194,7 @@ begin
   end;
 
   EditScalePoint.Text := BuildPointIdFromPrefixState(EditScalePoint.Text);
-  PointNumber := StrToInt64Def(EditScalePoint.Text, 0);
+  TPointNumber.TryParse(EditScalePoint.Text, PointNumber);
   if not TPointDictionary.GetInstance.PointExists(PointNumber) then
   begin
     MessageDlg('Bod není v seznamu souřadnic.', mtError, [mbOK], 0);

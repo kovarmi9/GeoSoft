@@ -91,6 +91,7 @@
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="..\..\src\DataStructures\Validation.pas"/>
+        <DCCReference Include="..\..\src\DataStructures\PointNumber.pas"/>
         <DCCReference Include="..\..\src\DataStructures\GeoRow.pas"/>
         <DCCReference Include="..\..\src\DataStructures\GeoDataFrame.pas"/>
         <BuildConfiguration Include="Base">

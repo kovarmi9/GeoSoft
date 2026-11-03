@@ -26,13 +26,13 @@ uses
   CoordOrderState,
   ProtocolTable,
   CalcBase,
-  PointPrefixState, Vcl.Menus, SettingsState, GeoFieldsDef;
+  PointPrefixState, Vcl.Menus, SettingsState, GeoFieldsDef, PointNumber;
 
 type
   TOrthogonalMethodForm = class(TCalcBaseForm)
     GridBaseline: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
-    procedure Button1Click(Sender: TObject);
+    procedure CalculateClick(Sender: TObject);
     procedure BasePointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
   private
@@ -100,7 +100,7 @@ end;
 
 procedure TOrthogonalMethodForm.FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
 begin
-  Grid.Cells[Grid.FieldToCol(CB), R]       := Format('%.15d', [P.PointNumber]);
+  Grid.Cells[Grid.FieldToCol(CB), R] := TPointNumber.ToText(P.PointNumber);
   Grid.Cells[Grid.FieldToCol(Y),  R]       := FloatToStr(P.Y, FS);
   Grid.Cells[Grid.FieldToCol(X),  R]       := FloatToStr(P.X, FS);
   Grid.Cells[Grid.FieldToCol(Z),  R]       := FloatToStr(P.Z, FS);
@@ -113,8 +113,8 @@ var
   PointNumber: Int64;
 begin
   Result := False;
-  PointNumber := StrToInt64Def(
-    GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], 0);
+  TPointNumber.TryParse(
+    GridBaseline.Cells[GridBaseline.FieldToCol(CB), R], PointNumber);
   if PointNumber = 0 then
   begin
     ShowMessage(Format('Zadejte číslo bodu v řádku %s.',
@@ -146,7 +146,7 @@ var
   begin
     GridBaseline.GetGeoRow(AGridRow, Row);
 
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+    PointNumber := Row.CB;
     if TPointDictionary.GetInstance.PointExists(PointNumber) then
     begin
       // The list decides, the cell only shows it
@@ -173,7 +173,7 @@ begin
   for R := GridDetail.FixedRows to GridDetail.RowCount - 1 do
   begin
     GridDetail.GetGeoRow(R, Row);
-    if StrToInt64Def(Trim(string(Row.CB)), 0) = 0 then
+    if Row.CB = 0 then
       Continue;
 
     // An old result read from the grid would look like a fresh one
@@ -239,7 +239,7 @@ begin
     CB:
       begin
         NormalizePointCell(Grid, ACol, ARow);
-        PNum := StrToInt64Def(Grid.Cells[ACol, ARow], 0);
+        TPointNumber.TryParse(Grid.Cells[ACol, ARow], PNum);
 
         // A new number brings its own height, quality and description
         if ARow >= Length(FDetailCB) then
@@ -279,7 +279,7 @@ begin
   Recompute;
 end;
 
-procedure TOrthogonalMethodForm.Button1Click(Sender: TObject);
+procedure TOrthogonalMethodForm.CalculateClick(Sender: TObject);
 var
   StartPoint, EndPoint: Point.TPoint;
 

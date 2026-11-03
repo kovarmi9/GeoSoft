@@ -8,7 +8,8 @@ uses
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, Math, Point,
   PointsUtilsSingleton, PointPrefixState, GeoRow, GeoDataFrame,
   GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState, GeoFieldsDef,
-  ProtocolTable, GeoAlgorithmTransformBase, GeoAlgorithmRectangularAdjustment;
+  ProtocolTable, GeoAlgorithmTransformBase, GeoAlgorithmRectangularAdjustment,
+  PointNumber;
 
 type
   TRectangularAdjustmentForm = class(TCalcBaseForm)
@@ -107,7 +108,7 @@ var
   First: Integer;
 begin
   CBText := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
-  PointNumber := StrToInt64Def(CBText, 0);
+  TPointNumber.TryParse(CBText, PointNumber);
   if PointNumber = 0 then Exit;
 
   // Only a new number refills the row, so user edits survive
@@ -217,7 +218,7 @@ begin
   for I := 0 to FFrame.Count - 1 do
   begin
     GridRow := FRows[I];
-    PointNumber := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
+    PointNumber := FFrame.Rows[I].CB;
 
     // A listed point is given, unless the user said it is a new one
     IsGiven := TPointDictionary.GetInstance.PointExists(PointNumber)

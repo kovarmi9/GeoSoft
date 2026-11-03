@@ -27,7 +27,7 @@ do S-JTSK.
 |---|---|
 | `GUI/OrthogonalMethod.pas` | tabulky → frame, výsledky zpět, uložení bodů, zápisník, protokol |
 | `GeoAlgorithms/GeoAlgorithmOrthogonal.pas` | transformace, délka přímky, kontroly prodloužení a kolmice |
-| `Utils/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
+| `GeoAlgorithms/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
 
 ```mermaid
 flowchart LR

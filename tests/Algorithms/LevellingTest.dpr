@@ -21,7 +21,7 @@ var
 begin
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_NIVELACE;
-  Row.CB := ShortString(APointNumber);
+  Row.CB := StrToInt64Def(APointNumber, 0);
   case AKind of
     'B': Row.Xm := AReading;
     'F': Row.Ym := AReading;
@@ -51,7 +51,7 @@ begin
   begin
     Row := Frame.Rows[I];
     Writeln(Format('  %-5s převýšení %8.4f  oprava %8.4f  výška %9.4f',
-      [string(Row.CB), Row.Vz, Row.Vy, Row.VC]));
+      [IntToStr(Row.CB), Row.Vz, Row.Vy, Row.VC]));
   end;
   Writeln;
 end;
@@ -129,7 +129,7 @@ begin
        Alg.Info.Limit]));
 
     // 7. The turn point written only once (expected error)
-    Frame.Rows[6].CB := '';
+    Frame.Rows[6].CB := 0;
     Run('7. Tam a zpět bez bodu obratu (očekávána chyba)');
 
     // 8. Closed loop there and back, the turn on the start 101.

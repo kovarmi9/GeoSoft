@@ -13,7 +13,7 @@ jednou a body nemají pořadí – kdo je zobrazuje, musí je seřadit.
 | `AddOrUpdatePoint` | přidá bod, nebo přepíše bod se stejným číslem (jediný způsob zápisu) |
 | `GetPoint`, `PointExists` | vrátí kopii bodu, ověří existenci bodu |
 | `RemovePoint`, `Clear` | smaže bod, smaže všechny body |
-| `GetPointCount`, `Values` | počet bodů, průchod všemi body |
+| `Count` | počet bodů |
 | `SortedNumbers` | čísla bodů seřazená podle velikosti |
 | `ChangeCount` | počítadlo změn; okno podle něj pozná, že má seznam znovu načíst |
 

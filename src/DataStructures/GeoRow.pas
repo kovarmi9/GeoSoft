@@ -3,7 +3,7 @@
 interface
 
 uses
-  System.SysUtils, System.Math, Validation;
+  System.SysUtils, System.Math, Validation, PointNumber;
 
 type
   /// <summary>All fields of a row.</summary>
@@ -34,9 +34,9 @@ type
   /// <summary>One measurement of a task.</summary>
   TGeoRow = packed record
     Uloha:         Integer;           // task type
-    CB:            string[MAX_CB];    // point number
+    CB:            Int64;             // full point number, 0 = none
     X, Y, Z:       Double;            // global coordinates
-    CBm:           string[MAX_CB];    // source point number
+    CBm:           Int64;             // source point number, 0 = none
     Xm, Ym, Zm:    Double;            // local coordinates
     TypS:          Integer;           // distance type
     SH:            Double;            // horizontal distance
@@ -97,10 +97,10 @@ implementation
 procedure ClearGeoRow(var ARow: TGeoRow);
 begin
   ARow.Uloha := 0;
-  ARow.CB := '';
+  ARow.CB := 0;
   // NaN marks a value nobody filled in
   ARow.X := NaN; ARow.Y := NaN; ARow.Z := NaN;
-  ARow.CBm := '';
+  ARow.CBm := 0;
   ARow.Xm := NaN; ARow.Ym := NaN; ARow.Zm := NaN;
   ARow.TypS := 0;
   ARow.SH := NaN;
@@ -138,11 +138,11 @@ begin
     begin
       case F of
         Uloha:    S := Format('%s: %d', [GeoFieldNames[F], ARow.Uloha]);
-        CB:       S := Format('%s: %s', [GeoFieldNames[F], ARow.CB]);
+        CB:       S := Format('%s: %d', [GeoFieldNames[F], ARow.CB]);
         X:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.X]);
         Y:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Y]);
         Z:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Z]);
-        CBm:      S := Format('%s: %s', [GeoFieldNames[F], ARow.CBm]);
+        CBm:      S := Format('%s: %d', [GeoFieldNames[F], ARow.CBm]);
         Xm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Xm]);
         Ym:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Ym]);
         Zm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Zm]);
@@ -198,11 +198,11 @@ function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField; const AFormat: s
 begin
   case AField of
     Uloha:    Result := IntToStr(ARow.Uloha);
-    CB:       Result := string(ARow.CB);
+    CB:       Result := TPointNumber.ToText(ARow.CB);
     X:        Result := FloatCell(ARow.X, AFormat, AFS);
     Y:        Result := FloatCell(ARow.Y, AFormat, AFS);
     Z:        Result := FloatCell(ARow.Z, AFormat, AFS);
-    CBm:      Result := string(ARow.CBm);
+    CBm:      Result := TPointNumber.ToText(ARow.CBm);
     Xm:       Result := FloatCell(ARow.Xm, AFormat, AFS);
     Ym:       Result := FloatCell(ARow.Ym, AFormat, AFS);
     Zm:       Result := FloatCell(ARow.Zm, AFormat, AFS);
@@ -229,15 +229,16 @@ procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField; const AText: stri
 var
   S: string;
   N: Integer;
+  P: Int64;
 begin
   S := Trim(AText);
   case AField of
     Uloha:    if TryStrToInt(S, N) then ARow.Uloha := N;
-    CB:       ARow.CB := ShortString(Copy(S, 1, MAX_CB));
+    CB:       if TPointNumber.TryParse(S, P) then ARow.CB := P;
     X:        TryStrToFloat(S, ARow.X, AFS);
     Y:        TryStrToFloat(S, ARow.Y, AFS);
     Z:        TryStrToFloat(S, ARow.Z, AFS);
-    CBm:      ARow.CBm := ShortString(Copy(S, 1, MAX_CB));
+    CBm:      if TPointNumber.TryParse(S, P) then ARow.CBm := P;
     Xm:       TryStrToFloat(S, ARow.Xm, AFS);
     Ym:       TryStrToFloat(S, ARow.Ym, AFS);
     Zm:       TryStrToFloat(S, ARow.Zm, AFS);

@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  Accuracy;
+  Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -14,8 +14,6 @@ const
 
   LINE_POINTS  = 4;      // rows 0 to 3 are the two lines, row 4 the result
   MIN_LINE     = 0.001;  // shorter line means its points are one point
-  MIN_ANGLE    = 30;     // [gon] a sharper intersection is weak
-  MAX_ANGLE    = 170;
 
 type
   // Where the intersection lies against the two segments
@@ -86,7 +84,7 @@ begin
     if IsNan(AFrame.Rows[I].X) or IsNan(AFrame.Rows[I].Y) then
     begin
       AddError(Format('Bod %s nemá souřadnice.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
 
@@ -111,7 +109,7 @@ begin
   // Determinant, zero means parallel lines
   D := DeltaXI * DeltaYII - DeltaYI * DeltaXII;
   FOmega := Abs(ArcTan2(D, DeltaXI * DeltaXII +
-    DeltaYI * DeltaYII)) * 200 / Pi;
+    DeltaYI * DeltaYII)) * RAD_TO_GON;
   if (FOmega < 1E-6) or (FOmega > 200 - 1E-6) then
   begin
     AddError('Přímky jsou rovnoběžné.');

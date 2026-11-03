@@ -10,7 +10,7 @@ uses
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.StdCtrls,
   PointsUtilsSingleton, Point, CoordOrderState,
   GeoGrid, GeoPointsGrid, GeoColumnValidation, PointPrefixState,
-  Validation;
+  Validation, PointNumber;
 
 type
   TFileFormat = (ffTXT, ffCSV);
@@ -266,7 +266,7 @@ begin
     StringGrid1.Rows[R].Clear;
 
   // header + data + one empty row
-  StringGrid1.RowCount := Points.GetPointCount + 2;
+  StringGrid1.RowCount := Points.Count + 2;
   SetLength(FRowPoint, 0);
   ClearSelection;
   FAnchor := StringGrid1.FixedRows;
@@ -275,7 +275,7 @@ begin
   for Key in Points.SortedNumbers do
   begin
     P := Points.GetPoint(Key);
-    StringGrid1.Cells[COL_POINTNO, Row] := Format('%.15d', [P.PointNumber]);
+    StringGrid1.Cells[COL_POINTNO, Row] := TPointNumber.ToText(P.PointNumber);
     StringGrid1.Cells[CoordColY(COL_COORD), Row] := FloatToStr(P.Y);
     StringGrid1.Cells[CoordColX(COL_COORD), Row] := FloatToStr(P.X);
     StringGrid1.Cells[COL_Z, Row] := FloatToStr(P.Z);
@@ -352,7 +352,7 @@ begin
     // Empty number: ask to delete
     if Old <> 0 then
     begin
-      StringGrid1.Cells[COL_POINTNO, ARow] := Format('%.15d', [Old]);
+      StringGrid1.Cells[COL_POINTNO, ARow] := TPointNumber.ToText(Old);
       SelectOnly(ARow);
       DeleteSelected;
     end;
@@ -360,7 +360,7 @@ begin
   end;
 
   NormalizePointCell(StringGrid1, 0, ARow);
-  Num := StrToInt64Def(StringGrid1.Cells[COL_POINTNO, ARow], 0);
+  TPointNumber.TryParse(StringGrid1.Cells[COL_POINTNO, ARow], Num);
 
   // Number not changed
   if Num = Old then
@@ -370,7 +370,8 @@ begin
   begin
     // Windows box, it does not reload the grid
     Application.MessageBox(
-      PChar(Format('Bod %.15d již v seznamu existuje.', [Num])),
+      PChar(Format('Bod %s již v seznamu existuje.',
+        [TPointNumber.ToDisplay(Num)])),
       'Upozornění', MB_OK or MB_ICONWARNING);
     StringGrid1.RejectCommit;   // stay on the number to fix it
     Exit;
@@ -470,7 +471,7 @@ begin
     Exit;
 
   if Count = 1 then
-    Question := Format('Smazat bod %.15d?', [Num])
+    Question := Format('Smazat bod %s?', [TPointNumber.ToDisplay(Num)])
   else
     Question := Format('Smazat označené body (%d)?', [Count]);
   if Application.MessageBox(PChar(Question), 'Dotaz',
@@ -588,7 +589,7 @@ begin
   if StatusBar1.Panels.Count > 0 then
     StatusBar1.Panels[0].Text :=
       Format('Bodů v paměti: %d   |   %s',
-        [Points.GetPointCount, FCurrentFile]);
+        [Points.Count, FCurrentFile]);
 end;
 
 // Error message
@@ -734,9 +735,9 @@ begin
   if not InputQuery('Jdi na bod', 'Číslo bodu:', Text) or
     (Trim(Text) = '') then
     Exit;
-  PointNumber := StrToInt64Def(BuildPointIdFromPrefixState(Trim(Text)), 0);
+  TPointNumber.TryParse(BuildPointIdFromPrefixState(Trim(Text)), PointNumber);
   for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
-    if StrToInt64Def(StringGrid1.Cells[COL_POINTNO, R], 0) = PointNumber then
+    if StringGrid1.Cells[COL_POINTNO, R] = TPointNumber.ToText(PointNumber) then
     begin
       StringGrid1.Row := R;
       StringGrid1.Col := COL_POINTNO;
@@ -753,6 +754,8 @@ end;
 
 // Opens a list file
 function TPointsManagementForm.OpenList: Boolean;
+var
+  Count: Integer;
 begin
   Result := False;
   if not AskSaveChanges then Exit;
@@ -762,7 +765,7 @@ begin
 
   // A bad file keeps the open list
   try
-    Points.LoadFromBinary(OpenDialog1.FileName);
+    Count := Points.LoadFromBinary(OpenDialog1.FileName);
   except
     on E: Exception do
     begin
@@ -774,6 +777,8 @@ begin
   FCurrentFile := OpenDialog1.FileName;
   RefreshGrid;
   UpdateStatusBar;
+  Application.MessageBox(PChar(Format('Načteno %d bodů.', [Count])),
+    'Informace', MB_OK or MB_ICONINFORMATION);
   Result := True;
 end;
 
@@ -941,13 +946,13 @@ begin
   try
     if AFormat = ffTXT then
     begin
-      Points.ExportToTXT(SaveDialog1.FileName);
+      Points.ExportToTXT(SaveDialog1.FileName, GSettings.LengthDecimals);
       Application.MessageBox('Export do TXT úspěšný.', 'Informace',
         MB_OK or MB_ICONINFORMATION);
     end
     else
     begin
-      Points.ExportToCSV(SaveDialog1.FileName);
+      Points.ExportToCSV(SaveDialog1.FileName, GSettings.LengthDecimals);
       Application.MessageBox('Export do CSV úspěšný.', 'Informace',
         MB_OK or MB_ICONINFORMATION);
     end;

@@ -5,7 +5,7 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Math, Point, GeoRow;
+  System.SysUtils, System.Classes, System.Math, Point, GeoRow, PointNumber;
 
 const
   // Where the length limits come from
@@ -91,10 +91,8 @@ function CoordPair(const P: Point.TPoint; ADecimals: Integer = -1): string; over
 /// <summary>Both coordinates from X and Y in the current order.</summary>
 function CoordPair(AX, AY: Double; ADecimals: Integer = -1): string; overload;
 
-/// <summary>Point number as 000000 00000 0000, '' stays ''.</summary>
-function PointId(const AText: string): string; overload;
-/// <summary>Point number as 000000 00000 0000.</summary>
-function PointId(ANumber: Int64): string; overload;
+/// <summary>Point number as 000000 00000 0000, '' for 0.</summary>
+function PointId(ANumber: Int64): string;
 
 /// <summary>Difference against its limit, KatV 13.5: less than ud.</summary>
 function LimitText(ADifference, ALimit: Double): string;
@@ -193,26 +191,9 @@ begin
   Result := CoordPair(P, ADecimals);
 end;
 
-function PointId(const AText: string): string;
-var
-  N: Int64;
-  D: string;
-begin
-  if Trim(AText) = '' then
-    Exit('');
-  // Keep text that is not a number
-  if not TryStrToInt64(Trim(AText), N) then
-    Exit(Trim(AText));
-  // %.15d pads with zeros, %015d would pad with spaces in Delphi
-  D := Format('%.15d', [Abs(N)]);
-  Result := Copy(D, 1, 6) + ' ' + Copy(D, 7, 5) + ' ' + Copy(D, 12, 4);
-  if N < 0 then
-    Result := '-' + Result;
-end;
-
 function PointId(ANumber: Int64): string;
 begin
-  Result := PointId(IntToStr(ANumber));
+  Result := TPointNumber.ToDisplay(ANumber);
 end;
 
 function LimitText(ADifference, ALimit: Double): string;
@@ -469,8 +450,10 @@ begin
     else
       case Column.Kind of
         ckPoint:
-          Values[I] := PointId(GeoFieldToText(ARow, Column.Field, '',
-            ProtFormat));
+          if Column.Field = CBm then
+            Values[I] := PointId(ARow.CBm)
+          else
+            Values[I] := PointId(ARow.CB);
         ckInteger, ckText:
           Values[I] := GeoFieldToText(ARow, Column.Field, '', ProtFormat);
         ckPair:

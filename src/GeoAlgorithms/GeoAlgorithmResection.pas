@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  Accuracy;
+  Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -44,10 +44,6 @@ type
   end;
 
 implementation
-
-const
-  GON_TO_RAD = Pi / 200;
-  RAD_TO_GON = 200 / Pi;
 
 class function TResectionAlgorithm.TaskCode: Integer;
 begin
@@ -95,13 +91,13 @@ begin
     if IsNan(AFrame.Rows[I].X) or IsNan(AFrame.Rows[I].Y) then
     begin
       AddError(Format('Bod %s nemá souřadnice.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
     if IsNan(AFrame.Rows[I].HZ) then
     begin
       AddError(Format('Na bod %s chybí měřený směr.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
   end;

@@ -12,7 +12,7 @@ uses
   CoordOrderState, ProtocolTable, SettingsState,
   GeoRow, GeoDataFrame, GeoGrid, GeoFieldsGrid,
   GeoAlgorithmLHuilier,
-  CalcBase, Vcl.Menus, Vcl.Mask;
+  CalcBase, Vcl.Menus, Vcl.Mask, PointNumber;
 
 type
   TParcelAreaForm = class(TCalcBaseForm)
@@ -68,8 +68,8 @@ var
   PointNumber: Int64;
   ListPoint: Point.TPoint;
 begin
-  PointNumber := StrToInt64Def(
-    StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], 0);
+  TPointNumber.TryParse(
+    StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], PointNumber);
   if PointNumber = 0 then Exit;
 
   if LookupPoint(PointNumber, ListPoint) then
@@ -109,14 +109,14 @@ begin
   for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
   begin
     StringGrid1.GetGeoRow(R, Row);
-    PointNumber := StrToInt64Def(Trim(string(Row.CB)), 0);
+    PointNumber := Row.CB;
     if PointNumber = 0 then
       Continue;
 
     if not TPointDictionary.GetInstance.PointExists(PointNumber) then
     begin
       ShowMessage(Format('Bod %s není v seznamu souřadnic.',
-        [Trim(string(Row.CB))]));
+        [TPointNumber.ToDisplay(Row.CB)]));
       Result := False;
       Exit;
     end;

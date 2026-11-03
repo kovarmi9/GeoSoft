@@ -819,6 +819,14 @@ begin
   end;
 end;
 
+// Plain digits, the check refuses 5E-05
+function PlainFloatText(const AValue: Double): string;
+begin
+  Result := FloatToStr(AValue);
+  if Pos('E', Result) > 0 then
+    Result := FormatFloat('0.##################', AValue);
+end;
+
 function TryCommitText(AFilter: TColumnFilter;
                        var AText: string): Boolean;
 var
@@ -850,14 +858,14 @@ begin
         Wrap(AFilter, V);
         if not CheckValueBounds(AFilter, V) then
           Exit(False);
-        AText := FloatToStr(V);     // full value, the grid rounds the drawing
+        AText := PlainFloatText(V); // full value, the grid rounds the drawing
       end;
 
     cdtFloat:
       if TryStrToFloat(AText, V, FormatSettings) then
       begin
         Wrap(AFilter, V);
-        AText := FloatToStr(V);
+        AText := PlainFloatText(V);
       end;
   end;
 end;

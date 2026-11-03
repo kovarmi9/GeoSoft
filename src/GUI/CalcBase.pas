@@ -128,6 +128,13 @@ type
 
     /// <summary>A list point as it was before this form changed it.</summary>
     function OriginalPoint(APointNumber: Int64; out APoint: Point.TPoint): Boolean;
+    /// <summary>Coordinates from the list, NaN if not there.</summary>
+    procedure TakeFromList(var ARow: TGeoRow);
+    /// <summary>Y, X and KK of the grid row from the list.</summary>
+    function LoadGridPoint(AGrid: TGeoFieldsGrid; ARow: Integer): Boolean;
+    /// <summary>Given rows from the list, stops on a missing one.</summary>
+    function CheckGivenPoints(AGrid: TGeoFieldsGrid; AFirst, ALast: Integer;
+      const AMessage: string): Boolean;
 
     /// <summary>True for a point this form added to the list itself.</summary>
     function IsNewPoint(APointNumber: Int64): Boolean;
@@ -177,8 +184,8 @@ implementation
 {$R *.dfm}
 
 uses
-  Winapi.ShellAPI, SettingsDialog, ExistingPoint, SettingsState,
-  PointsManagement;
+  Winapi.ShellAPI, System.Math, SettingsDialog, ExistingPoint, SettingsState,
+  PointsManagement, PointNumber;
 
 const
   DOCS_URL = 'https://kovarmi9.github.io/GeoSoft/';
@@ -340,7 +347,7 @@ var
   NewPoint, OldPoint: Point.TPoint;
   All: Boolean;                     // the calculations do not show the box
 begin
-  PointNumber := StrToInt64Def(Trim(string(ARow.CB)), 0);
+  PointNumber := ARow.CB;
   if PointNumber = 0 then
     Exit;
 
@@ -379,7 +386,7 @@ begin
         Points.AddOrUpdatePoint(NewPoint);
         FNewPoints.Add(NewPointNumber);
         // the grid gets it too
-        ARow.CB := ShortString(Format('%.15d', [NewPointNumber]));
+        ARow.CB := NewPointNumber;
       end
       else
         FAnswers[PointNumber] := ANS_KEEP;
@@ -391,7 +398,7 @@ var
   PointNumber: Int64;
   Answer: Integer;
 begin
-  PointNumber := StrToInt64Def(Trim(string(ARow.CB)), 0);
+  PointNumber := ARow.CB;
   if FNewPoints.Contains(PointNumber) then
     Exit(False);
   // Only a point the user let overwrite was updated
@@ -453,6 +460,56 @@ begin
   end;
 end;
 
+// An old result read from the grid would look like a fresh one
+procedure TCalcBaseForm.TakeFromList(var ARow: TGeoRow);
+var
+  ListPoint: Point.TPoint;
+begin
+  ARow.X := NaN;
+  ARow.Y := NaN;
+  if OriginalPoint(ARow.CB, ListPoint) then
+  begin
+    ARow.X := ListPoint.X;
+    ARow.Y := ListPoint.Y;
+    ARow.KK := ListPoint.Quality;
+  end;
+end;
+
+function TCalcBaseForm.LoadGridPoint(AGrid: TGeoFieldsGrid;
+  ARow: Integer): Boolean;
+var
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
+begin
+  TPointNumber.TryParse(AGrid.Cells[AGrid.FieldToCol(CB), ARow], PointNumber);
+  Result := (PointNumber <> 0) and LookupPoint(PointNumber, ListPoint);
+  if not Result then
+    Exit;
+
+  AGrid.Cells[AGrid.FieldToCol(Y), ARow] := FloatToStr(ListPoint.Y, FS);
+  AGrid.Cells[AGrid.FieldToCol(X), ARow] := FloatToStr(ListPoint.X, FS);
+  AGrid.Cells[AGrid.FieldToCol(KK), ARow] := IntToStr(ListPoint.Quality);
+end;
+
+// Cursor waits on the gap
+function TCalcBaseForm.CheckGivenPoints(AGrid: TGeoFieldsGrid; AFirst,
+  ALast: Integer; const AMessage: string): Boolean;
+var
+  R: Integer;
+begin
+  Result := True;
+  for R := AFirst to ALast do
+    if not LoadGridPoint(AGrid, R) then
+    begin
+      ShowMessage(Format(AMessage, [AGrid.Cells[0, R]]));
+      AGrid.Row := R;
+      AGrid.Col := AGrid.FieldToCol(CB);
+      if AGrid.CanFocus then
+        AGrid.SetFocus;
+      Exit(False);
+    end;
+end;
+
 function TCalcBaseForm.IsNewPoint(APointNumber: Int64): Boolean;
 begin
   Result := FNewPoints.Contains(APointNumber);
@@ -464,7 +521,7 @@ var
   I: Integer;
 begin
   for I := 0 to AFrame.Count - 1 do
-    if StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0) <> 0 then
+    if AFrame.Rows[I].CB <> 0 then
       Exit(False);
   Result := True;
 end;

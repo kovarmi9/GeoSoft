@@ -7,7 +7,7 @@ interface
 uses
   System.SysUtils, System.Classes, Math, GeoAlgorithmBase,
   GeoAlgorithmTransformCongruent, Point, GeoRow, GeoDataFrame,
-  Accuracy;
+  Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -53,8 +53,6 @@ type
     // Walks the chain in the frame and fills Xm, Ym of every row
     procedure BuildLocalFrame(AFrame: TGeoDataFrame);
 
-    /// <summary>A given point already has coordinates.</summary>
-    class function IsGiven(const ARow: TGeoRow): Boolean;
 
     // Splits the frame into stretches between two different given points
     // and fills X, Y of the computed ones
@@ -65,12 +63,6 @@ type
   end;
 
 implementation
-
-class function TRectangularMeasurementsAlgorithm.IsGiven(
-  const ARow: TGeoRow): Boolean;
-begin
-  Result := not (IsNan(ARow.X) or IsNan(ARow.Y));
-end;
 
 class function TRectangularMeasurementsAlgorithm.TaskCode: Integer;
 begin
@@ -123,7 +115,7 @@ begin
   SetLength(Chain, AFrame.Count);
   for I := 0 to AFrame.Count - 1 do
   begin
-    Chain[I].PointNumber := StrToInt64Def(string(AFrame.Rows[I].CB), 0);
+    Chain[I].PointNumber := AFrame.Rows[I].CB;
     if I = 0 then
       Chain[I].X := 0              // the walk starts here
     else
@@ -202,7 +194,8 @@ begin
   if N < 3 then Exit;            // two given points side by side
 
   Head := Format('Úsek %s-%s: ',
-    [string(AFrame.Rows[AFrom].CB), string(AFrame.Rows[ATo].CB)]);
+    [TPointNumber.ToDisplay(AFrame.Rows[AFrom].CB),
+     TPointNumber.ToDisplay(AFrame.Rows[ATo].CB)]);
 
   if N - 2 > MAX_INTERMEDIATE then
     AMsgs.Add(Head + Format('%d mezilehlých bodů, obvykle nejvýš %d.',
@@ -212,7 +205,7 @@ begin
   SetLength(Chain, N);
   for I := 0 to N - 1 do
   begin
-    Chain[I].PointNumber := StrToInt64Def(string(AFrame.Rows[AFrom + I].CB), 0);
+    Chain[I].PointNumber := AFrame.Rows[AFrom + I].CB;
     if I = 0 then
       Chain[I].X := 0            // the walk starts here
     else
@@ -222,7 +215,7 @@ begin
       if IsNan(Chain[I].X) then
       begin
         AMsgs.AddObject(Head + Format('bod %s nemá délku.',
-          [string(AFrame.Rows[AFrom + I].CB)]), ErrorMark);
+          [TPointNumber.ToDisplay(AFrame.Rows[AFrom + I].CB)]), ErrorMark);
         NoLength := True;
       end;
     end;
@@ -329,7 +322,8 @@ begin
     if First < AFrame.Count - 1 then
       Msgs.AddObject(Format('Za bodem %s už není známý bod, ' +
         'nespočítané body: %d.',
-        [string(AFrame.Rows[First].CB), AFrame.Count - 1 - First]), ErrorMark);
+        [TPointNumber.ToDisplay(AFrame.Rows[First].CB),
+         AFrame.Count - 1 - First]), ErrorMark);
 
     // The marks of the errors go with the messages
     ClearWarnings;

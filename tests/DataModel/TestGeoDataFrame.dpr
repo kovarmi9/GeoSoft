@@ -8,6 +8,7 @@ uses
   System.SysUtils,
   System.Classes,
   Validation in '..\..\src\DataStructures\Validation.pas',
+  PointNumber in '..\..\src\DataStructures\PointNumber.pas',
   GeoRow in '..\..\src\DataStructures\GeoRow.pas',
   GeoDataFrame in '..\..\src\DataStructures\GeoDataFrame.pas';
 
@@ -21,7 +22,7 @@ var
 begin
   try
     r1.Uloha := 1;
-    r1.CB := '751261478500012';
+    r1.CB := 751261478500012;
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
     r1.Xm := 1000;  r1.Ym := 5000;  r1.Zm := 0;
     r1.TypS := 1;
@@ -49,7 +50,7 @@ begin
     gdf1.AddRow(2);
 
     gdf1.Rows[0].Uloha := 1;
-    gdf1.Rows[0].CB := '751261478500012';
+    gdf1.Rows[0].CB := 751261478500012;
     gdf1.Rows[0].X := 1045986.745;
     gdf1.Rows[0].Y := 743841.459;
     gdf1.Rows[0].Z := 450.485;
@@ -66,7 +67,7 @@ begin
     gdf1.Rows[0].Poznamka := 'Testovací řádek';
 
     gdf1.Rows[1].Uloha := 2;
-    gdf1.Rows[1].CB := '751261478500013';
+    gdf1.Rows[1].CB := 751261478500013;
     gdf1.Rows[1].X := 1045746.745;
     gdf1.Rows[1].Y := 743911.459;
     gdf1.Rows[1].Z := 450.790;
@@ -141,7 +142,7 @@ begin
     gdf2.Rows[1].X := 0;
     gdf2.Rows[1].Y := 0;
     gdf2.Rows[1].Z := 0;
-    gdf2.Rows[2].CB := '1';
+    gdf2.Rows[2].CB := 1;
 
     // Save gdf2 into a binary file
     gdf2.SaveToFile('soubor.gdf');

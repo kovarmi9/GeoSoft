@@ -22,7 +22,7 @@ var
 begin
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_PROTINANI_DELKY;
-  Row.CB := ShortString(APointNumber);
+  Row.CB := StrToInt64Def(APointNumber, 0);
   Row.SH := ALength;
   Row.Y := AY;
   Row.X := AX;
@@ -56,7 +56,7 @@ begin
 
   Row := Frame.Rows[GIVEN_POINTS];
 
-  Writeln('  ', string(Row.CB), ': Y ', Row.Y:0:3,
+  Writeln('  ', IntToStr(Row.CB), ': Y ', Row.Y:0:3,
     '  X ', Row.X:0:3, '  KK ', Row.KK);
 
   Writeln;

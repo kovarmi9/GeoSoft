@@ -7,7 +7,7 @@ interface
 uses
   System.SysUtils, Math, Point, GeoAlgorithmBase, GeoRow, GeoDataFrame,
   GeoAlgorithmTransformBase, GeoAlgorithmTransformCongruent,
-  GeoAlgorithmTransformSimilarity;
+  GeoAlgorithmTransformSimilarity, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -54,7 +54,6 @@ type
     FCongruentTr: TCongruentTransformation;
     FHelmertTr: TSimilarityTransformation;
 
-    class function IsGiven(const ARow: TGeoRow): Boolean;
     class function RoleOf(const ARow: TGeoRow): TPolarRole;
     class function Dist(const A, B: TGeoRow): Double;
     class function Weight(const AStation, ARow: TGeoRow;
@@ -110,10 +109,6 @@ implementation
 uses
   Accuracy;
 
-const
-  GON_TO_RAD = Pi / 200;
-  RAD_TO_GON = 200 / Pi;
-
 constructor TPolarMethodAlgorithm.Create;
 begin
   inherited Create;
@@ -135,11 +130,6 @@ begin
 end;
 
 // A given point is one that already has coordinates
-class function TPolarMethodAlgorithm.IsGiven(const ARow: TGeoRow): Boolean;
-begin
-  Result := not (IsNan(ARow.X) or IsNan(ARow.Y));
-end;
-
 // Distance between two rows from their coordinates
 class function TPolarMethodAlgorithm.Dist(const A, B: TGeoRow): Double;
 begin
@@ -273,7 +263,7 @@ begin
     psi := AFrame.Rows[I].HZ * GON_TO_RAD;
     D   := AFrame.Rows[I].SH * Scale;
 
-    Local[M].PointNumber := StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0);
+    Local[M].PointNumber := AFrame.Rows[I].CB;
     Local[M].X := D * Cos(psi);
     Local[M].Y := D * Sin(psi);
 
@@ -401,10 +391,10 @@ begin
     begin
       if Expected = prOrient then
         AddError(Format('Bod %s: řádek není orientace ani podrobný bod.',
-          [Trim(string(AFrame.Rows[I].CB))]))
+          [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]))
       else
         AddError(Format('Bod %s: řádek není podrobný bod.',
-          [Trim(string(AFrame.Rows[I].CB))]));
+          [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
     end
     else if Role = prOrient then
     begin
@@ -438,7 +428,7 @@ begin
   for I := 1 to FInfo.OrientCount do
   begin
     R := ResultOf(St, AFrame.Rows[I], FInfo.phi, Scale, FInfo.Longest);
-    PtNo := Trim(string(AFrame.Rows[I].CB));
+    PtNo := TPointNumber.ToDisplay(AFrame.Rows[I].CB);
     Result := Max(Result, R.Dg);
 
     // Without a direction only the distance is checked
@@ -501,7 +491,7 @@ begin
       AddWarning(Format('Bod %s: délka rajónu %.1f m je větší než ' +
         'nejvzdálenější orientace %.1f m - bod 4.3.2.2.2 Návodu pro ' +
         'obnovu katastrálního operátu',
-        [Trim(string(AFrame.Rows[I].CB)), D, AMaxDist]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB), D, AMaxDist]));
   end;
 end;
 
@@ -513,7 +503,7 @@ begin
   for I := 0 to AFrame.Count - 1 do
     if not IsNan(AFrame.Rows[I].SS) and not IsNan(AFrame.Rows[I].Zuhel) then
       AFrame.Rows[I].SH := AFrame.Rows[I].SS *
-        Sin(AFrame.Rows[I].Zuhel * Pi / 200);
+        Sin(AFrame.Rows[I].Zuhel * GON_TO_RAD);
 end;
 
 procedure TPolarMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);
@@ -570,7 +560,7 @@ begin
     Dh := HeightDiff(Row);
     if IsNan(Row.VC) then
       AddWarning(Format('Orientace %s: chybí výška cíle, do výšky ' +
-        'stanoviska se nepočítá.', [Trim(string(Row.CB))]))
+        'stanoviska se nepočítá.', [TPointNumber.ToDisplay(Row.CB)]))
     else if not IsNan(Dh) then
     begin
       Sum := Sum + Row.Z + Row.VC - AFrame.Rows[0].VS - Dh;

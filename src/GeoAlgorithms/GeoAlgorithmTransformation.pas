@@ -7,7 +7,7 @@ interface
 uses
   System.SysUtils, Math, GeoRow, GeoDataFrame, GeoAlgorithmBase,
   GeoAlgorithmTransformBase, GeoAlgorithmTransformCongruent,
-  GeoAlgorithmTransformSimilarity, GeoAlgorithmTransformAffine;
+  GeoAlgorithmTransformSimilarity, GeoAlgorithmTransformAffine, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -139,7 +139,7 @@ begin
   Direction := 0;
   for I := 0 to AFrame.Count - 1 do
   begin
-    PointNumber := StrToInt64Def(Trim(string(AFrame.Rows[I].CB)), 0);
+    PointNumber := AFrame.Rows[I].CB;
     if PointNumber = 0 then
       Continue;
     if Direction = 0 then
@@ -160,7 +160,7 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    if (Row.TypS <> DRUH_IDENTICKY) or (Trim(string(Row.CB)) = '') or
+    if (Row.TypS <> DRUH_IDENTICKY) or (Row.CB = 0) or
        IsNan(Row.Y) or IsNan(Row.X) or IsNan(Row.Ym) or IsNan(Row.Xm) then
       Continue;
 
@@ -204,7 +204,7 @@ begin
       begin
         if AFrame.Rows[KeyRows[I]].CB = AFrame.Rows[KeyRows[J]].CB then
           Inc(SameTarget);
-        if (Trim(string(AFrame.Rows[KeyRows[I]].CBm)) <> '') and
+        if (AFrame.Rows[KeyRows[I]].CBm <> 0) and
            (AFrame.Rows[KeyRows[I]].CBm = AFrame.Rows[KeyRows[J]].CBm) then
           Inc(SameSource);
       end;
@@ -212,10 +212,10 @@ begin
       // Told once, when the point comes the second time
       if SameTarget = 1 then
         AddWarning(Format('Identický bod %s je v klíči vícekrát.',
-          [Trim(string(AFrame.Rows[KeyRows[I]].CB))]))
+          [TPointNumber.ToDisplay(AFrame.Rows[KeyRows[I]].CB)]))
       else if SameSource = 1 then
         AddWarning(Format('Zdrojový bod %s je v klíči vícekrát.',
-          [Trim(string(AFrame.Rows[KeyRows[I]].CBm))]));
+          [TPointNumber.ToDisplay(AFrame.Rows[KeyRows[I]].CBm)]));
     end;
 
     // Residuals of the key go to the identical points

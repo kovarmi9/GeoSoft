@@ -22,7 +22,7 @@ var
 begin
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_KONSTRUKCNI_VYROVNANI;
-  Row.CB := ShortString(APointNumber);
+  Row.CB := StrToInt64Def(APointNumber, 0);
   Row.SH := ALength;
   Row.Y := AY;
   Row.X := AX;
@@ -54,7 +54,7 @@ begin
 
   Writeln('  Oměrné: měřená, vyrovnaná');
   for I := 1 to Frame.Count - 1 do
-    Writeln('    ', string(Frame.Rows[I].CB), ': ',
+    Writeln('    ', IntToStr(Frame.Rows[I].CB), ': ',
       Frame.Rows[I].SH:0:3, '  ', Alg.Adjusted[I]:0:4);
 
   Writeln('  Opravy daných bodů: vy, vx');
@@ -67,7 +67,7 @@ begin
   for I := 0 to Frame.Count - 2 do
   begin
     Row := Frame.Rows[I];
-    Writeln('    ', string(Row.CB), ': Y ', Row.Y:0:3, '  X ', Row.X:0:3);
+    Writeln('    ', IntToStr(Row.CB), ': Y ', Row.Y:0:3, '  X ', Row.X:0:3);
   end;
 
   Writeln;

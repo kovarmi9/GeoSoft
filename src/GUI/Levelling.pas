@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   Math, Point, PointPrefixState, GeoRow, GeoDataFrame, GeoGridBridge,
-  GeoAlgorithmLevelling, ProtocolTable;
+  GeoAlgorithmLevelling, ProtocolTable, PointNumber;
 
 type
   TLevellingForm = class(TCalcBaseForm)
@@ -78,7 +78,7 @@ begin
   for R := Grid.FixedRows to Grid.RowCount - 1 do
   begin
     Grid.GetGeoRow(R, Row);
-    if (Trim(string(Row.CB)) = '') and
+    if (Row.CB = 0) and
        (TLevellingAlgorithm.ReadingOf(Row) = lrNone) then
       Continue;
 
@@ -110,7 +110,7 @@ var
 begin
   for I := 0 to FFrame.Count - 1 do
   begin
-    PointNumber := StrToInt64Def(Trim(string(FFrame.Rows[I].CB)), 0);
+    PointNumber := FFrame.Rows[I].CB;
     if (PointNumber = 0) or not IsNan(FFrame.Rows[I].Z) or
        IsNan(FFrame.Rows[I].VC) then
       Continue;
@@ -144,7 +144,7 @@ begin
   if ACol = Grid.FieldToCol(CB) then
   begin
     NormalizePointCell(Grid, ACol, ARow);
-    PointNumber := StrToInt64Def(Trim(Grid.Cells[ACol, ARow]), 0);
+    TPointNumber.TryParse(Grid.Cells[ACol, ARow], PointNumber);
     if (PointNumber <> 0) and
        (Trim(Grid.Cells[Grid.FieldToCol(Z), ARow]) = '') and
        OriginalPoint(PointNumber, ListPoint) then
@@ -228,14 +228,14 @@ begin
   begin
     Row := FFrame.Rows[I];
     // Only a stored point, it has a number and no given height
-    if FStored and (Trim(string(Row.CB)) <> '') and IsNan(Row.Z) and
+    if FStored and (Row.CB <> 0) and IsNan(Row.Z) and
        WasInList(Row) then
       Tail := UpdatedText
     else
       Tail := '';
     // A change point may have no number
     Prot.Row([IntToStr(FRows[I] - Grid.FixedRows + 1),
-              PointId(string(Row.CB)),
+              PointId(Row.CB),
               Mm(Row.Xm), Mm(Row.Ym),
               Mm(Row.Zm), Num(Row.SH, 2), Mm(Row.Vz), Mm(Row.Vy),
               Mm(Row.VC)], Tail);

@@ -3,7 +3,7 @@
 interface
 
 uses
-  Point;
+  Point, PointNumber;
 
 const
   // Answers of the existing point dialog
@@ -42,8 +42,8 @@ begin
   Dlg := TTaskDialog.Create(nil);
   try
     Dlg.Caption  := 'Bod již v seznamu existuje';
-    Dlg.Title    := Format('Bod %.15d již v seznamu existuje.',
-                           [ANew.PointNumber]);
+    Dlg.Title    := Format('Bod %s již v seznamu existuje.',
+                           [TPointNumber.ToDisplay(ANew.PointNumber)]);
     Dlg.Text     := Format('dY = %.3f m   dX = %.3f m   dZ = %.3f m'#13#10 +
                            'Dxy = %.3f m',
                            [dY, dX, dZ, Sqrt(dY * dY + dX * dX)]);
@@ -84,13 +84,14 @@ begin
   repeat
     if not InputQuery('Nové číslo bodu', 'Číslo bodu:', S) then
       Exit(False);
-    ANum := StrToInt64Def(BuildPointIdFromPrefixState(S), 0);
+    TPointNumber.TryParse(BuildPointIdFromPrefixState(S), ANum);
     if ANum = 0 then
       Application.MessageBox('Neplatné číslo bodu.', 'Upozornění',
         MB_OK or MB_ICONWARNING)
     else if TPointDictionary.GetInstance.PointExists(ANum) then
       Application.MessageBox(
-        PChar(Format('Bod %.15d již v seznamu existuje.', [ANum])),
+        PChar(Format('Bod %s již v seznamu existuje.',
+          [TPointNumber.ToDisplay(ANum)])),
         'Upozornění', MB_OK or MB_ICONWARNING)
     else
       Exit(True);

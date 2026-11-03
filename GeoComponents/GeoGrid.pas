@@ -53,6 +53,7 @@ type
     FDefaultChecked: Boolean;
     FOnCheckChanged: TNotifyEvent;
     FRowNumbers: Boolean;
+    FCommitted: Boolean;              // Enter committed it already
 
     procedure SetRowNumbers(const Value: Boolean);
 
@@ -432,13 +433,18 @@ begin
     end;
 
     // Shift means backwards, at the first cell Tab leaves, Enter stays
-    if ssShift in Shift then
-    begin
-      if not MoveToPrevCell(Key = VK_RETURN) and (Key = VK_TAB) then
-        LeaveGrid(True);
-    end
-    else
-      MoveToNextCell(Key, Shift);
+    FCommitted := True;
+    try
+      if ssShift in Shift then
+      begin
+        if not MoveToPrevCell(Key = VK_RETURN) and (Key = VK_TAB) then
+          LeaveGrid(True);
+      end
+      else
+        MoveToNextCell(Key, Shift);
+    finally
+      FCommitted := False;
+    end;
     Key := 0;
     Exit;
   end;
@@ -590,10 +596,46 @@ begin
 end;
 
 procedure TGeoGrid.CommitCell;
+var
+  Filter: TColumnFilter;
+  Text, DefaultText: string;
+  DefaultHandled: Boolean;
 begin
-  // Base implementation: write editor text into cell
-  if EditorMode and Assigned(InplaceEditor) then
-    Cells[Col, Row] := InplaceEditor.Text;
+  FLastCommitFailed := False;
+  if EditorMode and Assigned(InplaceEditor) and not IsHeaderCell(Col, Row) then
+  begin
+    Text := InplaceEditor.Text;
+    Filter := CellFilter(Col);
+    if Filter <> nil then
+    begin
+      // Empty cell takes the default
+      if (Trim(Text) = '') and Assigned(Filter.OnGetDefaultText) then
+      begin
+        DefaultText := '';
+        DefaultHandled := False;
+        Filter.OnGetDefaultText(DefaultText, DefaultHandled);
+        if DefaultHandled then
+          Text := DefaultText;
+      end;
+
+      if not TryCommitText(Filter, Text) then
+      begin
+        case Filter.OnInvalidCommit of
+          ciaBeepAndClear:
+            begin
+              Cells[Col, Row]    := '';
+              InplaceEditor.Text := '';
+              MessageBeep(MB_ICONWARNING);
+            end;
+          ciaBlock:
+            RejectCommit;
+        end;
+        Exit;
+      end;
+    end;
+    Cells[Col, Row] := Text;
+  end;
+
   if Assigned(FOnCellCommitted) then
     FOnCellCommitted(Self, Col, Row);
 end;
@@ -618,9 +660,8 @@ begin
     Exit(False);
 
   // Commit current cell before moving (mouse clicks, arrow keys)
-  if (ACol <> Col) or (ARow <> Row) then
+  if ((ACol <> Col) or (ARow <> Row)) and not FCommitted then
   begin
-    FLastCommitFailed := False;
     CommitCell;
 
     // CommitCell failed - block the move and reopen the editor

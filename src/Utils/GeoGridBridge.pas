@@ -22,7 +22,6 @@ procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
 var
   R, N: Integer;
   Row: TGeoRow;
-  PointName: string;
 begin
   AFrame.ClearData;
   SetLength(ARows, 0);
@@ -33,8 +32,7 @@ begin
     AGrid.GetGeoRow(R, Row);
 
     // Skip rows without point number
-    PointName := Trim(string(Row.CB));
-    if (PointName = '') or (PointName = '0') then
+    if Row.CB = 0 then
       Continue;
 
     Row.Uloha := AUloha;   // grid never carries it

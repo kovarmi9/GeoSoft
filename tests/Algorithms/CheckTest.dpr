@@ -19,10 +19,10 @@ begin
   ClearGeoRow(M1);
   M1.Uloha := ULOHA_KONTROLNI;
   M1.KK := 3;              // worse quality code of the pair
-  M1.CB := '1';
+  M1.CB := 1;
   M1.X := 0;
   M1.Y := 0;
-  M1.CBm := '2';          // second point
+  M1.CBm := 2;          // second point
   M1.Xm := 0;
   M1.Ym := 10;
   M1.SH := 10.02;         // measured length [m]
@@ -31,10 +31,10 @@ begin
   ClearGeoRow(M2);
   M2.Uloha := ULOHA_KONTROLNI;
   M2.KK := 3;
-  M2.CB := '2';
+  M2.CB := 2;
   M2.X := 0;
   M2.Y := 10;
-  M2.CBm := '3';
+  M2.CBm := 3;
   M2.Xm := 10;
   M2.Ym := 10;
   M2.SH := 10.30;
@@ -43,10 +43,10 @@ begin
   ClearGeoRow(M3);
   M3.Uloha := ULOHA_KONTROLNI;
   M3.KK := 3;
-  M3.CB := '1';
+  M3.CB := 1;
   M3.X := 0;
   M3.Y := 0;
-  M3.CBm := '3';
+  M3.CBm := 3;
   M3.Xm := 10;
   M3.Ym := 10;
 
@@ -54,10 +54,10 @@ begin
   ClearGeoRow(M4);
   M4.Uloha := ULOHA_KONTROLNI;
   M4.KK := 3;
-  M4.CB := '1';
+  M4.CB := 1;
   M4.X := 0;
   M4.Y := 0;
-  M4.CBm := '9';
+  M4.CBm := 9;
   M4.SH := 5;
 
   Frame := TGeoDataFrame.Create([Uloha, CB, X, Y, CBm, Xm, Ym, SH, SS]);
@@ -76,7 +76,7 @@ begin
       begin
         R := TCheckMeasurementsAlgorithm.ResultOf(Frame.Rows[I], Alg.Scale);
         Write(Format('Oměrná %d (%s - %s): ', [I + 1,
-          string(Frame.Rows[I].CB), string(Frame.Rows[I].CBm)]));
+          IntToStr(Frame.Rows[I].CB), IntToStr(Frame.Rows[I].CBm)]));
         if not R.Found then
           Writeln('chybí bod')
         else if not R.HasMeasured then

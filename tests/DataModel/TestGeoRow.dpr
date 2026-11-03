@@ -8,6 +8,7 @@ uses
   System.SysUtils,
   System.Classes,
   Validation in '..\..\src\DataStructures\Validation.pas',
+  PointNumber in '..\..\src\DataStructures\PointNumber.pas',
   GeoRow in '..\..\src\DataStructures\GeoRow.pas';
 
 var
@@ -25,9 +26,9 @@ begin
 
     // Fill the row
     r1.Uloha := 1;
-    r1.CB := '751261478500012';
+    r1.CB := 751261478500012;
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
-    r1.CB := 'ahoj';
+    r1.CBm := 1;
     r1.Xm := 1000;  r1.Ym := 5000;  r1.Zm := 0;
     r1.TypS := 1;
     r1.SH := 104.456;
@@ -50,7 +51,7 @@ begin
 
     // Append a second row to the file
     r2 := r1;
-    r2.CB := 'druhy';
+    r2.CB := 2;
     SaveRow('Radek1', r2, True);
 
     // Clear the row

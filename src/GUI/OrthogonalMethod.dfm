@@ -106,7 +106,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
   end
   inherited PanelButtons: TPanel
     inherited ButtonCalculate: TButton
-      OnClick = Button1Click
+      OnClick = CalculateClick
     end
   end
   inherited StatusBar1: TStatusBar

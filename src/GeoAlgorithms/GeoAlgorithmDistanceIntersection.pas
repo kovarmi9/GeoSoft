@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  Accuracy;
+  Accuracy, PointNumber;
 
 const
   // Task code from the survey notebook convention
@@ -14,8 +14,6 @@ const
 
   GIVEN_POINTS = 2;      // rows 0 and 1 are the given points, row 2 the new
   MIN_BASE     = 0.001;  // shorter base means points 1 and 2 are one point
-  MIN_ANGLE    = 30;     // [gon] a sharper intersection is weak
-  MAX_ANGLE    = 170;
 
 type
   TDistanceIntersectionAlgorithm = class(TFrameAlgorithm)
@@ -81,13 +79,13 @@ begin
     if IsNan(AFrame.Rows[I].X) or IsNan(AFrame.Rows[I].Y) then
     begin
       AddError(Format('Bod %s nemá souřadnice.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
     if IsNan(AFrame.Rows[I].SH) or (AFrame.Rows[I].SH <= 0) then
     begin
       AddError(Format('Z bodu %s chybí měřená délka.',
-        [Trim(string(AFrame.Rows[I].CB))]));
+        [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
       Exit;
     end;
   end;
@@ -149,7 +147,7 @@ begin
   ToSecondX := AFrame.Rows[1].X - AFrame.Rows[GIVEN_POINTS].X;
   ToSecondY := AFrame.Rows[1].Y - AFrame.Rows[GIVEN_POINTS].Y;
   FOmega := Abs(ArcTan2(ToFirstX * ToSecondY - ToFirstY * ToSecondX,
-    ToFirstX * ToSecondX + ToFirstY * ToSecondY)) * 200 / Pi;
+    ToFirstX * ToSecondX + ToFirstY * ToSecondY)) * RAD_TO_GON;
   if (FOmega < MIN_ANGLE) or (FOmega > MAX_ANGLE) then
     AddWarning(Format('Úhel protnutí %.1f gon je mimo %d až %d gon.',
       [FOmega, MIN_ANGLE, MAX_ANGLE]));

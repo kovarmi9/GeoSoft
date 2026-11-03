@@ -20,7 +20,7 @@ var
 begin
   ClearGeoRow(Row);
   Row.Uloha := ULOHA_PRUSECIK;
-  Row.CB := ShortString(APointNumber);
+  Row.CB := StrToInt64Def(APointNumber, 0);
   Row.Y := AY;
   Row.X := AX;
   Row.KK := AQuality;
@@ -54,7 +54,7 @@ begin
   // Vypis souradnic vysledneho bodu
   Row := Frame.Rows[LINE_POINTS];
 
-  Writeln('  ', string(Row.CB), ': Y ', Row.Y:0:3,
+  Writeln('  ', IntToStr(Row.CB), ': Y ', Row.Y:0:3,
     '  X ', Row.X:0:3, '  KK ', Row.KK);
 
   Writeln;

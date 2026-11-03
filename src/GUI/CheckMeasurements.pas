@@ -11,7 +11,7 @@ uses
   CoordOrderState, ProtocolTable, Accuracy,
   GeoGrid, GeoFieldsGrid,
   GeoAlgorithmCheckMeasurements,
-  CalcBase;
+  CalcBase, PointNumber;
 
 const
   CSV_NAME = 'kontrolni_omerne.csv';
@@ -99,7 +99,7 @@ begin
   begin
     NormalizePointCell(GridPairs, ACol, ARow);
 
-    PointNumber := StrToInt64Def(Trim(GridPairs.Cells[ACol, ARow]), 0);
+    TPointNumber.TryParse(GridPairs.Cells[ACol, ARow], PointNumber);
     if PointNumber <> 0 then
       LookupPoint(PointNumber, ListPoint);
   end;
@@ -170,8 +170,8 @@ begin
   begin
     // Not measured stays NaN, so the cell is empty
     GridPairs.GetGeoRow(R, Row);
-    PointNumberFrom := StrToInt64Def(string(Row.CB), 0);
-    PointNumberTo := StrToInt64Def(string(Row.CBm), 0);
+    PointNumberFrom := Row.CB;
+    PointNumberTo := Row.CBm;
     if (PointNumberFrom = 0) or (PointNumberTo = 0) then
       Continue;
 
@@ -281,8 +281,8 @@ begin
   SetLength(Nums, 0);
   for I := 0 to FFrame.Count - 1 do
   begin
-    AddNum(StrToInt64Def(string(FFrame.Rows[I].CB), 0));
-    AddNum(StrToInt64Def(string(FFrame.Rows[I].CBm), 0));
+    AddNum(FFrame.Rows[I].CB);
+    AddNum(FFrame.Rows[I].CBm);
   end;
 
   Prot.Title(ALines, 'Kontrolní oměrné');
@@ -306,8 +306,8 @@ begin
     ColLength('Mezní'), ColText('')]);
   for I := 0 to FFrame.Count - 1 do
   begin
-    PointNumberFrom := StrToInt64Def(string(FFrame.Rows[I].CB), 0);
-    PointNumberTo := StrToInt64Def(string(FFrame.Rows[I].CBm), 0);
+    PointNumberFrom := FFrame.Rows[I].CB;
+    PointNumberTo := FFrame.Rows[I].CBm;
     Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I], FAlg.Scale);
 
     if not Check.Found then

@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  ValidationUtils;
+  Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -111,8 +111,8 @@ begin
   FBaseline.Lg        := Lg;
   FBaseline.Diff      := Abs(Lg - L);
   // The worse of P and K decides (KatV 13.6)
-  FBaseline.Tolerance := TValidationUtils.LengthLimit(Max(L, Lg),
-    TValidationUtils.LowerQuality(P.KK, K.KK));
+  FBaseline.Tolerance := TAccuracy.LengthLimit(Max(L, Lg),
+    TAccuracy.LowerQuality(P.KK, K.KK));
 
   if not IsNan(FBaseline.Tolerance) and
      (FBaseline.Diff >= FBaseline.Tolerance) then

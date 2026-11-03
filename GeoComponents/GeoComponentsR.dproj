@@ -93,6 +93,7 @@
         <DCCReference Include="GeoPointsGrid.pas"/>
         <DCCReference Include="GeoGridReg.pas"/>
         <DCCReference Include="..\src\DataStructures\GeoRow.pas"/>
+        <DCCReference Include="..\src\DataStructures\Validation.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

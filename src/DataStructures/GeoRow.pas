@@ -3,11 +3,7 @@
 interface
 
 uses
-  System.SysUtils, System.Math;
-
-const
-  MAX_CB    = 16;   // point number length: 15 digits and a minus sign
-  MAX_POPIS = 32;   // description length
+  System.SysUtils, System.Math, Validation;
 
 type
   /// <summary>All fields of a row.</summary>

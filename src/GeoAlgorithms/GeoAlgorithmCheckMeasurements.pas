@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoRow, GeoDataFrame, GeoAlgorithmBase,
-  ValidationUtils;
+  Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -114,7 +114,7 @@ begin
   Result.Diff      := Reduced - ARow.SS;
   // KatV 13.6, d is the longer of the two lengths
   Result.Tolerance :=
-    TValidationUtils.LengthLimit(Max(Reduced, ARow.SS), ARow.KK);
+    TAccuracy.LengthLimit(Max(Reduced, ARow.SS), ARow.KK);
   // KatV 13.5, less than ud
   Result.Passed    := Abs(Result.Diff) < Result.Tolerance;
 end;

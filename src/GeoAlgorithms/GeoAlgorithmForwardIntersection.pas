@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoAlgorithmPolar, GeoRow,
-  GeoDataFrame, ValidationUtils;
+  GeoDataFrame, Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -216,7 +216,7 @@ begin
 
   StationA := AFrame.Rows[FStations[0].Row];
   StationB := AFrame.Rows[FStations[1].Row];
-  Quality := TValidationUtils.LowerQuality(StationA.KK, StationB.KK);
+  Quality := TAccuracy.LowerQuality(StationA.KK, StationB.KK);
   DeltaXAB := StationB.X - StationA.X;
   DeltaYAB := StationB.Y - StationA.Y;
 

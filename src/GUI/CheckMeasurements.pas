@@ -8,7 +8,7 @@ uses
   Vcl.ExtCtrls, Vcl.Grids, Vcl.Menus, Vcl.Dialogs,
   Point, PointsUtilsSingleton, PointPrefixState,
   GeoRow, GeoDataFrame,
-  CoordOrderState, ProtocolTable, ValidationUtils,
+  CoordOrderState, ProtocolTable, Accuracy,
   GeoGrid, GeoFieldsGrid,
   GeoAlgorithmCheckMeasurements,
   CalcBase;
@@ -186,7 +186,7 @@ begin
       Row.X  := ListPointFrom.X;   Row.Y  := ListPointFrom.Y;
       Row.Xm := ListPointTo.X;   Row.Ym := ListPointTo.Y;
       // The limit follows the less accurate point
-      Row.KK := TValidationUtils.LowerQuality(ListPointFrom.Quality,
+      Row.KK := TAccuracy.LowerQuality(ListPointFrom.Quality,
         ListPointTo.Quality);
     end;
 

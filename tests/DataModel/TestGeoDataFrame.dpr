@@ -7,6 +7,7 @@
 uses
   System.SysUtils,
   System.Classes,
+  Validation in '..\..\src\DataStructures\Validation.pas',
   GeoRow in '..\..\src\DataStructures\GeoRow.pas',
   GeoDataFrame in '..\..\src\DataStructures\GeoDataFrame.pas';
 

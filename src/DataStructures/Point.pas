@@ -3,7 +3,7 @@
 interface
 
 uses
-  ValidationUtils;
+  Validation;
 
 type
   // Packed, because the list file stores it byte by byte
@@ -14,7 +14,7 @@ type
     Y: Double;                 // Y coordinate, JTSK Y (west)
     Z: Double;                 // Z coordinate
     Quality: Integer;          // Point quality
-    Description: string[32];   // Point description
+    Description: string[MAX_POPIS];   // Point description
     /// <summary>Makes a checked point.</summary>
     constructor Create(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string);
   end;
@@ -23,14 +23,14 @@ implementation
 
 constructor TPoint.Create(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string);
 begin
-  Self.PointNumber := TValidationUtils.ValidatePointNumber(PointNumber);
-  Self.X := TValidationUtils.ValidateCoordinate(X);
-  Self.Y := TValidationUtils.ValidateCoordinate(Y);
-  Self.Z := TValidationUtils.ValidateCoordinate(Z);
-  Self.Quality := TValidationUtils.ValidateQuality(Quality);
+  Self.PointNumber := TValidation.ValidatePointNumber(PointNumber);
+  Self.X := TValidation.ValidateCoordinate(X);
+  Self.Y := TValidation.ValidateCoordinate(Y);
+  Self.Z := TValidation.ValidateCoordinate(Z);
+  Self.Quality := TValidation.ValidateQuality(Quality);
   // One byte per character
   Self.Description :=
-    ShortString(TValidationUtils.ValidateDescription(Description));
+    ShortString(TValidation.ValidateDescription(Description));
 end;
 
 end.

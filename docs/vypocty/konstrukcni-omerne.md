@@ -28,7 +28,7 @@ umístí na dané body.
 | `GUI/RectangularMeasurements.pas` | tabulka → frame, místní souřadnice, výsledky zpět, uložení bodů, zápisník, protokol |
 | `GeoAlgorithms/GeoAlgorithmRectangularMeasurements.pas` | místní obrazec, úseky, transformace, mez délky |
 | `GeoAlgorithms/GeoAlgorithmTransformCongruent.pas` | shodnostní transformace, viz [Transformace](transformace.md) |
-| `Utils/ValidationUtils.pas` | mezní rozdíl délky a horší kód kvality |
+| `Utils/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
 
 ```mermaid
 flowchart LR

@@ -13,6 +13,7 @@ a znovu nainstalovat.
 | `GeoFieldsGrid.pas` | `TGeoFieldsGrid` | výpočetní okna, sloupce jsou pole `TGeoRow` |
 | `GeoColumnValidation.pas` | `TColumnFilter` | kontrola zadávání a výrazy |
 | `GeoFieldsDef.pas` | | popisky a filtry všech polí |
+| `GeoRow.pas`, `Validation.pas` | | datové struktury z `src/DataStructures`: řádek a meze hodnot |
 
 ```mermaid
 classDiagram

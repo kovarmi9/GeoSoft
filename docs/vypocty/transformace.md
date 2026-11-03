@@ -37,7 +37,7 @@ Transformace je rovinná, výšky se netransformují.
 | `GeoAlgorithms/GeoAlgorithmTransformSimilarity.pas` | podobnostní, λ1 a λ2 |
 | `GeoAlgorithms/GeoAlgorithmTransformCongruent.pas` | shodnostní, potomek podobnostní |
 | `GeoAlgorithms/GeoAlgorithmTransformAffine.pas` | afinní |
-| `Utils/ValidationUtils.pas` | Mxy kódu kvality a pásma |
+| `Utils/Accuracy.pas` | Mxy kódu kvality a pásma |
 
 ```mermaid
 flowchart LR
@@ -45,7 +45,7 @@ flowchart LR
   F -->|Calculate| A["GeoAlgorithmTransformation.pas"]
   A -->|identické body| K["klíč: TransformBase<br>Congruent, Similarity, Affine"]
   K -->|"klíč, opravy"| A
-  V["ValidationUtils.pas<br>Mxy, pásma"] --> A
+  V["Accuracy.pas<br>Mxy, pásma"] --> A
   A -->|"kontrolní a určované body"| F
   F -->|"FrameToGrid, StorePoint"| T
   F -->|WriteProtocol| P["Protokol"]

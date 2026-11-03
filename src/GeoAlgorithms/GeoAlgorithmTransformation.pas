@@ -66,7 +66,7 @@ type
 implementation
 
 uses
-  ValidationUtils;
+  Accuracy;
 
 class function TTransformationFrameAlgorithm.TaskCode: Integer;
 begin
@@ -344,8 +344,8 @@ begin
     else if FInfo.Quality <> Row.KK then
       FInfo.Quality := -1;
 
-    case TValidationUtils.MxyBand(Row.Sxy,
-           TValidationUtils.MxyOfQuality(Row.KK)) of
+    case TAccuracy.MxyBand(Row.Sxy,
+           TAccuracy.MxyOfQuality(Row.KK)) of
       mbWithinMxy: Inc(FInfo.InMxy);
       mbWithinUxy: Inc(FInfo.InUxy);
       mbOverUxy:   Inc(FInfo.OverUxy);

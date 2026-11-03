@@ -23,13 +23,13 @@ ze souřadnic (KatV § 81 bod 8).
 |---|---|
 | `GUI/CheckMeasurements.pas` | tabulka → frame, body ze seznamu, horší kód kvality, výsledky do tabulky, zápisník, protokol |
 | `GeoAlgorithms/GeoAlgorithmCheckMeasurements.pas` | délka ze souřadnic, rozdíl, mez, souhrn |
-| `Utils/ValidationUtils.pas` | mezní rozdíl délky a horší kód kvality |
+| `Utils/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
 
 ```mermaid
 flowchart LR
   T["Tabulka oměrných<br>CheckMeasurements.pas"] -->|BuildFrame| F["frame<br>souřadnice ze seznamu, horší KK"]
   F -->|Calculate| A["GeoAlgorithmCheckMeasurements.pas<br>délka ze souřadnic, rozdíl, mez"]
-  V["ValidationUtils.pas<br>LengthLimit, LowerQuality"] --> A
+  V["Accuracy.pas<br>LengthLimit, LowerQuality"] --> A
   A -->|ResultOf| T
   A -->|WriteProtocol| P["Protokol<br>ProtocolTable.pas"]
 ```

@@ -27,13 +27,13 @@ do S-JTSK.
 |---|---|
 | `GUI/OrthogonalMethod.pas` | tabulky → frame, výsledky zpět, uložení bodů, zápisník, protokol |
 | `GeoAlgorithms/GeoAlgorithmOrthogonal.pas` | transformace, délka přímky, kontroly prodloužení a kolmice |
-| `Utils/ValidationUtils.pas` | mezní rozdíl délky a horší kód kvality |
+| `Utils/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
 
 ```mermaid
 flowchart LR
   T["Tabulky P-K a podrobných bodů<br>OrthogonalMethod.pas"] -->|BuildFrame| F["frame<br>P, K ze seznamu"]
   F -->|Calculate| A["GeoAlgorithmOrthogonal.pas<br>transformace, kontroly"]
-  V["ValidationUtils.pas<br>LengthLimit"] --> A
+  V["Accuracy.pas<br>LengthLimit"] --> A
   A --> F
   F -->|"FrameToGrid, StorePoint"| T
   F -->|WriteProtocol| P["Protokol"]

@@ -113,7 +113,7 @@ function Ang(AValue: Double): string;
 implementation
 
 uses
-  SettingsState, CoordOrderState, ValidationUtils;
+  SettingsState, CoordOrderState, Accuracy;
 
 const
   ProtIndent = ' ';    // every line starts with this
@@ -229,8 +229,8 @@ end;
 
 function BandText(ASxy: Double; AQuality: Integer): string;
 begin
-  Result := TValidationUtils.MxyBandText(TValidationUtils.MxyBand(ASxy,
-    TValidationUtils.MxyOfQuality(AQuality)));
+  Result := TAccuracy.MxyBandText(TAccuracy.MxyBand(ASxy,
+    TAccuracy.MxyOfQuality(AQuality)));
 end;
 
 function QualityText(AQuality: Integer): string;
@@ -238,7 +238,7 @@ var
   Mxy: Double;
 begin
   Result := 'Kód kvality: ' + IntToStr(AQuality);
-  Mxy := TValidationUtils.MxyOfQuality(AQuality);
+  Mxy := TAccuracy.MxyOfQuality(AQuality);
   if IsNan(Mxy) then
     Result := Result + '    ' + NoMxy
   else

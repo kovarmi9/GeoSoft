@@ -6,7 +6,8 @@ interface
 
 uses
   GeoColumnValidation,
-  GeoRow;
+  GeoRow,
+  Validation;
 
 type
   /// <summary>Plain filter definition for one column.</summary>
@@ -129,7 +130,7 @@ end;
 function MakePointNumber: TColumnFilterData;
 begin
   // The length lets the minus sign in, the range keeps 16 digits out
-  Result := MakeIntegerRange(16, -999999999999999, 999999999999999);
+  Result := MakeIntegerRange(MAX_CB, -MAX_POINT_NUMBER, MAX_POINT_NUMBER);
   Result.AllowEmpty := True;
 end;
 
@@ -212,10 +213,10 @@ initialization
 
   SetField(PolarK,   'Polární kolmice',   cdtExpression, MakeFloat(2));
 
-  SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(32));
+  SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(MAX_POPIS));
 
   SetField(KK,       'Kód kvality',       cdtInteger,
-    MakeIntegerRange(1, 0, 8));
+    MakeIntegerRange(1, MIN_KK, MAX_KK));
 
   SetField(Vy,       'dY',                cdtFloat, MakeFloat(2));
 

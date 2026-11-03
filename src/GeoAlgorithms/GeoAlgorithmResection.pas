@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  ValidationUtils;
+  Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -172,8 +172,8 @@ begin
 
   AFrame.Rows[RESECTION_POINTS].X := S.X;
   AFrame.Rows[RESECTION_POINTS].Y := S.Y;
-  AFrame.Rows[RESECTION_POINTS].KK := TValidationUtils.LowerQuality(
-    TValidationUtils.LowerQuality(P1.KK, P2.KK), P3.KK);
+  AFrame.Rows[RESECTION_POINTS].KK := TAccuracy.LowerQuality(
+    TAccuracy.LowerQuality(P1.KK, P2.KK), P3.KK);
 
   FValid := True;
 end;

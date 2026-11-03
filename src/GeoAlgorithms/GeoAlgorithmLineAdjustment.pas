@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  ValidationUtils;
+  Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -72,8 +72,8 @@ begin
   end;
 
   // The worse point decides the code and the limit
-  FQuality := TValidationUtils.LowerQuality(PointA.KK, PointB.KK);
-  FLimit := 2 * TValidationUtils.MxyOfQuality(FQuality);
+  FQuality := TAccuracy.LowerQuality(PointA.KK, PointB.KK);
+  FLimit := 2 * TAccuracy.MxyOfQuality(FQuality);
 
   for I := LINE_ROWS to AFrame.Count - 1 do
   begin

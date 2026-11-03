@@ -8,7 +8,7 @@ uses
   System.UITypes,
   Vcl.Controls, Vcl.Forms, Vcl.Graphics, Vcl.Grids, Vcl.StdCtrls,
   Point,
-  PointsUtilsSingleton, PointPrefixState, CoordOrderState, ValidationUtils,
+  PointsUtilsSingleton, PointPrefixState, CoordOrderState, Validation,
   GeoGrid, GeoPointsGrid, GeoColumnValidation;
 
 type
@@ -76,15 +76,15 @@ begin
   Filter.DataType         := cdtInteger;
   Filter.MaxLength        := 1;
   Filter.HasMinValue      := True;
-  Filter.MinValue         := TValidationUtils.MinQuality;
+  Filter.MinValue         := MIN_KK;
   Filter.HasMaxValue      := True;
-  Filter.MaxValue         := TValidationUtils.MaxQuality;
+  Filter.MaxValue         := MAX_KK;
   Filter.OnInvalidCommit  := ciaBlock;
   Filter.OnGetDefaultText := GetQualityDefault;
 
   Filter := StringGrid.ColumnFilters[COL_DESC];
   Filter.DataType         := cdtNone;
-  Filter.MaxLength        := TValidationUtils.MaxDescriptionLength;
+  Filter.MaxLength        := MAX_POPIS;
   Filter.OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X
@@ -102,8 +102,7 @@ end;
 class function TAddPointForm.ClampQuality(const AText: string; ADefault: Integer): Integer;
 begin
   Result := StrToIntDef(Trim(AText), ADefault);
-  if (Result < TValidationUtils.MinQuality) or
-    (Result > TValidationUtils.MaxQuality) then
+  if (Result < MIN_KK) or (Result > MAX_KK) then
     Result := ADefault;
 end;
 

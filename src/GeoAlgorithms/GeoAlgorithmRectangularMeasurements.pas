@@ -7,7 +7,7 @@ interface
 uses
   System.SysUtils, System.Classes, Math, GeoAlgorithmBase,
   GeoAlgorithmTransformCongruent, Point, GeoRow, GeoDataFrame,
-  ValidationUtils;
+  Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -274,9 +274,9 @@ begin
     Sqr(Ident[1].Y - Ident[0].Y));
 
   // KatV 13.5, the end with the lower accuracy decides
-  Seg.Limit := TValidationUtils.LengthLimit(
+  Seg.Limit := TAccuracy.LengthLimit(
     Max(Seg.MeasDist, Seg.CalcDist),
-    TValidationUtils.LowerQuality(AFrame.Rows[AFrom].KK,
+    TAccuracy.LowerQuality(AFrame.Rows[AFrom].KK,
       AFrame.Rows[ATo].KK));
 
   if not IsNan(Seg.Limit) and

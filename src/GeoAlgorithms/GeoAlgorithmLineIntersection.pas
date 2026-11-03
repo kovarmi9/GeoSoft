@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  ValidationUtils;
+  Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -140,9 +140,9 @@ begin
   AFrame.Rows[LINE_POINTS].Y := AFrame.Rows[0].Y + t * DeltaYI;
 
   // The worst of the four points
-  AFrame.Rows[LINE_POINTS].KK := TValidationUtils.LowerQuality(
-    TValidationUtils.LowerQuality(AFrame.Rows[0].KK, AFrame.Rows[1].KK),
-    TValidationUtils.LowerQuality(AFrame.Rows[2].KK, AFrame.Rows[3].KK));
+  AFrame.Rows[LINE_POINTS].KK := TAccuracy.LowerQuality(
+    TAccuracy.LowerQuality(AFrame.Rows[0].KK, AFrame.Rows[1].KK),
+    TAccuracy.LowerQuality(AFrame.Rows[2].KK, AFrame.Rows[3].KK));
 
   FValid := True;
 end;

@@ -10,7 +10,7 @@ uses
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.StdCtrls,
   PointsUtilsSingleton, Point, CoordOrderState,
   GeoGrid, GeoPointsGrid, GeoColumnValidation, PointPrefixState,
-  ValidationUtils;
+  Validation;
 
 type
   TFileFormat = (ffTXT, ffCSV);
@@ -158,13 +158,13 @@ begin
   // Point number: digits and a minus sign, empty deletes
   Filter := StringGrid1.ColumnFilters[COL_POINTNO];
   Filter.DataType   := cdtInteger;
-  Filter.MaxLength  := TValidationUtils.PointNumberDigits + 1; // with a minus
+  Filter.MaxLength  := MAX_CB;     // with a minus
   Filter.AllowEmpty := True;
   // 16 digits without a minus sign would not fit
   Filter.HasMinValue := True;
-  Filter.MinValue    := -TValidationUtils.MaxPointNumber;
+  Filter.MinValue    := -MAX_POINT_NUMBER;
   Filter.HasMaxValue := True;
-  Filter.MaxValue    := TValidationUtils.MaxPointNumber;
+  Filter.MaxValue    := MAX_POINT_NUMBER;
 
   Coord(COL_COORD);       // Y
   Coord(COL_COORD + 1);   // X
@@ -175,16 +175,16 @@ begin
   Filter.DataType         := cdtInteger;
   Filter.MaxLength        := 1;
   Filter.HasMinValue      := True;
-  Filter.MinValue         := TValidationUtils.MinQuality;
+  Filter.MinValue         := MIN_KK;
   Filter.HasMaxValue      := True;
-  Filter.MaxValue         := TValidationUtils.MaxQuality;
+  Filter.MaxValue         := MAX_KK;
   Filter.OnInvalidCommit  := ciaBlock;
   Filter.OnGetDefaultText := GetQualityDefault;
 
   // Description
   Filter := StringGrid1.ColumnFilters[COL_DESC];
   Filter.DataType         := cdtNone;
-  Filter.MaxLength        := TValidationUtils.MaxDescriptionLength;
+  Filter.MaxLength        := MAX_POPIS;
   Filter.OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X

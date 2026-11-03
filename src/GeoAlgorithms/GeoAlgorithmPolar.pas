@@ -108,7 +108,7 @@ type
 implementation
 
 uses
-  ValidationUtils;
+  Accuracy;
 
 const
   GON_TO_RAD = Pi / 200;
@@ -232,13 +232,13 @@ begin
     Result.Ds := Result.Dg - ARow.SH * AScale;
     // KatV 13.6, d is the longer one, the worse quality code. A point
     // without a code takes the one of the other point.
-    Quality := TValidationUtils.LowerQuality(AStation.KK, ARow.KK);
-    if IsNan(TValidationUtils.MxyOfQuality(Quality)) then
-      if IsNan(TValidationUtils.MxyOfQuality(AStation.KK)) then
+    Quality := TAccuracy.LowerQuality(AStation.KK, ARow.KK);
+    if IsNan(TAccuracy.MxyOfQuality(Quality)) then
+      if IsNan(TAccuracy.MxyOfQuality(AStation.KK)) then
         Quality := ARow.KK
       else
         Quality := AStation.KK;
-    Result.Limit := TValidationUtils.LengthLimit(
+    Result.Limit := TAccuracy.LengthLimit(
       Max(ARow.SH * AScale, Result.Dg), Quality);
   end;
 

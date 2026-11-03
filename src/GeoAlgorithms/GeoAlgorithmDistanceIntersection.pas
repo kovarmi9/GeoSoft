@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
-  ValidationUtils;
+  Accuracy;
 
 const
   // Task code from the survey notebook convention
@@ -101,7 +101,7 @@ begin
     AddError('Body 1 a 2 splývají.');
     Exit;
   end;
-  Quality := TValidationUtils.LowerQuality(AFrame.Rows[0].KK,
+  Quality := TAccuracy.LowerQuality(AFrame.Rows[0].KK,
     AFrame.Rows[1].KK);
 
   // The check length as in the notebook: its sign gives the side,
@@ -113,7 +113,7 @@ begin
   else
   begin
     FMeasured := Abs(Check) * Scale;
-    FLimit := TValidationUtils.LengthLimit(Max(FBase, FMeasured), Quality);
+    FLimit := TAccuracy.LengthLimit(Max(FBase, FMeasured), Quality);
     if not IsNan(FLimit) and (Abs(FMeasured - FBase) >= FLimit) then
       AddWarning(Format('Kontrolní délka 1-2: rozdíl %.3f m není menší než ' +
         'mezní rozdíl %.3f m - příloha, bod 13.5 katastrální vyhlášky',

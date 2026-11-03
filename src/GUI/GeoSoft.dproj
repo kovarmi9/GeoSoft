@@ -195,7 +195,8 @@
         <DCCReference Include="..\Utils\PointPrefixState.pas"/>
         <DCCReference Include="..\Utils\ProtocolTable.pas"/>
         <DCCReference Include="..\Utils\SettingsState.pas"/>
-        <DCCReference Include="..\Utils\ValidationUtils.pas"/>
+        <DCCReference Include="..\DataStructures\Validation.pas"/>
+        <DCCReference Include="..\Utils\Accuracy.pas"/>
         <DCCReference Include="..\Utils\ExistingPoint.pas"/>
         <DCCReference Include="LineAdjustment.pas">
             <Form>LineAdjustmentForm</Form>

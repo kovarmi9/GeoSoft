@@ -40,7 +40,7 @@ implementation
 
 class function TValidation.ValidatePointNumber(const APointNumber: Int64): Int64;
 begin
-  // Abs fails for the lowest Int64
+  // Two limits, Abs would fail for the lowest Int64
   if (APointNumber >= -MAX_CB) and (APointNumber <= MAX_CB) then
     Result := APointNumber
   else

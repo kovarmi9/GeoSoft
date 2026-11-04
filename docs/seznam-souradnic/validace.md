@@ -38,10 +38,10 @@ se řídí bod, `TGeoRow` i filtry tabulek:
 
 | konstanta | hodnota | význam |
 |---|---|---|
-| `MAX_POINT_NUMBER` | 999999999999999 | největší číslo bodu, 15 číslic |
-| `MAX_CB` | 16 | délka čísla bodu i se znaménkem |
+| `MAX_CB` | 999999999999999 | největší číslo bodu, 15 číslic |
+| `MAX_CB_LENGTH` | 16 | délka čísla bodu i se znaménkem |
 | `MIN_KK`, `MAX_KK` | 0, 8 | rozsah kódu kvality |
-| `MAX_POPIS` | 32 | délka popisu |
+| `MAX_POPIS_LENGTH` | 32 | délka popisu |
 
 ## Číslo bodu
 

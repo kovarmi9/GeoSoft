@@ -14,7 +14,7 @@ type
     Y: Double;                 // Y coordinate, JTSK Y (west)
     Z: Double;                 // Z coordinate
     Quality: Integer;          // Point quality
-    Description: string[MAX_POPIS];   // Point description
+    Description: string[MAX_POPIS_LENGTH];   // Point description
     /// <summary>Makes a checked point.</summary>
     constructor Create(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string);
   end;

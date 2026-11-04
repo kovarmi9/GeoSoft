@@ -33,24 +33,24 @@ type
 
   /// <summary>One measurement of a task.</summary>
   TGeoRow = packed record
-    Uloha:         Integer;           // task type
-    CB:            Int64;             // full point number, 0 = none
-    X, Y, Z:       Double;            // global coordinates
-    CBm:           Int64;             // source point number, 0 = none
-    Xm, Ym, Zm:    Double;            // local coordinates
-    TypS:          Integer;           // distance type
-    SH:            Double;            // horizontal distance
-    SS:            Double;            // slope distance
-    VS:            Double;            // instrument height
-    VC:            Double;            // target height
-    HZ:            Double;            // horizontal angle [gon]
-    Zuhel:         Double;            // zenith angle [gon]
-    PolarD:        Double;            // polar offset (domerek)
-    PolarK:        Double;            // polar perpendicular (kolmice)
-    Poznamka:      string[MAX_POPIS]; // note
-    KK:            Integer;           // quality code 0..8
-    Vy, Vx, Vz:    Double;            // computed minus given position
-    Sxy:           Double;            // mean error, sqrt((Vy^2 + Vx^2) / 2)
+    Uloha:      Integer;                  // task type
+    CB:         Int64;                    // full point number, 0 = none
+    X, Y, Z:    Double;                   // global coordinates
+    CBm:        Int64;                    // source point number, 0 = none
+    Xm, Ym, Zm: Double;                   // local coordinates
+    TypS:       Integer;                  // distance type
+    SH:         Double;                   // horizontal distance
+    SS:         Double;                   // slope distance
+    VS:         Double;                   // instrument height
+    VC:         Double;                   // target height
+    HZ:         Double;                   // horizontal angle [gon]
+    Zuhel:      Double;                   // zenith angle [gon]
+    PolarD:     Double;                   // polar offset (domerek)
+    PolarK:     Double;                   // polar perpendicular (kolmice)
+    Poznamka:   string[MAX_POPIS_LENGTH]; // note
+    KK:         Integer;                  // quality code 0..8
+    Vy, Vx, Vz: Double;                   // computed minus given position
+    Sxy:        Double;                   // mean error, sqrt((Vy^2 + Vx^2) / 2)
   end;
 
   /// <summary>Array of rows.</summary>
@@ -251,7 +251,7 @@ begin
     Zuhel:    TryStrToFloat(S, ARow.Zuhel, AFS);
     PolarD:   TryStrToFloat(S, ARow.PolarD, AFS);
     PolarK:   TryStrToFloat(S, ARow.PolarK, AFS);
-    Poznamka: ARow.Poznamka := ShortString(Copy(S, 1, MAX_POPIS));
+    Poznamka: ARow.Poznamka := ShortString(Copy(S, 1, MAX_POPIS_LENGTH));
     KK:       if TryStrToInt(S, N) then ARow.KK := N;
     Vy:       TryStrToFloat(S, ARow.Vy, AFS);
     Vx:       TryStrToFloat(S, ARow.Vx, AFS);

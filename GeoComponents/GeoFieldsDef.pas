@@ -130,7 +130,7 @@ end;
 function MakePointNumber: TColumnFilterData;
 begin
   // The length lets the minus sign in, the range keeps 16 digits out
-  Result := MakeIntegerRange(MAX_CB, -MAX_POINT_NUMBER, MAX_POINT_NUMBER);
+  Result := MakeIntegerRange(MAX_CB_LENGTH, -MAX_CB, MAX_CB);
   Result.AllowEmpty := True;
 end;
 
@@ -213,7 +213,7 @@ initialization
 
   SetField(PolarK,   'Polární kolmice',   cdtExpression, MakeFloat(2));
 
-  SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(MAX_POPIS));
+  SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(MAX_POPIS_LENGTH));
 
   SetField(KK,       'Kód kvality',       cdtInteger,
     MakeIntegerRange(1, MIN_KK, MAX_KK));

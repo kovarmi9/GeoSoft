@@ -85,7 +85,7 @@ begin
 
   Filter := StringGrid.ColumnFilters[COL_DESC];
   Filter.DataType         := cdtNone;
-  Filter.MaxLength        := MAX_POPIS;
+  Filter.MaxLength        := MAX_POPIS_LENGTH;
   Filter.OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X

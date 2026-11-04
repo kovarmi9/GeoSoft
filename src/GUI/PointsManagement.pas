@@ -158,13 +158,13 @@ begin
   // Point number: digits and a minus sign, empty deletes
   Filter := StringGrid1.ColumnFilters[COL_POINTNO];
   Filter.DataType   := cdtInteger;
-  Filter.MaxLength  := MAX_CB;     // with a minus
+  Filter.MaxLength  := MAX_CB_LENGTH;     // with a minus
   Filter.AllowEmpty := True;
   // 16 digits without a minus sign would not fit
   Filter.HasMinValue := True;
-  Filter.MinValue    := -MAX_POINT_NUMBER;
+  Filter.MinValue    := -MAX_CB;
   Filter.HasMaxValue := True;
-  Filter.MaxValue    := MAX_POINT_NUMBER;
+  Filter.MaxValue    := MAX_CB;
 
   Coord(COL_COORD);       // Y
   Coord(COL_COORD + 1);   // X
@@ -184,7 +184,7 @@ begin
   // Description
   Filter := StringGrid1.ColumnFilters[COL_DESC];
   Filter.DataType         := cdtNone;
-  Filter.MaxLength        := MAX_POPIS;
+  Filter.MaxLength        := MAX_POPIS_LENGTH;
   Filter.OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X

@@ -1,10 +1,10 @@
-﻿program PointNumberTest;
+﻿program TestPointNumber;
 
 {$APPTYPE CONSOLE}
 
 uses
   System.SysUtils,
-  PointNumber;
+  PointNumber in '..\..\src\DataStructures\PointNumber.pas';
 
 procedure Parse(const AText: string);
 var
@@ -47,4 +47,7 @@ begin
   Show(765317003370234);
   Show(914240420);
   Show(999999999999999);
+
+  Writeln('Hotovo. Enter...');
+  Readln;
 end.

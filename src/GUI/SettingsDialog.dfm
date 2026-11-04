@@ -14,7 +14,7 @@ object SettingsForm: TSettingsForm
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
   TextHeight = 15
-  object PageControl1: TPageControl
+  object PageControl: TPageControl
     Left = 8
     Top = 8
     Width = 404

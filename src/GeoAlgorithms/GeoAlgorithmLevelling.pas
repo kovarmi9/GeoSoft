@@ -5,7 +5,8 @@
 interface
 
 uses
-  System.SysUtils, Math, GeoAlgorithmBase, GeoRow, GeoDataFrame, PointNumber;
+  System.SysUtils, System.Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
+  PointNumber;
 
 const
   // Task code of levelling, not in the MAPA2 list

@@ -7,7 +7,7 @@
 interface
 
 uses
-  SysUtils, GeoAlgorithmBase, GeoAlgorithmTransformBase;
+  System.SysUtils, GeoAlgorithmBase, GeoAlgorithmTransformBase;
 
 type
   /// <summary>Affine key.</summary>

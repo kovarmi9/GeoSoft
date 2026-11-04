@@ -109,7 +109,7 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       OnClick = CalculateClick
     end
   end
-  inherited StatusBar1: TStatusBar
+  inherited StatusBar: TStatusBar
     Top = 581
     ExplicitTop = 581
   end

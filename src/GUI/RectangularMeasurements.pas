@@ -7,7 +7,7 @@ uses
   System.SysUtils, System.Variants, System.Classes, System.UITypes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Menus,
-  Types, Math, Point, PointsUtilsSingleton, PointPrefixState,
+  System.Types, System.Math, Point, PointDictionary, PointPrefixState,
   GeoRow, GeoDataFrame, GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState,
   GeoFieldsDef, ProtocolTable,
   GeoAlgorithmBase,
@@ -16,7 +16,7 @@ uses
 
 type
   TRectangularMeasurementsForm = class(TCalcBaseForm)
-    StringGrid1: TGeoFieldsGrid;
+    Grid: TGeoFieldsGrid;
     procedure FormCreate(Sender: TObject);
     procedure CalculateClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -78,12 +78,12 @@ begin
   // Left turn is written as a negative length
   FilterData := GeoFieldColumns[SH].Filter;
   FilterData.HasMinValue := False;
-  StringGrid1.SetColumnFilterData(SH, FilterData);
+  Grid.SetColumnFilterData(SH, FilterData);
 end;
 
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
 begin
-  ApplyColumns(StringGrid1, []);
+  ApplyColumns(Grid, []);
 end;
 
 procedure TRectangularMeasurementsForm.ApplySettings;
@@ -97,9 +97,9 @@ procedure TRectangularMeasurementsForm.SetCell(F: TGeoField; ARow: Integer;
 var
   C: Integer;
 begin
-  C := StringGrid1.FieldToCol(F);
+  C := Grid.FieldToCol(F);
   if C >= 0 then
-    StringGrid1.Cells[C, ARow] := S;
+    Grid.Cells[C, ARow] := S;
 end;
 
 // Fills the row after its point number was committed
@@ -110,7 +110,7 @@ var
   CBText: string;
   Known: Boolean;
 begin
-  CBText := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
+  CBText := Trim(Grid.Cells[Grid.FieldToCol(CB), R]);
   TPointNumber.TryParse(CBText, PointNumber);
   if PointNumber = 0 then Exit;
 
@@ -123,13 +123,13 @@ begin
 
   FRowNew[R] := False;
 
-  if R = StringGrid1.FixedRows then
+  if R = Grid.FixedRows then
   begin
     // The chain has to start on a known point
     Known := LookupPoint(PointNumber, ListPoint);
     if not Known then
     begin
-      StringGrid1.RejectCommit;
+      Grid.RejectCommit;
       FRowCB[R] := '';
       Exit;
     end;
@@ -173,20 +173,20 @@ end;
 // Walks the chain again and refreshes the local coordinates
 procedure TRectangularMeasurementsForm.RecalcLocal;
 begin
-  if StringGrid1.FieldToCol(Xm) < 0 then
+  if Grid.FieldToCol(Xm) < 0 then
     Exit;
 
   // The walk needs no point list, so the plain bridge is enough
-  GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI, FRows);
+  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI, FRows);
   FAlg.BuildLocalFrame(FFrame);
-  FrameToGrid(StringGrid1, FFrame, FRows, [Xm, Ym]);
+  FrameToGrid(Grid, FFrame, FRows, [Xm, Ym]);
 end;
 
 // The first point starts the chain, no length leads to it
 procedure TRectangularMeasurementsForm.GridCellSelectable(Sender: TObject;
   ACol, ARow: Integer; var ASelectable: Boolean);
 begin
-  if (ARow = StringGrid1.FixedRows) and (ACol = StringGrid1.FieldToCol(SH)) then
+  if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(SH)) then
     ASelectable := False;
 end;
 
@@ -194,18 +194,18 @@ end;
 procedure TRectangularMeasurementsForm.CellCommitted(Sender: TObject;
   ACol, ARow: Integer);
 begin
-  if ARow < StringGrid1.FixedRows then
+  if ARow < Grid.FixedRows then
     Exit;
 
-  if ACol = StringGrid1.FieldToCol(CB) then
+  if ACol = Grid.FieldToCol(CB) then
   begin
-    NormalizePointCell(StringGrid1, ACol, ARow);
+    NormalizePointCell(Grid, ACol, ARow);
     FillRow(ARow);
   end;
 
   // The walk is cumulative, so any change redraws all rows
-  if (ACol = StringGrid1.FieldToCol(CB)) or
-    (ACol = StringGrid1.FieldToCol(SH)) then
+  if (ACol = Grid.FieldToCol(CB)) or
+    (ACol = Grid.FieldToCol(SH)) then
     RecalcLocal;
 end;
 
@@ -218,7 +218,7 @@ var
   IsGiven: Boolean;
 begin
   Result := True;
-  GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI, FRows);
+  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI, FRows);
 
   for I := 0 to FFrame.Count - 1 do
   begin
@@ -291,7 +291,7 @@ begin
       FRowNew[Back[I]] := True;
     end;
 
-  FrameToGrid(StringGrid1, FFrame, Back, [CB, X, Y]);
+  FrameToGrid(Grid, FFrame, Back, [CB, X, Y]);
   ShowProtocol;
 end;
 
@@ -319,25 +319,25 @@ var
 begin
   // Forget the old job
   FWarnings.Clear;
-  ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
+  ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
   SetLength(FRowCB, 0);
   SetLength(FRowNew, 0);
-  SetLength(FRowCB, StringGrid1.RowCount);
-  SetLength(FRowNew, StringGrid1.RowCount);
+  SetLength(FRowCB, Grid.RowCount);
+  SetLength(FRowNew, Grid.RowCount);
 
-  R := StringGrid1.FixedRows;
+  R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(StringGrid1, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
     begin
       // Do not ask again for this number
-      FRowCB[R] := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
+      FRowCB[R] := Trim(Grid.Cells[Grid.FieldToCol(CB), R]);
       // Empty X means a new point
       FRowNew[R] := IsNan(AFrame.Rows[I].X);
       Inc(R);
     end;
 
   // One empty row at the end
-  StringGrid1.RowCount := R + 1;
+  Grid.RowCount := R + 1;
   RecalcLocal;
 end;
 

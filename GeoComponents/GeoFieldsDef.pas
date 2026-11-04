@@ -40,8 +40,9 @@ procedure ApplyFieldColumnToFilter(const AData: TGeoFieldColumn;
 
 implementation
 
-/// <summary>No value limits, only decimal places.</summary>
-function MakeFloat(ADecimalPlaces: Integer): TColumnFilterData;
+/// <summary>No limits at all, the other Make functions add theirs.</summary>
+function MakeNoLimits(ADecimalPlaces: Integer;
+  AAllowEmpty: Boolean): TColumnFilterData;
 begin
   Result.MinLength := 0;
   Result.MaxLength := 0;
@@ -50,80 +51,57 @@ begin
   Result.HasMaxValue := False;
   Result.MaxValue := 0;
   Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := True;      // an empty cell means not filled
+  Result.AllowEmpty := AAllowEmpty;
   Result.WrapAt := 0;
+end;
+
+/// <summary>No value limits, only decimal places.</summary>
+function MakeFloat(ADecimalPlaces: Integer): TColumnFilterData;
+begin
+  // An empty cell means not filled
+  Result := MakeNoLimits(ADecimalPlaces, True);
 end;
 
 /// <summary>Minimum numeric value.</summary>
 function MakeMin(AMinValue: Double; ADecimalPlaces: Integer): TColumnFilterData;
 begin
-  Result.MinLength := 0;
-  Result.MaxLength := 0;
+  Result := MakeFloat(ADecimalPlaces);
   Result.HasMinValue := True;
   Result.MinValue := AMinValue;
-  Result.HasMaxValue := False;
-  Result.MaxValue := 0;
-  Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := True;      // an empty cell means not filled
-  Result.WrapAt := 0;
 end;
 
 /// <summary>Numeric value range.</summary>
 function MakeRange(AMinValue, AMaxValue: Double;
   ADecimalPlaces: Integer): TColumnFilterData;
 begin
-  Result.MinLength := 0;
-  Result.MaxLength := 0;
-  Result.HasMinValue := True;
-  Result.MinValue := AMinValue;
+  Result := MakeMin(AMinValue, ADecimalPlaces);
   Result.HasMaxValue := True;
   Result.MaxValue := AMaxValue;
-  Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := True;      // an empty cell means not filled
-  Result.WrapAt := 0;
 end;
 
 /// <summary>Text length limit.</summary>
 function MakeText(AMaxLength: Integer): TColumnFilterData;
 begin
-  Result.MinLength := 0;
+  Result := MakeNoLimits(-1, False);
   Result.MaxLength := AMaxLength;
-  Result.HasMinValue := False;
-  Result.MinValue := 0;
-  Result.HasMaxValue := False;
-  Result.MaxValue := 0;
-  Result.DecimalPlaces := -1;
-  Result.AllowEmpty := False;
-  Result.WrapAt := 0;
 end;
 
 /// <summary>Integer length limit.</summary>
 function MakeInteger(AMaxLength: Integer): TColumnFilterData;
 begin
-  Result.MinLength := 0;
-  Result.MaxLength := AMaxLength;
-  Result.HasMinValue := False;
-  Result.MinValue := 0;
-  Result.HasMaxValue := False;
-  Result.MaxValue := 0;
-  Result.DecimalPlaces := -1;
-  Result.AllowEmpty := False;
-  Result.WrapAt := 0;
+  // The data type checks the digits
+  Result := MakeText(AMaxLength);
 end;
 
 /// <summary>Integer with a length limit and a value range.</summary>
 function MakeIntegerRange(AMaxLength: Integer;
   AMinValue, AMaxValue: Double): TColumnFilterData;
 begin
-  Result.MinLength := 0;
-  Result.MaxLength := AMaxLength;
+  Result := MakeInteger(AMaxLength);
   Result.HasMinValue := True;
   Result.MinValue := AMinValue;
   Result.HasMaxValue := True;
   Result.MaxValue := AMaxValue;
-  Result.DecimalPlaces := -1;
-  Result.AllowEmpty := False;
-  Result.WrapAt := 0;
 end;
 
 /// <summary>Point number: 15 digits and a minus sign, may be empty.</summary>
@@ -137,14 +115,7 @@ end;
 /// <summary>Angle in gon: no limits, the value wraps into 0..400.</summary>
 function MakeGon(ADecimalPlaces: Integer): TColumnFilterData;
 begin
-  Result.MinLength := 0;
-  Result.MaxLength := 0;
-  Result.HasMinValue := False;
-  Result.MinValue := 0;
-  Result.HasMaxValue := False;
-  Result.MaxValue := 0;
-  Result.DecimalPlaces := ADecimalPlaces;
-  Result.AllowEmpty := True;      // an empty cell means not filled
+  Result := MakeFloat(ADecimalPlaces);
   Result.WrapAt := 400;
 end;
 

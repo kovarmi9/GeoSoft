@@ -23,5 +23,6 @@ Import seznam nemaže: nejdřív přečte celý soubor, pak body přidá. U bodu
 jehož číslo již v seznamu existuje, se zeptá: ponechat původní, uložit nový,
 průměr, nebo nové číslo; volbu lze použít pro všechny další body. Na konci
 ohlásí počet nových, přepsaných a ponechaných bodů a přeskočených chybných
-řádků. Čísla se zapisují s desetinnou čárkou, při čtení se přijme čárka
-i tečka.
+řádků. Chybný je i řádek, kde číslo bodu není 1 až 15 číslic s případným
+minus (třeba `$FF` nebo `+12`) nebo kód kvality není 0 až 8. Čísla se
+zapisují s desetinnou čárkou, při čtení se přijme čárka i tečka.

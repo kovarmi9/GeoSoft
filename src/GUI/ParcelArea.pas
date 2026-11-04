@@ -6,8 +6,8 @@ uses
   Winapi.Windows, Winapi.Messages,
   System.SysUtils, System.Variants, System.Classes, System.Math,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Grids,
-  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Types,
-  PointsUtilsSingleton, PointPrefixState,
+  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, System.Types,
+  PointDictionary, PointPrefixState,
   Point,
   CoordOrderState, ProtocolTable, SettingsState,
   GeoRow, GeoDataFrame, GeoGrid, GeoFieldsGrid,
@@ -16,7 +16,7 @@ uses
 
 type
   TParcelAreaForm = class(TCalcBaseForm)
-    StringGrid1: TGeoFieldsGrid;
+    Grid: TGeoFieldsGrid;
     PanelParcel: TPanel;
     EditParcel: TLabeledEdit;
     procedure CalculateClick(Sender: TObject);
@@ -60,7 +60,7 @@ end;
 
 procedure TParcelAreaForm.ApplyCoordOrderToGrids;
 begin
-  ApplyColumns(StringGrid1, []);
+  ApplyColumns(Grid, []);
 end;
 
 procedure TParcelAreaForm.FillFromDict(const R: Integer);
@@ -69,14 +69,14 @@ var
   ListPoint: Point.TPoint;
 begin
   TPointNumber.TryParse(
-    StringGrid1.Cells[StringGrid1.FieldToCol(CB), R], PointNumber);
+    Grid.Cells[Grid.FieldToCol(CB), R], PointNumber);
   if PointNumber = 0 then Exit;
 
   if LookupPoint(PointNumber, ListPoint) then
   begin
-    StringGrid1.Cells[StringGrid1.FieldToCol(Y), R] :=
+    Grid.Cells[Grid.FieldToCol(Y), R] :=
       FloatToStr(ListPoint.Y, FS);
-    StringGrid1.Cells[StringGrid1.FieldToCol(X), R] :=
+    Grid.Cells[Grid.FieldToCol(X), R] :=
       FloatToStr(ListPoint.X, FS);
   end;
 end;
@@ -85,11 +85,11 @@ end;
 // The first column carries the row number.
 procedure TParcelAreaForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
-  if ARow < StringGrid1.FixedRows then Exit;
+  if ARow < Grid.FixedRows then Exit;
 
-  if ACol = StringGrid1.FieldToCol(CB) then
+  if ACol = Grid.FieldToCol(CB) then
   begin
-    NormalizePointCell(StringGrid1, ACol, ARow);
+    NormalizePointCell(Grid, ACol, ARow);
     FillFromDict(ARow);
   end;
 end;
@@ -106,9 +106,9 @@ begin
   Result := True;
   FFrame.ClearData;
 
-  for R := StringGrid1.FixedRows to StringGrid1.RowCount - 1 do
+  for R := Grid.FixedRows to Grid.RowCount - 1 do
   begin
-    StringGrid1.GetGeoRow(R, Row);
+    Grid.GetGeoRow(R, Row);
     PointNumber := Row.CB;
     if PointNumber = 0 then
       Continue;
@@ -151,13 +151,13 @@ procedure TParcelAreaForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
-  ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
+  ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
 
-  R := StringGrid1.FixedRows;
+  R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(StringGrid1, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
       Inc(R);
-  StringGrid1.RowCount := R + 1;
+  Grid.RowCount := R + 1;
 end;
 
 procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);

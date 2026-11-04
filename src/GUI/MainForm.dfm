@@ -1,4 +1,4 @@
-object Form1: TForm1
+object GeoSoftForm: TGeoSoftForm
   Left = 0
   Top = 0
   Caption = 'GeoSoft'
@@ -3180,22 +3180,22 @@ object Form1: TForm1
     000000000000000000000000F03F0000C0070000800300008001000000010000
     0001000000000000000000000000000000000000000000000001000080010000
     80030000C0070000E00F0000}
-  Menu = MainMenu1
+  Menu = MainMenu
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
   TextHeight = 15
-  object ToolBar1: TToolBar
+  object ToolBar: TToolBar
     Left = 0
     Top = 0
     Width = 966
     Height = 29
-    Caption = 'ToolBar1'
+    Caption = 'ToolBar'
     TabOrder = 0
   end
-  object MainMenu1: TMainMenu
+  object MainMenu: TMainMenu
     Left = 584
     Top = 192
-    object N1: TMenuItem
+    object MenuFile: TMenuItem
       Caption = 'Soubor'
       object MenuFileNew: TMenuItem
         Caption = 'Nov'#253' seznam...'
@@ -3224,7 +3224,7 @@ object Form1: TForm1
         OnClick = MenuShowListClick
       end
     end
-    object Vypocty: TMenuItem
+    object MenuCalculations: TMenuItem
       Caption = 'V'#253'po'#269'ty'
       object MenuOrthogonalMethod: TMenuItem
         Caption = 'Ortogon'#225'ln'#237' metoda'
@@ -3282,9 +3282,9 @@ object Form1: TForm1
         OnClick = MenuTechnicalLevellingClick
       end
     end
-    object MenuNastaveni: TMenuItem
+    object MenuSettings: TMenuItem
       Caption = 'Nastaven'#237
-      OnClick = MenuNastaveniClick
+      OnClick = MenuSettingsClick
     end
     object MenuProtocol: TMenuItem
       Caption = 'Protokol'

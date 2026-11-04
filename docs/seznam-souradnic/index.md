@@ -9,8 +9,8 @@ Seznam se skládá z vrstev, od nejmenší po okno:
 | vrstva | stránka | unit |
 |---|---|---|
 | jeden bod | [Bod](bod.md), [Validace](validace.md) | `Point.pas`, `Validation.pas` |
-| všechny body | [Seznam bodů](seznam-bodu.md) | `PointsUtilsSingleton.pas` |
-| soubory | [Ukládání](ukladani.md), [Import a export](import-export.md) | `PointsUtilsSingleton.pas` |
+| všechny body | [Seznam bodů](seznam-bodu.md) | `PointDictionary.pas` |
+| soubory | [Ukládání](ukladani.md), [Import a export](import-export.md) | `PointDictionary.pas` |
 | pomocné | [Pořadí souřadnic](poradi-souradnic.md), [Čísla bodů](cisla-bodu.md) | `CoordOrderState.pas`, `PointPrefixState.pas` |
 | okna | [Formulář](formular.md), [Přidat bod](pridat-bod.md) | `PointsManagement.pas`, `AddPoint.pas` |
 
@@ -19,7 +19,7 @@ seznam s body, bod se o seznamu ani o okně nedozví.
 
 ```mermaid
 flowchart TB
-  O["Okna<br>PointsManagement.pas, AddPoint.pas"] --> L["Seznam bodů<br>PointsUtilsSingleton.pas"]
+  O["Okna<br>PointsManagement.pas, AddPoint.pas"] --> L["Seznam bodů<br>PointDictionary.pas"]
   O --> H["Pomocné<br>CoordOrderState.pas, PointPrefixState.pas"]
   L --> B["Bod<br>Point.pas, Validation.pas"]
   L --> F["Soubory .yxz .xyz .txt .csv"]

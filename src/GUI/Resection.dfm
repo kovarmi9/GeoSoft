@@ -3,7 +3,7 @@ inherited ResectionForm: TResectionForm
   Caption = 'Prot'#237'n'#225'n'#237' zp'#283't'
   HelpKeyword = 'vypocty/protinani-zpet/'
   TextHeight = 15
-  object Panel1: TPanel [2]
+  object PanelGrids: TPanel [2]
     Left = 0
     Top = 35
     Width = 800
@@ -11,7 +11,7 @@ inherited ResectionForm: TResectionForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    object Label1: TLabel
+    object LabelGivenPoints: TLabel
       Left = 0
       Top = 52
       Width = 800

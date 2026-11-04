@@ -8,7 +8,7 @@ uses
   System.UITypes,
   Vcl.Controls, Vcl.Forms, Vcl.Graphics, Vcl.Grids, Vcl.StdCtrls,
   Point,
-  PointsUtilsSingleton, PointPrefixState, CoordOrderState, Validation,
+  PointDictionary, PointPrefixState, CoordOrderState, Validation,
   PointNumber,
   GeoGrid, GeoPointsGrid, GeoColumnValidation;
 
@@ -28,8 +28,6 @@ type
     function  CoordMissing(ACol: Integer; const AName: string): Boolean;
     procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
     procedure GetDescriptionDefault(var AText: string; var AHandled: Boolean);
-    // KK 0 to 8, else ADefault
-    class function ClampQuality(const AText: string; ADefault: Integer): Integer; static;
     class function ReadDefaultQuality: Integer; static;
   public
     /// <summary>Asks for the missing point, False on Cancel.</summary>
@@ -100,17 +98,10 @@ begin
   SwapGridColumns(StringGrid, COL_COORD, COL_COORD + 1);
 end;
 
-class function TAddPointForm.ClampQuality(const AText: string; ADefault: Integer): Integer;
-begin
-  Result := StrToIntDef(Trim(AText), ADefault);
-  if (Result < MIN_KK) or (Result > MAX_KK) then
-    Result := ADefault;
-end;
-
 // KK of the toolbar, 3 if it is not a code
 class function TAddPointForm.ReadDefaultQuality: Integer;
 begin
-  Result := ClampQuality(GPointPrefix.KK, 3);
+  Result := TValidation.QualityFromText(GPointPrefix.KK, 3);
 end;
 
 // Enter on an empty KK gives the toolbar KK
@@ -123,7 +114,7 @@ end;
 // Enter on an empty description gives the one from the toolbar
 procedure TAddPointForm.GetDescriptionDefault(var AText: string; var AHandled: Boolean);
 begin
-  AText    := Trim(GPointPrefix.Popis);
+  AText    := GPointPrefix.Popis;
   AHandled := True;
 end;
 
@@ -173,14 +164,15 @@ begin
   // Empty cells get the toolbar values
   Desc := Trim(StringGrid.Cells[COL_DESC, DATA_ROW]);
   if Desc = '' then
-    Desc := Trim(GPointPrefix.Popis);
+    Desc := GPointPrefix.Popis;
 
   NewP := TPoint.Create(
     PointNumber,
     StrToFloatDef(StringGrid.Cells[CoordColX(COL_COORD), DATA_ROW], 0.0),
     StrToFloatDef(StringGrid.Cells[CoordColY(COL_COORD), DATA_ROW], 0.0),
     StrToFloatDef(StringGrid.Cells[COL_Z, DATA_ROW], 0.0),
-    ClampQuality(StringGrid.Cells[COL_QUALITY, DATA_ROW], ReadDefaultQuality),
+    TValidation.QualityFromText(StringGrid.Cells[COL_QUALITY, DATA_ROW],
+      ReadDefaultQuality),
     Desc
   );
 

@@ -17,7 +17,7 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
       StyleElements = [seFont, seClient, seBorder]
     end
   end
-  inherited StatusBar1: TStatusBar
+  inherited StatusBar: TStatusBar
     Top = 581
     ExplicitTop = 581
   end
@@ -64,7 +64,7 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
       OnClick = SaveClick
     end
   end
-  inherited MainMenu1: TMainMenu
+  inherited MainMenu: TMainMenu
     Top = 304
   end
   inherited SaveDialogProtokol: TSaveDialog

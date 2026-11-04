@@ -6,7 +6,7 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, System.Math,
   Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin,
   Vcl.ExtCtrls, Vcl.Grids, Vcl.Menus, Vcl.Dialogs,
-  Point, PointsUtilsSingleton, PointPrefixState,
+  Point, PointDictionary, PointPrefixState,
   GeoRow, GeoDataFrame,
   CoordOrderState, ProtocolTable, Accuracy,
   GeoGrid, GeoFieldsGrid,

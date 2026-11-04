@@ -15,7 +15,7 @@ uses
   Vcl.ComCtrls,
   Vcl.ExtCtrls,
   Vcl.StdCtrls,
-  Math,
+  System.Math,
   CalcBase,
   GeoFieldsGrid,
   Point,
@@ -24,13 +24,13 @@ uses
   GeoGridBridge,
   GeoAlgorithmPolar,
   GeoAlgorithmTransformBase,
-  PointsUtilsSingleton,
+  PointDictionary,
   PointPrefixState, CoordOrderState, ProtocolTable, GeoGrid, Vcl.Mask,
-  Vcl.Menus, SettingsState, PointNumber;
+  Vcl.Menus, SettingsState, PointNumber, Validation;
 
 type
   TPolarMethodForm = class(TCalcBaseForm)
-    Panel1: TPanel;
+    PanelGrids: TPanel;
     PanelStation: TPanel;
     EditStationNo: TLabeledEdit;
     EditStationY: TLabeledEdit;
@@ -41,15 +41,15 @@ type
     EditStationPopis: TLabeledEdit;
     GridOrientation: TGeoFieldsGrid;
     GridDetail: TGeoFieldsGrid;
-    Splitter1: TSplitter;
-    Label1: TLabel;
-    Label2: TLabel;
-    CheckBox1: TCheckBox;
-    ToolButton4: TToolButton;
+    SplitterGrids: TSplitter;
+    LabelOrientations: TLabel;
+    LabelDetailPoints: TLabel;
+    CheckBoxFixedStation: TCheckBox;
+    SeparatorPopis: TToolButton;
     procedure CalculateClick(Sender: TObject);
     procedure EditStationNoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure EditStationVSKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure CheckBox1Click(Sender: TObject);
+    procedure CheckBoxFixedStationClick(Sender: TObject);
     procedure OrientationCellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
   private
@@ -156,23 +156,23 @@ begin
     Ctrls[I] := ToolBarPrefix.Controls[I];
   for I := High(Ctrls) downto 0 do
     Ctrls[I].Parent := nil;
-  CheckBox1.Parent := ToolBarPrefix;
-  ToolButton4.Parent := ToolBarPrefix;
+  CheckBoxFixedStation.Parent := ToolBarPrefix;
+  SeparatorPopis.Parent := ToolBarPrefix;
   ComboBoxKU.Parent := ToolBarPrefix;
-  ToolButton1.Parent := ToolBarPrefix;
+  SeparatorKU.Parent := ToolBarPrefix;
   ComboBoxZPMZ.Parent := ToolBarPrefix;
-  ToolButton2.Parent := ToolBarPrefix;
+  SeparatorZPMZ.Parent := ToolBarPrefix;
   ComboBoxKK.Parent := ToolBarPrefix;
-  ToolButton3.Parent := ToolBarPrefix;
+  SeparatorKK.Parent := ToolBarPrefix;
   ComboBoxPopis.Parent := ToolBarPrefix;
 end;
 
-procedure TPolarMethodForm.CheckBox1Click(Sender: TObject);
+procedure TPolarMethodForm.CheckBoxFixedStationClick(Sender: TObject);
 begin
-  if CheckBox1.Checked then
-    CheckBox1.Caption := 'Pevné stanovisko'
+  if CheckBoxFixedStation.Checked then
+    CheckBoxFixedStation.Caption := 'Pevné stanovisko'
   else
-    CheckBox1.Caption := 'Volné stanovisko';
+    CheckBoxFixedStation.Caption := 'Volné stanovisko';
 
   // The coordinates belong to one mode only
   FillStation;
@@ -200,7 +200,7 @@ begin
 
   TPointNumber.TryParse(EditStationNo.Text, PointNumber);
   Result := PointNumber <> 0;
-  if not Result or not CheckBox1.Checked then
+  if not Result or not CheckBoxFixedStation.Checked then
     Exit;
 
   Result := LookupPoint(PointNumber, ListPoint);
@@ -320,7 +320,7 @@ begin
 
   // The toolbar only prefills an empty cell, what is typed there wins
   if (PozCol >= 0) and (Trim(Grid.Cells[PozCol, ARow]) = '') then
-    Grid.Cells[PozCol, ARow] := Trim(GPointPrefix.Popis);
+    Grid.Cells[PozCol, ARow] := GPointPrefix.Popis;
   if (KKCol >= 0) and (Trim(Grid.Cells[KKCol, ARow]) = '') then
     Grid.Cells[KKCol, ARow] := Trim(GPointPrefix.KK);
 end;
@@ -372,8 +372,8 @@ var
     else if FreeMode then
     begin
       // A new free station takes the toolbar
-      Row.KK := StrToIntDef(Trim(GPointPrefix.KK), 0);
-      Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
+      Row.KK := TValidation.QualityFromText(GPointPrefix.KK);
+      Row.Poznamka := ShortString(GPointPrefix.Popis);
     end
     else
       // Without coordinates it would turn into a free station
@@ -418,7 +418,7 @@ var
 begin
   FFrame.ClearData;
   SetLength(FOrientRows, 0);
-  FreeMode := not CheckBox1.Checked;
+  FreeMode := not CheckBoxFixedStation.Checked;
   Msg := '';
 
   AddStation;
@@ -434,14 +434,14 @@ begin
 
     // A typed quality wins, the toolbar fills the rest
     if (KKCol < 0) or (Trim(GridDetail.Cells[KKCol, R]) = '') then
-      Row.KK := StrToIntDef(Trim(GPointPrefix.KK), 0);
+      Row.KK := TValidation.QualityFromText(GPointPrefix.KK);
     // An old result read from the grid would look like an orientation
     Row.X := NaN;  Row.Y := NaN;
     if GSettings.Polar.Heights then
       Row.Z := NaN;
     // The toolbar gives the description when none is typed
     if Trim(string(Row.Poznamka)) = '' then
-      Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
+      Row.Poznamka := ShortString(GPointPrefix.Popis);
 
     Add(R);
   end;
@@ -510,7 +510,7 @@ begin
   end;
 
   // A free station is a result as well
-  if not CheckBox1.Checked then
+  if not CheckBoxFixedStation.Checked then
   begin
     EditStationY.Text := '';
     EditStationX.Text := '';
@@ -565,13 +565,13 @@ begin
   Row := AFrame.Rows[0];
   EditStationNo.Text := TPointNumber.ToText(Row.CB);
   EditStationVS.Text := FloatToStr(Row.VS, FS);
-  CheckBox1.OnClick := nil;           // no second FillStation
+  CheckBoxFixedStation.OnClick := nil;           // no second FillStation
   try
-    CheckBox1.Checked := not IsNan(Row.X);
+    CheckBoxFixedStation.Checked := not IsNan(Row.X);
   finally
-    CheckBox1.OnClick := CheckBox1Click;
+    CheckBoxFixedStation.OnClick := CheckBoxFixedStationClick;
   end;
-  CheckBox1Click(CheckBox1);          // fill the station
+  CheckBoxFixedStationClick(CheckBoxFixedStation);          // fill the station
 
   OrientRow := GridOrientation.FixedRows;
   DetailRow := GridDetail.FixedRows;

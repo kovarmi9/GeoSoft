@@ -85,5 +85,3 @@ begin
   Writeln('Hotovo. Enter...');
   Readln;
 end.
-end.
-

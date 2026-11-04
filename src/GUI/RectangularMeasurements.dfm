@@ -20,11 +20,11 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       StyleElements = [seFont, seClient, seBorder]
     end
   end
-  inherited StatusBar1: TStatusBar
+  inherited StatusBar: TStatusBar
     Top = 579
     ExplicitTop = 579
   end
-  object StringGrid1: TGeoFieldsGrid [2]
+  object Grid: TGeoFieldsGrid [2]
     Left = 0
     Top = 35
     Width = 800

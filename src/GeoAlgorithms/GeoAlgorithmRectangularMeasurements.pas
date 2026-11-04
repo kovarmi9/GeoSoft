@@ -5,7 +5,7 @@
 interface
 
 uses
-  System.SysUtils, System.Classes, Math, GeoAlgorithmBase,
+  System.SysUtils, System.Classes, System.Math, GeoAlgorithmBase,
   GeoAlgorithmTransformCongruent, Point, GeoRow, GeoDataFrame,
   Accuracy, PointNumber;
 

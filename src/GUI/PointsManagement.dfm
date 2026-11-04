@@ -11,14 +11,14 @@ object PointsManagementForm: TPointsManagementForm
   Font.Name = 'Segoe UI'
   Font.Style = []
   KeyPreview = True
-  Menu = MainMenu1
+  Menu = MainMenu
   OnActivate = FormActivate
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   TextHeight = 15
-  object StringGrid1: TGeoPointsGrid
+  object GridPoints: TGeoPointsGrid
     Left = 0
     Top = 85
     Width = 494
@@ -63,7 +63,7 @@ object PointsManagementForm: TPointsManagementForm
       65
       65)
   end
-  object StatusBar1: TStatusBar
+  object StatusBar: TStatusBar
     Left = 0
     Top = 374
     Width = 494
@@ -75,7 +75,7 @@ object PointsManagementForm: TPointsManagementForm
     ExplicitTop = 366
     ExplicitWidth = 418
   end
-  object ControlBar1: TControlBar
+  object ControlBar: TControlBar
     Left = 0
     Top = 0
     Width = 494
@@ -84,14 +84,14 @@ object PointsManagementForm: TPointsManagementForm
     TabOrder = 2
     ExplicitWidth = 418
   end
-  object ToolBar2: TToolBar
+  object ToolBarPrefix: TToolBar
     AlignWithMargins = True
     Left = 3
     Top = 53
     Width = 488
     Height = 29
     ButtonHeight = 23
-    Caption = 'ToolBar2'
+    Caption = 'ToolBarPrefix'
     List = True
     AllowTextButtons = True
     TabOrder = 3
@@ -116,11 +116,11 @@ object PointsManagementForm: TPointsManagementForm
         '000001'
         '000002')
     end
-    object ToolButton3: TToolButton
+    object SeparatorKU: TToolButton
       Left = 99
       Top = 0
       Width = 8
-      Caption = 'ToolButton3'
+      Caption = 'SeparatorKU'
       ImageIndex = 1
       Style = tbsSeparator
     end
@@ -143,11 +143,11 @@ object PointsManagementForm: TPointsManagementForm
         '00001'
         '00002')
     end
-    object ToolButton2: TToolButton
+    object SeparatorZPMZ: TToolButton
       Left = 201
       Top = 0
       Width = 8
-      Caption = 'ToolButton2'
+      Caption = 'SeparatorZPMZ'
       ImageIndex = 2
       Style = tbsSeparator
     end
@@ -177,11 +177,11 @@ object PointsManagementForm: TPointsManagementForm
         '7'
         '8')
     end
-    object ToolButton1: TToolButton
+    object SeparatorKK: TToolButton
       Left = 249
       Top = 0
       Width = 8
-      Caption = 'ToolButton1'
+      Caption = 'SeparatorKK'
       ImageIndex = 3
       Style = tbsSeparator
     end
@@ -196,7 +196,7 @@ object PointsManagementForm: TPointsManagementForm
       OnKeyDown = NumericComboKeyDown
     end
   end
-  object MainMenu1: TMainMenu
+  object MainMenu: TMainMenu
     Left = 584
     Top = 24
     object MenuFile: TMenuItem
@@ -250,12 +250,12 @@ object PointsManagementForm: TPointsManagementForm
       OnClick = MenuGoToPointClick
     end
   end
-  object OpenDialog1: TOpenDialog
+  object OpenDialog: TOpenDialog
     Options = [ofHideReadOnly, ofFileMustExist, ofEnableSizing]
     Left = 584
     Top = 96
   end
-  object SaveDialog1: TSaveDialog
+  object SaveDialog: TSaveDialog
     Options = [ofOverwritePrompt, ofHideReadOnly, ofEnableSizing]
     Left = 384
     Top = 152

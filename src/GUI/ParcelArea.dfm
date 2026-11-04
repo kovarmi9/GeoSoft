@@ -18,11 +18,11 @@ inherited ParcelAreaForm: TParcelAreaForm
       StyleElements = [seFont, seClient, seBorder]
     end
   end
-  inherited StatusBar1: TStatusBar
+  inherited StatusBar: TStatusBar
     ExplicitLeft = 8
     ExplicitTop = 561
   end
-  object StringGrid1: TGeoFieldsGrid [2]
+  object Grid: TGeoFieldsGrid [2]
     Left = 0
     Top = 35
     Width = 800

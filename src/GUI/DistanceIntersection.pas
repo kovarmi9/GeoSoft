@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
-  Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
+  System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
   GeoFieldsDef, SettingsState, GeoAlgorithmDistanceIntersection,
   ProtocolTable, PointNumber;
 
@@ -191,7 +191,7 @@ begin
   end;
 
   // A number given in the dialog goes to the grid
-  Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
+  Row.Poznamka := ShortString(GPointPrefix.Popis);
   StorePoint(Row);
   FFrame.Rows[GIVEN_POINTS].CB := Row.CB;
   Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);

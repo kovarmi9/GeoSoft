@@ -8,7 +8,7 @@
 interface
 
 uses
-  Math, SysUtils, GeoAlgorithmBase, GeoAlgorithmTransformBase;
+  System.Math, System.SysUtils, GeoAlgorithmBase, GeoAlgorithmTransformBase;
 
 type
   /// <summary>Similarity (Helmert) key.</summary>

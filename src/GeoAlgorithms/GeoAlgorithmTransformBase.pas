@@ -6,7 +6,7 @@
 
 interface
 
-uses SysUtils, Point, GeoAlgorithmBase;
+uses System.SysUtils, Point, GeoAlgorithmBase;
 
 type
   // Residuals of one identical point

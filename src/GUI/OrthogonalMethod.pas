@@ -6,7 +6,7 @@ uses
   Winapi.Windows,
   System.SysUtils,
   System.Classes,
-  Math,
+  System.Math,
   Vcl.Controls,
   Vcl.Forms,
   Vcl.Dialogs,
@@ -15,7 +15,7 @@ uses
   Vcl.ComCtrls,
   Vcl.ExtCtrls,
   Vcl.StdCtrls,
-  PointsUtilsSingleton,
+  PointDictionary,
   Point,
   GeoAlgorithmOrthogonal,
   GeoGrid,
@@ -272,7 +272,7 @@ begin
 
   // The toolbar only prefills an empty cell, what is typed there wins
   if Trim(Grid.Cells[Grid.FieldToCol(Poznamka), ARow]) = '' then
-    Grid.Cells[Grid.FieldToCol(Poznamka), ARow] := Trim(GPointPrefix.Popis);
+    Grid.Cells[Grid.FieldToCol(Poznamka), ARow] := GPointPrefix.Popis;
   if Trim(Grid.Cells[Grid.FieldToCol(KK), ARow]) = '' then
     Grid.Cells[Grid.FieldToCol(KK), ARow] := Trim(GPointPrefix.KK);
 

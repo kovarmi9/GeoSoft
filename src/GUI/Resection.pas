@@ -6,19 +6,19 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, GeoGrid,
-  GeoFieldsGrid, Math, Point, PointPrefixState, GeoRow, GeoDataFrame,
+  GeoFieldsGrid, System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame,
   CoordOrderState, SettingsState, GeoAlgorithmResection, ProtocolTable,
   PointNumber;
 
 type
   TResectionForm = class(TCalcBaseForm)
-    Panel1: TPanel;
+    PanelGrids: TPanel;
     PanelStation: TPanel;
     EditStationNo: TLabeledEdit;
     EditStationY: TLabeledEdit;
     EditStationX: TLabeledEdit;
     EditStationKK: TLabeledEdit;
-    Label1: TLabel;
+    LabelGivenPoints: TLabel;
     Grid: TGeoFieldsGrid;
     procedure EditStationNoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
@@ -110,7 +110,7 @@ begin
   Row.Uloha := ULOHA_PROTINANI_ZPET;
   TPointNumber.TryParse(StationNo, PointNumber);
   Row.CB := PointNumber;
-  Row.Poznamka := ShortString(Trim(GPointPrefix.Popis));
+  Row.Poznamka := ShortString(GPointPrefix.Popis);
   FFrame.AddRow(Row);
 end;
 

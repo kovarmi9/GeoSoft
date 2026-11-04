@@ -3,26 +3,23 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, System.UITypes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  Vcl.Grids, Vcl.Mask, Vcl.Menus, Vcl.ToolWin, Vcl.ComCtrls,
-  GeoGrid, GeoPointsGrid, Vcl.ExtCtrls, GeoFieldsGrid;
+  System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Menus, Vcl.ToolWin,
+  Vcl.ComCtrls;
 
 type
-  TForm1 = class(TForm)
-    ToolBar1: TToolBar;
-    MainMenu1: TMainMenu;
-    N1: TMenuItem;
+  TGeoSoftForm = class(TForm)
+    ToolBar: TToolBar;
+    MainMenu: TMainMenu;
+    MenuFile: TMenuItem;
     MenuFileNew: TMenuItem;
-    Vypocty: TMenuItem;
+    MenuCalculations: TMenuItem;
     MenuFileOpen: TMenuItem;
     MenuView: TMenuItem;
     MenuShowList: TMenuItem;
     MenuSep1: TMenuItem;
     MenuSaveList: TMenuItem;
     MenuSaveListAs: TMenuItem;
-    MenuNastaveni: TMenuItem;
+    MenuSettings: TMenuItem;
     MenuLevelling: TMenuItem;
     MenuOrthogonalMethod: TMenuItem;
     MenuPolarMethod: TMenuItem;
@@ -44,7 +41,7 @@ type
     procedure MenuSaveListClick(Sender: TObject);
     procedure MenuSaveListAsClick(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure MenuNastaveniClick(Sender: TObject);
+    procedure MenuSettingsClick(Sender: TObject);
     procedure MenuOrthogonalMethodClick(Sender: TObject);
     procedure MenuPolarMethodClick(Sender: TObject);
     procedure MenuLineAdjustmentClick(Sender: TObject);
@@ -66,7 +63,7 @@ type
   end;
 
 var
-  Form1: TForm1;
+  GeoSoftForm: TGeoSoftForm;
 
 implementation
 
@@ -78,7 +75,7 @@ uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   ForwardIntersection, RectangularAdjustment, Resection, Levelling;
 
 // File menu: picks a list file and shows it
-procedure TForm1.MenuFileOpenClick(Sender: TObject);
+procedure TGeoSoftForm.MenuFileOpenClick(Sender: TObject);
 begin
   if PointsManagementForm.OpenList then
     PointsManagementForm.Show;
@@ -86,107 +83,107 @@ end;
 
 // The calculation forms and the list take the settings over when they are
 // shown again
-procedure TForm1.MenuNastaveniClick(Sender: TObject);
+procedure TGeoSoftForm.MenuSettingsClick(Sender: TObject);
 begin
   TSettingsForm.Execute;
 end;
 
 // The job protocol (.ptk) in Notepad
-procedure TForm1.MenuProtocolClick(Sender: TObject);
+procedure TGeoSoftForm.MenuProtocolClick(Sender: TObject);
 begin
   PointsManagementForm.ShowJobProtocol;
 end;
 
 // View menu: brings the list window up with whatever is loaded
-procedure TForm1.MenuShowListClick(Sender: TObject);
+procedure TGeoSoftForm.MenuShowListClick(Sender: TObject);
 begin
   PointsManagementForm.Show;
 end;
 
 // The list is the document, so it is saved from the main menu too
-procedure TForm1.MenuSaveListClick(Sender: TObject);
+procedure TGeoSoftForm.MenuSaveListClick(Sender: TObject);
 begin
   PointsManagementForm.DoSave;
 end;
 
-procedure TForm1.MenuSaveListAsClick(Sender: TObject);
+procedure TGeoSoftForm.MenuSaveListAsClick(Sender: TObject);
 begin
   PointsManagementForm.SaveListAs;
 end;
 
-procedure TForm1.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TGeoSoftForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
   CanClose := PointsManagementForm.AskSaveChanges;
 end;
 
-procedure TForm1.MenuFileNewClick(Sender: TObject);
+procedure TGeoSoftForm.MenuFileNewClick(Sender: TObject);
 begin
   if PointsManagementForm.CreateNewList then
     PointsManagementForm.Show;
 end;
 
 // Calculations menu, in the order of the task codes
-procedure TForm1.MenuOrthogonalMethodClick(Sender: TObject);
+procedure TGeoSoftForm.MenuOrthogonalMethodClick(Sender: TObject);
 begin
   OrthogonalMethodForm.Show;
 end;
 
-procedure TForm1.MenuPolarMethodClick(Sender: TObject);
+procedure TGeoSoftForm.MenuPolarMethodClick(Sender: TObject);
 begin
   PolarMethodForm.Show;
 end;
 
-procedure TForm1.MenuLineAdjustmentClick(Sender: TObject);
+procedure TGeoSoftForm.MenuLineAdjustmentClick(Sender: TObject);
 begin
   LineAdjustmentForm.Show;
 end;
 
-procedure TForm1.MenuLineIntersectionClick(Sender: TObject);
+procedure TGeoSoftForm.MenuLineIntersectionClick(Sender: TObject);
 begin
   LineIntersectionForm.Show;
 end;
 
-procedure TForm1.MenuRectangularMeasurementsClick(Sender: TObject);
+procedure TGeoSoftForm.MenuRectangularMeasurementsClick(Sender: TObject);
 begin
   RectangularMeasurementsForm.Show;
 end;
 
-procedure TForm1.MenuDistanceIntersectionClick(Sender: TObject);
+procedure TGeoSoftForm.MenuDistanceIntersectionClick(Sender: TObject);
 begin
   DistanceIntersectionForm.Show;
 end;
 
-procedure TForm1.MenuForwardIntersectionClick(Sender: TObject);
+procedure TGeoSoftForm.MenuForwardIntersectionClick(Sender: TObject);
 begin
   ForwardIntersectionForm.Show;
 end;
 
-procedure TForm1.MenuRectangularAdjustmentClick(Sender: TObject);
+procedure TGeoSoftForm.MenuRectangularAdjustmentClick(Sender: TObject);
 begin
   RectangularAdjustmentForm.Show;
 end;
 
-procedure TForm1.MenuResectionClick(Sender: TObject);
+procedure TGeoSoftForm.MenuResectionClick(Sender: TObject);
 begin
   ResectionForm.Show;
 end;
 
-procedure TForm1.MenuCheckMeasurementsClick(Sender: TObject);
+procedure TGeoSoftForm.MenuCheckMeasurementsClick(Sender: TObject);
 begin
   CheckMeasurementsForm.Show;
 end;
 
-procedure TForm1.MenuTransformationClick(Sender: TObject);
+procedure TGeoSoftForm.MenuTransformationClick(Sender: TObject);
 begin
   TransformationForm.Show;
 end;
 
-procedure TForm1.MenuTechnicalLevellingClick(Sender: TObject);
+procedure TGeoSoftForm.MenuTechnicalLevellingClick(Sender: TObject);
 begin
   LevellingForm.Show;
 end;
 
-procedure TForm1.MenuParcelAreaClick(Sender: TObject);
+procedure TGeoSoftForm.MenuParcelAreaClick(Sender: TObject);
 begin
   ParcelAreaForm.Show;
 end;

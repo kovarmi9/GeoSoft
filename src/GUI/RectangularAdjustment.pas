@@ -5,15 +5,15 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
-  Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, Math, Point,
-  PointsUtilsSingleton, PointPrefixState, GeoRow, GeoDataFrame,
+  Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, System.Math,
+  Point, PointDictionary, PointPrefixState, GeoRow, GeoDataFrame,
   GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState, GeoFieldsDef,
   ProtocolTable, GeoAlgorithmTransformBase, GeoAlgorithmRectangularAdjustment,
   PointNumber;
 
 type
   TRectangularAdjustmentForm = class(TCalcBaseForm)
-    StringGrid1: TGeoFieldsGrid;
+    Grid: TGeoFieldsGrid;
     PanelClosure: TPanel;
     LabelClosure: TLabel;
     procedure FormCreate(Sender: TObject);
@@ -74,12 +74,12 @@ begin
   // Left turn is written as a negative length
   FilterData := GeoFieldColumns[SH].Filter;
   FilterData.HasMinValue := False;
-  StringGrid1.SetColumnFilterData(SH, FilterData);
+  Grid.SetColumnFilterData(SH, FilterData);
 end;
 
 procedure TRectangularAdjustmentForm.ApplyCoordOrderToGrids;
 begin
-  ApplyColumns(StringGrid1, []);
+  ApplyColumns(Grid, []);
 end;
 
 procedure TRectangularAdjustmentForm.ApplySettings;
@@ -93,9 +93,9 @@ procedure TRectangularAdjustmentForm.SetCell(F: TGeoField; ARow: Integer;
 var
   C: Integer;
 begin
-  C := StringGrid1.FieldToCol(F);
+  C := Grid.FieldToCol(F);
   if C >= 0 then
-    StringGrid1.Cells[C, ARow] := S;
+    Grid.Cells[C, ARow] := S;
 end;
 
 // Fills the row after its point number was committed
@@ -107,7 +107,7 @@ var
   Known: Boolean;
   First: Integer;
 begin
-  CBText := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
+  CBText := Trim(Grid.Cells[Grid.FieldToCol(CB), R]);
   TPointNumber.TryParse(CBText, PointNumber);
   if PointNumber = 0 then Exit;
 
@@ -119,7 +119,7 @@ begin
   if CBText = FRowCB[R] then Exit;
 
   FRowNew[R] := False;
-  First := StringGrid1.FixedRows;
+  First := Grid.FixedRows;
   Known := TPointDictionary.GetInstance.PointExists(PointNumber);
 
   // The closing row is the first point again, no second question
@@ -161,14 +161,14 @@ var
   I: Integer;
 begin
   // The walk needs no point list, so the plain bridge is enough
-  GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI_VYROVNANI, FRows);
+  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI_VYROVNANI, FRows);
   for I := 0 to FFrame.Count - 1 do
   begin
     FFrame.Rows[I].Xm := NaN;
     FFrame.Rows[I].Ym := NaN;
   end;
   FAlg.Calculate(FFrame);
-  FrameToGrid(StringGrid1, FFrame, FRows, [Xm, Ym]);
+  FrameToGrid(Grid, FFrame, FRows, [Xm, Ym]);
 
   if IsNan(FAlg.ClosureAlong) then
     LabelClosure.Caption := 'Obrazec zatím není uzavřený'
@@ -181,7 +181,7 @@ end;
 procedure TRectangularAdjustmentForm.GridCellSelectable(Sender: TObject;
   ACol, ARow: Integer; var ASelectable: Boolean);
 begin
-  if (ARow = StringGrid1.FixedRows) and (ACol = StringGrid1.FieldToCol(SH)) then
+  if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(SH)) then
     ASelectable := False;
 end;
 
@@ -189,18 +189,18 @@ end;
 procedure TRectangularAdjustmentForm.CellCommitted(Sender: TObject;
   ACol, ARow: Integer);
 begin
-  if ARow < StringGrid1.FixedRows then
+  if ARow < Grid.FixedRows then
     Exit;
 
-  if ACol = StringGrid1.FieldToCol(CB) then
+  if ACol = Grid.FieldToCol(CB) then
   begin
-    NormalizePointCell(StringGrid1, ACol, ARow);
+    NormalizePointCell(Grid, ACol, ARow);
     FillRow(ARow);
   end;
 
   // The adjustment spreads over all sides, so any change redraws all rows
-  if (ACol = StringGrid1.FieldToCol(CB)) or
-    (ACol = StringGrid1.FieldToCol(SH)) then
+  if (ACol = Grid.FieldToCol(CB)) or
+    (ACol = Grid.FieldToCol(SH)) then
     RecalcLocal;
 end;
 
@@ -213,7 +213,7 @@ var
   IsGiven: Boolean;
 begin
   Result := True;
-  GridToFrame(StringGrid1, FFrame, ULOHA_KONSTRUKCNI_VYROVNANI, FRows);
+  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI_VYROVNANI, FRows);
 
   for I := 0 to FFrame.Count - 1 do
   begin
@@ -283,8 +283,8 @@ begin
       FRowNew[Back[I]] := True;
     end;
 
-  FrameToGrid(StringGrid1, FFrame, Back, [CB, X, Y]);
-  FrameToGrid(StringGrid1, FFrame, FRows, [Xm, Ym]);
+  FrameToGrid(Grid, FFrame, Back, [CB, X, Y]);
+  FrameToGrid(Grid, FFrame, FRows, [Xm, Ym]);
   ShowProtocol;
 end;
 
@@ -309,25 +309,25 @@ var
   I, R: Integer;
 begin
   // Forget the old job
-  ClearGrid(StringGrid1, StringGrid1.FixedRows + AFrame.Count + 1);
+  ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
   SetLength(FRowCB, 0);
   SetLength(FRowNew, 0);
-  SetLength(FRowCB, StringGrid1.RowCount);
-  SetLength(FRowNew, StringGrid1.RowCount);
+  SetLength(FRowCB, Grid.RowCount);
+  SetLength(FRowNew, Grid.RowCount);
 
-  R := StringGrid1.FixedRows;
+  R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(StringGrid1, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
     begin
       // Do not ask again for this number
-      FRowCB[R] := Trim(StringGrid1.Cells[StringGrid1.FieldToCol(CB), R]);
+      FRowCB[R] := Trim(Grid.Cells[Grid.FieldToCol(CB), R]);
       // Empty X means a new point
       FRowNew[R] := IsNan(AFrame.Rows[I].X);
       Inc(R);
     end;
 
   // One empty row at the end
-  StringGrid1.RowCount := R + 1;
+  Grid.RowCount := R + 1;
   RecalcLocal;
 end;
 

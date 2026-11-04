@@ -6,10 +6,10 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes,
   System.Math, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
   Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin, Vcl.ExtCtrls,
-  Vcl.Grids, PointPrefixState, Point, PointsUtilsSingleton, GeoRow,
+  Vcl.Grids, PointPrefixState, Point, PointDictionary, GeoRow,
   GeoDataFrame, GeoGridBridge, GeoAlgorithmTransformation,
   ProtocolTable, CoordOrderState, GeoGrid, GeoFieldsGrid, CalcBase,
-  Vcl.Menus, PointNumber;
+  Vcl.Menus, PointNumber, Validation;
 
 type
   TTransformationForm = class(TCalcBaseForm)
@@ -291,7 +291,7 @@ begin
     end;
 
     // The quality code of a new point comes from the toolbar
-    FFrame.Rows[I].KK := StrToIntDef(Trim(GPointPrefix.KK), 0);
+    FFrame.Rows[I].KK := TValidation.QualityFromText(GPointPrefix.KK);
     // No height from the key, a stored point keeps its own
     if IsNan(FFrame.Rows[I].Z) and
        TPointDictionary.GetInstance.PointExists(PointNumber) then

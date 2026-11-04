@@ -1,10 +1,10 @@
-﻿unit PointsUtilsSingleton;
+﻿unit PointDictionary;
 
 interface
 
 uses
   Winapi.Windows, System.Generics.Collections, System.SysUtils, System.Classes,
-  Point, CoordOrderState, PointNumber;
+  Point, CoordOrderState, PointNumber, Validation;
 
 type
   /// <summary>The one point list of the program.</summary>
@@ -222,6 +222,8 @@ var
   Line: string;
   Fields: TStringList;
   Coords, P: TPoint;
+  Number: Int64;
+  Quality: Integer;
 begin
   CheckFileExists(FileName);
   Result := 0;
@@ -245,13 +247,20 @@ begin
         Inc(Result);
         Continue;
       end;
+      // StrToInt64 would take $FF
+      if not TPointNumber.TryParse(Fields[0], Number) or
+        not TryStrToInt(Trim(Fields[4]), Quality) or
+        (Quality < MIN_KK) or (Quality > MAX_KK) then
+      begin
+        Inc(Result);
+        Continue;
+      end;
       try
         // Y and X in file order
         CoordWrite(Coords, FileStrToFloat(Fields[1]),
           FileStrToFloat(Fields[2]));
-        P := TPoint.Create(StrToInt64(Trim(Fields[0])), Coords.X, Coords.Y,
-                           FileStrToFloat(Fields[3]), StrToInt(Trim(Fields[4])),
-                           Fields[5]);
+        P := TPoint.Create(Number, Coords.X, Coords.Y,
+          FileStrToFloat(Fields[3]), Quality, Fields[5]);
       except
         // Non-number marks bad line
         on EConvertError do
@@ -259,11 +268,6 @@ begin
           Inc(Result);
           Continue;
         end;
-      end;
-      if P.PointNumber = 0 then      // invalid number
-      begin
-        Inc(Result);
-        Continue;
       end;
 
       APoints.Add(P);

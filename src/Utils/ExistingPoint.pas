@@ -26,7 +26,7 @@ implementation
 
 uses
   Winapi.Windows, System.SysUtils, Vcl.Forms, Vcl.Dialogs,
-  PointPrefixState, PointsUtilsSingleton;
+  PointPrefixState, PointDictionary;
 
 function AskExistingPoint(const AOld, ANew: Point.TPoint; AForAll: Boolean;
   out AAll: Boolean): Integer;

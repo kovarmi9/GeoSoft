@@ -6,12 +6,12 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, System.Generics.Collections,
   Vcl.Controls, Vcl.Forms, Vcl.ExtCtrls,
   Vcl.StdCtrls, Vcl.ToolWin, Vcl.ComCtrls, Vcl.Menus, Vcl.Dialogs,
-  PointPrefixState, PointsUtilsSingleton, Point, AddPoint, ProtocolTable,
+  PointPrefixState, PointDictionary, Point, AddPoint, ProtocolTable,
   GeoRow, GeoGrid, GeoFieldsGrid, GeoDataFrame;
 
 type
   TCalcBaseForm = class(TForm)
-    MainMenu1: TMainMenu;
+    MainMenu: TMainMenu;
     MenuUloha: TMenuItem;
     MenuUlozitProtokol: TMenuItem;
     MenuNastaveni: TMenuItem;
@@ -19,14 +19,14 @@ type
     MenuNapoveda: TMenuItem;
     SaveDialogProtokol: TSaveDialog;
     ToolBarPrefix: TToolBar;
-    ToolButton1: TToolButton;
-    ToolButton2: TToolButton;
-    ToolButton3: TToolButton;
+    SeparatorKU: TToolButton;
+    SeparatorZPMZ: TToolButton;
+    SeparatorKK: TToolButton;
     ComboBoxKU: TComboBox;
     ComboBoxZPMZ: TComboBox;
     ComboBoxKK: TComboBox;
     ComboBoxPopis: TComboBox;
-    StatusBar1: TStatusBar;
+    StatusBar: TStatusBar;
     MenuNacistZapisnik: TMenuItem;
     OpenDialogZapisnik: TOpenDialog;
     MenuReset: TMenuItem;
@@ -230,8 +230,8 @@ begin
 
   LoadPrefix;
 
-  if StatusBar1.Panels.Count > 0 then
-    StatusBar1.Panels[0].Text := GetCurrentDir;
+  if StatusBar.Panels.Count > 0 then
+    StatusBar.Panels[0].Text := GetCurrentDir;
 end;
 
 destructor TCalcBaseForm.Destroy;
@@ -629,8 +629,8 @@ end;
 
 procedure TCalcBaseForm.ShowStatus(const AText: string);
 begin
-  if StatusBar1.Panels.Count > 0 then
-    StatusBar1.Panels[0].Text := AText;
+  if StatusBar.Panels.Count > 0 then
+    StatusBar.Panels[0].Text := AText;
 end;
 
 procedure TCalcBaseForm.ApplyProtocolMode;

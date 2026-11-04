@@ -9,19 +9,19 @@ inherited TransformationForm: TTransformationForm
     inherited ComboBoxKU: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
-    inherited ToolButton1: TToolButton
+    inherited SeparatorKU: TToolButton
       ExplicitHeight = 19
     end
     inherited ComboBoxZPMZ: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
-    inherited ToolButton2: TToolButton
+    inherited SeparatorZPMZ: TToolButton
       ExplicitHeight = 19
     end
     inherited ComboBoxKK: TComboBox
       StyleElements = [seFont, seClient, seBorder]
     end
-    inherited ToolButton3: TToolButton
+    inherited SeparatorKK: TToolButton
       ExplicitHeight = 19
     end
     inherited ComboBoxPopis: TComboBox
@@ -52,7 +52,7 @@ inherited TransformationForm: TTransformationForm
         'Afinn'#237)
     end
   end
-  inherited StatusBar1: TStatusBar
+  inherited StatusBar: TStatusBar
     ExplicitLeft = 8
     ExplicitTop = 573
   end

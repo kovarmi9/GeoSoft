@@ -2,7 +2,7 @@ program GeoSoft;
 
 uses
   Vcl.Forms,
-  MainForm in 'MainForm.pas' {Form1},
+  MainForm in 'MainForm.pas' {GeoSoftForm},
   PointsManagement in 'PointsManagement.pas' {PointsManagementForm},
   AddPoint in 'AddPoint.pas' {AddPointForm},
   CalcBase in 'CalcBase.pas' {CalcBaseForm},
@@ -35,7 +35,7 @@ uses
   GeoDataFrame in '..\DataStructures\GeoDataFrame.pas',
   GeoRow in '..\DataStructures\GeoRow.pas',
   Point in '..\DataStructures\Point.pas',
-  PointsUtilsSingleton in '..\DataStructures\PointsUtilsSingleton.pas',
+  PointDictionary in '..\DataStructures\PointDictionary.pas',
   CoordOrderState in '..\Utils\CoordOrderState.pas',
   GeoGridBridge in '..\Utils\GeoGridBridge.pas',
   PointPrefixState in '..\Utils\PointPrefixState.pas',
@@ -58,7 +58,7 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TGeoSoftForm, GeoSoftForm);
   Application.CreateForm(TPointsManagementForm, PointsManagementForm);
   Application.CreateForm(TParcelAreaForm, ParcelAreaForm);
   Application.CreateForm(TOrthogonalMethodForm, OrthogonalMethodForm);

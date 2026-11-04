@@ -12,7 +12,7 @@
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  Menu = MainMenu1
+  Menu = MainMenu
   Position = poScreenCenter
   OnActivate = FormActivate
   OnDeactivate = FormDeactivate
@@ -46,11 +46,11 @@
         '000001'
         '000002')
     end
-    object ToolButton1: TToolButton
+    object SeparatorKU: TToolButton
       Left = 99
       Top = 0
       Width = 8
-      Caption = 'ToolButton1'
+      Caption = 'SeparatorKU'
       Style = tbsSeparator
     end
     object ComboBoxZPMZ: TComboBox
@@ -70,11 +70,11 @@
         '00001'
         '00002')
     end
-    object ToolButton2: TToolButton
+    object SeparatorZPMZ: TToolButton
       Left = 201
       Top = 0
       Width = 8
-      Caption = 'ToolButton2'
+      Caption = 'SeparatorZPMZ'
       Style = tbsSeparator
     end
     object ComboBoxKK: TComboBox
@@ -99,11 +99,11 @@
         '7'
         '8')
     end
-    object ToolButton3: TToolButton
+    object SeparatorKK: TToolButton
       Left = 249
       Top = 0
       Width = 8
-      Caption = 'ToolButton3'
+      Caption = 'SeparatorKK'
       Style = tbsSeparator
     end
     object ComboBoxPopis: TComboBox
@@ -116,7 +116,7 @@
       OnExit = PrefixComboExit
     end
   end
-  object StatusBar1: TStatusBar
+  object StatusBar: TStatusBar
     Left = 0
     Top = 581
     Width = 800
@@ -223,7 +223,7 @@
     TabOrder = 3
     WordWrap = False
   end
-  object MainMenu1: TMainMenu
+  object MainMenu: TMainMenu
     Left = 704
     Top = 152
     object MenuUloha: TMenuItem

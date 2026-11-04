@@ -3,25 +3,25 @@ inherited PolarMethodForm: TPolarMethodForm
   HelpKeyword = 'vypocty/polarni-metoda/'
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
-    object ToolButton4: TToolButton
+    object SeparatorPopis: TToolButton
       Left = 402
       Top = 0
       Width = 8
-      Caption = 'ToolButton4'
+      Caption = 'SeparatorPopis'
       ImageIndex = 0
       Style = tbsSeparator
     end
-    object CheckBox1: TCheckBox
+    object CheckBoxFixedStation: TCheckBox
       Left = 410
       Top = 0
       Width = 121
       Height = 23
       Caption = 'Voln'#233' stanovisko'
       TabOrder = 4
-      OnClick = CheckBox1Click
+      OnClick = CheckBoxFixedStationClick
     end
   end
-  object Panel1: TPanel [2]
+  object PanelGrids: TPanel [2]
     Left = 0
     Top = 35
     Width = 800
@@ -29,7 +29,7 @@ inherited PolarMethodForm: TPolarMethodForm
     Align = alClient
     BevelOuter = bvNone
     TabOrder = 2
-    object Label1: TLabel
+    object LabelOrientations: TLabel
       Left = 0
       Top = 52
       Width = 800
@@ -37,7 +37,7 @@ inherited PolarMethodForm: TPolarMethodForm
       Align = alTop
       Caption = 'Orientace'
     end
-    object Splitter1: TSplitter
+    object SplitterGrids: TSplitter
       Left = 0
       Top = 167
       Width = 800
@@ -47,7 +47,7 @@ inherited PolarMethodForm: TPolarMethodForm
       MinSize = 60
       ExplicitWidth = 675
     end
-    object Label2: TLabel
+    object LabelDetailPoints: TLabel
       Left = 0
       Top = 172
       Width = 800

@@ -9,7 +9,7 @@ uses
 
 type
   TSettingsForm = class(TForm)
-    PageControl1: TPageControl;
+    PageControl: TPageControl;
     TabCoordinates: TTabSheet;
     RadioGroupCoordOrder: TRadioGroup;
     LabelLengthDecimals: TLabel;
@@ -74,7 +74,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Point, PointsUtilsSingleton, PointPrefixState, CoordOrderState,
+  Point, PointDictionary, PointPrefixState, CoordOrderState,
   GeoAlgorithmScale;
 
 const
@@ -244,7 +244,7 @@ begin
     Exit;
 
   MessageDlg('Měřítko délek musí být kladné číslo.', mtError, [mbOK], 0);
-  PageControl1.ActivePage := TabScale;
+  PageControl.ActivePage := TabScale;
   EditScale.SetFocus;
 end;
 

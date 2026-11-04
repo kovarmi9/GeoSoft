@@ -6,7 +6,7 @@
 interface
 
 uses
-  System.SysUtils, Math, GeoAlgorithmBase, GeoDataFrame;
+  System.SysUtils, System.Math, GeoAlgorithmBase, GeoDataFrame;
 
 const
   // Task code from the survey notebook convention

@@ -6,8 +6,9 @@
 interface
 
 uses
-  System.SysUtils, Math, Point, GeoAlgorithmBase, GeoAlgorithmTransformBase,
-  GeoAlgorithmTransformCongruent, GeoRow, GeoDataFrame, PointNumber;
+  System.SysUtils, System.Math, Point, GeoAlgorithmBase,
+  GeoAlgorithmTransformBase, GeoAlgorithmTransformCongruent, GeoRow,
+  GeoDataFrame, PointNumber;
 
 const
   // Task code from the survey notebook convention

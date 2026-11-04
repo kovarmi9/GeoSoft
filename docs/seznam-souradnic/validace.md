@@ -27,7 +27,8 @@ konstruktorem projde kontrolou.
 |---|---|---|
 | `ValidatePointNumber` | −999999999999999 až 999999999999999, mimo 0 | 0 |
 | `ValidateCoordinate` | konečné číslo | 0 (i prázdná hodnota NaN) |
-| `ValidateQuality` | kód kvality 0 až 8 | 0 |
+| `ValidateQuality` | kód kvality 0 až 8 | `ADefault` (výchozí 0) |
+| `QualityFromText` | text kódu kvality 0 až 8 | `ADefault` (výchozí 0) |
 | `ValidateDescription` | popis do 32 znaků | zkrátí se |
 
 Neplatná hodnota se nahradí tiše, bez hlášení. Hodnoty proto hlídají

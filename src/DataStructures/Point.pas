@@ -1,5 +1,7 @@
 ﻿unit Point;
 
+// One point of the coordinate list, checked when it is made.
+
 interface
 
 uses
@@ -9,12 +11,12 @@ type
   // Packed, because the list file stores it byte by byte
   /// <summary>One point of the coordinate list.</summary>
   TPoint = packed record
-    PointNumber: Int64;        // Point number
-    X: Double;                 // X coordinate, JTSK X (south)
-    Y: Double;                 // Y coordinate, JTSK Y (west)
-    Z: Double;                 // Z coordinate
-    Quality: Integer;          // Point quality
-    Description: string[MAX_POPIS_LENGTH];   // Point description
+    PointNumber: Int64;                    // full point number, 0 = none
+    X:           Double;                   // X coordinate, JTSK X (south)
+    Y:           Double;                   // Y coordinate, JTSK Y (west)
+    Z:           Double;                   // height
+    Quality:     Integer;                  // quality code 0..8
+    Description: string[MAX_POPIS_LENGTH]; // description
     /// <summary>Makes a checked point.</summary>
     constructor Create(PointNumber: Int64; X, Y, Z: Double; Quality: Integer; const Description: string);
   end;

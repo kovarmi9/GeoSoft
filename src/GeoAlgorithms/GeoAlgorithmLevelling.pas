@@ -8,10 +8,6 @@ uses
   System.SysUtils, System.Math, GeoAlgorithmBase, GeoRow, GeoDataFrame,
   PointNumber;
 
-const
-  // Task code of levelling, not in the MAPA2 list
-  ULOHA_NIVELACE = 51;
-
 type
   // Which reading a row carries
   TLevellingReading = (lrNone, lrBack, lrFore, lrSide, lrMore);
@@ -42,8 +38,6 @@ type
     procedure ChainHeights(AFrame: TGeoDataFrame; AFrom, ATo: Integer; AStart: Double);
     procedure CalculateBothWays(AFrame: TGeoDataFrame);
   public
-    class function TaskCode: Integer; override;
-
     /// <summary>Readings in Xm, Ym, Zm, heights out in VC.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -56,11 +50,6 @@ type
   end;
 
 implementation
-
-class function TLevellingAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_NIVELACE;
-end;
 
 class function TLevellingAlgorithm.ReadingOf(
   const ARow: TGeoRow): TLevellingReading;
@@ -187,6 +176,7 @@ var
   I, K, Best, Total, Base, Rest: Integer;
   Backs: TArray<Integer>;
   Chosen: TArray<Boolean>;
+  o: Double;
 begin
   for I := 0 to AFrame.Count - 1 do
     if ReadingOf(AFrame.Rows[I]) = lrBack then
@@ -196,8 +186,9 @@ begin
   Total := Round(-FInfo.Misclosure * 1000);
   Base := Abs(Total) div Length(Backs);
   Rest := Abs(Total) mod Length(Backs);
+  o := Sign(Total) * Base / 1000;
   for I in Backs do
-    AFrame.Rows[I].Vy := Sign(Total) * Base / 1000;
+    AFrame.Rows[I].M1 := o;
 
   // The first of equal readings wins
   SetLength(Chosen, Length(Backs));
@@ -209,7 +200,7 @@ begin
          (AFrame.Rows[Backs[I]].Xm > AFrame.Rows[Backs[Best]].Xm)) then
         Best := I;
     Chosen[Best] := True;
-    AFrame.Rows[Backs[Best]].Vy := AFrame.Rows[Backs[Best]].Vy +
+    AFrame.Rows[Backs[Best]].M1 := AFrame.Rows[Backs[Best]].M1 +
       Sign(Total) / 1000;
   end;
 end;
@@ -218,7 +209,7 @@ end;
 procedure TLevellingAlgorithm.ChainHeights(AFrame: TGeoDataFrame; AFrom, ATo: Integer; AStart: Double);
 var
   I: Integer;
-  Back, Horizon, Height: Double;
+  Back, Horizon, Height, o, h: Double;
 begin
   Back := 0;
   Horizon := AStart;
@@ -228,19 +219,22 @@ begin
       lrBack:
         begin
           Back := AFrame.Rows[I].Xm;
+          o := AFrame.Rows[I].M1;
           Horizon := Height + Back;
-          if not IsNan(AFrame.Rows[I].Vy) then
-            Horizon := Horizon + AFrame.Rows[I].Vy;
+          if not IsNan(o) then
+            Horizon := Horizon + o;
           AFrame.Rows[I].VC := Height;
         end;
       lrSide:
         begin
-          AFrame.Rows[I].Vz := Back - AFrame.Rows[I].Zm;
+          h := Back - AFrame.Rows[I].Zm;
+          AFrame.Rows[I].M3 := h;
           AFrame.Rows[I].VC := Horizon - AFrame.Rows[I].Zm;
         end;
       lrFore:
         begin
-          AFrame.Rows[I].Vz := Back - AFrame.Rows[I].Ym;
+          h := Back - AFrame.Rows[I].Ym;
+          AFrame.Rows[I].M3 := h;
           Height := Horizon - AFrame.Rows[I].Ym;
           AFrame.Rows[I].VC := Height;
         end;
@@ -330,8 +324,8 @@ begin
   // Old results must not survive a failed run
   for I := 0 to AFrame.Count - 1 do
   begin
-    AFrame.Rows[I].Vz := NaN;
-    AFrame.Rows[I].Vy := NaN;
+    AFrame.Rows[I].M3 := NaN;
+    AFrame.Rows[I].M1 := NaN;
     AFrame.Rows[I].VC := NaN;
   end;
 

@@ -58,7 +58,7 @@ begin
   inherited Create(AOwner);
   FAlg := TRectangularAdjustmentAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Xm, Ym, SH, Poznamka, KK]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, Xm, Ym, SH, Popis, KK]);
 end;
 
 destructor TRectangularAdjustmentForm.Destroy;
@@ -146,12 +146,12 @@ begin
     SetCell(Y, R, FloatToStr(ListPoint.Y, FS));
     SetCell(X, R, FloatToStr(ListPoint.X, FS));
     SetCell(KK, R, IntToStr(ListPoint.Quality));
-    SetCell(Poznamka, R, string(ListPoint.Description));
+    SetCell(Popis, R, string(ListPoint.Description));
   end
   else
   begin
     SetCell(KK, R, GPointPrefix.KK);
-    SetCell(Poznamka, R, GPointPrefix.Popis);
+    SetCell(Popis, R, GPointPrefix.Popis);
   end;
 end;
 
@@ -161,7 +161,7 @@ var
   I: Integer;
 begin
   // The walk needs no point list, so the plain bridge is enough
-  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI_VYROVNANI, FRows);
+  GridToFrame(Grid, FFrame, FRows);
   for I := 0 to FFrame.Count - 1 do
   begin
     FFrame.Rows[I].Xm := NaN;
@@ -213,7 +213,7 @@ var
   IsGiven: Boolean;
 begin
   Result := True;
-  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI_VYROVNANI, FRows);
+  GridToFrame(Grid, FFrame, FRows);
 
   for I := 0 to FFrame.Count - 1 do
   begin

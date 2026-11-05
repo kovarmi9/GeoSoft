@@ -9,9 +9,6 @@ uses
   Accuracy, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_KONTROLNI = 9;
-
   MIN_DIST = 0.001;  // below this the points are treated as identical
 
 type
@@ -40,9 +37,7 @@ type
   private
     FInfo: TCheckInfo;
   public
-    class function TaskCode: Integer; override;
-
-    /// <summary>SS gets the length from the coordinates.</summary>
+    /// <summary>M1 gets the length from the coordinates.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     /// <summary>Distance from the coordinates, NaN without them.</summary>
@@ -60,11 +55,6 @@ type
   end;
 
 implementation
-
-class function TCheckMeasurementsAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_KONTROLNI;
-end;
 
 class function TCheckMeasurementsAlgorithm.ComputedDistance(
   const ARow: TGeoRow): Double;
@@ -102,7 +92,7 @@ begin
   if not Result.Found then
     Exit;
 
-  Result.Computed    := ARow.SS;
+  Result.Computed    := ARow.M1;
   Result.HasMeasured := not IsNan(ARow.SH);
   if not Result.HasMeasured then
     Exit;
@@ -111,10 +101,10 @@ begin
   Reduced := ARow.SH * AScale;
 
   Result.Measured  := ARow.SH;
-  Result.Diff      := Reduced - ARow.SS;
+  Result.Diff      := Reduced - Result.Computed;
   // KatV 13.6, d is the longer of the two lengths
   Result.Tolerance :=
-    TAccuracy.LengthLimit(Max(Reduced, ARow.SS), ARow.KK);
+    TAccuracy.LengthLimit(Max(Reduced, Result.Computed), ARow.KK);
   // KatV 13.5, less than ud
   Result.Passed    := Abs(Result.Diff) < Result.Tolerance;
 end;
@@ -130,7 +120,7 @@ begin
 
   for i := 0 to AFrame.Count - 1 do
   begin
-    AFrame.Rows[i].SS := ComputedDistance(AFrame.Rows[i]);
+    AFrame.Rows[i].M1 := ComputedDistance(AFrame.Rows[i]);
 
     R := ResultOf(AFrame.Rows[i], Scale);
     if not R.Found then

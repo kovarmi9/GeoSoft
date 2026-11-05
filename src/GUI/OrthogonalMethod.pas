@@ -26,7 +26,7 @@ uses
   CoordOrderState,
   ProtocolTable,
   CalcBase,
-  PointPrefixState, Vcl.Menus, SettingsState, GeoFieldsDef, PointNumber;
+  PointPrefixState, Vcl.Menus, SettingsState, PointNumber;
 
 type
   TOrthogonalMethodForm = class(TCalcBaseForm)
@@ -64,21 +64,13 @@ const
   CSV_NAME = 'ortogonalni_metoda.csv';   // saved next to exe
 
 constructor TOrthogonalMethodForm.Create(AOwner: TComponent);
-var
-  FilterData: TColumnFilterData;
 begin
   inherited Create(AOwner);
 
   FAlg := TOrthogonalMethodAlgorithm.Create;
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, X, Y, Z, SH, PolarK, KK, Poznamka]);
-
-  // A point before the start of the line has a negative stationing
-  FilterData := GeoFieldColumns[SH].Filter;
-  FilterData.HasMinValue := False;
-  GridBaseline.SetColumnFilterData(SH, FilterData);
-  GridDetail.SetColumnFilterData(SH, FilterData);
+    [CB, X, Y, Z, Sta, Kol, KK, Popis]);
 end;
 
 destructor TOrthogonalMethodForm.Destroy;
@@ -105,7 +97,7 @@ begin
   Grid.Cells[Grid.FieldToCol(X),  R]       := FloatToStr(P.X, FS);
   Grid.Cells[Grid.FieldToCol(Z),  R]       := FloatToStr(P.Z, FS);
   Grid.Cells[Grid.FieldToCol(KK), R]       := IntToStr(P.Quality);
-  Grid.Cells[Grid.FieldToCol(Poznamka), R] := string(P.Description);
+  Grid.Cells[Grid.FieldToCol(Popis), R] := string(P.Description);
 end;
 
 function TOrthogonalMethodForm.LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
@@ -135,7 +127,6 @@ var
   // Every frame row remembers its detail grid row, -1 for P and K
   procedure Add(AGridRow: Integer);
   begin
-    Row.Uloha := ULOHA_ORTOGONALNI;
     AddRow(Row, AGridRow);
   end;
 
@@ -207,8 +198,8 @@ var
   ListPoint: Point.TPoint;
 begin
   // Enter on an empty tape cell means zero, the user confirmed it
-  if ((ACol = GridBaseline.FieldToCol(SH)) or
-      (ACol = GridBaseline.FieldToCol(PolarK))) and
+  if ((ACol = GridBaseline.FieldToCol(Sta)) or
+      (ACol = GridBaseline.FieldToCol(Kol))) and
      (Trim(GridBaseline.Cells[ACol, ARow]) = '') then
     GridBaseline.Cells[ACol, ARow] := '0';
 
@@ -251,8 +242,8 @@ begin
             Grid.Cells[Grid.FieldToCol(Z), ARow] := '';
           if Grid.FieldToCol(KK) >= 0 then
             Grid.Cells[Grid.FieldToCol(KK), ARow] := '';
-          if Grid.FieldToCol(Poznamka) >= 0 then
-            Grid.Cells[Grid.FieldToCol(Poznamka), ARow] := '';
+          if Grid.FieldToCol(Popis) >= 0 then
+            Grid.Cells[Grid.FieldToCol(Popis), ARow] := '';
         end;
 
         if (PNum <> 0) and TPointDictionary.GetInstance.PointExists(PNum) then
@@ -262,7 +253,7 @@ begin
         end;
       end;
 
-    SH, PolarK:
+    Sta, Kol:
       // Enter on an empty tape cell means zero, the same as for P and K
       if Trim(Grid.Cells[ACol, ARow]) = '' then
         Grid.Cells[ACol, ARow] := '0';
@@ -271,8 +262,8 @@ begin
   end;
 
   // The toolbar only prefills an empty cell, what is typed there wins
-  if Trim(Grid.Cells[Grid.FieldToCol(Poznamka), ARow]) = '' then
-    Grid.Cells[Grid.FieldToCol(Poznamka), ARow] := GPointPrefix.Popis;
+  if Trim(Grid.Cells[Grid.FieldToCol(Popis), ARow]) = '' then
+    Grid.Cells[Grid.FieldToCol(Popis), ARow] := GPointPrefix.Popis;
   if Trim(Grid.Cells[Grid.FieldToCol(KK), ARow]) = '' then
     Grid.Cells[Grid.FieldToCol(KK), ARow] := Trim(GPointPrefix.KK);
 
@@ -373,8 +364,8 @@ begin
     FFrame, FAlg.Warnings) then
     Exit;
   Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Columns := [ColNumber, ColField(CB), ColField(SH, 'Staničení'),
-    ColField(PolarK, 'Kolmice'), ColPair];
+  Columns := [ColNumber, ColField(CB), ColField(Sta, 'Staničení'),
+    ColField(Kol, 'Kolmice'), ColPair];
   FrameTable('PŘIPOJOVACÍ BODY', FFrame, Columns, 0, 1);
   Prot.Text(LimitText(FAlg.Baseline.Diff, FAlg.Baseline.Tolerance));
   Prot.Text(LimitSource);

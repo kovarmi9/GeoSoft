@@ -93,8 +93,8 @@ begin
   FAlg := TPolarMethodAlgorithm.Create;
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, X, Y, Z, VS, VC, HZ, TypS, SH, SS, Zuhel, PolarD, PolarK,
-     KK, Poznamka]);
+    [CB, X, Y, Z, VS, VC, HZ, Typ, SH, SS, ZU, Sta, Kol,
+     KK, Popis]);
 end;
 
 destructor TPolarMethodForm.Destroy;
@@ -125,9 +125,9 @@ var
 begin
   Hidden := [];
   if not GSettings.Polar.Offset then
-    Include(Hidden, PolarD);
+    Include(Hidden, Sta);
   if not GSettings.Polar.Perpendicular then
-    Include(Hidden, PolarK);
+    Include(Hidden, Kol);
   // Horizontal length, or the slope one with its zenith angle
   if GSettings.Polar.SlopeLengths then
     Include(Hidden, SH)
@@ -135,11 +135,11 @@ begin
     Include(Hidden, SS);
   // The zenith angle serves the slope length and the heights
   if not GSettings.Polar.SlopeLengths and not GSettings.Polar.Heights then
-    Include(Hidden, Zuhel);
+    Include(Hidden, ZU);
   if not GSettings.Polar.Heights then
     Hidden := Hidden + [Z, VC];
   if not GSettings.Polar.ShowDescription then
-    Include(Hidden, Poznamka);
+    Include(Hidden, Popis);
 
   ApplyColumns(GridOrientation, Hidden);
   ApplyColumns(GridDetail, Hidden);
@@ -261,7 +261,7 @@ begin
   Col := Grid.FieldToCol(KK);
   if Col >= 0 then
     Grid.Cells[Col, ARow] := IntToStr(ListPoint.Quality);
-  Col := Grid.FieldToCol(Poznamka);
+  Col := Grid.FieldToCol(Popis);
   if Col >= 0 then
     Grid.Cells[Col, ARow] := string(ListPoint.Description);
 end;
@@ -285,7 +285,7 @@ begin
   if ARow < Grid.FixedRows then Exit;
 
   PointNumberCol  := Grid.FieldToCol(CB);
-  PozCol := Grid.FieldToCol(Poznamka);
+  PozCol := Grid.FieldToCol(Popis);
   KKCol  := Grid.FieldToCol(KK);
 
   if ACol = PointNumberCol then
@@ -301,7 +301,7 @@ begin
       FDetailCB[ARow] := Grid.Cells[PointNumberCol, ARow];
       SetCell(Z, '');
       SetCell(KK, '');
-      SetCell(Poznamka, '');
+      SetCell(Popis, '');
     end;
 
     // A point from the list keeps its height, quality and description,
@@ -314,7 +314,7 @@ begin
       SetCell(X, FloatToStr(ListPoint.X, FS));
       SetCell(Z, FloatToStr(ListPoint.Z, FS));
       SetCell(KK, IntToStr(ListPoint.Quality));
-      SetCell(Poznamka, string(ListPoint.Description));
+      SetCell(Popis, string(ListPoint.Description));
     end;
   end;
 
@@ -339,11 +339,10 @@ var
   // Every frame row remembers its detail grid row, -1 for the rest
   procedure Add(AGridRow: Integer);
   begin
-    Row.Uloha := ULOHA_POLARNI;
     if GSettings.Polar.SlopeLengths then
-      Row.TypS := TYP_DELKY_SIKMA
+      Row.Typ := TYP_DELKY_SIKMA
     else
-      Row.TypS := TYP_DELKY_VODOROVNA;
+      Row.Typ := TYP_DELKY_VODOROVNA;
     AddRow(Row, AGridRow);
   end;
 
@@ -367,13 +366,13 @@ var
       end;
       Row.Z := ListPoint.Z;
       Row.KK := ListPoint.Quality;
-      Row.Poznamka := ListPoint.Description;
+      Row.Popis := ListPoint.Description;
     end
     else if FreeMode then
     begin
       // A new free station takes the toolbar
       Row.KK := TValidation.QualityFromText(GPointPrefix.KK);
-      Row.Poznamka := ShortString(GPointPrefix.Popis);
+      Row.Popis := ShortString(GPointPrefix.Popis);
     end
     else
       // Without coordinates it would turn into a free station
@@ -409,7 +408,7 @@ var
       ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
       Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
       Row.KK := ListPoint.Quality;
-      Row.Poznamka := ListPoint.Description;
+      Row.Popis := ListPoint.Description;
       FOrientRows := FOrientRows + [I];
       Add(-1);
     end;
@@ -440,8 +439,8 @@ begin
     if GSettings.Polar.Heights then
       Row.Z := NaN;
     // The toolbar gives the description when none is typed
-    if Trim(string(Row.Poznamka)) = '' then
-      Row.Poznamka := ShortString(GPointPrefix.Popis);
+    if Trim(string(Row.Popis)) = '' then
+      Row.Popis := ShortString(GPointPrefix.Popis);
 
     Add(R);
   end;
@@ -483,7 +482,7 @@ begin
       EditStationZ.Text :=
         FloatToStrF(Station.Z, ffFixed, 18, GSettings.LengthDecimals, FS);
     EditStationKK.Text := IntToStr(Station.KK);
-    EditStationPopis.Text := string(Station.Poznamka);
+    EditStationPopis.Text := string(Station.Popis);
     StorePoint(Station);
     // A number given in the dialog goes to the edit
     FFrame.Rows[0].CB := Station.CB;
@@ -555,9 +554,9 @@ begin
   end;
 
   // The notebook says which lengths were measured
-  if TypS in AFrame.Fields then
+  if Typ in AFrame.Fields then
   begin
-    GSettings.Polar.SlopeLengths := AFrame.Rows[0].TypS = TYP_DELKY_SIKMA;
+    GSettings.Polar.SlopeLengths := AFrame.Rows[0].Typ = TYP_DELKY_SIKMA;
     ApplyColumnsToGrids;
   end;
 
@@ -666,14 +665,14 @@ function TPolarMethodForm.MeasuredColumns(ADetail: Boolean): TArray<TProtocolCol
 begin
   Result := [ColNumber, ColField(CB), ColField(HZ)];
   if GSettings.Polar.SlopeLengths or GSettings.Polar.Heights then
-    Result := Result + [ColField(Zuhel, 'Zenit')];
+    Result := Result + [ColField(ZU, 'Zenit')];
   if GSettings.Polar.SlopeLengths then
     Result := Result + [ColField(SS, 'Šikmá délka')];
   Result := Result + [ColField(SH, 'Délka')];
   if ADetail and GSettings.Polar.Offset then
-    Result := Result + [ColField(PolarD, 'Doměrek')];
+    Result := Result + [ColField(Sta, 'Doměrek')];
   if ADetail and GSettings.Polar.Perpendicular then
-    Result := Result + [ColField(PolarK, 'Kolmice')];
+    Result := Result + [ColField(Kol, 'Kolmice')];
   if GSettings.Polar.Heights then
     Result := Result + [ColField(VC, 'Výška cíle')];
 end;

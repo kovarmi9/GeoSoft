@@ -8,10 +8,6 @@ uses
   System.SysUtils, System.Math, GeoAlgorithmBase, GeoAlgorithmPolar, GeoRow,
   GeoDataFrame, Accuracy, PointNumber;
 
-const
-  // Task code from the survey notebook convention
-  ULOHA_PROTINANI_SMERY = 6;
-
 type
   // What a frame row is
   TIntersectionRole = (irEmpty, irStation, irOrientation, irPoint);
@@ -34,9 +30,7 @@ type
     function OrientStation(AFrame: TGeoDataFrame; AIndex: Integer): Boolean;
     function GetStation(AIndex: Integer): TStationInfo;
   public
-    class function TaskCode: Integer; override;
-
-    /// <summary>HZ direction or the one from A, Zuhel from B.</summary>
+    /// <summary>HZ direction or the one from A, ZU from B.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     property Valid: Boolean read FValid;
@@ -48,11 +42,6 @@ type
   end;
 
 implementation
-
-class function TForwardIntersectionAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_PROTINANI_SMERY;
-end;
 
 function TForwardIntersectionAlgorithm.GetStation(
   AIndex: Integer): TStationInfo;
@@ -218,7 +207,7 @@ begin
     if FRoles[I] <> irPoint then
       Continue;
     PointNumber := TPointNumber.ToDisplay(AFrame.Rows[I].CB);
-    if IsNan(AFrame.Rows[I].HZ) or IsNan(AFrame.Rows[I].Zuhel) then
+    if IsNan(AFrame.Rows[I].HZ) or IsNan(AFrame.Rows[I].ZU) then
     begin
       AddError(Format('Bod %s: chybí směr z A nebo z B.', [PointNumber]));
       Continue;
@@ -226,7 +215,7 @@ begin
 
     // Oriented directions, the rays from A and from B
     sigmaAP := (AFrame.Rows[I].HZ + FStations[0].phi) * GON_TO_RAD;
-    sigmaBP := (AFrame.Rows[I].Zuhel + FStations[1].phi) * GON_TO_RAD;
+    sigmaBP := (AFrame.Rows[I].ZU + FStations[1].phi) * GON_TO_RAD;
     // sin(sigmaBP - sigmaAP), zero means parallel directions
     sinOmega := Cos(sigmaAP) * Sin(sigmaBP) -
       Sin(sigmaAP) * Cos(sigmaBP);

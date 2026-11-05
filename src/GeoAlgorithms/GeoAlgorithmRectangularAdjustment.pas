@@ -11,9 +11,6 @@ uses
   GeoDataFrame, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_KONSTRUKCNI_VYROVNANI = 7;
-
   MIN_ROWS = 5;          // four sides and the closing row
 
 type
@@ -26,8 +23,6 @@ type
     FResiduals: TPointResiduals;
     FMeanError: Double;
   public
-    class function TaskCode: Integer; override;
-
 
     /// <summary>SH: signed sides, last row closes on the first.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
@@ -46,11 +41,6 @@ type
   end;
 
 implementation
-
-class function TRectangularAdjustmentAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_KONSTRUKCNI_VYROVNANI;
-end;
 
 procedure TRectangularAdjustmentAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var

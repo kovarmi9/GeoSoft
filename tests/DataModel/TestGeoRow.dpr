@@ -25,21 +25,20 @@ begin
     Writeln(PrintGeoRow(r1));
 
     // Fill the row
-    r1.Uloha := 1;
     r1.CB := 751261478500012;
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
     r1.CBm := 1;
     r1.Xm := 1000;  r1.Ym := 5000;  r1.Zm := 0;
-    r1.TypS := 1;
+    r1.Typ := 1;
     r1.SH := 104.456;
     r1.SS := 108.457;
     r1.VS := 1.452;
     r1.VC := 1.3;
     r1.HZ := 365.8967;
-    r1.Zuhel := 98.7854;
-    r1.PolarD := 0.45;
-    r1.PolarK := 0.20;
-    r1.Poznamka := 'Testovací řádek';
+    r1.ZU := 98.7854;
+    r1.Sta := 0.45;
+    r1.Kol := 0.20;
+    r1.Popis := 'Testovací řádek';
     r1.kk := 10;
 
     // Print the filled row

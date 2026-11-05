@@ -9,9 +9,6 @@ uses
   Accuracy, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_PRUSECIK = 3;
-
   LINE_POINTS  = 4;      // rows 0 to 3 are the two lines, row 4 the result
   MIN_LINE     = 0.001;  // shorter line means its points are one point
 
@@ -25,8 +22,6 @@ type
     FOmega: Double;
     FPlace: TIntersectionPlace;
   public
-    class function TaskCode: Integer; override;
-
     /// <summary>Row 4 gets the intersection in X, Y and the worse KK.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -40,11 +35,6 @@ type
   end;
 
 implementation
-
-class function TLineIntersectionAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_PRUSECIK;
-end;
 
 class function TLineIntersectionAlgorithm.PlaceText(
   APlace: TIntersectionPlace): string;

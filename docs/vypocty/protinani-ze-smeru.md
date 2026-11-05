@@ -46,7 +46,7 @@ flowchart LR
 |---|---|---|
 | $Y, X$ | `Y`, `X` | souřadnice S-JTSK |
 | $\Delta X, \Delta Y$ | — | rozdíly ze stanoviska do bodu |
-| $\psi$ | `psi`, pole `HZ`, `Zuhel` | měřený směr, z A a z B |
+| $\psi$ | `psi`, pole `HZ`, `ZU` | měřený směr, z A a z B |
 | $\sigma$ | `sigma`, `sigmaAP`, `sigmaBP` | směrník |
 | $\varphi$ | `phi` | orientační posun stanoviska |
 | $p$ | `p` | váha orientace, $s / s_{max}$ |

@@ -48,8 +48,9 @@ begin
   inherited Create(AOwner);
   FAlg := TLevellingAlgorithm.Create;
   FNotebookName := CSV_NAME;
+  // M1 correction, M3 height difference
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, Xm, Ym, Zm, SH, Z, Vz, Vy, VC, Poznamka]);
+    [CB, Xm, Ym, Zm, SH, Z, M3, M1, VC, Popis]);
 end;
 
 destructor TLevellingForm.Destroy;
@@ -62,7 +63,7 @@ end;
 procedure TLevellingForm.ApplyDecimals;
 begin
   inherited;
-  Grid.SetFieldDecimals([Xm, Ym, Zm, SH, Z, Vz, Vy, VC], 3);
+  Grid.SetFieldDecimals([Xm, Ym, Zm, SH, Z, M3, M1, VC], 3);
 end;
 
 // Every row with a number or a reading, the empty ones are left out
@@ -82,7 +83,6 @@ begin
        (TLevellingAlgorithm.ReadingOf(Row) = lrNone) then
       Continue;
 
-    Row.Uloha := ULOHA_NIVELACE;
     FFrame.AddRow(Row);
     SetLength(FRows, FFrame.Count);
     FRows[FFrame.Count - 1] := R;
@@ -96,7 +96,7 @@ begin
   BuildFrame;
   FAlg.BothWays := CheckBoxBothWays.Checked;
   FAlg.Calculate(FFrame);
-  FrameToGrid(Grid, FFrame, FRows, [Vz, Vy, VC]);
+  FrameToGrid(Grid, FFrame, FRows, [M3, M1, VC]);
   ShowProtocol;
 end;
 
@@ -123,10 +123,10 @@ begin
       Row.X := ListPoint.X;
       Row.Y := ListPoint.Y;
       Row.KK := ListPoint.Quality;
-      Row.Poznamka := ShortString(ListPoint.Description);
+      Row.Popis := ShortString(ListPoint.Description);
     end
     else
-      Row.Poznamka := FFrame.Rows[I].Poznamka;
+      Row.Popis := FFrame.Rows[I].Popis;
     Row.Z := FFrame.Rows[I].VC;
     StorePoint(Row);
   end;
@@ -237,7 +237,7 @@ begin
     Prot.Row([IntToStr(FRows[I] - Grid.FixedRows + 1),
               PointId(Row.CB),
               Mm(Row.Xm), Mm(Row.Ym),
-              Mm(Row.Zm), Num(Row.SH, 2), Mm(Row.Vz), Mm(Row.Vy),
+              Mm(Row.Zm), Num(Row.SH, 2), Mm(Row.M3), Mm(Row.M1),
               Mm(Row.VC)], Tail);
   end;
 

@@ -42,11 +42,11 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       'X'
       'Y'
       'Z'
-      'SH=Stani'#269'en'#237
-      'PolarK=Kolmice'
+      'Sta=Stani'#269'en'#237
+      'Kol=Kolmice'
       'KK'
-      'Poznamka=Popis')
-    ReadOnlyFields = [X, Y, Z, Poznamka, KK]
+      'Popis=Popis')
+    ReadOnlyFields = [X, Y, Z, Popis, KK]
     ColWidths = (
       64
       88
@@ -85,10 +85,10 @@ inherited OrthogonalMethodForm: TOrthogonalMethodForm
       'X'
       'Y'
       'Z'
-      'SH=Stani'#269'en'#237
-      'PolarK=Kolmice'
+      'Sta=Stani'#269'en'#237
+      'Kol=Kolmice'
       'KK'
-      'Poznamka=Popis')
+      'Popis=Popis')
     ReadOnlyFields = [X, Y, Z]
     ColWidths = (
       64

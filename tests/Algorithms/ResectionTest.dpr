@@ -19,7 +19,6 @@ var
   Row: TGeoRow;
 begin
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_PROTINANI_ZPET;
   Row.CB := StrToInt64Def(APointNumber, 0);
   Row.Y := AY;
   Row.X := AX;
@@ -58,7 +57,7 @@ begin
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([Uloha, CB, Y, X, HZ, KK]);
+  Frame := TGeoDataFrame.Create([CB, Y, X, HZ, KK]);
   Alg := TResectionAlgorithm.Create;
   try
     // Textbook example 9.1, directions 0, alpha, alpha + beta.

@@ -10,9 +10,6 @@ uses
   Accuracy, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_KONSTRUKCNI = 4;
-
   // Older technology rules, points between the two given ones
   MAX_INTERMEDIATE = 8;
 
@@ -48,8 +45,6 @@ type
     // IdenticalPoints must hold the two given ends before the call.
     function TransformChain(const AChain: TPointsArray): TPointsArray;
   public
-    class function TaskCode: Integer; override;
-
     // Walks the chain in the frame and fills Xm, Ym of every row
     procedure BuildLocalFrame(AFrame: TGeoDataFrame);
 
@@ -63,11 +58,6 @@ type
   end;
 
 implementation
-
-class function TRectangularMeasurementsAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_KONSTRUKCNI;
-end;
 
 procedure TRectangularMeasurementsAlgorithm.BuildLocalPoints(
   const AChain: TPointsArray);

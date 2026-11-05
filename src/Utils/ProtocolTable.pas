@@ -136,12 +136,12 @@ begin
   case AField of
     CB, CBm:
       Result := TProtocol.MakeColumn(ckPoint, False, 'Číslo bodu');
-    HZ, Zuhel:
+    HZ, ZU:
       Result := TProtocol.MakeColumn(ckAngle, False, 'Směr');
-    Uloha, TypS, KK:
+    Checked, Typ, KK:
       Result := TProtocol.MakeColumn(ckInteger, False,
         GeoFieldNames[AField]);
-    Poznamka:
+    Popis:
       Result := TProtocol.MakeColumn(ckText, False, 'Poznámka');
   else
     Result := TProtocol.MakeColumn(ckLength, False, GeoFieldNames[AField]);
@@ -318,13 +318,13 @@ begin
     VS:     Result := ARow.VS;
     VC:     Result := ARow.VC;
     HZ:     Result := ARow.HZ;
-    Zuhel:  Result := ARow.Zuhel;
-    PolarD: Result := ARow.PolarD;
-    PolarK: Result := ARow.PolarK;
-    Vy:     Result := ARow.Vy;
-    Vx:     Result := ARow.Vx;
-    Vz:     Result := ARow.Vz;
-    Sxy:    Result := ARow.Sxy;
+    ZU:     Result := ARow.ZU;
+    Sta: Result := ARow.Sta;
+    Kol: Result := ARow.Kol;
+    M1:     Result := ARow.M1;
+    M2:     Result := ARow.M2;
+    M3:     Result := ARow.M3;
+    M4:     Result := ARow.M4;
   else
     Result := NaN;
   end;

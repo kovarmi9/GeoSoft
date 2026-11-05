@@ -71,22 +71,20 @@ inherited TransformationForm: TTransformationForm
     OnGetEditText = GridGetEditText
     EnterEndBehavior = ebAddRow
     OnCellCommitted = PointCommitted
-    CheckColumn = 1
-    DefaultChecked = True
     OnCheckChanged = KeyChanged
     ColumnFields.Strings = (
-      'TypS=Kl'#237#269
+      'Checked=Kl'#237#269
       'CB='#268'B do kter'#233
       'Y=Yc'#237'l'
       'X=Xc'#237'l'
       'CBm='#268'B z kter'#233
       'Ym=Yzdroj'
       'Xm=Xzdroj'
-      'Vx=dX'
-      'Vy=dY'
-      'Sxy=Up'
-      'Poznamka=Popis')
-    ReadOnlyFields = [Vx, Vy, Sxy]
+      'M2=dX'
+      'M1=dY'
+      'M4=Up'
+      'Popis=Popis')
+    ReadOnlyFields = [M2, M1, M4]
     ColWidths = (
       30
       30

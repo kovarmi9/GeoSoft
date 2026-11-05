@@ -49,7 +49,7 @@ begin
   inherited Create(AOwner);
   FAlg := TLHuilierAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y]);
 end;
 
 destructor TParcelAreaForm.Destroy;
@@ -123,7 +123,6 @@ begin
 
     // The list decides, the cells only show it
     ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
-    Row.Uloha := ULOHA_VYMERA;
     Row.X := ListPoint.X;
     Row.Y := ListPoint.Y;
     AddRow(Row, R);

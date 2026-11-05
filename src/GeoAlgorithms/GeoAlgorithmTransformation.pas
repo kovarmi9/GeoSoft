@@ -10,10 +10,7 @@ uses
   GeoAlgorithmTransformSimilarity, GeoAlgorithmTransformAffine, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_TRANSFORMACE = 65;
-
-  // Task 65 has no distances, so TypS carries the role of the row
+  // Task 65 has no distances, so Typ carries the role of the row
   DRUH_IDENTICKY = 1;   // identical point in the key
   DRUH_KONTROLNI = 2;   // identical point left out of the key
   DRUH_URCOVANY  = 3;   // point computed by the key
@@ -49,8 +46,6 @@ type
     procedure CheckCircle(AFrame: TGeoDataFrame; const GlobalPoints: TPointsArray);
     procedure CountRows(AFrame: TGeoDataFrame);
   public
-    class function TaskCode: Integer; override;
-
     /// <summary>Makes the key, fills residuals and coordinates.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -68,32 +63,30 @@ implementation
 uses
   Accuracy;
 
-class function TTransformationFrameAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_TRANSFORMACE;
-end;
-
 // One point through the key, residuals or coordinates
 class procedure TTransformationFrameAlgorithm.ApplyKey(
   AKey: TTransformationAlgorithm; var ARow: TGeoRow);
 var
   LocalPoints, Transformed: TPointsArray;
+  Vy, Vx: Double;
 begin
   SetLength(LocalPoints, 1);
   LocalPoints[0].Y := ARow.Ym;
   LocalPoints[0].X := ARow.Xm;
   Transformed := AKey.Calculate(LocalPoints);
 
-  if ARow.TypS = DRUH_URCOVANY then
+  if ARow.Typ = DRUH_URCOVANY then
   begin
     ARow.Y := Transformed[0].Y;
     ARow.X := Transformed[0].X;
   end
   else
   begin
-    ARow.Vy := Transformed[0].Y - ARow.Y;
-    ARow.Vx := Transformed[0].X - ARow.X;
-    ARow.Sxy := Sqrt((Sqr(ARow.Vy) + Sqr(ARow.Vx)) / 2);
+    Vy := Transformed[0].Y - ARow.Y;
+    Vx := Transformed[0].X - ARow.X;
+    ARow.M1 := Vy;
+    ARow.M2 := Vx;
+    ARow.M4 := Sqrt((Sqr(Vy) + Sqr(Vx)) / 2);    // Sxy
   end;
 end;
 
@@ -104,11 +97,11 @@ var
 begin
   for I := 0 to AFrame.Count - 1 do
   begin
-    AFrame.Rows[I].Vy := NaN;
-    AFrame.Rows[I].Vx := NaN;
-    AFrame.Rows[I].Sxy := NaN;
+    AFrame.Rows[I].M1 := NaN;
+    AFrame.Rows[I].M2 := NaN;
+    AFrame.Rows[I].M4 := NaN;
     // The target of a determined point is computed, never read
-    if AFrame.Rows[I].TypS = DRUH_URCOVANY then
+    if AFrame.Rows[I].Typ = DRUH_URCOVANY then
     begin
       AFrame.Rows[I].Y := NaN;
       AFrame.Rows[I].X := NaN;
@@ -160,7 +153,7 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    if (Row.TypS <> DRUH_IDENTICKY) or (Row.CB = 0) or
+    if (Row.Typ <> DRUH_IDENTICKY) or (Row.CB = 0) or
        IsNan(Row.Y) or IsNan(Row.X) or IsNan(Row.Ym) or IsNan(Row.Xm) then
       Continue;
 
@@ -221,16 +214,16 @@ begin
     // Residuals of the key go to the identical points
     for I := 0 to N - 1 do
     begin
-      AFrame.Rows[KeyRows[I]].Vy := Key.Residuals[I].Vy;
-      AFrame.Rows[KeyRows[I]].Vx := Key.Residuals[I].Vx;
-      AFrame.Rows[KeyRows[I]].Sxy := Key.Residuals[I].Sxy;
+      AFrame.Rows[KeyRows[I]].M1 := Key.Residuals[I].Vy;
+      AFrame.Rows[KeyRows[I]].M2 := Key.Residuals[I].Vx;
+      AFrame.Rows[KeyRows[I]].M4 := Key.Residuals[I].Sxy;
     end;
 
     // Every other point with the whole source goes through the key
     for I := 0 to AFrame.Count - 1 do
     begin
       Row := AFrame.Rows[I];
-      if (Row.TypS <> DRUH_KONTROLNI) and (Row.TypS <> DRUH_URCOVANY) then
+      if (Row.Typ <> DRUH_KONTROLNI) and (Row.Typ <> DRUH_URCOVANY) then
         Continue;
       if IsNan(Row.Ym) or IsNan(Row.Xm) then
         Continue;
@@ -297,9 +290,9 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    case Row.TypS of
+    case Row.Typ of
       DRUH_URCOVANY:  Measured := not IsNan(Row.X);
-      DRUH_KONTROLNI: Measured := not IsNan(Row.Sxy);
+      DRUH_KONTROLNI: Measured := not IsNan(Row.M4);   // M4 is Sxy
     else
       Measured := False;          // identical points make the circle
     end;
@@ -317,6 +310,7 @@ procedure TTransformationFrameAlgorithm.CountRows(AFrame: TGeoDataFrame);
 var
   I: Integer;
   Row: TGeoRow;
+  Sxy: Double;
 begin
   FInfo.Total := 0;
   FInfo.InMxy := 0;
@@ -330,11 +324,12 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    if (Row.TypS = DRUH_KONTROLNI) and not IsNan(Row.Sxy) then
+    Sxy := Row.M4;
+    if (Row.Typ = DRUH_KONTROLNI) and not IsNan(Sxy) then
       Inc(FInfo.CheckCount);
-    if (Row.TypS = DRUH_URCOVANY) and not IsNan(Row.X) then
+    if (Row.Typ = DRUH_URCOVANY) and not IsNan(Row.X) then
       Inc(FInfo.DeterminedCount);
-    if (Row.TypS <> DRUH_IDENTICKY) or IsNan(Row.Sxy) then
+    if (Row.Typ <> DRUH_IDENTICKY) or IsNan(Sxy) then
       Continue;
 
     // One code for all, or -1
@@ -344,7 +339,7 @@ begin
     else if FInfo.Quality <> Row.KK then
       FInfo.Quality := -1;
 
-    case TAccuracy.MxyBand(Row.Sxy,
+    case TAccuracy.MxyBand(Sxy,
            TAccuracy.MxyOfQuality(Row.KK)) of
       mbWithinMxy: Inc(FInfo.InMxy);
       mbWithinUxy: Inc(FInfo.InUxy);

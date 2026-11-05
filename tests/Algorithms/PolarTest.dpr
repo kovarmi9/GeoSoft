@@ -16,7 +16,6 @@ var
 begin
   // A - fixed station
   ClearGeoRow(A);
-  A.Uloha := ULOHA_POLARNI;
   A.CB := 1000;
   A.X := 0;
   A.Y := 0;
@@ -24,7 +23,6 @@ begin
 
   // B - orientation point
   ClearGeoRow(B);
-  B.Uloha := ULOHA_POLARNI;
   B.CB := 1001;
   B.X := 10;
   B.Y := 10;
@@ -33,7 +31,6 @@ begin
 
   // Detail point 1
   ClearGeoRow(D1);
-  D1.Uloha := ULOHA_POLARNI;
   D1.CB := 2001;
   D1.VC := 0;
   D1.HZ := 50;
@@ -41,14 +38,13 @@ begin
 
   // Detail point 2
   ClearGeoRow(D2);
-  D2.Uloha := ULOHA_POLARNI;
   D2.CB := 2002;
   D2.VC := 0;
   D2.HZ := 100;
   D2.SH := 10;
 
   // Station first, then orientations, then detail points
-  Frame := TGeoDataFrame.Create([Uloha, CB, X, Y, VS, VC, HZ, SH]);
+  Frame := TGeoDataFrame.Create([CB, X, Y, VS, VC, HZ, SH]);
   Alg := TPolarMethodAlgorithm.Create;
   try
     try

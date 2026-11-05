@@ -9,9 +9,6 @@ uses
   Accuracy, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_PROTINANI_ZPET = 8;
-
   RESECTION_POINTS = 3;  // rows 0 to 2 are the given points, row 3 the station
   MIN_SIDE  = 0.001;     // shorter side means two points are one point
   MIN_TU    = 0.001;     // T and U are one point, the danger circle
@@ -29,8 +26,6 @@ type
     // Bearing from row A to row B in gon
     class function Sigma(const A, B: TGeoRow): Double; static;
   public
-    class function TaskCode: Integer; override;
-
     /// <summary>HZ: directions to 1, 2, 3, the station in row 3.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -44,11 +39,6 @@ type
   end;
 
 implementation
-
-class function TResectionAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_PROTINANI_ZPET;
-end;
 
 class function TResectionAlgorithm.Mod400(AGon: Double): Double;
 begin

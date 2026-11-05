@@ -42,7 +42,6 @@ end;
 begin
   // 101 - given start of the chain
   ClearGeoRow(P101);
-  P101.Uloha := ULOHA_KONSTRUKCNI;
   P101.CB := 101;
   P101.X := 0;
   P101.Y := 0;
@@ -50,20 +49,18 @@ begin
 
   // 1 - computed corner, 100 m from 101
   ClearGeoRow(P1);
-  P1.Uloha := ULOHA_KONSTRUKCNI;
   P1.CB := 1;
   P1.SH := 100;           // side length, + turns right, - left
 
   // 102 - given end, 100,01 m from the corner, turning left
   ClearGeoRow(P102);
-  P102.Uloha := ULOHA_KONSTRUKCNI;
   P102.CB := 102;
   P102.X := 100;
   P102.Y := 100;
   P102.KK := 3;
   P102.SH := -100.01;
 
-  Frame := TGeoDataFrame.Create([Uloha, CB, X, Y, SH]);
+  Frame := TGeoDataFrame.Create([CB, X, Y, SH]);
   Alg := TRectangularMeasurementsAlgorithm.Create;
   try
     try

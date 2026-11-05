@@ -21,7 +21,6 @@ var
   Row: TGeoRow;
 begin
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_PROTINANI_DELKY;
   Row.CB := StrToInt64Def(APointNumber, 0);
   Row.SH := ALength;
   Row.Y := AY;
@@ -64,7 +63,7 @@ end;
 
 
 begin
-  Frame := TGeoDataFrame.Create([Uloha, CB, SH, Y, X, KK]);
+  Frame := TGeoDataFrame.Create([CB, SH, Y, X, KK]);
   Alg := TDistanceIntersectionAlgorithm.Create;
 
   try

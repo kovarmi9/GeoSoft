@@ -49,8 +49,8 @@ flowchart LR
 |---|---|---|
 | $z_v, z_p, z_b$ | `Xm`, `Ym`, `Zm` | čtení vzad, vpřed, boční |
 | $d$ | `SH` | délka záměry |
-| $h$ | `Vz` | převýšení |
-| $o_i$ | `Vy` | oprava čtení vzad |
+| $h$ | `M3` | převýšení |
+| $o_i$ | `M1` | oprava čtení vzad |
 | $H$ | `VC` | vypočtená výška |
 | $H_Z, H_K$ | `Z` | daná výška začátku a konce |
 | $L$ | `TotalLength` | délka pořadu |

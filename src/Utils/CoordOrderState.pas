@@ -32,8 +32,8 @@ procedure SwapGridColumns(AGrid: TStringGrid; ACol1, ACol2: Integer);
 /// <summary>Moves the Y and X boxes.</summary>
 procedure ApplyCoordOrder(AYCtrl, AXCtrl: TWinControl);
 
-/// <summary>Column order from the designer, keeps the content.</summary>
-procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields);
+/// <summary>Column order from the designer, AY and AX one more pair like Y and X.</summary>
+procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields; AY: TGeoField = Y; AX: TGeoField = X);
 
 implementation
 
@@ -171,7 +171,8 @@ begin
     Result[I] := AGrid.ColToField(AGrid.FixedCols + I);
 end;
 
-procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields);
+procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields;
+  AY, AX: TGeoField);
 var
   Order, Cur: TArray<TGeoField>;
   Fields: TGeoFields;
@@ -234,7 +235,7 @@ begin
 
   Swap(Y, X);
   Swap(Ym, Xm);
-  Swap(Vy, Vx);
+  Swap(AY, AX);         // only the task knows its pair
 
   // Unchanged, nothing to do
   if AGrid.GeoFields = Fields then

@@ -60,8 +60,9 @@ begin
   inherited Create(AOwner);
   FAlg := TTransformationFrameAlgorithm.Create;
   FNotebookName := CSV_NAME;
+  // M1 dY, M2 dX, M4 Sxy
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, Y, X, CBm, Ym, Xm, TypS, Vy, Vx, Sxy, KK, Poznamka]);
+    [Checked, CB, Y, X, CBm, Ym, Xm, Typ, M1, M2, M4, KK, Popis]);
 end;
 
 destructor TTransformationForm.Destroy;
@@ -73,7 +74,7 @@ end;
 // Y, X, the source pair and dY, dX follow the setting
 procedure TTransformationForm.ApplyCoordOrderToGrids;
 begin
-  ApplyColumns(Grid, []);
+  ApplyColumns(Grid, [], M1, M2);       // dY and dX as Y and X
 end;
 
 // Writes the number and the coordinates of a point into a row
@@ -169,7 +170,7 @@ begin
   Recompute;
 end;
 
-// One frame row per grid row, TypS by the box and the list
+// One frame row per grid row, Typ by the box and the list
 function TTransformationForm.BuildFrame: Boolean;
 var
   R: Integer;
@@ -186,7 +187,6 @@ begin
     if (Row.CB = 0) and (Row.CBm = 0) then
       Continue;                        // an empty row
 
-    Row.Uloha := FAlg.TaskCode;
     PointNumber := Row.CB;
     Given := IsGiven(PointNumber);
 
@@ -196,11 +196,11 @@ begin
 
     // Not in the list is determined, the box only splits the given ones
     if not Given then
-      Row.TypS := DRUH_URCOVANY
-    else if Grid.Checked[R] then
-      Row.TypS := DRUH_IDENTICKY
+      Row.Typ := DRUH_URCOVANY
+    else if Row.Checked then
+      Row.Typ := DRUH_IDENTICKY
     else
-      Row.TypS := DRUH_KONTROLNI;
+      Row.Typ := DRUH_KONTROLNI;
 
     AddRow(Row, R);
   end;
@@ -224,11 +224,11 @@ begin
 
   for R := Grid.FixedRows to Grid.RowCount - 1 do
   begin
-    Grid.Cells[Grid.FieldToCol(Vy), R] := '';
-    Grid.Cells[Grid.FieldToCol(Vx), R] := '';
-    Grid.Cells[Grid.FieldToCol(Sxy), R] := '';
+    Grid.Cells[Grid.FieldToCol(M1), R] := '';
+    Grid.Cells[Grid.FieldToCol(M2), R] := '';
+    Grid.Cells[Grid.FieldToCol(M4), R] := '';
   end;
-  FrameToGrid(Grid, FFrame, FRows, [Y, X, Vy, Vx, Sxy]);
+  FrameToGrid(Grid, FFrame, FRows, [Y, X, M1, M2, M4]);
 
   ShowSummary;
 end;
@@ -279,7 +279,7 @@ begin
   Unnumbered := 0;
   for I := 0 to FFrame.Count - 1 do
   begin
-    if (FFrame.Rows[I].TypS <> DRUH_URCOVANY) or
+    if (FFrame.Rows[I].Typ <> DRUH_URCOVANY) or
        IsNan(FFrame.Rows[I].X) then
       Continue;
 
@@ -311,22 +311,18 @@ begin
   ShowMessage(Msg);
 end;
 
-// One row of the file is one row of the grid, TypS gives the check box
+// One row of the file is one row of the grid, Typ gives the check box
 procedure TTransformationForm.LoadFrame(AFrame: TGeoDataFrame;
   ABad: TStrings);
 var
   I, R: Integer;
 begin
   ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
-  Grid.DefaultChecked := True;   // all boxes ticked again
 
   R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
     if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
-    begin
-      Grid.Checked[R] := AFrame.Rows[I].TypS <> DRUH_KONTROLNI;
       Inc(R);
-    end;
   Grid.RowCount := R + 1;
   Recompute;
 end;
@@ -351,7 +347,7 @@ begin
   for I := 0 to FFrame.Count - 1 do
   begin
     Row := FFrame.Rows[I];
-    if (Row.TypS <> DRUH_IDENTICKY) or IsNan(Row.Sxy) then
+    if (Row.Typ <> DRUH_IDENTICKY) or IsNan(Row.M4) then
       Continue;
     Prot.Row([GridNumber(I), 'Z:', PointId(Row.CBm),
               CoordPair(Row.Xm, Row.Ym)]);
@@ -383,13 +379,13 @@ var
   Row: TGeoRow;
 begin
   Prot.Section(ACaption);
-  Prot.Columns([ColNumber, ColField(CB), ColField(Vy), ColField(Vx),
-    ColField(Sxy), ColField(KK), ColText('')]);
+  Prot.Columns([ColNumber, ColField(CB), ColField(M1, 'Vy'),
+    ColField(M2, 'Vx'), ColField(M4, 'Sxy'), ColField(KK), ColText('')]);
   for I := 0 to FFrame.Count - 1 do
   begin
     Row := FFrame.Rows[I];
-    if (Row.TypS = ARole) and not IsNan(Row.Sxy) then
-      Prot.FrameRow(Row, [GridNumber(I), BandText(Row.Sxy, Row.KK)]);
+    if (Row.Typ = ARole) and not IsNan(Row.M4) then
+      Prot.FrameRow(Row, [GridNumber(I), BandText(Row.M4, Row.KK)]);
   end;
 end;
 
@@ -471,7 +467,7 @@ begin
   for I := 0 to FFrame.Count - 1 do
   begin
     Row := FFrame.Rows[I];
-    if (Row.TypS <> DRUH_URCOVANY) or IsNan(Row.X) then
+    if (Row.Typ <> DRUH_URCOVANY) or IsNan(Row.X) then
       Continue;
     Prot.Row([GridNumber(I), 'Z:', PointId(Row.CBm),
               CoordPair(Row.Xm, Row.Ym)]);

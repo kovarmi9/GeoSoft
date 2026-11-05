@@ -19,7 +19,6 @@ var
   Row: TGeoRow;
 begin
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_PRUSECIK;
   Row.CB := StrToInt64Def(APointNumber, 0);
   Row.Y := AY;
   Row.X := AX;
@@ -62,7 +61,7 @@ end;
 
 
 begin
-  Frame := TGeoDataFrame.Create([Uloha, CB, Y, X, Z, KK]);
+  Frame := TGeoDataFrame.Create([CB, Y, X, Z, KK]);
   Alg := TLineIntersectionAlgorithm.Create;
   try
     // 1. Groma manual: lines 24 - 30 and 21 - 29.

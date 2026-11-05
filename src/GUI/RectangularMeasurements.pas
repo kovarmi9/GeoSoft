@@ -61,7 +61,7 @@ begin
   FAlg := TRectangularMeasurementsAlgorithm.Create;
   FWarnings := TStringList.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, Xm, Ym, SH, Poznamka, KK]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, Xm, Ym, SH, Popis, KK]);
 end;
 
 destructor TRectangularMeasurementsForm.Destroy;
@@ -161,12 +161,12 @@ begin
     SetCell(Y, R, FloatToStr(ListPoint.Y, FS));
     SetCell(X, R, FloatToStr(ListPoint.X, FS));
     SetCell(KK, R, IntToStr(ListPoint.Quality));
-    SetCell(Poznamka, R, string(ListPoint.Description));
+    SetCell(Popis, R, string(ListPoint.Description));
   end
   else
   begin
     SetCell(KK, R, GPointPrefix.KK);
-    SetCell(Poznamka, R, GPointPrefix.Popis);
+    SetCell(Popis, R, GPointPrefix.Popis);
   end;
 end;
 
@@ -177,7 +177,7 @@ begin
     Exit;
 
   // The walk needs no point list, so the plain bridge is enough
-  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI, FRows);
+  GridToFrame(Grid, FFrame, FRows);
   FAlg.BuildLocalFrame(FFrame);
   FrameToGrid(Grid, FFrame, FRows, [Xm, Ym]);
 end;
@@ -218,7 +218,7 @@ var
   IsGiven: Boolean;
 begin
   Result := True;
-  GridToFrame(Grid, FFrame, ULOHA_KONSTRUKCNI, FRows);
+  GridToFrame(Grid, FFrame, FRows);
 
   for I := 0 to FFrame.Count - 1 do
   begin

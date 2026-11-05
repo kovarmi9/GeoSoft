@@ -9,9 +9,6 @@ uses
   Accuracy, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_PRIMKA = 2;
-
   LINE_ROWS = 2;        // rows 0 and 1 are the points A and B
   MIN_LINE  = 0.001;    // shorter line means A and B are one point
 
@@ -22,9 +19,7 @@ type
     FQuality: Integer;
     FLimit: Double;
   public
-    class function TaskCode: Integer; override;
-
-    /// <summary>Feet into X and Y, offsets into PolarK.</summary>
+    /// <summary>Feet into X and Y, offsets into Kol.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     property LineLength: Double read FLineLength;
@@ -35,11 +30,6 @@ type
   end;
 
 implementation
-
-class function TLineAdjustmentAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_PRIMKA;
-end;
 
 procedure TLineAdjustmentAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
@@ -81,7 +71,7 @@ begin
     if IsNan(AFrame.Rows[I].X) or IsNan(AFrame.Rows[I].Y) then
     begin
       AddError(Format('Bod %s nemá souřadnice.', [PointNumber]));
-      AFrame.Rows[I].PolarK := NaN;
+      AFrame.Rows[I].Kol := NaN;
       Continue;
     end;
 
@@ -96,7 +86,7 @@ begin
     // The foot of the perpendicular
     AFrame.Rows[I].X := AFrame.Rows[I].X + k * DeltaYAB / sAB;
     AFrame.Rows[I].Y := AFrame.Rows[I].Y - k * DeltaXAB / sAB;
-    AFrame.Rows[I].PolarK := k;
+    AFrame.Rows[I].Kol := k;
     AFrame.Rows[I].KK := FQuality;
   end;
 end;

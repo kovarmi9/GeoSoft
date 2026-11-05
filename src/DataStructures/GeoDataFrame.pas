@@ -288,7 +288,7 @@ begin
             Line := Line + ACellSep;
 
           S := GeoFieldToText(Row, Field, '', FS);
-          if Field in [CB, CBm, Poznamka] then
+          if Field in [CB, CBm, Popis] then
             S := '"' + StringReplace(S, '"', '""', [rfReplaceAll]) + '"';
 
           Line := Line + S;
@@ -380,11 +380,11 @@ begin
         begin
           S := Cells[J];
           // Accept a dot too, not in the note
-          if ColMap[J] <> Poznamka then
+          if ColMap[J] <> Popis then
             S := StringReplace(S, '.', ADecSep, [rfReplaceAll]);
           TextToGeoField(FRows[FCount - 1], ColMap[J], S, FS);
           // Only the note is text
-          if not (ColMap[J] in [CB, CBm, Poznamka]) and (Trim(S) <> '') and
+          if not (ColMap[J] in [CB, CBm, Popis]) and (Trim(S) <> '') and
              not TryStrToFloat(Trim(S), Number, FS) and (Bad = '') then
             Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
           // Digits only, 0 means none
@@ -392,8 +392,8 @@ begin
              (Trim(S) <> '0') and not TPointNumber.TryParse(S, PointNumber) and
              (Bad = '') then
             Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
-          // Task, length type and quality are whole numbers
-          if (ColMap[J] in [Uloha, TypS, KK]) and (Trim(S) <> '') and
+          // Checked, type and quality are whole numbers
+          if (ColMap[J] in [Checked, Typ, KK]) and (Trim(S) <> '') and
              not TryStrToInt(Trim(S), Whole) and (Bad = '') then
             Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
         end;
@@ -432,10 +432,9 @@ var
 begin
   SetLength(Buffer, FCount + 1);
 
-  // Header record at Buffer[0] encodes the active field mask
+  // The first record is always the header with the field mask
   ClearGeoRow(Header);
-  Header.Uloha := -1;                                // marks the header
-  Header.TypS  := Integer(GeoFieldsToMask(FFields)); // bitmask of active fields
+  Header.Typ := Integer(GeoFieldsToMask(FFields));
 
   Buffer[0] := Header;
 
@@ -460,18 +459,10 @@ begin
     Exit;
   end;
 
-  // A header record carries Fields. A file without it has all fields
+  // The first record is the header with the field mask
   Header := AllRows[0];
-  if Header.Uloha = -1 then
-  begin
-    UsedFields := MaskToGeoFields(LongWord(Header.TypS));
-    First := 1;            // data start after the header
-  end
-  else
-  begin
-    UsedFields := [Low(TGeoField)..High(TGeoField)];
-    First := 0;
-  end;
+  UsedFields := MaskToGeoFields(LongWord(Header.Typ));
+  First := 1;               // data start after the header
 
   ClearData;
   FFields := UsedFields;

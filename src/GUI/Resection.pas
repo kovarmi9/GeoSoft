@@ -53,7 +53,7 @@ begin
   inherited Create(AOwner);
   FAlg := TResectionAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, HZ, KK, Poznamka]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, HZ, KK, Popis]);
 end;
 
 destructor TResectionForm.Destroy;
@@ -101,16 +101,14 @@ begin
   for R := Grid.FixedRows to Grid.FixedRows + RESECTION_POINTS - 1 do
   begin
     Grid.GetGeoRow(R, Row);
-    Row.Uloha := ULOHA_PROTINANI_ZPET;
     TakeFromList(Row);
     FFrame.AddRow(Row);
   end;
 
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_PROTINANI_ZPET;
   TPointNumber.TryParse(StationNo, PointNumber);
   Row.CB := PointNumber;
-  Row.Poznamka := ShortString(GPointPrefix.Popis);
+  Row.Popis := ShortString(GPointPrefix.Popis);
   FFrame.AddRow(Row);
 end;
 

@@ -54,9 +54,9 @@ flowchart LR
 | $p$ | `p` | váha orientace |
 | $v, w$ | `dPhi`, `Normed` | odchylka orientačního posunu, normovaná odchylka |
 | $m_0$ | `m0` | jednotková střední chyba směru |
-| $s, z$ | `SS`, `Zuhel` | šikmá délka, zenitový úhel |
+| $s, z$ | `SS`, `ZU` | šikmá délka, zenitový úhel |
 | $d$ | `SH` | vodorovná délka |
-| $D, k$ | `PolarD`, `PolarK` | doměrek, kolmice (vpravo kladná) |
+| $D, k$ | `Sta`, `Kol` | doměrek, kolmice (vpravo kladná) |
 | $vs, vc$ | `VS`, `VC` | výška stroje, výška cíle |
 | $\Delta h$ | `HeightDiff` | převýšení záměry |
 

@@ -1,5 +1,7 @@
 ﻿unit GeoRow;
 
+// One row of a task notebook, its fields and binary file.
+
 interface
 
 uses
@@ -8,24 +10,26 @@ uses
 type
   /// <summary>All fields of a row.</summary>
   TGeoField = (
-    Uloha,
+    Checked,
     CB,
     X, Y, Z,
     CBm,
     Xm, Ym, Zm,
-    TypS,
+    Typ,
     SH,
     SS,
     VS,
     VC,
     HZ,
-    Zuhel,
-    PolarD,
-    PolarK,
-    Poznamka,
+    ZU,
+    Sta,
+    Kol,
+    Popis,
     KK,
-    Vy, Vx, Vz,
-    Sxy
+    M1,
+    M2,
+    M3,
+    M4
   );
 
   /// <summary>A choice of fields, e.g. [CB, X, Y].</summary>
@@ -33,30 +37,32 @@ type
 
   /// <summary>One measurement of a task.</summary>
   TGeoRow = packed record
-    Uloha:      Integer;                  // task type
+    Checked:    Boolean;                  // used in the calculation
     CB:         Int64;                    // full point number, 0 = none
     X, Y, Z:    Double;                   // global coordinates
-    CBm:        Int64;                    // source point number, 0 = none
-    Xm, Ym, Zm: Double;                   // local coordinates
-    TypS:       Integer;                  // distance type
+    CBm:        Int64;                    // second point number, 0 = none
+    Xm, Ym, Zm: Double;                   // local, second point or readings
+    Typ:        Integer;                  // row type, meaning by task
     SH:         Double;                   // horizontal distance
     SS:         Double;                   // slope distance
     VS:         Double;                   // instrument height
     VC:         Double;                   // target height
-    HZ:         Double;                   // horizontal angle [gon]
-    Zuhel:      Double;                   // zenith angle [gon]
-    PolarD:     Double;                   // polar offset (domerek)
-    PolarK:     Double;                   // polar perpendicular (kolmice)
-    Poznamka:   string[MAX_POPIS_LENGTH]; // note
+    HZ:         Double;                   // horizontal direction [gon]
+    ZU:         Double;                   // zenith angle [gon]
+    Sta:        Double;                   // along the line, signed (doměrek)
+    Kol:        Double;                   // across the line, signed (kolmice)
+    Popis:      string[MAX_POPIS_LENGTH]; // point description
     KK:         Integer;                  // quality code 0..8
-    Vy, Vx, Vz: Double;                   // computed minus given position
-    Sxy:        Double;                   // mean error, sqrt((Vy^2 + Vx^2) / 2)
+    M1:         Double;                   // results, meaning by task
+    M2:         Double;
+    M3:         Double;
+    M4:         Double;
   end;
 
   /// <summary>Array of rows.</summary>
   TGeoRowArray = array of TGeoRow;
 
-/// <summary>Empties the row: numbers NaN, texts '', integers 0.</summary>
+/// <summary>Empties the row: numbers NaN, texts '', integers 0, Checked True.</summary>
 procedure ClearGeoRow(var ARow: TGeoRow);
 
 /// <summary>Readable dump of the row, one field per line.</summary>
@@ -88,33 +94,32 @@ function LoadRows(const AFileName: string): TGeoRowArray;
 const
   /// <summary>Field names for CSV and printouts, in TGeoField order.</summary>
   GeoFieldNames: array[TGeoField] of string = (
-    'Uloha','CB','X','Y','Z','CBm','Xm','Ym','Zm','TypS','SH','SS','VS','VC','HZ','Zuhel','PolarD','PolarK',
-    'Poznamka','KK','Vy','Vx','Vz','Sxy'
+    'Checked','CB','X','Y','Z','CBm','Xm','Ym','Zm','Typ','SH','SS','VS','VC','HZ','ZU','Sta','Kol',
+    'Popis','KK','M1','M2','M3','M4'
   );
 
 implementation
 
 procedure ClearGeoRow(var ARow: TGeoRow);
 begin
-  ARow.Uloha := 0;
+  ARow.Checked := True;     // a new row is used
   ARow.CB := 0;
   // NaN marks a value nobody filled in
   ARow.X := NaN; ARow.Y := NaN; ARow.Z := NaN;
   ARow.CBm := 0;
   ARow.Xm := NaN; ARow.Ym := NaN; ARow.Zm := NaN;
-  ARow.TypS := 0;
+  ARow.Typ := 0;
   ARow.SH := NaN;
   ARow.SS := NaN;
   ARow.VS := NaN;
   ARow.VC := NaN;
   ARow.HZ := NaN;
-  ARow.Zuhel := NaN;
-  ARow.PolarD := NaN;
-  ARow.PolarK := NaN;
-  ARow.Poznamka := '';
+  ARow.ZU := NaN;
+  ARow.Sta := NaN;
+  ARow.Kol := NaN;
+  ARow.Popis := '';
   ARow.KK := 0;
-  ARow.Vy := NaN; ARow.Vx := NaN; ARow.Vz := NaN;
-  ARow.Sxy := NaN;
+  ARow.M1 := NaN; ARow.M2 := NaN; ARow.M3 := NaN; ARow.M4 := NaN;
 end;
 
 // Overload that prints all fields - calls the field-mask overload
@@ -137,7 +142,7 @@ begin
     if F in AFields then
     begin
       case F of
-        Uloha:    S := Format('%s: %d', [GeoFieldNames[F], ARow.Uloha]);
+        Checked:  S := Format('%s: %d', [GeoFieldNames[F], Ord(ARow.Checked)]);
         CB:       S := Format('%s: %d', [GeoFieldNames[F], ARow.CB]);
         X:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.X]);
         Y:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Y]);
@@ -146,21 +151,21 @@ begin
         Xm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Xm]);
         Ym:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Ym]);
         Zm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Zm]);
-        TypS:     S := Format('%s: %d', [GeoFieldNames[F], ARow.TypS]);
+        Typ:      S := Format('%s: %d', [GeoFieldNames[F], ARow.Typ]);
         SH:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.SH]);
         SS:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.SS]);
         VS:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.VS]);
         VC:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.VC]);
         HZ:       S := Format('%s: %.6f', [GeoFieldNames[F], ARow.HZ]);
-        Zuhel:    S := Format('%s: %.6f', [GeoFieldNames[F], ARow.Zuhel]);
-        PolarD:   S := Format('%s: %.3f', [GeoFieldNames[F], ARow.PolarD]);
-        PolarK:   S := Format('%s: %.3f', [GeoFieldNames[F], ARow.PolarK]);
-        Poznamka: S := Format('%s: %s', [GeoFieldNames[F], ARow.Poznamka]);
+        ZU:       S := Format('%s: %.6f', [GeoFieldNames[F], ARow.ZU]);
+        Sta:      S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Sta]);
+        Kol:      S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Kol]);
+        Popis:    S := Format('%s: %s', [GeoFieldNames[F], ARow.Popis]);
         KK:       S := Format('%s: %d', [GeoFieldNames[F], ARow.KK]);
-        Vy:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Vy]);
-        Vx:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Vx]);
-        Vz:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Vz]);
-        Sxy:      S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Sxy]);
+        M1:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M1]);
+        M2:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M2]);
+        M3:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M3]);
+        M4:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M4]);
       end;
       Result := Result + S + sLineBreak;
     end;
@@ -197,7 +202,7 @@ end;
 function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField; const AFormat: string; const AFS: TFormatSettings): string;
 begin
   case AField of
-    Uloha:    Result := IntToStr(ARow.Uloha);
+    Checked:  Result := IntToStr(Ord(ARow.Checked));
     CB:       Result := TPointNumber.ToText(ARow.CB);
     X:        Result := FloatCell(ARow.X, AFormat, AFS);
     Y:        Result := FloatCell(ARow.Y, AFormat, AFS);
@@ -206,21 +211,21 @@ begin
     Xm:       Result := FloatCell(ARow.Xm, AFormat, AFS);
     Ym:       Result := FloatCell(ARow.Ym, AFormat, AFS);
     Zm:       Result := FloatCell(ARow.Zm, AFormat, AFS);
-    TypS:     Result := IntToStr(ARow.TypS);
+    Typ:      Result := IntToStr(ARow.Typ);
     SH:       Result := FloatCell(ARow.SH, AFormat, AFS);
     SS:       Result := FloatCell(ARow.SS, AFormat, AFS);
     VS:       Result := FloatCell(ARow.VS, AFormat, AFS);
     VC:       Result := FloatCell(ARow.VC, AFormat, AFS);
     HZ:       Result := FloatCell(ARow.HZ, AFormat, AFS);
-    Zuhel:    Result := FloatCell(ARow.Zuhel, AFormat, AFS);
-    PolarD:   Result := FloatCell(ARow.PolarD, AFormat, AFS);
-    PolarK:   Result := FloatCell(ARow.PolarK, AFormat, AFS);
-    Poznamka: Result := string(ARow.Poznamka);
+    ZU:       Result := FloatCell(ARow.ZU, AFormat, AFS);
+    Sta:      Result := FloatCell(ARow.Sta, AFormat, AFS);
+    Kol:      Result := FloatCell(ARow.Kol, AFormat, AFS);
+    Popis:    Result := string(ARow.Popis);
     KK:       Result := IntToStr(ARow.KK);
-    Vy:       Result := FloatCell(ARow.Vy, AFormat, AFS);
-    Vx:       Result := FloatCell(ARow.Vx, AFormat, AFS);
-    Vz:       Result := FloatCell(ARow.Vz, AFormat, AFS);
-    Sxy:      Result := FloatCell(ARow.Sxy, AFormat, AFS);
+    M1:       Result := FloatCell(ARow.M1, AFormat, AFS);
+    M2:       Result := FloatCell(ARow.M2, AFormat, AFS);
+    M3:       Result := FloatCell(ARow.M3, AFormat, AFS);
+    M4:       Result := FloatCell(ARow.M4, AFormat, AFS);
   end;
 end;
 
@@ -233,7 +238,7 @@ var
 begin
   S := Trim(AText);
   case AField of
-    Uloha:    if TryStrToInt(S, N) then ARow.Uloha := N;
+    Checked:  if (S = '0') or (S = '1') then ARow.Checked := S = '1';
     CB:       if TPointNumber.TryParse(S, P) then ARow.CB := P;
     X:        TryStrToFloat(S, ARow.X, AFS);
     Y:        TryStrToFloat(S, ARow.Y, AFS);
@@ -242,21 +247,21 @@ begin
     Xm:       TryStrToFloat(S, ARow.Xm, AFS);
     Ym:       TryStrToFloat(S, ARow.Ym, AFS);
     Zm:       TryStrToFloat(S, ARow.Zm, AFS);
-    TypS:     if TryStrToInt(S, N) then ARow.TypS := N;
+    Typ:      if TryStrToInt(S, N) then ARow.Typ := N;
     SH:       TryStrToFloat(S, ARow.SH, AFS);
     SS:       TryStrToFloat(S, ARow.SS, AFS);
     VS:       TryStrToFloat(S, ARow.VS, AFS);
     VC:       TryStrToFloat(S, ARow.VC, AFS);
     HZ:       TryStrToFloat(S, ARow.HZ, AFS);
-    Zuhel:    TryStrToFloat(S, ARow.Zuhel, AFS);
-    PolarD:   TryStrToFloat(S, ARow.PolarD, AFS);
-    PolarK:   TryStrToFloat(S, ARow.PolarK, AFS);
-    Poznamka: ARow.Poznamka := ShortString(Copy(S, 1, MAX_POPIS_LENGTH));
+    ZU:       TryStrToFloat(S, ARow.ZU, AFS);
+    Sta:      TryStrToFloat(S, ARow.Sta, AFS);
+    Kol:      TryStrToFloat(S, ARow.Kol, AFS);
+    Popis:    ARow.Popis := ShortString(Copy(S, 1, MAX_POPIS_LENGTH));
     KK:       if TryStrToInt(S, N) then ARow.KK := N;
-    Vy:       TryStrToFloat(S, ARow.Vy, AFS);
-    Vx:       TryStrToFloat(S, ARow.Vx, AFS);
-    Vz:       TryStrToFloat(S, ARow.Vz, AFS);
-    Sxy:      TryStrToFloat(S, ARow.Sxy, AFS);
+    M1:       TryStrToFloat(S, ARow.M1, AFS);
+    M2:       TryStrToFloat(S, ARow.M2, AFS);
+    M3:       TryStrToFloat(S, ARow.M3, AFS);
+    M4:       TryStrToFloat(S, ARow.M4, AFS);
   end;
 end;
 

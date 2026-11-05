@@ -59,11 +59,11 @@ flowchart LR
 ### Výpočet
 
 $$
-s_P = SH_P \cdot m, \qquad q_P = PolarK_P \cdot m
+s_P = Sta_P \cdot m, \qquad q_P = Kol_P \cdot m
 $$
 
 $$
-\Delta S = (SH_K - SH_P)\, m, \qquad \Delta Q = (PolarK_K - PolarK_P)\, m
+\Delta S = (Sta_K - Sta_P)\, m, \qquad \Delta Q = (Kol_K - Kol_P)\, m
 $$
 
 $$

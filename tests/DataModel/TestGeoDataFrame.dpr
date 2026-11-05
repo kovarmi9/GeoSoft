@@ -21,22 +21,21 @@ var
 
 begin
   try
-    r1.Uloha := 1;
     r1.CB := 751261478500012;
     r1.X := 1045986.745;  r1.Y := 743841.459;  r1.Z := 450.485;
     r1.Xm := 1000;  r1.Ym := 5000;  r1.Zm := 0;
-    r1.TypS := 1;
+    r1.Typ := 1;
     r1.SH := 104.456;
     r1.SS := 108.457;
     r1.VS := 1.452;
     r1.VC := 1.3;
     r1.HZ := 365.8967;
-    r1.Zuhel := 98.7854;
-    r1.PolarD := 0.45;
-    r1.PolarK := 0.20;
-    r1.Poznamka := 'Testovací řádek';
+    r1.ZU := 98.7854;
+    r1.Sta := 0.45;
+    r1.Kol := 0.20;
+    r1.Popis := 'Testovací řádek';
 
-    gdf1 := TGeoDataFrame.Create([Uloha, CB, X, Y, Z]);
+    gdf1 := TGeoDataFrame.Create([CB, X, Y, Z]);
 
     // Reset gdf1 with all columns
 
@@ -49,39 +48,37 @@ begin
     // Two rows added
     gdf1.AddRow(2);
 
-    gdf1.Rows[0].Uloha := 1;
     gdf1.Rows[0].CB := 751261478500012;
     gdf1.Rows[0].X := 1045986.745;
     gdf1.Rows[0].Y := 743841.459;
     gdf1.Rows[0].Z := 450.485;
     gdf1.Rows[0].Xm := 1000;  gdf1.Rows[0].Ym := 5000;  gdf1.Rows[0].Zm := 0;
-    gdf1.Rows[0].TypS := 1;
+    gdf1.Rows[0].Typ := 1;
     gdf1.Rows[0].SH := 104.456;
     gdf1.Rows[0].SS := 108.457;
     gdf1.Rows[0].VS := 1.452;
     gdf1.Rows[0].VC := 1.3;
     gdf1.Rows[0].HZ := 365.8967;
-    gdf1.Rows[0].Zuhel := 98.7854;
-    gdf1.Rows[0].PolarD := 0.45;
-    gdf1.Rows[0].PolarK := 0.20;
-    gdf1.Rows[0].Poznamka := 'Testovací řádek';
+    gdf1.Rows[0].ZU := 98.7854;
+    gdf1.Rows[0].Sta := 0.45;
+    gdf1.Rows[0].Kol := 0.20;
+    gdf1.Rows[0].Popis := 'Testovací řádek';
 
-    gdf1.Rows[1].Uloha := 2;
     gdf1.Rows[1].CB := 751261478500013;
     gdf1.Rows[1].X := 1045746.745;
     gdf1.Rows[1].Y := 743911.459;
     gdf1.Rows[1].Z := 450.790;
     gdf1.Rows[1].Xm := 1600;  gdf1.Rows[1].Ym := 5400;  gdf1.Rows[1].Zm := 0.2;
-    gdf1.Rows[1].TypS := 2;
+    gdf1.Rows[1].Typ := 2;
     gdf1.Rows[1].SH := 105.456;
     gdf1.Rows[1].SS := 106.457;
     gdf1.Rows[1].VS := 1.552;
     gdf1.Rows[1].VC := 1.8;
     gdf1.Rows[1].HZ := 345.8967;
-    gdf1.Rows[1].Zuhel := 100.7854;
-    gdf1.Rows[1].PolarD := 0.0;
-    gdf1.Rows[1].PolarK := 0.15;
-    gdf1.Rows[1].Poznamka := '+-*/""'';,';
+    gdf1.Rows[1].ZU := 100.7854;
+    gdf1.Rows[1].Sta := 0.0;
+    gdf1.Rows[1].Kol := 0.15;
+    gdf1.Rows[1].Popis := '+-*/""'';,';
 
     // Add the ready row r1
     gdf1.AddRow(r1);
@@ -95,7 +92,6 @@ begin
     Writeln('Délka pole Rows (= Capacity): ', Length(gdf1.Rows));
 
     Writeln(sLineBreak,'Co je v gdf1 v řádku [2] na pozici Úloha?');
-    writeln(gdf1.Rows[2].Uloha);
 
     // Print by the function
     writeln('');

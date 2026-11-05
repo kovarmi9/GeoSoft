@@ -23,8 +23,9 @@ ukázat, okno skryje funkcí `ApplyColumns(Grid, Skryté)`
 z `CoordOrderState.pas`. Ta
 
 1. vezme pořadí z `ColumnFields` bez skrytých polí,
-2. seřadí dvojice Y a X, Ym a Xm, Vy a Vx podle Nastavení
-   (`GCoordOrder`),
+2. seřadí dvojice Y a X a Ym a Xm podle Nastavení (`GCoordOrder`),
+   a stejně i dvojici, kterou předá úloha, například transformace
+   `ApplyColumns(Grid, [], M1, M2)` pro dY a dX,
 3. přepne tabulku (`GeoFields`, `SetFieldOrder`) a vrátí zpět texty
    buněk podle pole, takže zadané hodnoty se při přestavbě neztratí.
 
@@ -42,11 +43,11 @@ Příklad z polární metody: sloupce, které výpočet zatím nepoužívá,
 jsou skryté vždy, výška cíle a popis podle Nastavení.
 
 ```pascal
-  Hidden := [SS, Zuhel, PolarD, PolarK];
+  Hidden := [SS, ZU, Sta, Kol];
   if not GSettings.Polar.ShowTargetHeight then
     Include(Hidden, VC);
   if not GSettings.Polar.ShowDescription then
-    Include(Hidden, Poznamka);
+    Include(Hidden, Popis);
   ApplyColumns(GridOrientation, Hidden);
   ApplyColumns(GridDetail, Hidden);
 ```

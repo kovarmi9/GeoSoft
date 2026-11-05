@@ -180,12 +180,12 @@ inherited PolarMethodForm: TPolarMethodForm
         'SS='#352'ikm'#225' d'#233'lka'
         'VC=V'#253#353'ka c'#237'le'
         'HZ=Vod. '#250'hel'
-        'Zuhel=Zenitov'#253' '#250'hel'
-        'PolarD=Dom'#283'rek'
-        'PolarK=Kolmice'
+        'ZU=Zenitov'#253' '#250'hel'
+        'Sta=Dom'#283'rek'
+        'Kol=Kolmice'
         'KK=K'#243'd kvality'
-        'Poznamka=Popis')
-      ReadOnlyFields = [X, Y, Z, Poznamka, KK]
+        'Popis=Popis')
+      ReadOnlyFields = [X, Y, Z, Popis, KK]
       ColWidths = (
         64
         88
@@ -224,11 +224,11 @@ inherited PolarMethodForm: TPolarMethodForm
         'SS='#352'ikm'#225' d'#233'lka'
         'VC=V'#253#353'ka c'#237'le'
         'HZ=Vod. '#250'hel'
-        'Zuhel=Zenitov'#253' '#250'hel'
-        'PolarD=Dom'#283'rek'
-        'PolarK=Kolmice'
+        'ZU=Zenitov'#253' '#250'hel'
+        'Sta=Dom'#283'rek'
+        'Kol=Kolmice'
         'KK=K'#243'd kvality'
-        'Poznamka=Popis')
+        'Popis=Popis')
       ReadOnlyFields = [X, Y, Z]
       ColWidths = (
         64

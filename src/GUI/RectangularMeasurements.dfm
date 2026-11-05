@@ -47,7 +47,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
       'X'
       'Y'
       'KK=K'#243'd kvality'
-      'Poznamka=Pozn'#225'mka')
+      'Popis=Pozn'#225'mka')
     ReadOnlyFields = [X, Y, Xm, Ym]
     ColWidths = (
       40

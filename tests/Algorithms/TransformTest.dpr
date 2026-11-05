@@ -17,8 +17,7 @@ var
   Row: TGeoRow;
 begin
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_TRANSFORMACE;
-  Row.TypS := ARole;
+  Row.Typ := ARole;
   Row.CB := StrToInt64Def(ANumber, 0);
   Row.Y := AY;
   Row.X := AX;
@@ -53,13 +52,13 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    case Row.TypS of
+    case Row.Typ of
       DRUH_IDENTICKY:
         Write(Format('  %-16s identický  Vy %6.2f  Vx %6.2f  Sxy %5.2f',
-          [IntToStr(Row.CB), Row.Vy, Row.Vx, Row.Sxy]));
+          [IntToStr(Row.CB), Row.M1, Row.M2, Row.M4]));
       DRUH_KONTROLNI:
         Write(Format('  %-16s kontrolní  Vy %6.2f  Vx %6.2f  Sxy %5.2f',
-          [IntToStr(Row.CB), Row.Vy, Row.Vx, Row.Sxy]));
+          [IntToStr(Row.CB), Row.M1, Row.M2, Row.M4]));
     else
       Write(Format('  %-16s určovaný   Y %.2f  X %.2f',
         [IntToStr(Row.CB), Row.Y, Row.X]));
@@ -79,7 +78,7 @@ var
   Kind: TTransformationType;
 begin
   Frame := TGeoDataFrame.Create(
-    [Uloha, CB, Y, X, CBm, Ym, Xm, TypS, Vy, Vx, Sxy]);
+    [CB, Y, X, CBm, Ym, Xm, Typ, M1, M2, M4]);
   Alg := TTransformationFrameAlgorithm.Create;
   try
     try

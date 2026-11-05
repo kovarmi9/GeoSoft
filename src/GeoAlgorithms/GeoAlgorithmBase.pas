@@ -44,9 +44,6 @@ type
     // Goes in filled with measurements, comes out with the results
     procedure Calculate(AFrame: TGeoDataFrame); virtual; abstract;
 
-    // The code this algorithm writes into TGeoRow.Uloha
-    class function TaskCode: Integer; virtual; abstract;
-
     /// <summary>A given point has coordinates.</summary>
     class function IsGiven(const ARow: TGeoRow): Boolean;
   end;

@@ -190,9 +190,9 @@ uses
 const
   DOCS_URL = 'https://kovarmi9.github.io/GeoSoft/';
   // Fields shown with the length and the angle decimals
-  LENGTH_FIELDS = [X, Y, Z, Xm, Ym, Zm, SH, SS, VS, VC, PolarD, PolarK,
-    Vy, Vx, Vz, Sxy];
-  ANGLE_FIELDS  = [HZ, Zuhel];
+  LENGTH_FIELDS = [X, Y, Z, Xm, Ym, Zm, SH, SS, VS, VC, Sta, Kol,
+    M1, M2, M3, M4];
+  ANGLE_FIELDS  = [HZ, ZU];
 
 type
   // InplaceEditor is protected, a descendant declared here may read it
@@ -353,7 +353,7 @@ begin
 
   // NaN height becomes 0
   NewPoint := Point.TPoint.Create(PointNumber, ARow.X, ARow.Y, ARow.Z, ARow.KK,
-                              string(ARow.Poznamka));
+                              string(ARow.Popis));
 
   // New point, or one this form computed before
   if not Points.PointExists(PointNumber) or

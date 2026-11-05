@@ -148,7 +148,7 @@ begin
 end;
 
 initialization
-  SetField(Uloha,    'Úloha',             cdtInteger, MakeInteger(2));
+  SetField(Checked,  'Použít',            cdtInteger, MakeIntegerRange(1, 0, 1));
 
   SetField(CB,       'Číslo bodu',        cdtInteger, MakePointNumber);
 
@@ -166,7 +166,7 @@ initialization
 
   SetField(Zm,       'Zm',                cdtExpression, MakeFloat(2));
 
-  SetField(TypS,     'Typ délky',         cdtInteger, MakeInteger(1));
+  SetField(Typ,      'Typ',               cdtInteger, MakeInteger(1));
 
   SetField(SH,       'Vodorovná délka',   cdtExpression, MakeMin(0, 2));
 
@@ -178,23 +178,23 @@ initialization
 
   SetField(HZ,       'HZ úhel [g]',       cdtExpression, MakeGon(4));
 
-  SetField(Zuhel,    'Zenitový úhel [g]', cdtExpression, MakeRange(0, 400, 4));
+  SetField(ZU,       'Zenitový úhel [g]', cdtExpression, MakeRange(0, 400, 4));
 
-  SetField(PolarD,   'Polární doměrek',   cdtExpression, MakeFloat(2));
+  SetField(Sta,      'Polární doměrek',   cdtExpression, MakeFloat(2));
 
-  SetField(PolarK,   'Polární kolmice',   cdtExpression, MakeFloat(2));
+  SetField(Kol,      'Polární kolmice',   cdtExpression, MakeFloat(2));
 
-  SetField(Poznamka, 'Poznámka',          cdtNone,    MakeText(MAX_POPIS_LENGTH));
+  SetField(Popis,    'Popis',             cdtNone,    MakeText(MAX_POPIS_LENGTH));
 
   SetField(KK,       'Kód kvality',       cdtInteger,
     MakeIntegerRange(1, MIN_KK, MAX_KK));
 
-  SetField(Vy,       'dY',                cdtFloat, MakeFloat(2));
+  SetField(M1,       'M1',                cdtFloat, MakeFloat(2));
 
-  SetField(Vx,       'dX',                cdtFloat, MakeFloat(2));
+  SetField(M2,       'M2',                cdtFloat, MakeFloat(2));
 
-  SetField(Vz,       'dZ',                cdtFloat, MakeFloat(2));
+  SetField(M3,       'M3',                cdtFloat, MakeFloat(2));
 
-  SetField(Sxy,      'Sxy',               cdtFloat, MakeFloat(2));
+  SetField(M4,       'M4',                cdtFloat, MakeFloat(2));
 
 end.

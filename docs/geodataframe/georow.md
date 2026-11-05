@@ -1,36 +1,43 @@
 # Řádek TGeoRow
 
 Řádek představuje jedno měření. Všechny úlohy používají stejný řádek
-se stejnými 24 poli, liší se jen kódem úlohy (`Uloha`) a tím, která pole vyplní.
+se stejnými 24 poli, liší se jen tím, která pole vyplní.
 Unit `src/DataStructures/GeoRow.pas`.
 
 ## Pole
 
 | pole | typ | význam |
 |---|----|---|
-| `Uloha` | `Integer` | kód úlohy|
+| `Checked` | `Boolean` | použít ve výpočtu, nový řádek `True`, v zápisníku 1 a 0 |
 | `CB` | `Int64` | úplné číslo bodu, 15 číslic se znaménkem, 0 = bez čísla |
 | `X`, `Y`, `Z` | `Double` | souřadnice S-JTSK a výška [m] |
 | `CBm` | `Int64` | číslo druhého bodu (kontrolní oměrné), zdrojového bodu (transformace), 0 = bez čísla |
-| `Xm`, `Ym`, `Zm` | `Double` | místní souřadnice, v transformaci zdrojové souřadnice [m] |
-| `TypS` | `Integer` | typ délky: v polární metodě 0 vodorovná, 2 šikmá; v transformaci role řádku (1 identický, 2 kontrolní, 3 určovaný) |
-| `SH`, `SS` | `Double` | vodorovná a šikmá délka, SH v ortogonální metodě staničení [m] |
+| `Xm`, `Ym`, `Zm` | `Double` | místní souřadnice, v transformaci a kontrolních oměrných souřadnice druhého bodu, v nivelaci čtení vzad, vpřed a boční [m] |
+| `Typ` | `Integer` | typ řádku podle úlohy: v polární metodě typ délky (0 vodorovná, 2 šikmá); v transformaci role bodu (1 identický, 2 kontrolní, 3 určovaný) |
+| `SH`, `SS` | `Double` | vodorovná a šikmá délka, jen kladná; zatím kromě protínání z délek a konstrukčních oměrných, kde znaménko určuje stranu a zatáčku [m] |
 | `VS`, `VC` | `Double` | výška přístroje a cíle [m] |
-| `HZ`, `Zuhel` | `Double` | vodorovný a zenitový úhel [gon] |
-| `PolarD` | `Double` | polární doměrek [m] |
-| `PolarK` | `Double` | polární kolmice, v ortogonální metodě kolmice [m] |
-| `Poznamka` | `string[32]` | poznámka |
+| `HZ`, `ZU` | `Double` | vodorovný směr a zenitový úhel [gon] |
+| `Sta` | `Double` | vzdálenost podél přímky se znaménkem: v ortogonální metodě staničení, v polární metodě doměrek [m] |
+| `Kol` | `Double` | vzdálenost kolmo k přímce se znaménkem, vpravo kladná: kolmice v polární a ortogonální metodě a ve vyrovnání do přímky [m] |
+| `Popis` | `string[32]` | popis bodu, při uložení bodu se z něj stane popis v seznamu |
 | `KK` | `Integer` | kód kvality 0–8 |
-| `Vy`, `Vx`, `Vz` | `Double` | odchylka: vypočtená minus daná poloha a výška [m] |
-| `Sxy` | `Double` | střední souřadnicová chyba bodu, $\sqrt{(V_y^2 + V_x^2) / 2}$ [m] |
+| `M1` … `M4` | `Double` | výsledky výpočtu, význam podle úlohy, viz tabulka níže [m] |
+
+Co je ve výstupních polích:
+
+| úloha | `M1` | `M2` | `M3` | `M4` |
+|---|---|---|---|---|
+| transformace | dY | dX | – | Sxy |
+| technická nivelace | oprava čtení vzad | – | převýšení | – |
+| kontrolní oměrné | délka ze souřadnic | rozdíl | mezní rozdíl | vyhovuje (jen v tabulce) |
 
 ## Práce s řádkem
 
-- `ClearGeoRow(Row)` vymaže řádek: čísla NaN, texty prázdné, celá čísla a čísla bodů 0
+- `ClearGeoRow(Row)` vymaže řádek: čísla NaN, texty prázdné, celá čísla a čísla bodů 0, `Checked` True
 - `IsNan(Row.X)` pozná nevyplněné číslo, porovnání s nulou nestačí
 - `Row.CB = 0` pozná řádek bez čísla bodu, poznámka má nejvýš 32 znaků, delší se zkrátí
 - `GeoFieldToText` zapíše číslo bodu jako 15 číslic (`000000000014001`), `TextToGeoField` přijme jen číslice s případným mínusem
-- pořadí polí je dáno výčtem `TGeoField` (`Uloha` = 0 … `Sxy` = 23)
+- pořadí polí je dáno výčtem `TGeoField` (`Checked` = 0 … `M4` = 23)
 - `GeoFieldToText(Row, X, '0.000', FS)` vrátí pole jako text, NaN dá prázdný text
 - `TextToGeoField(Row, Y, '743841,459', FS)` zapíše text do pole, co není číslo, pole nezmění
 - `FindGeoField('x', F)` najde pole podle názvu, na velikosti písmen nezáleží

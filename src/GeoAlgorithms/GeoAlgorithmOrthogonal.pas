@@ -9,9 +9,6 @@ uses
   Accuracy, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_ORTOGONALNI = 0;
-
   // The first two rows are the measuring line, the rest are detail points
   BASELINE_ROWS = 2;
 
@@ -29,8 +26,6 @@ type
   private
     FBaseline: TBaselineInfo;
   public
-    class function TaskCode: Integer; override;
-
     // Rows 0 and 1 are P and K, X and Y of the detail rows get filled
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -44,11 +39,6 @@ const
   MIN_BASELINE     = 0.01;  // shorter means P and K coincide [m]
   MAX_OFFSET_ABS   = 30.0;  // absolute max perpendicular offset [m]
   MAX_OFFSET_RATIO = 0.75;  // max offset as fraction of baseline length
-
-class function TOrthogonalMethodAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_ORTOGONALNI;
-end;
 
 procedure TOrthogonalMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
@@ -86,16 +76,16 @@ begin
   end;
 
   // Tape readings are measured values, none of them may be guessed
-  if IsNan(P.SH) or IsNan(P.PolarK) or IsNan(K.SH) or IsNan(K.PolarK) then
+  if IsNan(P.Sta) or IsNan(P.Kol) or IsNan(K.Sta) or IsNan(K.Kol) then
   begin
     AddError('Zadejte staničení a kolmici připojovacích bodů P a K.');
     Exit;
   end;
 
-  sP := P.SH * Scale;
-  qP := P.PolarK * Scale;
-  dS := (K.SH - P.SH) * Scale;
-  dQ := (K.PolarK - P.PolarK) * Scale;
+  sP := P.Sta * Scale;
+  qP := P.Kol * Scale;
+  dS := (K.Sta - P.Sta) * Scale;
+  dQ := (K.Kol - P.Kol) * Scale;
 
   j := Sqr(dS) + Sqr(dQ);
   if j < 1e-10 then
@@ -132,15 +122,15 @@ begin
   for i := BASELINE_ROWS to AFrame.Count - 1 do
   begin
     // Nothing measured yet, so the row keeps no coordinates
-    if IsNan(AFrame.Rows[i].SH) or IsNan(AFrame.Rows[i].PolarK) then
+    if IsNan(AFrame.Rows[i].Sta) or IsNan(AFrame.Rows[i].Kol) then
     begin
       AFrame.Rows[i].X := NaN;
       AFrame.Rows[i].Y := NaN;
       Continue;
     end;
 
-    si := AFrame.Rows[i].SH * Scale;
-    qi := AFrame.Rows[i].PolarK * Scale;
+    si := AFrame.Rows[i].Sta * Scale;
+    qi := AFrame.Rows[i].Kol * Scale;
 
     offS := si - sP;
     offQ := qi - qP;

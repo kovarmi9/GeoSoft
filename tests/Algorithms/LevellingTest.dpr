@@ -20,7 +20,6 @@ var
   Row: TGeoRow;
 begin
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_NIVELACE;
   Row.CB := StrToInt64Def(APointNumber, 0);
   case AKind of
     'B': Row.Xm := AReading;
@@ -51,13 +50,13 @@ begin
   begin
     Row := Frame.Rows[I];
     Writeln(Format('  %-5s převýšení %8.4f  oprava %8.4f  výška %9.4f',
-      [IntToStr(Row.CB), Row.Vz, Row.Vy, Row.VC]));
+      [IntToStr(Row.CB), Row.M3, Row.M1, Row.VC]));
   end;
   Writeln;
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([Uloha, CB, Z, Xm, Ym, Zm, SH, Vz, Vy, VC]);
+  Frame := TGeoDataFrame.Create([CB, Z, Xm, Ym, Zm, SH, M3, M1, VC]);
   Alg := TLevellingAlgorithm.Create;
   try
     // 1. Line 101 - 102, side reading 5001, misclosure +3 mm.

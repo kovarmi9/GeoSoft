@@ -10,8 +10,6 @@ uses
   GeoAlgorithmTransformSimilarity, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_POLARNI = 1;
   TYP_DELKY_VODOROVNA = 0;   // horizontal length
   TYP_DELKY_SIKMA     = 2;   // slope length with zenith angle
 
@@ -74,8 +72,6 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    class function TaskCode: Integer; override;
-
     /// <summary>Checks the rows, fills X and Y of the detail points.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -124,11 +120,6 @@ begin
   inherited Destroy;
 end;
 
-class function TPolarMethodAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_POLARNI;
-end;
-
 // A given point is one that already has coordinates
 // Distance between two rows from their coordinates
 class function TPolarMethodAlgorithm.Dist(const A, B: TGeoRow): Double;
@@ -171,12 +162,12 @@ end;
 // Without a correction for the curvature, z in gon
 class function TPolarMethodAlgorithm.HeightDiff(const ARow: TGeoRow): Double;
 begin
-  if IsNan(ARow.Zuhel) then
+  if IsNan(ARow.ZU) then
     Result := NaN
   else if not IsNan(ARow.SS) then
-    Result := ARow.SS * Cos(ARow.Zuhel * GON_TO_RAD)
+    Result := ARow.SS * Cos(ARow.ZU * GON_TO_RAD)
   else if not IsNan(ARow.SH) then
-    Result := ARow.SH / Tan(ARow.Zuhel * GON_TO_RAD)
+    Result := ARow.SH / Tan(ARow.ZU * GON_TO_RAD)
   else
     Result := NaN;
 end;
@@ -478,11 +469,11 @@ begin
 
     // Offset along the sight and to its right, negative back and left
     Along := D;
-    if not IsNan(AFrame.Rows[I].PolarD) then
-      Along := (AFrame.Rows[I].SH + AFrame.Rows[I].PolarD) * Scale;
+    if not IsNan(AFrame.Rows[I].Sta) then
+      Along := (AFrame.Rows[I].SH + AFrame.Rows[I].Sta) * Scale;
     Across := 0;
-    if not IsNan(AFrame.Rows[I].PolarK) then
-      Across := AFrame.Rows[I].PolarK * Scale;
+    if not IsNan(AFrame.Rows[I].Kol) then
+      Across := AFrame.Rows[I].Kol * Scale;
 
     AFrame.Rows[I].X := St.X + Along * Cos(sigma) - Across * Sin(sigma);
     AFrame.Rows[I].Y := St.Y + Along * Sin(sigma) + Across * Cos(sigma);
@@ -501,9 +492,9 @@ var
   I: Integer;
 begin
   for I := 0 to AFrame.Count - 1 do
-    if not IsNan(AFrame.Rows[I].SS) and not IsNan(AFrame.Rows[I].Zuhel) then
+    if not IsNan(AFrame.Rows[I].SS) and not IsNan(AFrame.Rows[I].ZU) then
       AFrame.Rows[I].SH := AFrame.Rows[I].SS *
-        Sin(AFrame.Rows[I].Zuhel * GON_TO_RAD);
+        Sin(AFrame.Rows[I].ZU * GON_TO_RAD);
 end;
 
 procedure TPolarMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);

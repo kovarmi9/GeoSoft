@@ -7,7 +7,7 @@ uses
 
 // Copies grid rows into frame, tells which grid row each frame row came from
 procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
-  AUloha: Integer; out ARows: TArray<Integer>);
+  out ARows: TArray<Integer>);
 
 // Writes the listed fields back into the grid, in full, the grid rounds
 // what it shows. A row with ARows[i] < 0 is skipped.
@@ -18,7 +18,7 @@ procedure FrameToGrid(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
 implementation
 
 procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
-  AUloha: Integer; out ARows: TArray<Integer>);
+  out ARows: TArray<Integer>);
 var
   R, N: Integer;
   Row: TGeoRow;
@@ -35,7 +35,6 @@ begin
     if Row.CB = 0 then
       Continue;
 
-    Row.Uloha := AUloha;   // grid never carries it
     AFrame.AddRow(Row);
 
     Inc(N);

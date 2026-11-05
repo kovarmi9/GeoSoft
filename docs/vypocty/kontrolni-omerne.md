@@ -44,7 +44,7 @@ flowchart LR
 | $Y_m, X_m$ | `Ym`, `Xm` | souřadnice bodu Na bod |
 | $s$ | `SH` | měřená délka |
 | $m$ | `Scale` | měřítko délek |
-| $s_v$ | `SS` | délka ze souřadnic |
+| $s_v$ | `M1` | délka ze souřadnic |
 | $\Delta$ | `Diff` | rozdíl |
 | $u_d$ | `Tolerance` | mezní rozdíl |
 | $m_{xy}$ | `MxyOfQuality` | střední souřadnicová chyba horšího kódu kvality |

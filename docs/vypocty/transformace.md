@@ -31,7 +31,7 @@ Transformace je rovinná, výšky se netransformují.
 
 | unit | výpočet |
 |---|---|
-| `GUI/Transformation.pas` | tabulka → frame (role v `TypS`: 1, 2, 3), výsledky zpět, uložení bodů, zápisník, protokol |
+| `GUI/Transformation.pas` | tabulka → frame (role v `Typ`: 1, 2, 3), výsledky zpět, uložení bodů, zápisník, protokol |
 | `GeoAlgorithms/GeoAlgorithmTransformation.pas` | řízení výpočtu, kontrolní a určované body, počty bodů v pásmech |
 | `GeoAlgorithms/GeoAlgorithmTransformBase.pas` | předek klíčů: těžiště, posuny, transformace bodů, opravy |
 | `GeoAlgorithms/GeoAlgorithmTransformSimilarity.pas` | podobnostní, λ1 a λ2 |
@@ -41,7 +41,7 @@ Transformace je rovinná, výšky se netransformují.
 
 ```mermaid
 flowchart LR
-  T["Tabulka bodů<br>Transformation.pas"] -->|"BuildFrame, role v TypS"| F["frame"]
+  T["Tabulka bodů<br>Transformation.pas"] -->|"BuildFrame, role v Typ"| F["frame"]
   F -->|Calculate| A["GeoAlgorithmTransformation.pas"]
   A -->|identické body| K["klíč: TransformBase<br>Congruent, Similarity, Affine"]
   K -->|"klíč, opravy"| A

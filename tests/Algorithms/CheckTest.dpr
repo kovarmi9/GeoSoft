@@ -9,65 +9,61 @@ uses
   GeoAlgorithmCheckMeasurements;
 
 var
-  M1, M2, M3, M4: TGeoRow;
+  Row1, Row2, Row3, Row4: TGeoRow;
   Frame: TGeoDataFrame;
   Alg: TCheckMeasurementsAlgorithm;
   R: TCheckResult;
   I: Integer;
 begin
   // 1. Points 1 (0, 0) and 2 (0, 10), measured 10,02 m, small difference
-  ClearGeoRow(M1);
-  M1.Uloha := ULOHA_KONTROLNI;
-  M1.KK := 3;              // worse quality code of the pair
-  M1.CB := 1;
-  M1.X := 0;
-  M1.Y := 0;
-  M1.CBm := 2;          // second point
-  M1.Xm := 0;
-  M1.Ym := 10;
-  M1.SH := 10.02;         // measured length [m]
+  ClearGeoRow(Row1);
+  Row1.KK := 3;            // worse quality code of the pair
+  Row1.CB := 1;
+  Row1.X := 0;
+  Row1.Y := 0;
+  Row1.CBm := 2;        // second point
+  Row1.Xm := 0;
+  Row1.Ym := 10;
+  Row1.SH := 10.02;       // measured length [m]
 
   // 2. Points 2 (0, 10) and 3 (10, 10), measured 10,30 m, too much
-  ClearGeoRow(M2);
-  M2.Uloha := ULOHA_KONTROLNI;
-  M2.KK := 3;
-  M2.CB := 2;
-  M2.X := 0;
-  M2.Y := 10;
-  M2.CBm := 3;
-  M2.Xm := 10;
-  M2.Ym := 10;
-  M2.SH := 10.30;
+  ClearGeoRow(Row2);
+  Row2.KK := 3;
+  Row2.CB := 2;
+  Row2.X := 0;
+  Row2.Y := 10;
+  Row2.CBm := 3;
+  Row2.Xm := 10;
+  Row2.Ym := 10;
+  Row2.SH := 10.30;
 
   // 3. Points 1 and 3, not measured, only the computed length
-  ClearGeoRow(M3);
-  M3.Uloha := ULOHA_KONTROLNI;
-  M3.KK := 3;
-  M3.CB := 1;
-  M3.X := 0;
-  M3.Y := 0;
-  M3.CBm := 3;
-  M3.Xm := 10;
-  M3.Ym := 10;
+  ClearGeoRow(Row3);
+  Row3.KK := 3;
+  Row3.CB := 1;
+  Row3.X := 0;
+  Row3.Y := 0;
+  Row3.CBm := 3;
+  Row3.Xm := 10;
+  Row3.Ym := 10;
 
   // 4. The second point has no coordinates
-  ClearGeoRow(M4);
-  M4.Uloha := ULOHA_KONTROLNI;
-  M4.KK := 3;
-  M4.CB := 1;
-  M4.X := 0;
-  M4.Y := 0;
-  M4.CBm := 9;
-  M4.SH := 5;
+  ClearGeoRow(Row4);
+  Row4.KK := 3;
+  Row4.CB := 1;
+  Row4.X := 0;
+  Row4.Y := 0;
+  Row4.CBm := 9;
+  Row4.SH := 5;
 
-  Frame := TGeoDataFrame.Create([Uloha, CB, X, Y, CBm, Xm, Ym, SH, SS]);
+  Frame := TGeoDataFrame.Create([CB, X, Y, CBm, Xm, Ym, SH, M1]);
   Alg := TCheckMeasurementsAlgorithm.Create;
   try
     try
-      Frame.AddRow(M1);
-      Frame.AddRow(M2);
-      Frame.AddRow(M3);
-      Frame.AddRow(M4);
+      Frame.AddRow(Row1);
+      Frame.AddRow(Row2);
+      Frame.AddRow(Row3);
+      Frame.AddRow(Row4);
 
       Alg.Calculate(Frame);
 

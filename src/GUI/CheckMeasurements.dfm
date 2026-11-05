@@ -39,12 +39,12 @@ inherited CheckMeasurementsForm: TCheckMeasurementsForm
       'CB=Z bodu'
       'CBm=Na bod'
       'SH=M'#283#345'en'#225
-      'SS=Ze sou'#345'adnic'
-      'Vy=Rozd'#237'l'
-      'Sxy=Mezn'#237
-      'Vz=Vyhovuje'
-      'Poznamka=Pozn'#225'mka')
-    ReadOnlyFields = [SS, Vy, Vz, Sxy]
+      'M1=Ze sou'#345'adnic'
+      'M2=Rozd'#237'l'
+      'M3=Mezn'#237
+      'M4=Vyhovuje'
+      'Popis=Pozn'#225'mka')
+    ReadOnlyFields = [M1, M2, M3, M4]
     ColWidths = (
       40
       110

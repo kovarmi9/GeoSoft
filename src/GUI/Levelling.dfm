@@ -41,11 +41,11 @@ inherited LevellingForm: TLevellingForm
       'Zm=Bo'#269'n'#283
       'SH=D'#233'lka'
       'Z=Dan'#225' v'#253#353'ka'
-      'Vz=P'#345'ev'#253#353'en'#237
-      'Vy=Oprava'
+      'M3=P'#345'ev'#253#353'en'#237
+      'M1=Oprava'
       'VC=Vyp. v'#253#353'ka'
-      'Poznamka=Pozn'#225'mka')
-    ReadOnlyFields = [VC, Vy, Vz]
+      'Popis=Pozn'#225'mka')
+    ReadOnlyFields = [VC, M1, M3]
     ColWidths = (
       30
       130

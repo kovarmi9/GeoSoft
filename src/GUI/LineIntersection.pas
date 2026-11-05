@@ -47,7 +47,7 @@ begin
   inherited Create(AOwner);
   FAlg := TLineIntersectionAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, X, Y, KK]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, KK]);
 end;
 
 destructor TLineIntersectionForm.Destroy;
@@ -73,7 +73,6 @@ begin
   for R := 1 to RESULT_ROW do
   begin
     Grid.GetGeoRow(R, Row);
-    Row.Uloha := ULOHA_PRUSECIK;
     if R < RESULT_ROW then
       TakeFromList(Row)
     else
@@ -159,7 +158,7 @@ begin
   end;
 
   // A number given in the dialog goes to the grid
-  Row.Poznamka := ShortString(GPointPrefix.Popis);
+  Row.Popis := ShortString(GPointPrefix.Popis);
   StorePoint(Row);
   FFrame.Rows[LINE_POINTS].CB := Row.CB;
   Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);

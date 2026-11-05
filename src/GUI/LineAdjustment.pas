@@ -48,7 +48,7 @@ begin
   // Xm and Ym keep the point before the move, for the protocol
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, CBm, X, Y, Z, Xm, Ym, PolarK, KK, Poznamka]);
+    [CB, CBm, X, Y, Z, Xm, Ym, Kol, KK, Popis]);
 end;
 
 destructor TLineAdjustmentForm.Destroy;
@@ -75,7 +75,6 @@ var
   // Every frame row remembers its grid row, -1 for A and B
   procedure Add(AGridRow: Integer);
   begin
-    Row.Uloha := ULOHA_PRIMKA;
     AddRow(Row, AGridRow);
   end;
 
@@ -89,8 +88,8 @@ var
       Row.Y := ListPoint.Y;
       Row.Z := ListPoint.Z;           // a moved point keeps its height
       Row.KK := ListPoint.Quality;
-      if Trim(string(Row.Poznamka)) = '' then
-        Row.Poznamka := ShortString(ListPoint.Description);
+      if Trim(string(Row.Popis)) = '' then
+        Row.Popis := ShortString(ListPoint.Description);
     end
     else
     begin
@@ -118,7 +117,7 @@ begin
     if Row.CB = 0 then
       Continue;
     TakeFromList;
-    Row.PolarK := NaN;            // an old result is no input
+    Row.Kol := NaN;            // an old result is no input
     Add(R);
   end;
 end;
@@ -134,7 +133,7 @@ begin
 
   // A point that was not moved shows no result
   for I := LINE_ROWS to FFrame.Count - 1 do
-    if IsNan(FFrame.Rows[I].PolarK) then
+    if IsNan(FFrame.Rows[I].Kol) then
     begin
       FFrame.Rows[I].X := NaN;
       FFrame.Rows[I].Y := NaN;
@@ -142,7 +141,7 @@ begin
 
   // An empty new number moves the point itself
   for I := LINE_ROWS to FFrame.Count - 1 do
-    if not IsNan(FFrame.Rows[I].PolarK) then
+    if not IsNan(FFrame.Rows[I].Kol) then
     begin
       Row := FFrame.Rows[I];
       if Row.CBm <> 0 then
@@ -154,7 +153,7 @@ begin
     end;
 
   // A and B carry -1, so the bridge leaves those rows alone
-  FrameToGrid(GridPoints, FFrame, FRows, [CBm, X, Y, PolarK]);
+  FrameToGrid(GridPoints, FFrame, FRows, [CBm, X, Y, Kol]);
 
   ShowProtocol;
 end;
@@ -198,7 +197,7 @@ begin
     // Z: the point as it was, Do: the foot of the perpendicular
     Prot.Row([GridNumber(I), 'Z:',
               PointId(Row.CB), CoordPair(Row.Xm, Row.Ym)]);
-    if IsNan(Row.PolarK) then
+    if IsNan(Row.Kol) then
     begin
       Prot.Row(['', 'Do:'], '*** nelze spočítat ***');
       Continue;
@@ -212,7 +211,7 @@ begin
 
     if IsNan(FAlg.Limit) then
       Verdict := ''
-    else if Abs(Row.PolarK) <= FAlg.Limit then
+    else if Abs(Row.Kol) <= FAlg.Limit then
       Verdict := 'vyhovuje'
     else
       Verdict := 'nevyhovuje';
@@ -221,7 +220,7 @@ begin
     Tail := UpdatedTail(Row);
 
     Prot.Row(['', 'Do:', PointId(NewNumber), CoordPair(Row.X, Row.Y),
-              Num(Row.PolarK), Verdict], Tail);
+              Num(Row.Kol), Verdict], Tail);
   end;
 
   Prot.Finish(FAlg.Warnings);
@@ -306,7 +305,7 @@ begin
     begin
       GridPoints.Cells[GridPoints.FieldToCol(Y), R] := '';
       GridPoints.Cells[GridPoints.FieldToCol(X), R] := '';
-      GridPoints.Cells[GridPoints.FieldToCol(PolarK), R] := '';
+      GridPoints.Cells[GridPoints.FieldToCol(Kol), R] := '';
       Inc(R);
     end;
   GridPoints.RowCount := R + 1;

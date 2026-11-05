@@ -21,10 +21,9 @@ var
   Row: TGeoRow;
 begin
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_PROTINANI_SMERY;
   Row.CB := StrToInt64Def(APointNumber, 0);
   Row.HZ := ADirection;
-  Row.Zuhel := ADirectionB;
+  Row.ZU := ADirectionB;
   Row.Y := AY;
   Row.X := AX;
   Row.KK := 3;
@@ -56,7 +55,7 @@ begin
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([Uloha, CB, HZ, Zuhel, Y, X, KK]);
+  Frame := TGeoDataFrame.Create([CB, HZ, ZU, Y, X, KK]);
   Alg := TForwardIntersectionAlgorithm.Create;
   try
     // 1. From angles: on 11 zero to 12, on 12 zero to 11.

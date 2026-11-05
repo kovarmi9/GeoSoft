@@ -21,7 +21,6 @@ var
   Row: TGeoRow;
 begin
   ClearGeoRow(Row);
-  Row.Uloha := ULOHA_KONSTRUKCNI_VYROVNANI;
   Row.CB := StrToInt64Def(APointNumber, 0);
   Row.SH := ALength;
   Row.Y := AY;
@@ -74,7 +73,7 @@ begin
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([Uloha, CB, SH, Y, X, Xm, Ym, KK]);
+  Frame := TGeoDataFrame.Create([CB, SH, Y, X, Xm, Ym, KK]);
   Alg := TRectangularAdjustmentAlgorithm.Create;
   try
     // L shape, closure -0,03 along 20 / 10 / 10,03, +0,02 along 5 / 5 / 9,98.

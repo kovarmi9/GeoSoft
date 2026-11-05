@@ -51,9 +51,9 @@ inherited LineAdjustmentForm: TLineAdjustmentForm
       'CBm=Nov'#233' '#269#237'slo'
       'Y'
       'X'
-      'PolarK=Kolmice'
-      'Poznamka=Popis')
-    ReadOnlyFields = [X, Y, PolarK]
+      'Kol=Kolmice'
+      'Popis=Popis')
+    ReadOnlyFields = [X, Y, Kol]
     ColWidths = (
       30
       130

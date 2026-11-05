@@ -51,7 +51,7 @@ begin
   inherited Create(AOwner);
   FAlg := TDistanceIntersectionAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, SH, X, Y, KK]);
+  FFrame := TGeoDataFrame.Create([CB, SH, X, Y, KK]);
 
   // A negative check length puts the new point to the left
   FilterData := GeoFieldColumns[SH].Filter;
@@ -87,7 +87,6 @@ begin
   for R := 1 to RESULT_ROW do
   begin
     Grid.GetGeoRow(R, Row);
-    Row.Uloha := ULOHA_PROTINANI_DELKY;
     if R < RESULT_ROW then
       TakeFromList(Row)
     else
@@ -191,7 +190,7 @@ begin
   end;
 
   // A number given in the dialog goes to the grid
-  Row.Poznamka := ShortString(GPointPrefix.Popis);
+  Row.Popis := ShortString(GPointPrefix.Popis);
   StorePoint(Row);
   FFrame.Rows[GIVEN_POINTS].CB := Row.CB;
   Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);

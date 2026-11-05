@@ -9,9 +9,6 @@ uses
   Accuracy, PointNumber;
 
 const
-  // Task code from the survey notebook convention
-  ULOHA_PROTINANI_DELKY = 5;
-
   GIVEN_POINTS = 2;      // rows 0 and 1 are the given points, row 2 the new
   MIN_BASE     = 0.001;  // shorter base means points 1 and 2 are one point
 
@@ -25,8 +22,6 @@ type
     FMeasured: Double;
     FLimit: Double;
   public
-    class function TaskCode: Integer; override;
-
     /// <summary>SH: lengths from 1 and 2, signed check in row 3.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
@@ -44,11 +39,6 @@ type
   end;
 
 implementation
-
-class function TDistanceIntersectionAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_PROTINANI_DELKY;
-end;
 
 procedure TDistanceIntersectionAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var

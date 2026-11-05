@@ -50,7 +50,7 @@ begin
   inherited Create(AOwner);
   FAlg := TForwardIntersectionAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([Uloha, CB, HZ, Zuhel, X, Y, KK, Poznamka]);
+  FFrame := TGeoDataFrame.Create([CB, HZ, ZU, X, Y, KK, Popis]);
 end;
 
 destructor TForwardIntersectionForm.Destroy;
@@ -80,7 +80,7 @@ end;
 procedure TForwardIntersectionForm.GridCellSelectable(Sender: TObject;
   ACol, ARow: Integer; var ASelectable: Boolean);
 begin
-  if ACol = Grid.FieldToCol(Zuhel) then
+  if ACol = Grid.FieldToCol(ZU) then
     ASelectable := RoleOfRow(ARow) in [irPoint, irEmpty]
   else if ACol = Grid.FieldToCol(HZ) then
     ASelectable := RoleOfRow(ARow) <> irStation;
@@ -102,7 +102,6 @@ begin
   for R := Grid.FixedRows to LastRow do
   begin
     Grid.GetGeoRow(R, Row);
-    Row.Uloha := ULOHA_PROTINANI_SMERY;
     TakeFromList(Row);
     FFrame.AddRow(Row);
   end;
@@ -206,8 +205,8 @@ begin
     if (FAlg.Roles[I] = irPoint) and not IsNan(FFrame.Rows[I].X) then
     begin
       Row := FFrame.Rows[I];
-      if Trim(string(Row.Poznamka)) = '' then
-        Row.Poznamka := ShortString(GPointPrefix.Popis);
+      if Trim(string(Row.Popis)) = '' then
+        Row.Popis := ShortString(GPointPrefix.Popis);
       StorePoint(Row);
       FFrame.Rows[I].CB := Row.CB;
       Grid.Cells[Grid.FieldToCol(CB), I + Grid.FixedRows] :=
@@ -268,7 +267,7 @@ begin
 
   Prot.Section('URČOVANÉ BODY');
   Prot.Columns([ColNumber, ColField(CB), ColField(HZ, 'Směr z A'),
-    ColField(Zuhel, 'Směr z B'), ColAngle('Úhel'), ColPair,
+    ColField(ZU, 'Směr z B'), ColAngle('Úhel'), ColPair,
     ColField(KK)]);
   for I := 0 to FFrame.Count - 1 do
     if FAlg.Roles[I] = irPoint then

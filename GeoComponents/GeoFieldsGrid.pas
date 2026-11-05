@@ -330,6 +330,12 @@ begin
   RefreshHeaders;
   RefreshFilters;
 
+  // The Checked field is always the check box, TGeoField because
+  // the grid has its own Checked
+  CheckColumn := FieldToCol(TGeoField.Checked);
+  if CheckColumn >= 0 then
+    DefaultChecked := True;        // the same as ClearGeoRow
+
   // 4) Hide placeholder column when no fields are active
   if DataCount = 0 then
     ColWidths[FixedCols] := 0

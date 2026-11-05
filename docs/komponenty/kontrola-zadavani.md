@@ -69,7 +69,7 @@ Výpočetní tabulky berou filtr z pole sloupce (`GeoFieldsDef.pas`):
 | souřadnice `Y`, `X`, `Z` | výraz | 2 místa, smí být prázdné |
 | délky `SH`, `SS` | výraz | nejméně 0 |
 | `HZ` | výraz | 4 místa, perioda 400 |
-| `Zuhel` | výraz | 0 až 400 |
+| `ZU` | výraz | 0 až 400 |
 | kód kvality `KK` | celé číslo | 0 až 8 |
 | poznámka | text | nejvýš 32 znaků |
 

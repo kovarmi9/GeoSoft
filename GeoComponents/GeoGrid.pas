@@ -49,7 +49,7 @@ type
     FOnCellSelectable: TCellSelectableEvent;
 
     FCheckColumn: Integer;            // -1 = no check box column
-    FChecked: TArray<Boolean>;        // index 0 is the header "select all"
+    FHeaderChecked: Boolean;          // the header "select all" box
     FDefaultChecked: Boolean;
     FOnCheckChanged: TNotifyEvent;
     FRowNumbers: Boolean;
@@ -61,7 +61,6 @@ type
     procedure SetDefaultChecked(const Value: Boolean);
     function  GetChecked(ARow: Integer): Boolean;
     procedure SetChecked(ARow: Integer; const Value: Boolean);
-    procedure EnsureCheckedLength;
     procedure DrawCheckBox(ARow: Integer; const ARect: TRect);
     procedure OpenEditor;
     procedure WMChar(var Msg: TWMChar); message WM_CHAR;
@@ -130,9 +129,6 @@ type
     /// <summary>Called after component is loaded (DFM).</summary>
     procedure Loaded; override;
 
-    /// <summary>Keeps check box states in step with the rows.</summary>
-    procedure SizeChanged(OldColCount, OldRowCount: Longint); override;
-
     /// <summary>A click in the check box column toggles the box.</summary>
     procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
       X, Y: Integer); override;
@@ -158,15 +154,15 @@ type
     /// <summary>Beeps and keeps the editor open on the cell.</summary>
     procedure RejectCommit;
 
-    /// <summary>Check box of a row, row 0 switches all.</summary>
+    /// <summary>Check box of a row, kept in its cell as 1 or 0.</summary>
     property Checked[ARow: Integer]: Boolean read GetChecked write SetChecked;
 
   published
-    /// <summary>Column with check boxes, -1 for none.</summary>
+    /// <summary>Check box column, -1 none, set by field grids.</summary>
     property CheckColumn: Integer
       read FCheckColumn write SetCheckColumn default -1;
 
-    /// <summary>Boxes start ticked, new rows as the header.</summary>
+    /// <summary>State of a box whose cell is empty.</summary>
     property DefaultChecked: Boolean
       read FDefaultChecked write SetDefaultChecked default False;
 
@@ -683,51 +679,46 @@ procedure TGeoGrid.SetCheckColumn(const Value: Integer);
 begin
   if FCheckColumn = Value then Exit;
   FCheckColumn := Value;
-  EnsureCheckedLength;
   Invalidate;
 end;
 
 procedure TGeoGrid.SetDefaultChecked(const Value: Boolean);
-var
-  I: Integer;
 begin
+  if FDefaultChecked = Value then Exit;   // keeps the header box
   FDefaultChecked := Value;
-  for I := 0 to High(FChecked) do
-    FChecked[I] := Value;
+  FHeaderChecked := Value;
   Invalidate;
 end;
 
-// A new row takes the header box, the header box itself the default
-procedure TGeoGrid.EnsureCheckedLength;
-var
-  I, OldLength: Integer;
-begin
-  OldLength := Length(FChecked);
-  if OldLength >= RowCount then
-    Exit;
-
-  SetLength(FChecked, RowCount);
-  for I := OldLength to RowCount - 1 do
-    if I = 0 then
-      FChecked[I] := FDefaultChecked
-    else
-      FChecked[I] := FChecked[0];
-end;
-
+// The cell keeps the state, so it moves with its row
 function TGeoGrid.GetChecked(ARow: Integer): Boolean;
+var
+  S: string;
 begin
-  Result := (ARow >= 0) and (ARow < Length(FChecked)) and FChecked[ARow];
+  if ARow < FixedRows then
+    Exit(FHeaderChecked);
+  if (FCheckColumn < 0) or (ARow >= RowCount) then
+    Exit(False);
+
+  S := Cells[FCheckColumn, ARow];
+  if S = '' then
+    Result := FDefaultChecked     // a new row
+  else
+    Result := S <> '0';
 end;
 
 procedure TGeoGrid.SetChecked(ARow: Integer; const Value: Boolean);
 begin
-  EnsureCheckedLength;
-  if (ARow < 0) or (ARow > High(FChecked)) then Exit;
-  if FChecked[ARow] = Value then Exit;
+  if (FCheckColumn < 0) or (ARow < FixedRows) or (ARow >= RowCount) then
+    Exit;
+  if GetChecked(ARow) = Value then
+    Exit;
 
-  FChecked[ARow] := Value;
-  if FCheckColumn >= 0 then
-    InvalidateCell(FCheckColumn, ARow);
+  if Value then
+    Cells[FCheckColumn, ARow] := '1'
+  else
+    Cells[FCheckColumn, ARow] := '0';
+  InvalidateCell(FCheckColumn, ARow);
   if Assigned(FOnCheckChanged) then
     FOnCheckChanged(Self);
 end;
@@ -746,32 +737,26 @@ begin
   DrawFrameControl(Canvas.Handle, R, DFC_BUTTON, Flags);
 end;
 
-procedure TGeoGrid.SizeChanged(OldColCount, OldRowCount: Longint);
-begin
-  inherited SizeChanged(OldColCount, OldRowCount);
-  EnsureCheckedLength;
-end;
-
 // A click in the check box column toggles the box instead of moving the
 // cursor. The box in the header row switches every other row.
 procedure TGeoGrid.MouseDown(Button: TMouseButton; Shift: TShiftState;
   X, Y: Integer);
 var
   ACol, ARow, I: Integer;
-  NewValue: Boolean;
 begin
   if (FCheckColumn >= 0) and (Button = mbLeft) then
   begin
     MouseToCell(X, Y, ACol, ARow);
     if (ACol = FCheckColumn) and (ARow >= 0) then
     begin
-      EnsureCheckedLength;
-
       if ARow < FixedRows then
       begin
-        NewValue := not Checked[0];
-        for I := 0 to High(FChecked) do
-          FChecked[I] := NewValue;
+        FHeaderChecked := not FHeaderChecked;
+        for I := FixedRows to RowCount - 1 do
+          if FHeaderChecked then
+            Cells[FCheckColumn, I] := '1'
+          else
+            Cells[FCheckColumn, I] := '0';
         Invalidate;
         if Assigned(FOnCheckChanged) then
           FOnCheckChanged(Self);

@@ -16,40 +16,36 @@ var
 begin
   // P - start of the measuring line
   ClearGeoRow(P);
-  P.Uloha := ULOHA_ORTOGONALNI;
   P.CB := 5210;
   P.X := 0;
   P.Y := 0;
   P.KK := 3;
-  P.SH := 0;              // chainage
-  P.PolarK := 0;          // offset
+  P.Sta := 0;              // chainage
+  P.Kol := 0;          // offset
 
   // K - end of the measuring line, 8,485 m from P
   ClearGeoRow(K);
-  K.Uloha := ULOHA_ORTOGONALNI;
   K.CB := 5200;
   K.X := 6;
   K.Y := 6;
   K.KK := 3;
-  K.SH := 8.485281374;
-  K.PolarK := 0;
+  K.Sta := 8.485281374;
+  K.Kol := 0;
 
   // Detail point 1 in the middle of the line
   ClearGeoRow(D1);
-  D1.Uloha := ULOHA_ORTOGONALNI;
   D1.CB := 1;
-  D1.SH := 4.242640687;
-  D1.PolarK := 0;
+  D1.Sta := 4.242640687;
+  D1.Kol := 0;
 
   // Detail point 2 off the middle of the line
   ClearGeoRow(D2);
-  D2.Uloha := ULOHA_ORTOGONALNI;
   D2.CB := 2;
-  D2.SH := 4.242640687;
-  D2.PolarK := 4.242640687;
+  D2.Sta := 4.242640687;
+  D2.Kol := 4.242640687;
 
   // P and K first, then the detail points
-  Frame := TGeoDataFrame.Create([Uloha, CB, X, Y, SH, PolarK]);
+  Frame := TGeoDataFrame.Create([CB, X, Y, Sta, Kol]);
   Alg := TOrthogonalMethodAlgorithm.Create;
   try
     try

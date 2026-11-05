@@ -8,17 +8,11 @@ interface
 uses
   System.SysUtils, System.Math, GeoAlgorithmBase, GeoDataFrame;
 
-const
-  // Task code from the survey notebook convention
-  ULOHA_VYMERA = 95;
-
 type
   TLHuilierAlgorithm = class(TFrameAlgorithm)
   private
     FArea: Double;
   public
-    class function TaskCode: Integer; override;
-
     // Every row is a corner of the polygon, X and Y are read, nothing is
     // written. The area goes to Area [m²].
     procedure Calculate(AFrame: TGeoDataFrame); override;
@@ -28,11 +22,6 @@ type
   end;
 
 implementation
-
-class function TLHuilierAlgorithm.TaskCode: Integer;
-begin
-  Result := ULOHA_VYMERA;
-end;
 
 procedure TLHuilierAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var

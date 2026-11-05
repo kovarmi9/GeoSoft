@@ -20,11 +20,11 @@ inherited ForwardIntersectionForm: TForwardIntersectionForm
     ColumnFields.Strings = (
       'CB='#268#237'slo bodu'
       'HZ=Sm'#283'r / z A'
-      'Zuhel=Sm'#283'r z B'
+      'ZU=Sm'#283'r z B'
       'Y'
       'X'
       'KK=KK'
-      'Poznamka=Popis')
+      'Popis=Popis')
     ReadOnlyFields = [X, Y, KK]
     ColWidths = (
       30

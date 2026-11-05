@@ -55,9 +55,10 @@ constructor TCheckMeasurementsForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TCheckMeasurementsAlgorithm.Create;
-  // Vy, Sxy and Vz are only shown
+  // M1 from coordinates, M2 difference, M3 limit, M4 verdict,
+  // M2 to M4 only shown
   FFrame := TGeoDataFrame.Create(
-    [Uloha, CB, X, Y, CBm, Xm, Ym, SH, SS, KK, Poznamka]);
+    [CB, X, Y, CBm, Xm, Ym, SH, M1, KK, Popis]);
 end;
 
 destructor TCheckMeasurementsForm.Destroy;
@@ -104,20 +105,20 @@ begin
       LookupPoint(PointNumber, ListPoint);
   end;
 
-  if ACol <> GridPairs.FieldToCol(Poznamka) then
+  if ACol <> GridPairs.FieldToCol(Popis) then
     Recompute;
 end;
 
 // Clears the computed columns of one row.
 procedure TCheckMeasurementsForm.ClearComputed(ARow: Integer);
 begin
-  SetCell(SS, ARow, '');
-  SetCell(Vy, ARow, '');
-  SetCell(Sxy, ARow, '');
-  SetCell(Vz, ARow, '');
+  SetCell(M1, ARow, '');
+  SetCell(M2, ARow, '');
+  SetCell(M3, ARow, '');
+  SetCell(M4, ARow, '');
 end;
 
-// Results into the grid, provisional in Vy, Sxy and Vz
+// Results into the grid, provisional in M2, M3 and M4
 procedure TCheckMeasurementsForm.RefreshComputed;
 var
   I, R: Integer;
@@ -130,16 +131,16 @@ begin
   begin
     R   := FRows[I];
     Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I], FAlg.Scale);
-    SetCell(Vz, R, TCheckMeasurementsAlgorithm.Verdict(Check));
+    SetCell(M4, R, TCheckMeasurementsAlgorithm.Verdict(Check));
     if not Check.Found then
       Continue;
 
-    SetCell(SS, R, FloatToStr(Check.Computed, FS));
+    SetCell(M1, R, FloatToStr(Check.Computed, FS));
     if Check.HasMeasured then
     begin
-      SetCell(Vy, R, FloatToStr(Check.Diff, FS));
+      SetCell(M2, R, FloatToStr(Check.Diff, FS));
       if not IsNan(Check.Tolerance) then
-        SetCell(Sxy, R, FloatToStr(Check.Tolerance, FS));
+        SetCell(M3, R, FloatToStr(Check.Tolerance, FS));
     end;
   end;
 end;
@@ -175,7 +176,6 @@ begin
     if (PointNumberFrom = 0) or (PointNumberTo = 0) then
       Continue;
 
-    Row.Uloha := ULOHA_KONTROLNI;
 
     // A pair without coordinates stays in, only its coordinates are empty
     if Dict.PointExists(PointNumberFrom) and
@@ -330,7 +330,7 @@ begin
                 PointId(PointNumberTo), '',
                 '(' + Num(Check.Computed) + ')', '', '', 'neměřeno']);
 
-    Note := string(FFrame.Rows[I].Poznamka);
+    Note := string(FFrame.Rows[I].Popis);
     if Note <> '' then
       Prot.Text('      Poznámka: ' + Note);
   end;

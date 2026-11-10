@@ -8,7 +8,7 @@ uses
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
   GeoFieldsDef, SettingsState, GeoAlgorithmDistanceIntersection,
-  ProtocolTable, PointNumber;
+  ProtocolTable, PointNumber, ProtocolDistanceIntersection;
 
 type
   TDistanceIntersectionForm = class(TCalcBaseForm)
@@ -177,7 +177,7 @@ begin
   Recompute;
   if not FAlg.Valid then
   begin
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
     Exit;
   end;
 
@@ -206,35 +206,16 @@ var
 begin
   ClearGrid(Grid, RESULT_ROW + 1);
   for I := 0 to Min(AFrame.Count, RESULT_ROW) - 1 do
-    PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad);
+    if PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad) and
+       (I < GIVEN_POINTS) then
+      LoadGridPoint(Grid, I + 1);   // given points from the list
   Recompute;
 end;
 
-// The given points, the check, the angle and the new point
 procedure TDistanceIntersectionForm.WriteProtocol(ALines: TStrings);
 begin
-  if not BeginProtocol(ALines, 'Protínání z délek', FAlg.Valid, FFrame,
-    FAlg.Warnings) then
-    Exit;
-  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  FrameTable('VÝCHOZÍ BODY', FFrame, [ColNumber, ColField(CB),
-    ColField(SH, 'Délka'), ColPair, ColField(KK)], 0, GIVEN_POINTS - 1);
-  Prot.Values(['Délka 1-2 ze souřadnic', Num(FAlg.Base)]);
-  if not IsNan(FAlg.Measured) then
-  begin
-    Prot.Values(['Kontrolní délka 1-2', Num(FAlg.Measured)]);
-    Prot.Text(LimitText(Abs(FAlg.Measured - FAlg.Base), FAlg.Limit));
-    Prot.Text(LimitSource);
-  end;
-  Prot.Values(['Úhel protnutí', Ang(FAlg.omega)]);
-  if FAlg.Left then
-    Prot.Text('Bod leží vlevo od 1→2')
-  else
-    Prot.Text('Bod leží vpravo od 1→2');
-  // The check length of row 3 is shown above
-  FrameTable('URČOVANÝ BOD', FFrame, [ColNumber, ColField(CB), ColPair,
-    ColField(KK)], GIVEN_POINTS, GIVEN_POINTS, FStored);
-  Prot.Finish(FAlg.Warnings);
+  TDistanceIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
+    ProtocolRows(FStored));
 end;
 
 end.

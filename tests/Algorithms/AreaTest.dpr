@@ -20,6 +20,8 @@ var
 begin
   Writeln(ATitle);
   Writeln(Format('  Plocha: %.2f m2', [Alg.Area]));
+  for I := 0 to Alg.Errors.Count - 1 do
+    Writeln('  ', Alg.Errors[I]);
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
 end;

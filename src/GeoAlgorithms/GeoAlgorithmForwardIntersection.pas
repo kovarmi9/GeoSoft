@@ -157,7 +157,7 @@ var
   DeltaXAB, DeltaYAB, sigmaAP, sigmaBP, sinOmega, sAP: Double;
   PointNumber: string;
 begin
-  ClearWarnings;
+  ClearMessages;
   FValid := False;
   FStations[0].Row := -1;
   FStations[1].Row := -1;

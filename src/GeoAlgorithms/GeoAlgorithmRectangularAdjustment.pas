@@ -53,7 +53,7 @@ var
   Known: Boolean;
   Key: TCongruentTransformation;
 begin
-  ClearWarnings;
+  ClearMessages;
   FValid := False;
   FClosureAlong := NaN;
   FClosureAcross := NaN;

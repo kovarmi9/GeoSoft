@@ -60,7 +60,9 @@ begin
         'rozdíl %.3f m, mezní rozdíl %.3f m',
         [Alg.Baseline.L, Alg.Baseline.Lg, Alg.Baseline.Diff,
          Alg.Baseline.Tolerance]));
-      Writeln('Varování: ', Alg.Warnings.Count);
+      Writeln('Varování: ', Alg.Errors.Count + Alg.Warnings.Count);
+      for I := 0 to Alg.Errors.Count - 1 do
+        Writeln('  ', Alg.Errors[I]);
       for I := 0 to Alg.Warnings.Count - 1 do
         Writeln('  ', Alg.Warnings[I]);
       Writeln(Frame.Print);

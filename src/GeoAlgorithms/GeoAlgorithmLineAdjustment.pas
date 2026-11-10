@@ -38,7 +38,7 @@ var
   DeltaXAB, DeltaYAB, sAB, k: Double;
   PointNumber: string;
 begin
-  ClearWarnings;
+  ClearMessages;
   FLineLength := NaN;
   FQuality := 0;
   FLimit := NaN;

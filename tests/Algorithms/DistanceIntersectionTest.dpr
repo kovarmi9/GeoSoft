@@ -48,6 +48,10 @@ begin
     Writeln('  Mez: ', Alg.Limit:0:3);
   end;
 
+  for I := 0 to Alg.Errors.Count - 1 do
+  begin
+    Writeln('  ', Alg.Errors[I]);
+  end;
   for I := 0 to Alg.Warnings.Count - 1 do
   begin
     Writeln('  ', Alg.Warnings[I]);

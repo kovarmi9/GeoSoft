@@ -8,10 +8,10 @@ uses
   Vcl.ExtCtrls, Vcl.Grids, Vcl.Menus, Vcl.Dialogs,
   Point, PointDictionary, PointPrefixState,
   GeoRow, GeoDataFrame,
-  CoordOrderState, ProtocolTable, Accuracy,
+  CoordOrderState, Accuracy,
   GeoGrid, GeoFieldsGrid,
   GeoAlgorithmCheckMeasurements,
-  CalcBase, PointNumber;
+  CalcBase, PointNumber, ProtocolCheckMeasurements;
 
 const
   CSV_NAME = 'kontrolni_omerne.csv';
@@ -254,106 +254,8 @@ begin
 end;
 
 procedure TCheckMeasurementsForm.WriteProtocol(ALines: TStrings);
-var
-  I, N: Integer;
-  Check: TCheckResult;
-  PointNumberFrom, PointNumberTo: Int64;
-  ListPoint: Point.TPoint;
-  Dict: TPointDictionary;
-  Nums: array of Int64;
-  Note: string;
-
-  // Every point of the job, in order of first use
-  procedure AddNum(ANum: Int64);
-  var
-    J: Integer;
-  begin
-    for J := 0 to N - 1 do
-      if Nums[J] = ANum then Exit;
-    SetLength(Nums, N + 1);
-    Nums[N] := ANum;
-    Inc(N);
-  end;
-
 begin
-  Dict := TPointDictionary.GetInstance;
-  N := 0;
-  SetLength(Nums, 0);
-  for I := 0 to FFrame.Count - 1 do
-  begin
-    AddNum(FFrame.Rows[I].CB);
-    AddNum(FFrame.Rows[I].CBm);
-  end;
-
-  Prot.Title(ALines, 'Kontrolní oměrné');
-  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Prot.Section('POUŽITÉ BODY');
-  Prot.Columns([ColNumber, ColPoint, ColPair, ColLength('Z')]);
-  for I := 0 to N - 1 do
-    if Dict.PointExists(Nums[I]) then
-    begin
-      ListPoint := Dict.GetPoint(Nums[I]);
-      Prot.Row([IntToStr(I + 1), PointId(Nums[I]), CoordPair(ListPoint),
-                Num(ListPoint.Z)]);
-    end
-    else
-      Prot.Row([IntToStr(I + 1), PointId(Nums[I])],
-               '*** bod není v seznamu souřadnic ***');
-
-  Prot.Section('OMĚRNÉ MÍRY');
-  Prot.Columns([ColNumber, ColPoint('Z bodu'), ColPoint('Na bod'),
-    ColLength('Měřená'), ColLength('Ze souřadnic'), ColLength('Rozdíl'),
-    ColLength('Mezní'), ColText('')]);
-  for I := 0 to FFrame.Count - 1 do
-  begin
-    PointNumberFrom := FFrame.Rows[I].CB;
-    PointNumberTo := FFrame.Rows[I].CBm;
-    Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I], FAlg.Scale);
-
-    if not Check.Found then
-    begin
-      Prot.Row([GridNumber(I), PointId(PointNumberFrom),
-                PointId(PointNumberTo)],
-               '*** nelze spočítat, chybí bod ***');
-      Continue;
-    end;
-
-    if Check.HasMeasured then
-      Prot.Row([GridNumber(I), PointId(PointNumberFrom),
-                PointId(PointNumberTo), Num(Check.Measured),
-                Num(Check.Computed), Num(Check.Diff),
-                Num(Check.Tolerance),
-                TCheckMeasurementsAlgorithm.Verdict(Check)])
-    else
-      // KatV annex 17.11 - a value that was not measured goes in brackets
-      Prot.Row([GridNumber(I), PointId(PointNumberFrom),
-                PointId(PointNumberTo), '',
-                '(' + Num(Check.Computed) + ')', '', '', 'neměřeno']);
-
-    Note := string(FFrame.Rows[I].Popis);
-    if Note <> '' then
-      Prot.Text('      Poznámka: ' + Note);
-  end;
-
-  Prot.Line;
-  Prot.Text('Měřených oměrných: ' + IntToStr(FAlg.Info.Measured) +
-            '    Nevyhovuje: ' + IntToStr(FAlg.Info.Failed) +
-            '    Největší rozdíl: ' + Num(FAlg.Info.MaxDiff));
-  Prot.Text(LimitSource);
-
-  if FAlg.Info.ComputedOnly > 0 then
-    Prot.Text('Neměřených, uvedených ze souřadnic v závorkách: ' +
-              IntToStr(FAlg.Info.ComputedOnly));
-
-  if FAlg.Info.Skipped > 0 then
-    Prot.Text('Nespočítaných oměrných (chybí bod v seznamu): ' +
-              IntToStr(FAlg.Info.Skipped));
-
-  if FAlg.Info.NoQuality > 0 then
-    Prot.Text('Bez mezního rozdílu (' + NoMxy + '): ' +
-              IntToStr(FAlg.Info.NoQuality));
-
-  Prot.Finish(FAlg.Warnings);
+  TCheckMeasurementsProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows);
 end;
 
 procedure TCheckMeasurementsForm.CalculateClick(Sender: TObject);

@@ -34,6 +34,8 @@ begin
       'uzávěr %.3f m, mezní rozdíl %.3f m',
       [I + 1, Seg.MeasDist, Seg.CalcDist, Seg.Closure, Seg.Limit]));
   end;
+  for I := 0 to Alg.Errors.Count - 1 do
+    Writeln('  ', Alg.Errors[I]);
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
   Writeln(Frame.Print);

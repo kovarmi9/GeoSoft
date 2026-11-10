@@ -8,7 +8,7 @@ uses
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointDictionary, PointPrefixState, GeoRow,
   GeoDataFrame, GeoGridBridge, CoordOrderState, GeoAlgorithmLineAdjustment,
-  ProtocolTable, PointNumber;
+  ProtocolTable, PointNumber, ProtocolLineAdjustment;
 
 type
   TLineAdjustmentForm = class(TCalcBaseForm)
@@ -167,63 +167,22 @@ begin
     Result := inherited GridNumber(AFrameRow);
 end;
 
-// The line, then every point before and after the move
 procedure TLineAdjustmentForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
   Row: TGeoRow;
-  NewNumber: Int64;
-  Verdict, Tail: string;
+  Rows: TProtocolRows;
 begin
-  if not BeginProtocol(ALines, 'Vyrovnání do přímky',
-    not IsNan(FAlg.LineLength), FFrame, FAlg.Warnings) then
-    Exit;
-  FrameTable('ŘÍDÍCÍ PŘÍMKA', FFrame, [ColNumber, ColField(CB), ColPair,
-    ColField(KK)], 0, LINE_ROWS - 1);
-  if IsNan(FAlg.Limit) then
-    Prot.Text('Délka přímky = ' + Num(FAlg.LineLength) +
-      '    Kód kvality: ' + IntToStr(FAlg.Quality) + '    ' + NoMxy)
-  else
-    Prot.Text('Délka přímky = ' + Num(FAlg.LineLength) +
-      '    Kód kvality: ' + IntToStr(FAlg.Quality) +
-      '    Uxy = ' + Num(FAlg.Limit));
-
-  Prot.Section('VYROVNANÉ BODY');
-  Prot.Columns([ColNumber, ColText('', 3), ColPoint, ColPair,
-    ColLength('Kolmice'), ColText('')]);
+  Rows := ProtocolRows;
+  // The note goes with the stored number
   for I := LINE_ROWS to FFrame.Count - 1 do
   begin
     Row := FFrame.Rows[I];
-    // Z: the point as it was, Do: the foot of the perpendicular
-    Prot.Row([GridNumber(I), 'Z:',
-              PointId(Row.CB), CoordPair(Row.Xm, Row.Ym)]);
-    if IsNan(Row.Kol) then
-    begin
-      Prot.Row(['', 'Do:'], '*** nelze spočítat ***');
-      Continue;
-    end;
-
-    // An empty new number moves the point itself
-    if Row.CBm = 0 then
-      NewNumber := Row.CB
-    else
-      NewNumber := Row.CBm;
-
-    if IsNan(FAlg.Limit) then
-      Verdict := ''
-    else if Abs(Row.Kol) <= FAlg.Limit then
-      Verdict := 'vyhovuje'
-    else
-      Verdict := 'nevyhovuje';
-
-    Row.CB := NewNumber;
-    Tail := UpdatedTail(Row);
-
-    Prot.Row(['', 'Do:', PointId(NewNumber), CoordPair(Row.X, Row.Y),
-              Num(Row.Kol), Verdict], Tail);
+    if Row.CBm <> 0 then
+      Row.CB := Row.CBm;
+    Rows.Notes[I] := UpdatedTail(Row);
   end;
-
-  Prot.Finish(FAlg.Warnings);
+  TLineAdjustmentProtocol.Write(Prot, ALines, FFrame, FAlg, Rows);
 end;
 
 procedure TLineAdjustmentForm.LinePointCommitted(Sender: TObject;
@@ -283,8 +242,8 @@ begin
     Exit;
 
   Recompute;
-  if FAlg.Warnings.Count > 0 then
-    ShowMessage(Trim(FAlg.Warnings.Text));
+  if FAlg.Errors.Count + FAlg.Warnings.Count > 0 then
+    ShowMessage(Trim(FAlg.Errors.Text + FAlg.Warnings.Text));
 end;
 
 // The first two rows are A and B, results come with the next Výpočet

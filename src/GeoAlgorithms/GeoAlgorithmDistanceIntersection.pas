@@ -46,7 +46,7 @@ var
   Check, s12, s1, s2, p, h, epsilon: Double;
   DeltaX12, DeltaY12, ToFirstX, ToFirstY, ToSecondX, ToSecondY: Double;
 begin
-  ClearWarnings;
+  ClearMessages;
   FValid := False;
   FLeft := False;
   FOmega := NaN;
@@ -104,7 +104,7 @@ begin
     FLimit := TAccuracy.LengthLimit(Max(FBase, FMeasured), Quality);
     if not IsNan(FLimit) and (Abs(FMeasured - FBase) >= FLimit) then
       AddWarning(Format('Kontrolní délka 1-2: rozdíl %.3f m není menší než ' +
-        'mezní rozdíl %.3f m - příloha, bod 13.5 katastrální vyhlášky',
+        'mezní rozdíl %.3f m - vyhláška č. 357/2013 Sb., příloha, bod 13.5',
         [Abs(FMeasured - FBase), FLimit]));
   end;
 

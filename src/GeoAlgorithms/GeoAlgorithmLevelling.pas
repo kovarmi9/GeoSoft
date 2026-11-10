@@ -116,7 +116,7 @@ begin
     AddError(Format('Začátek pořadu %s nemá danou výšku.',
       [TPointNumber.ToDisplay(AFrame.Rows[0].CB)]));
 
-  Result := Warnings.Count = 0;
+  Result := Errors.Count = 0;
 end;
 
 // The turn: one point number on a fore row and on the next back row
@@ -252,7 +252,7 @@ begin
     AddError(Format('Tam a zpět musí skončit na bodě začátku %s.',
       [TPointNumber.ToDisplay(AFrame.Rows[0].CB)]));
   Turn := FindTurn(AFrame);
-  if Warnings.Count > 0 then
+  if Errors.Count > 0 then
     Exit;
 
   SumRows(AFrame, 0, Turn, FInfo.SumHeight, LengthThere);
@@ -270,7 +270,7 @@ begin
   FInfo.Limit := 0.020 * Sqrt(FInfo.TotalLength / 1000);
   if Abs(FInfo.Misclosure) > FInfo.Limit then
     AddWarning(Format('Rozdíl tam a zpět %.3f m překračuje mezní rozdíl ' +
-      '%.3f m - příloha, bod 4.9 vyhlášky 31/1995 Sb.',
+      '%.3f m - vyhláška č. 31/1995 Sb., příloha, bod 4.9',
       [FInfo.Misclosure, FInfo.Limit]));
 
   // Each way on its own, the way back ends on the start
@@ -313,7 +313,7 @@ procedure TLevellingAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   I, LastRow: Integer;
 begin
-  ClearWarnings;
+  ClearMessages;
   FInfo := Default(TLevellingInfo);
   FInfo.BothWays := FBothWays;
   FInfo.SumBack := NaN;

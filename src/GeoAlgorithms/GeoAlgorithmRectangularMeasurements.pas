@@ -33,7 +33,7 @@ type
     FSegments: TSegmentArray;
 
     procedure ComputeStretch(AFrame: TGeoDataFrame; AFrom, ATo: Integer;
-      AMsgs: TStrings);
+      AErrors, AWarnings: TStrings);
 
     // Local coordinates from the signed chain, no transformation
     procedure BuildLocalPoints(const AChain: TPointsArray);
@@ -129,7 +129,7 @@ var
   LocalId, GlobalId: TPointsArray;
   Transform: TCongruentTransformation;
 begin
-  ClearWarnings;
+  ClearMessages;
   N := Length(AChain);
 
   BuildLocalPoints(AChain);
@@ -172,7 +172,7 @@ begin
       end;
 end;
 procedure TRectangularMeasurementsAlgorithm.ComputeStretch(
-  AFrame: TGeoDataFrame; AFrom, ATo: Integer; AMsgs: TStrings);
+  AFrame: TGeoDataFrame; AFrom, ATo: Integer; AErrors, AWarnings: TStrings);
 var
   I, N: Integer;
   Chain, Ident, Res, Loc: TPointsArray;
@@ -188,7 +188,7 @@ begin
      TPointNumber.ToDisplay(AFrame.Rows[ATo].CB)]);
 
   if N - 2 > MAX_INTERMEDIATE then
-    AMsgs.Add(Head + Format('%d mezilehlých bodů, obvykle nejvýš %d.',
+    AWarnings.Add(Head + Format('%d mezilehlých bodů, obvykle nejvýš %d.',
       [N - 2, MAX_INTERMEDIATE]));
 
   NoLength := False;
@@ -204,8 +204,8 @@ begin
       Chain[I].X := AFrame.Rows[AFrom + I].SH * Scale;
       if IsNan(Chain[I].X) then
       begin
-        AMsgs.AddObject(Head + Format('bod %s nemá délku.',
-          [TPointNumber.ToDisplay(AFrame.Rows[AFrom + I].CB)]), ErrorMark);
+        AErrors.Add(Head + Format('bod %s nemá délku.',
+          [TPointNumber.ToDisplay(AFrame.Rows[AFrom + I].CB)]));
         NoLength := True;
       end;
     end;
@@ -214,7 +214,7 @@ begin
   // A missing length would put the point onto the previous one
   if NoLength then
   begin
-    AMsgs.AddObject(Head + 'úsek se nepočítá.', ErrorMark);
+    AErrors.Add(Head + 'úsek se nepočítá.');
     Exit;
   end;
 
@@ -229,7 +229,7 @@ begin
   if IsNan(Ident[0].X) or IsNan(Ident[0].Y) or
      IsNan(Ident[1].X) or IsNan(Ident[1].Y) then
   begin
-    AMsgs.AddObject(Head + 'daný bod nemá souřadnice.', ErrorMark);
+    AErrors.Add(Head + 'daný bod nemá souřadnice.');
     Exit;
   end;
 
@@ -239,13 +239,15 @@ begin
   except
     on E: Exception do
     begin
-      AMsgs.AddObject(Head + E.Message, ErrorMark);
+      AErrors.Add(Head + E.Message);
       Exit;
     end;
   end;
 
+  for I := 0 to Errors.Count - 1 do
+    AErrors.Add(Head + Errors[I]);
   for I := 0 to Warnings.Count - 1 do
-    AMsgs.AddObject(Head + Warnings[I], Warnings.Objects[I]);
+    AWarnings.Add(Head + Warnings[I]);
 
   Loc := FLocalPoints;
   Seg.FromRow  := AFrom;
@@ -264,7 +266,7 @@ begin
 
   if not IsNan(Seg.Limit) and
      (Abs(Seg.CalcDist - Seg.MeasDist) >= Seg.Limit) then
-    AMsgs.Add(Head + Format('odchylka délky %.3f m není menší ' +
+    AWarnings.Add(Head + Format('odchylka délky %.3f m není menší ' +
       'než mezní rozdíl %.3f m.',
       [Abs(Seg.CalcDist - Seg.MeasDist), Seg.Limit]));
 
@@ -283,9 +285,9 @@ end;
 procedure TRectangularMeasurementsAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   I, First: Integer;
-  Msgs: TStringList;
+  StretchErrors, StretchWarnings: TStringList;
 begin
-  ClearWarnings;
+  ClearMessages;
   SetLength(FSegments, 0);
   if AFrame.Count = 0 then Exit;
 
@@ -296,8 +298,9 @@ begin
     Exit;
   end;
 
-  // Calculate clears the warnings, so they are kept aside
-  Msgs := TStringList.Create;
+  // TransformChain clears the messages, so they are kept aside
+  StretchErrors := TStringList.Create;
+  StretchWarnings := TStringList.Create;
   try
     First := 0;
     for I := 1 to AFrame.Count - 1 do
@@ -305,21 +308,22 @@ begin
       if IsGiven(AFrame.Rows[I]) and
          (AFrame.Rows[I].CB <> AFrame.Rows[First].CB) then
       begin
-        ComputeStretch(AFrame, First, I, Msgs);
+        ComputeStretch(AFrame, First, I, StretchErrors, StretchWarnings);
         First := I;
       end;
 
     if First < AFrame.Count - 1 then
-      Msgs.AddObject(Format('Za bodem %s už není známý bod, ' +
+      StretchErrors.Add(Format('Za bodem %s už není známý bod, ' +
         'nespočítané body: %d.',
         [TPointNumber.ToDisplay(AFrame.Rows[First].CB),
-         AFrame.Count - 1 - First]), ErrorMark);
+         AFrame.Count - 1 - First]));
 
-    // The marks of the errors go with the messages
-    ClearWarnings;
-    Warnings.AddStrings(Msgs);
+    ClearMessages;
+    Errors.AddStrings(StretchErrors);
+    Warnings.AddStrings(StretchWarnings);
   finally
-    Msgs.Free;
+    StretchErrors.Free;
+    StretchWarnings.Free;
   end;
 end;
 

@@ -3,6 +3,45 @@
         <ProjectGuid>{F60F935B-EEDB-4E33-8A63-9FB4C814BA0A}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
+        <Projects Include="LineIntersectionProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="PolarProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ResectionProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ParcelAreaProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="DistanceIntersectionProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="OrthogonalProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="LineAdjustmentProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="RectangularMeasurementsProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="RectangularAdjustmentProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="ForwardIntersectionProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CheckMeasurementsProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="LevellingProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="TransformationProtocolTest.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="PolarTest.dproj">
             <Dependencies/>
         </Projects>
@@ -191,14 +230,131 @@
     <Target Name="GeoSoft:Make">
         <MSBuild Projects="..\..\src\GUI\GeoSoft.dproj" Targets="Make"/>
     </Target>
+    <Target Name="LineIntersectionProtocolTest">
+        <MSBuild Projects="LineIntersectionProtocolTest.dproj"/>
+    </Target>
+    <Target Name="LineIntersectionProtocolTest:Clean">
+        <MSBuild Projects="LineIntersectionProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LineIntersectionProtocolTest:Make">
+        <MSBuild Projects="LineIntersectionProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="PolarProtocolTest">
+        <MSBuild Projects="PolarProtocolTest.dproj"/>
+    </Target>
+    <Target Name="PolarProtocolTest:Clean">
+        <MSBuild Projects="PolarProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PolarProtocolTest:Make">
+        <MSBuild Projects="PolarProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ResectionProtocolTest">
+        <MSBuild Projects="ResectionProtocolTest.dproj"/>
+    </Target>
+    <Target Name="ResectionProtocolTest:Clean">
+        <MSBuild Projects="ResectionProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ResectionProtocolTest:Make">
+        <MSBuild Projects="ResectionProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ParcelAreaProtocolTest">
+        <MSBuild Projects="ParcelAreaProtocolTest.dproj"/>
+    </Target>
+    <Target Name="ParcelAreaProtocolTest:Clean">
+        <MSBuild Projects="ParcelAreaProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ParcelAreaProtocolTest:Make">
+        <MSBuild Projects="ParcelAreaProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DistanceIntersectionProtocolTest">
+        <MSBuild Projects="DistanceIntersectionProtocolTest.dproj"/>
+    </Target>
+    <Target Name="DistanceIntersectionProtocolTest:Clean">
+        <MSBuild Projects="DistanceIntersectionProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DistanceIntersectionProtocolTest:Make">
+        <MSBuild Projects="DistanceIntersectionProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="OrthogonalProtocolTest">
+        <MSBuild Projects="OrthogonalProtocolTest.dproj"/>
+    </Target>
+    <Target Name="OrthogonalProtocolTest:Clean">
+        <MSBuild Projects="OrthogonalProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="OrthogonalProtocolTest:Make">
+        <MSBuild Projects="OrthogonalProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LineAdjustmentProtocolTest">
+        <MSBuild Projects="LineAdjustmentProtocolTest.dproj"/>
+    </Target>
+    <Target Name="LineAdjustmentProtocolTest:Clean">
+        <MSBuild Projects="LineAdjustmentProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LineAdjustmentProtocolTest:Make">
+        <MSBuild Projects="LineAdjustmentProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="RectangularMeasurementsProtocolTest">
+        <MSBuild Projects="RectangularMeasurementsProtocolTest.dproj"/>
+    </Target>
+    <Target Name="RectangularMeasurementsProtocolTest:Clean">
+        <MSBuild Projects="RectangularMeasurementsProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RectangularMeasurementsProtocolTest:Make">
+        <MSBuild Projects="RectangularMeasurementsProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="RectangularAdjustmentProtocolTest">
+        <MSBuild Projects="RectangularAdjustmentProtocolTest.dproj"/>
+    </Target>
+    <Target Name="RectangularAdjustmentProtocolTest:Clean">
+        <MSBuild Projects="RectangularAdjustmentProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="RectangularAdjustmentProtocolTest:Make">
+        <MSBuild Projects="RectangularAdjustmentProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ForwardIntersectionProtocolTest">
+        <MSBuild Projects="ForwardIntersectionProtocolTest.dproj"/>
+    </Target>
+    <Target Name="ForwardIntersectionProtocolTest:Clean">
+        <MSBuild Projects="ForwardIntersectionProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ForwardIntersectionProtocolTest:Make">
+        <MSBuild Projects="ForwardIntersectionProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CheckMeasurementsProtocolTest">
+        <MSBuild Projects="CheckMeasurementsProtocolTest.dproj"/>
+    </Target>
+    <Target Name="CheckMeasurementsProtocolTest:Clean">
+        <MSBuild Projects="CheckMeasurementsProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CheckMeasurementsProtocolTest:Make">
+        <MSBuild Projects="CheckMeasurementsProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LevellingProtocolTest">
+        <MSBuild Projects="LevellingProtocolTest.dproj"/>
+    </Target>
+    <Target Name="LevellingProtocolTest:Clean">
+        <MSBuild Projects="LevellingProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LevellingProtocolTest:Make">
+        <MSBuild Projects="LevellingProtocolTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TransformationProtocolTest">
+        <MSBuild Projects="TransformationProtocolTest.dproj"/>
+    </Target>
+    <Target Name="TransformationProtocolTest:Clean">
+        <MSBuild Projects="TransformationProtocolTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TransformationProtocolTest:Make">
+        <MSBuild Projects="TransformationProtocolTest.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="PolarTest;OrthogonalTest;AreaTest;CheckTest;RectTest;TransformTest;ScaleTest;LevellingTest;LineAdjustmentTest;LineIntersectionTest;DistanceIntersectionTest;ForwardIntersectionTest;ResectionTest;RectangularAdjustmentTest;GeoSoft"/>
+        <CallTarget Targets="LevellingProtocolTest;TransformationProtocolTest;ForwardIntersectionProtocolTest;CheckMeasurementsProtocolTest;RectangularMeasurementsProtocolTest;RectangularAdjustmentProtocolTest;OrthogonalProtocolTest;LineAdjustmentProtocolTest;ResectionProtocolTest;ParcelAreaProtocolTest;DistanceIntersectionProtocolTest;LineIntersectionProtocolTest;PolarProtocolTest;PolarTest;OrthogonalTest;AreaTest;CheckTest;RectTest;TransformTest;ScaleTest;LevellingTest;LineAdjustmentTest;LineIntersectionTest;DistanceIntersectionTest;ForwardIntersectionTest;ResectionTest;RectangularAdjustmentTest;GeoSoft"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="PolarTest:Clean;OrthogonalTest:Clean;AreaTest:Clean;CheckTest:Clean;RectTest:Clean;TransformTest:Clean;ScaleTest:Clean;LevellingTest:Clean;LineAdjustmentTest:Clean;LineIntersectionTest:Clean;DistanceIntersectionTest:Clean;ForwardIntersectionTest:Clean;ResectionTest:Clean;RectangularAdjustmentTest:Clean;GeoSoft:Clean"/>
+        <CallTarget Targets="LevellingProtocolTest:Clean;TransformationProtocolTest:Clean;ForwardIntersectionProtocolTest:Clean;CheckMeasurementsProtocolTest:Clean;RectangularMeasurementsProtocolTest:Clean;RectangularAdjustmentProtocolTest:Clean;OrthogonalProtocolTest:Clean;LineAdjustmentProtocolTest:Clean;ResectionProtocolTest:Clean;ParcelAreaProtocolTest:Clean;DistanceIntersectionProtocolTest:Clean;LineIntersectionProtocolTest:Clean;PolarProtocolTest:Clean;PolarTest:Clean;OrthogonalTest:Clean;AreaTest:Clean;CheckTest:Clean;RectTest:Clean;TransformTest:Clean;ScaleTest:Clean;LevellingTest:Clean;LineAdjustmentTest:Clean;LineIntersectionTest:Clean;DistanceIntersectionTest:Clean;ForwardIntersectionTest:Clean;ResectionTest:Clean;RectangularAdjustmentTest:Clean;GeoSoft:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="PolarTest:Make;OrthogonalTest:Make;AreaTest:Make;CheckTest:Make;RectTest:Make;TransformTest:Make;ScaleTest:Make;LevellingTest:Make;LineAdjustmentTest:Make;LineIntersectionTest:Make;DistanceIntersectionTest:Make;ForwardIntersectionTest:Make;ResectionTest:Make;RectangularAdjustmentTest:Make;GeoSoft:Make"/>
+        <CallTarget Targets="LevellingProtocolTest:Make;TransformationProtocolTest:Make;ForwardIntersectionProtocolTest:Make;CheckMeasurementsProtocolTest:Make;RectangularMeasurementsProtocolTest:Make;RectangularAdjustmentProtocolTest:Make;OrthogonalProtocolTest:Make;LineAdjustmentProtocolTest:Make;ResectionProtocolTest:Make;ParcelAreaProtocolTest:Make;DistanceIntersectionProtocolTest:Make;LineIntersectionProtocolTest:Make;PolarProtocolTest:Make;PolarTest:Make;OrthogonalTest:Make;AreaTest:Make;CheckTest:Make;RectTest:Make;TransformTest:Make;ScaleTest:Make;LevellingTest:Make;LineAdjustmentTest:Make;LineIntersectionTest:Make;DistanceIntersectionTest:Make;ForwardIntersectionTest:Make;ResectionTest:Make;RectangularAdjustmentTest:Make;GeoSoft:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

@@ -7,7 +7,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
-  GeoAlgorithmLineIntersection, ProtocolTable, PointNumber;
+  GeoAlgorithmLineIntersection, ProtocolTable, PointNumber,
+  ProtocolLineIntersection;
 
 type
   TLineIntersectionForm = class(TCalcBaseForm)
@@ -145,7 +146,7 @@ begin
   Recompute;
   if not FAlg.Valid then
   begin
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
     Exit;
   end;
 
@@ -174,7 +175,9 @@ var
 begin
   ClearGrid(Grid, RESULT_ROW + 1);
   for I := 0 to Min(AFrame.Count, RESULT_ROW) - 1 do
-    PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad);
+    if PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad) and
+       (I + 1 < RESULT_ROW) then
+      LoadGridPoint(Grid, I + 1);   // given points from the list
   Recompute;
 end;
 
@@ -184,19 +187,10 @@ begin
   Result := Grid.Cells[0, AFrameRow + 1];
 end;
 
-// The two lines, the angle, the place and the intersection
 procedure TLineIntersectionForm.WriteProtocol(ALines: TStrings);
 begin
-  if not BeginProtocol(ALines, 'Průsečík přímek', FAlg.Valid, FFrame,
-    FAlg.Warnings) then
-    Exit;
-  FrameTable('', FFrame, [ColNumber(4), ColField(CB), ColPair, ColField(KK)],
-    0, LINE_POINTS - 1);
-  Prot.Values(['Úhel protnutí', Ang(FAlg.omega)]);
-  Prot.Text(TLineIntersectionAlgorithm.PlaceText(FAlg.Place));
-  FrameTable('PRŮSEČÍK', FFrame, [ColNumber(4), ColField(CB), ColPair,
-    ColField(KK)], LINE_POINTS, LINE_POINTS, FStored);
-  Prot.Finish(FAlg.Warnings);
+  TLineIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
+    ProtocolRows(FStored));
 end;
 
 end.

@@ -24,9 +24,9 @@ uses
   GeoDataFrame,
   GeoGridBridge,
   CoordOrderState,
-  ProtocolTable,
   CalcBase,
-  PointPrefixState, Vcl.Menus, SettingsState, PointNumber;
+  PointPrefixState, Vcl.Menus, SettingsState, PointNumber,
+  ProtocolOrthogonal;
 
 type
   TOrthogonalMethodForm = class(TCalcBaseForm)
@@ -303,7 +303,7 @@ begin
   Recompute;
   if not FAlg.Baseline.Valid then
   begin
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
     Exit;
   end;
 
@@ -356,28 +356,8 @@ end;
 // The whole protocol is rewritten after every computed row, so an edited
 // row replaces its old line instead of adding a second one.
 procedure TOrthogonalMethodForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Columns: TArray<TProtocolColumn>;
 begin
-  if not BeginProtocol(ALines, 'Ortogonální metoda', FAlg.Baseline.Valid,
-    FFrame, FAlg.Warnings) then
-    Exit;
-  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Columns := [ColNumber, ColField(CB), ColField(Sta, 'Staničení'),
-    ColField(Kol, 'Kolmice'), ColPair];
-  FrameTable('PŘIPOJOVACÍ BODY', FFrame, Columns, 0, 1);
-  Prot.Text(LimitText(FAlg.Baseline.Diff, FAlg.Baseline.Tolerance));
-  Prot.Text(LimitSource);
-
-  // Only the detail points with a result
-  Prot.Section('PODROBNÉ BODY');
-  Prot.Columns(Columns);
-  for I := 0 to FFrame.Count - 1 do
-    if (FRows[I] >= 0) and not IsNan(FFrame.Rows[I].X) then
-      Prot.FrameRow(FFrame.Rows[I], [GridNumber(I)],
-        UpdatedTail(FFrame.Rows[I]));
-  Prot.Finish(FAlg.Warnings);
+  TOrthogonalProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows);
 end;
 
 end.

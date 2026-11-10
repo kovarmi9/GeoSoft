@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, GeoGridBridge,
-  GeoAlgorithmLevelling, ProtocolTable, PointNumber;
+  GeoAlgorithmLevelling, ProtocolTable, PointNumber, ProtocolLevelling;
 
 type
   TLevellingForm = class(TCalcBaseForm)
@@ -174,7 +174,7 @@ begin
   end;
   if not FAlg.Info.Valid then
   begin
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
     Exit;
   end;
 
@@ -198,93 +198,17 @@ begin
   Recompute;
 end;
 
-// The notebook with the results, then the check of the line
 procedure TLevellingForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
-  Row: TGeoRow;
-  Tail: string;
-
-  // Metres to the mm, an empty cell stays empty
-  function Mm(AValue: Double): string;
-  begin
-    Result := Num(AValue, 3);
-  end;
-
+  Rows: TProtocolRows;
 begin
-  if FFrame.Count = 0 then
-  begin
-    ALines.Clear;
-    Exit;
-  end;
-
-  Prot.Title(ALines, 'Technická nivelace');
-  Prot.Columns([ColNumber, ColPoint, ColLength('Vzad', 7),
-    ColLength('Vpřed', 7), ColLength('Bočně', 7), ColLength('Délka', 7),
-    ColLength('Převýšení', 9), ColLength('Oprava', 7),
-    ColLength('Výška', 10)]);
-
+  Rows := ProtocolRows(FStored);
+  // A point with a given height is not stored
   for I := 0 to FFrame.Count - 1 do
-  begin
-    Row := FFrame.Rows[I];
-    // Only a stored point, it has a number and no given height
-    if FStored and (Row.CB <> 0) and IsNan(Row.Z) and
-       WasInList(Row) then
-      Tail := UpdatedText
-    else
-      Tail := '';
-    // A change point may have no number
-    Prot.Row([IntToStr(FRows[I] - Grid.FixedRows + 1),
-              PointId(Row.CB),
-              Mm(Row.Xm), Mm(Row.Ym),
-              Mm(Row.Zm), Num(Row.SH, 2), Mm(Row.M3), Mm(Row.M1),
-              Mm(Row.VC)], Tail);
-  end;
-
-  if FAlg.Info.Valid and FAlg.Info.BothWays then
-  begin
-    Prot.Line;
-    Prot.Text('Tam a zpět    Délka pořadu = ' +
-      Num(FAlg.Info.TotalLength, 2) +
-      '    Sestav = ' + IntToStr(FAlg.Info.SetupCount));
-    Prot.Text('Suma převýšení tam = ' + Mm(FAlg.Info.SumHeight) +
-      '    zpět = ' + Mm(FAlg.Info.SumBack));
-    if Abs(FAlg.Info.Misclosure) <= FAlg.Info.Limit then
-      Tail := 'vyhovuje'
-    else
-      Tail := 'nevyhovuje';
-    Prot.Text('Rozdíl tam a zpět = ' + Mm(FAlg.Info.Misclosure) +
-      '    Mezní rozdíl = ' + Mm(FAlg.Info.Limit) + '    ' + Tail);
-    Prot.Text('Mezní rozdíl dle vyhlášky 31/1995 Sb., příloha bod 4.9');
-    Prot.Text('Výšky bodů měřených tam i zpět jsou průměrem');
-  end
-  else if FAlg.Info.Valid then
-  begin
-    Prot.Line;
-    Prot.Text('Délka pořadu = ' + Num(FAlg.Info.TotalLength, 2) +
-      '    Sestav = ' + IntToStr(FAlg.Info.SetupCount) +
-      '    Suma převýšení = ' + Mm(FAlg.Info.SumHeight));
-    if FAlg.Info.Open then
-      Prot.Text('Pořad bez kontroly, konec nemá danou výšku')
-    else
-    begin
-      if FAlg.Info.Closed then
-        Prot.Text('Uzavřený pořad    Má být = ' + Mm(FAlg.Info.Given))
-      else
-        Prot.Text('Připojený pořad    Má být = ' + Mm(FAlg.Info.Given));
-      if Abs(FAlg.Info.Misclosure) <= FAlg.Info.Limit then
-        Tail := 'vyhovuje'
-      else
-        Tail := 'nevyhovuje';
-      Prot.Text('Odchylka = ' + Mm(FAlg.Info.Misclosure) +
-        '    Mezní odchylka = ' + Mm(FAlg.Info.Limit) + '    ' + Tail);
-      Prot.Text('Mezní odchylka 20 mm·√(L/2), měření tam proti známým výškám');
-      Prot.Text('Oprava rovnoměrně na záměry vzad po celých mm, ' +
-        'zbytek k větším čtením');
-    end;
-  end;
-
-  Prot.Finish(FAlg.Warnings);
+    if not IsNan(FFrame.Rows[I].Z) then
+      Rows.Notes[I] := '';
+  TLevellingProtocol.Write(Prot, ALines, FFrame, FAlg, Rows);
 end;
 
 end.

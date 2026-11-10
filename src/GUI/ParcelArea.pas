@@ -9,10 +9,10 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, System.Types,
   PointDictionary, PointPrefixState,
   Point,
-  CoordOrderState, ProtocolTable, SettingsState,
+  CoordOrderState,
   GeoRow, GeoDataFrame, GeoGrid, GeoFieldsGrid,
   GeoAlgorithmLHuilier,
-  CalcBase, Vcl.Menus, Vcl.Mask, PointNumber;
+  CalcBase, Vcl.Menus, Vcl.Mask, PointNumber, ProtocolParcelArea;
 
 type
   TParcelAreaForm = class(TCalcBaseForm)
@@ -141,8 +141,8 @@ begin
   FAlg.Calculate(FFrame);
   ShowProtocol;
 
-  if IsNan(FAlg.Area) then
-    ShowMessage(Trim(FAlg.Warnings.Text));
+  if FAlg.Errors.Count > 0 then
+    ShowMessage(Trim(FAlg.Errors.Text));
 end;
 
 // Every row is a corner
@@ -161,19 +161,8 @@ end;
 
 procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);
 begin
-  if not BeginProtocol(ALines, 'Výpočet výměr', not IsNan(FAlg.Area),
-    FFrame, FAlg.Warnings) then
-    Exit;
-  if Trim(EditParcel.Text) <> '' then
-    Prot.Text('Parcela ' + Trim(EditParcel.Text));
-  FrameTable('', FFrame, [ColNumber, ColField(CB), ColPair], 0,
-    FFrame.Count - 1);
-  Prot.Values(['Plocha', Num(FAlg.Area, GSettings.AreaDecimals) + ' m²']);
-  // KatV § 82 (2), whole m², at least 1 m², none after an error
-  if FAlg.Warnings.Count = 0 then
-    Prot.Values(['Výměra',
-      IntToStr(Max(1, Trunc(FAlg.Area + 0.5))) + ' m²']);
-  Prot.Finish(FAlg.Warnings);
+  TParcelAreaProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows,
+    Trim(EditParcel.Text));
 end;
 
 end.

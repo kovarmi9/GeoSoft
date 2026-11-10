@@ -42,6 +42,8 @@ begin
     Writeln(Format('  stanovisko %d: řádek %d, orientací %d, posun %.4f',
       [I + 1, Alg.Stations[I].Row + 1, Alg.Stations[I].OrientCount,
       Alg.Stations[I].phi]));
+  for I := 0 to Alg.Errors.Count - 1 do
+    Writeln('  ', Alg.Errors[I]);
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
   for I := 0 to Frame.Count - 1 do

@@ -115,7 +115,7 @@ var
   R: TCheckResult;
   Head: string;
 begin
-  ClearWarnings;
+  ClearMessages;
   FInfo := Default(TCheckInfo);
 
   for i := 0 to AFrame.Count - 1 do
@@ -153,7 +153,7 @@ begin
       AddWarning(Head + 'mezní rozdíl neurčen, chybí kód kvality bodu.')
     else if R.HasMeasured and not R.Passed then
       AddWarning(Head + Format('rozdíl %.3f m není menší než mezní rozdíl ' +
-        '%.3f m - příloha, bod 13.5 katastrální vyhlášky',
+        '%.3f m - vyhláška č. 357/2013 Sb., příloha, bod 13.5',
         [R.Diff, R.Tolerance]));
   end;
 end;

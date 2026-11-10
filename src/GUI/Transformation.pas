@@ -8,8 +8,8 @@ uses
   Vcl.ComCtrls, Vcl.StdCtrls, Vcl.ToolWin, Vcl.ExtCtrls,
   Vcl.Grids, PointPrefixState, Point, PointDictionary, GeoRow,
   GeoDataFrame, GeoGridBridge, GeoAlgorithmTransformation,
-  ProtocolTable, CoordOrderState, GeoGrid, GeoFieldsGrid, CalcBase,
-  Vcl.Menus, PointNumber, Validation;
+  CoordOrderState, GeoGrid, GeoFieldsGrid, CalcBase,
+  Vcl.Menus, PointNumber, Validation, ProtocolTransformation;
 
 type
   TTransformationForm = class(TCalcBaseForm)
@@ -31,10 +31,6 @@ type
     function IsGiven(APointNumber: Int64): Boolean;
     procedure Recompute;
     procedure ShowSummary;
-    procedure WriteResiduals(ARole: Integer; const ACaption: string);
-    procedure WriteSummary;
-    procedure WriteKey;
-    procedure WriteDetermined;
   protected
     function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
@@ -251,6 +247,8 @@ begin
     Summary := Summary + '    Měřítko transformace: ' +
       FormatFloat('0.000000', FAlg.Info.Scale, FS);
   // A failed key says why, the notes show too
+  for I := 0 to FAlg.Errors.Count - 1 do
+    Summary := Summary + '    ' + FAlg.Errors[I];
   for I := 0 to FAlg.Warnings.Count - 1 do
     Summary := Summary + '    ' + FAlg.Warnings[I];
 
@@ -271,7 +269,7 @@ begin
   if not FAlg.Info.Valid then
   begin
     ShowProtocol;   // the old one goes, the new says why
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
     Exit;
   end;
 
@@ -327,158 +325,9 @@ begin
   Recompute;
 end;
 
-// The key with its check, then the determined points
 procedure TTransformationForm.WriteProtocol(ALines: TStrings);
-const
-  KIND_TEXT: array[TTransformationType] of string = ('Shodnostní',
-    'Podobnostní (Helmertova)', 'Afinní');
-var
-  I: Integer;
-  Row: TGeoRow;
 begin
-  if not BeginProtocol(ALines, 'Transformace', FAlg.Info.Valid, FFrame,
-    FAlg.Warnings) then
-    Exit;
-  Prot.Text(KIND_TEXT[FAlg.Kind]);
-
-  // The pairs of the key: Z the source point, Do the target point
-  Prot.Section('IDENTICKÉ BODY');
-  Prot.Columns([ColNumber, ColText('', 3), ColPoint, ColPair]);
-  for I := 0 to FFrame.Count - 1 do
-  begin
-    Row := FFrame.Rows[I];
-    if (Row.Typ <> DRUH_IDENTICKY) or IsNan(Row.M4) then
-      Continue;
-    Prot.Row([GridNumber(I), 'Z:', PointId(Row.CBm),
-              CoordPair(Row.Xm, Row.Ym)]);
-    Prot.Row(['', 'Do:', PointId(Row.CB),
-              CoordPair(Row.X, Row.Y)]);
-  end;
-
-  WriteResiduals(DRUH_IDENTICKY, 'ODCHYLKY TRANSFORMACE');
-  WriteSummary;
-  if FAlg.Info.CheckCount > 0 then
-    WriteResiduals(DRUH_KONTROLNI, 'KONTROLNÍ BODY (mimo klíč)');
-  WriteKey;
-
-  if FAlg.Info.DeterminedCount > 0 then
-  begin
-    Prot.Section('TRANSFORMACE - PODROBNÉ BODY');
-    WriteKey;
-    WriteDetermined;
-  end;
-
-  Prot.Finish(FAlg.Warnings);
-end;
-
-// Vy, Vx, Sxy and the band of the rows of one role
-procedure TTransformationForm.WriteResiduals(ARole: Integer;
-  const ACaption: string);
-var
-  I: Integer;
-  Row: TGeoRow;
-begin
-  Prot.Section(ACaption);
-  Prot.Columns([ColNumber, ColField(CB), ColField(M1, 'Vy'),
-    ColField(M2, 'Vx'), ColField(M4, 'Sxy'), ColField(KK), ColText('')]);
-  for I := 0 to FFrame.Count - 1 do
-  begin
-    Row := FFrame.Rows[I];
-    if (Row.Typ = ARole) and not IsNan(Row.M4) then
-      Prot.FrameRow(Row, [GridNumber(I), BandText(Row.M4, Row.KK)]);
-  end;
-end;
-
-// KatV 13.7 to 13.9 and § 75 (4), the algorithm has counted the bands
-procedure TTransformationForm.WriteSummary;
-var
-  I: Integer;
-  Row: TGeoRow;
-  Info: TTransformationInfo;
-begin
-  Info := FAlg.Info;
-  Prot.Line;
-  if not IsNan(Info.MeanError) then
-    Prot.Text('Střední chyba transformace: ' + Num(Info.MeanError));
-  // One code, when all points share it
-  if Info.Quality >= 0 then
-    Prot.Text(QualityText(Info.Quality));
-
-  Prot.Text('Odchylky dle KatV, body přílohy 13.7 až 13.9');
-  Prot.Text('Celkem bodů: ' + IntToStr(Info.Total) +
-            '   z toho do Mxy: ' + IntToStr(Info.InMxy) +
-            '   do Uxy: ' + IntToStr(Info.InUxy) +
-            '   přes Uxy: ' + IntToStr(Info.OverUxy) +
-            '   % do Mxy: ' + IntToStr(Round(100 * Info.InMxy / Info.Total)));
-  if Info.Unknown > 0 then
-    Prot.Text('Body bez Mxy (' + NoMxy + '): ' + IntToStr(Info.Unknown))
-  else
-  begin
-    // KatV 13.8, every point within Uxy, over 20 points 40 % within Mxy
-    Prot.Text('Všechny body do Uxy: ' + Fulfilled(Info.OverUxy = 0));
-    if Info.Total > 20 then
-      Prot.Text('Nejméně 40 % bodů do Mxy: ' +
-                Fulfilled(100 * Info.InMxy >= 40 * Info.Total));
-  end;
-
-  // KatV § 75 (4), circle of the identical points
-  Prot.Text('Kružnice rozmístění identických bodů (§ 75 odst. 4), ' +
-            'poloměr: ' + Num(Info.CircleRadius));
-  Prot.Text('Zaměřené body uvnitř kružnice: ' +
-            Fulfilled(Length(Info.OutsideRows) = 0));
-  for I := 0 to High(Info.OutsideRows) do
-  begin
-    Row := FFrame.Rows[Info.OutsideRows[I]];
-    if Row.CB = 0 then
-      Prot.Text('  mimo kružnici: ' + PointId(Row.CBm))
-    else
-      Prot.Text('  mimo kružnici: ' + PointId(Row.CB));
-  end;
-end;
-
-// The coefficients and the formula
-procedure TTransformationForm.WriteKey;
-var
-  Info: TTransformationInfo;
-begin
-  Info := FAlg.Info;
-  Prot.Section('TRANSFORMAČNÍ KOEFICIENTY');
-  Prot.Text('A[1,1] = ' + Num(Info.A11, 10) +
-            '    A[1,2] = ' + Num(Info.A12, 10));
-  Prot.Text('A[2,1] = ' + Num(Info.A21, 10) +
-            '    A[2,2] = ' + Num(Info.A22, 10));
-  Prot.Text('Posun Y = ' + Num(Info.ShiftY) +
-            '    Posun X = ' + Num(Info.ShiftX));
-  if not IsNan(Info.Scale) then
-    Prot.Text('Měřítko = ' + Num(Info.Scale, 10));
-  Prot.Text('Yn = PosunY + A[1,1]*Ys + A[1,2]*Xs');
-  Prot.Text('Xn = PosunX + A[2,1]*Ys + A[2,2]*Xs');
-end;
-
-// Z: the source point, Do: the target point with its quality code
-procedure TTransformationForm.WriteDetermined;
-var
-  I: Integer;
-  Row: TGeoRow;
-begin
-  Prot.Section('');
-  Prot.Columns([ColNumber, ColText('', 3), ColPoint, ColPair,
-    ColField(KK)]);
-  for I := 0 to FFrame.Count - 1 do
-  begin
-    Row := FFrame.Rows[I];
-    if (Row.Typ <> DRUH_URCOVANY) or IsNan(Row.X) then
-      Continue;
-    Prot.Row([GridNumber(I), 'Z:', PointId(Row.CBm),
-              CoordPair(Row.Xm, Row.Ym)]);
-    if Row.CB = 0 then
-      Prot.Row(['', 'Do:', '', CoordPair(Row.X, Row.Y), ''],
-               '*** neuloženo, chybí číslo bodu ***')
-    else
-      Prot.Row(['', 'Do:', PointId(Row.CB),
-                CoordPair(Row.X, Row.Y), IntToStr(Row.KK)],
-               UpdatedTail(Row));
-  end;
+  TTransformationProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows);
 end;
 
 end.

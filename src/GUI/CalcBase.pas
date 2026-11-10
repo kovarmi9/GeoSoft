@@ -66,8 +66,6 @@ type
     FCalculateClick: TNotifyEvent;
     FSkipJobProtocol: Boolean;     // the run stored nothing
     function Points: TPointDictionary;
-    /// <summary>True when no row of the frame has a point number.</summary>
-    class function IsEmptyFrame(AFrame: TGeoDataFrame): Boolean;
     /// <summary>Výpočet of the descendant, True if it wrote.</summary>
     function RunCalculation(Sender: TObject): Boolean;
     procedure CalculateAndProtocol(Sender: TObject);
@@ -117,11 +115,8 @@ type
 
     /// <summary>Č. of a frame row, the grid row by default.</summary>
     function GridNumber(AFrameRow: Integer): string; virtual;
-
-    /// <summary>Rows AFrom..ATo as a table, stored ones marked.</summary>
-    procedure FrameTable(const ACaption: string; AFrame: TGeoDataFrame;
-      const AColumns: array of TProtocolColumn; AFrom, ATo: Integer;
-      AResults: Boolean = False);
+    /// <summary>Č. and the notes of the rows, no notes when nothing was stored.</summary>
+    function ProtocolRows(AStored: Boolean = True): TProtocolRows;
 
     /// <summary>The run stored nothing, keep it out of the .ptk.</summary>
     procedure SkipJobProtocol;
@@ -138,10 +133,6 @@ type
 
     /// <summary>True for a point this form added to the list itself.</summary>
     function IsNewPoint(APointNumber: Int64): Boolean;
-
-    /// <summary>Starts the protocol, False if nothing follows.</summary>
-    function BeginProtocol(ALines: TStrings; const ATitle: string;
-      AValid: Boolean; AFrame: TGeoDataFrame; AWarnings: TStrings): Boolean;
 
     /// <summary>Sets the Y, X column order of the grids.</summary>
     procedure ApplyCoordOrderToGrids; virtual;
@@ -406,12 +397,15 @@ begin
     ((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
 end;
 
+// Overwritten or averaged, as the user answered
 function TCalcBaseForm.UpdatedTail(const ARow: TGeoRow): string;
 begin
-  if WasInList(ARow) then
-    Result := UpdatedText
+  if not WasInList(ARow) then
+    Result := ''
+  else if FAnswers[ARow.CB] = ANS_AVERAGE then
+    Result := AveragedText
   else
-    Result := '';
+    Result := OverwrittenText;
 end;
 
 // The protocol numbers a row by its grid row
@@ -431,23 +425,19 @@ begin
     Result := IntToStr(AFrameRow + 1);
 end;
 
-procedure TCalcBaseForm.FrameTable(const ACaption: string;
-  AFrame: TGeoDataFrame; const AColumns: array of TProtocolColumn;
-  AFrom, ATo: Integer; AResults: Boolean);
+function TCalcBaseForm.ProtocolRows(AStored: Boolean): TProtocolRows;
 var
   I: Integer;
-  Tail: string;
 begin
-  Prot.Section(ACaption);
-  Prot.Columns(AColumns);
-  for I := AFrom to ATo do
+  SetLength(Result.Numbers, FFrame.Count);
+  SetLength(Result.Notes, FFrame.Count);
+  for I := 0 to FFrame.Count - 1 do
   begin
-    Tail := '';
-    if AResults then
-      Tail := UpdatedTail(AFrame.Rows[I]);
-    Prot.FrameRow(AFrame.Rows[I], [GridNumber(I)], Tail);
+    Result.Numbers[I] := GridNumber(I);
+    Result.Notes[I] := '';
+    if AStored then
+      Result.Notes[I] := UpdatedTail(FFrame.Rows[I]);
   end;
-  Prot.Line;
 end;
 
 function TCalcBaseForm.OriginalPoint(APointNumber: Int64; out APoint: Point.TPoint): Boolean;
@@ -513,36 +503,6 @@ end;
 function TCalcBaseForm.IsNewPoint(APointNumber: Int64): Boolean;
 begin
   Result := FNewPoints.Contains(APointNumber);
-end;
-
-// An empty notebook, nothing to report yet
-class function TCalcBaseForm.IsEmptyFrame(AFrame: TGeoDataFrame): Boolean;
-var
-  I: Integer;
-begin
-  for I := 0 to AFrame.Count - 1 do
-    if AFrame.Rows[I].CB <> 0 then
-      Exit(False);
-  Result := True;
-end;
-
-function TCalcBaseForm.BeginProtocol(ALines: TStrings; const ATitle: string;
-  AValid: Boolean; AFrame: TGeoDataFrame; AWarnings: TStrings): Boolean;
-begin
-  Result := False;
-  // An empty notebook says nothing, a failed run says why
-  if not AValid and IsEmptyFrame(AFrame) then
-  begin
-    ALines.Clear;
-    Exit;
-  end;
-  Prot.Title(ALines, ATitle);
-  if not AValid then
-  begin
-    Prot.Finish(AWarnings);
-    Exit;
-  end;
-  Result := True;
 end;
 
 procedure TCalcBaseForm.MenuUlozitProtokolClick(Sender: TObject);

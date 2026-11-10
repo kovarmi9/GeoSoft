@@ -120,7 +120,7 @@ var
   LocalPoints, GlobalPoints: TPointsArray;
   KeyRows: TArray<Integer>;   // frame row of each identical point
 begin
-  ClearWarnings;
+  ClearMessages;
   FInfo := Default(TTransformationInfo);   // nothing of the last run stays
   FInfo.Scale := NaN;
   FInfo.MeanError := NaN;

@@ -66,7 +66,9 @@ begin
     Writeln;
   end;
 
-  Writeln('Varování: ', AAlg.Warnings.Count);
+  Writeln('Varování: ', AAlg.Errors.Count + AAlg.Warnings.Count);
+  for I := 0 to AAlg.Errors.Count - 1 do
+    Writeln('  ', AAlg.Errors[I]);
   for I := 0 to AAlg.Warnings.Count - 1 do
     Writeln('  ', AAlg.Warnings[I]);
   Writeln;

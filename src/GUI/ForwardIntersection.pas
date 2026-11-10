@@ -7,8 +7,8 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
-  GeoAlgorithmPolar, GeoAlgorithmForwardIntersection, ProtocolTable,
-  PointNumber;
+  GeoAlgorithmForwardIntersection, ProtocolTable,
+  PointNumber, ProtocolForwardIntersection;
 
 type
   TForwardIntersectionForm = class(TCalcBaseForm)
@@ -196,7 +196,7 @@ begin
   Recompute;
   if not FAlg.Valid then
   begin
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
     Exit;
   end;
 
@@ -228,58 +228,10 @@ begin
   Recompute;
 end;
 
-// Both stations with their orientations, then the new points
 procedure TForwardIntersectionForm.WriteProtocol(ALines: TStrings);
-var
-  I, J: Integer;
-  Tail: string;
 begin
-  if (FFrame.Count = 0) or (FAlg.Stations[0].Row < 0) then
-  begin
-    ALines.Clear;
-    Exit;
-  end;
-
-  Prot.Title(ALines, 'Protínání ze směrů');
-  for J := 0 to 1 do
-  begin
-    if FAlg.Stations[J].Row < 0 then
-      Continue;
-    Prot.Section('STANOVISKO ' + Copy('AB', J + 1, 1));
-    Prot.Columns([ColNumber, ColText('', 3), ColField(CB), ColField(HZ),
-      ColAngle('dfi'), ColPair, ColField(KK)]);
-    // The station and its orientations, one frame row is one grid row
-    for I := FAlg.Stations[J].Row to FFrame.Count - 1 do
-    begin
-      if (I > FAlg.Stations[J].Row) and
-         (FAlg.Roles[I] <> irOrientation) then
-        Break;
-      if I = FAlg.Stations[J].Row then
-        Prot.FrameRow(FFrame.Rows[I], [GridNumber(I), 'St:', ''])
-      else
-        Prot.FrameRow(FFrame.Rows[I], [GridNumber(I), '',
-          Ang(FAlg.dPhi[I])]);
-    end;
-    Prot.Line;
-    Prot.Text('Or. posun = ' + Ang(FAlg.Stations[J].phi) +
-      '    Mezní dfi = ' + Ang(MEZNI_DFI));
-  end;
-
-  Prot.Section('URČOVANÉ BODY');
-  Prot.Columns([ColNumber, ColField(CB), ColField(HZ, 'Směr z A'),
-    ColField(ZU, 'Směr z B'), ColAngle('Úhel'), ColPair,
-    ColField(KK)]);
-  for I := 0 to FFrame.Count - 1 do
-    if FAlg.Roles[I] = irPoint then
-    begin
-      Tail := '';
-      if FStored then
-        Tail := UpdatedTail(FFrame.Rows[I]);
-      Prot.FrameRow(FFrame.Rows[I], [GridNumber(I), Ang(FAlg.omega[I])],
-        Tail);
-    end;
-
-  Prot.Finish(FAlg.Warnings);
+  TForwardIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
+    ProtocolRows(FStored));
 end;
 
 end.

@@ -8,8 +8,8 @@ uses
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, System.Math,
   Point, PointDictionary, PointPrefixState, GeoRow, GeoDataFrame,
   GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState, GeoFieldsDef,
-  ProtocolTable, GeoAlgorithmTransformBase, GeoAlgorithmRectangularAdjustment,
-  PointNumber;
+  ProtocolTable, GeoAlgorithmRectangularAdjustment,
+  PointNumber, ProtocolRectangularAdjustment;
 
 type
   TRectangularAdjustmentForm = class(TCalcBaseForm)
@@ -299,7 +299,7 @@ begin
   if FFrame.Count = 0 then
     ShowMessage('Zápisník je prázdný.')
   else if not FAlg.Valid then
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
 end;
 
 // Puts the loaded rows into the grid
@@ -331,68 +331,10 @@ begin
   RecalcLocal;
 end;
 
-// Sides with their corrections, the closure, the key and the points
 procedure TRectangularAdjustmentForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Row: TGeoRow;
-  Residual: TPointResidual;
-  Kind, Dist, Correction, Tail: string;
 begin
-  Prot.Title(ALines, 'Konstrukční oměrné s vyrovnáním');
-  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-
-  if FAlg.Valid then
-  begin
-    Prot.Section('');
-    Prot.Values(['Uzávěr podélný', Num(FAlg.ClosureAlong),
-      'Uzávěr příčný', Num(FAlg.ClosureAcross)]);
-
-    Prot.Section('BODY OBRAZCE');
-    Prot.Columns([ColNumber, ColField(CB), ColLength('Délka'),
-      ColLength('Oprava'), ColPair, ColText('Typ')]);
-    for I := 0 to FFrame.Count - 1 do
-    begin
-      Row := FFrame.Rows[I];
-
-      Tail := '';
-      if TRectangularAdjustmentAlgorithm.IsGiven(Row) then
-        Kind := 'daný'
-      else
-      begin
-        Kind := 'vypočtený';
-        // The closing row repeats the first point
-        if I < FFrame.Count - 1 then
-          Tail := UpdatedTail(Row);
-      end;
-
-      // The first point has no side in front of it
-      if I = 0 then
-      begin
-        Dist := '';
-        Correction := '';
-      end
-      else
-      begin
-        Dist := Num(Row.SH);
-        Correction := Num(FAlg.Adjusted[I] - Row.SH * FAlg.Scale);
-      end;
-
-      Prot.FrameRow(Row, [GridNumber(I), Dist, Correction, Kind], Tail);
-    end;
-    Prot.Line;
-
-    Prot.Section('SHODNOSTNÍ TRANSFORMACE NA DANÉ BODY');
-    Prot.Columns([ColPoint, ColLength('vy'), ColLength('vx')]);
-    for Residual in FAlg.Residuals do
-      Prot.Row([PointId(Residual.PointNumber), Num(Residual.Vy),
-                Num(Residual.Vx)]);
-    Prot.Line;
-    if not IsNan(FAlg.MeanError) then
-      Prot.Values(['Střední chyba', Num(FAlg.MeanError)]);
-  end;
-
-  Prot.Finish(FAlg.Warnings);
+  TRectangularAdjustmentProtocol.Write(Prot, ALines, FFrame, FAlg,
+    ProtocolRows);
 end;
 
 end.

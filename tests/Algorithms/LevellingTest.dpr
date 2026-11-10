@@ -44,6 +44,8 @@ begin
       'odchylka %.4f, mez %.4f', [Alg.Info.SetupCount,
       Alg.Info.TotalLength, Alg.Info.SumHeight, Alg.Info.Given,
       Alg.Info.Misclosure, Alg.Info.Limit]));
+  for I := 0 to Alg.Errors.Count - 1 do
+    Writeln('  ', Alg.Errors[I]);
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
   for I := 0 to Frame.Count - 1 do

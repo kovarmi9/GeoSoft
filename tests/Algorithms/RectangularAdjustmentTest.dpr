@@ -40,6 +40,8 @@ begin
 
   Writeln(ATitle);
 
+  for I := 0 to Alg.Errors.Count - 1 do
+    Writeln('  ', Alg.Errors[I]);
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
   if not Alg.Valid then

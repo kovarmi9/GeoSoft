@@ -12,7 +12,7 @@ uses
   GeoFieldsDef, ProtocolTable,
   GeoAlgorithmBase,
   GeoAlgorithmRectangularMeasurements,
-  CalcBase, Vcl.Mask, PointNumber;
+  CalcBase, Vcl.Mask, PointNumber, ProtocolRectangularMeasurements;
 
 type
   TRectangularMeasurementsForm = class(TCalcBaseForm)
@@ -24,7 +24,6 @@ type
       var ASelectable: Boolean);
   private
     FAlg: TRectangularMeasurementsAlgorithm;
-    FWarnings: TStringList;         // collected from all stretches
     FRowNew: array of Boolean;      // listed point the user calls new
     FRowCB: array of string;        // last point number per row
     procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
@@ -59,7 +58,6 @@ constructor TRectangularMeasurementsForm.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FAlg := TRectangularMeasurementsAlgorithm.Create;
-  FWarnings := TStringList.Create;
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([CB, X, Y, Xm, Ym, SH, Popis, KK]);
 end;
@@ -67,7 +65,6 @@ end;
 destructor TRectangularMeasurementsForm.Destroy;
 begin
   FAlg.Free;
-  FWarnings.Free;
   inherited;
 end;
 
@@ -254,7 +251,6 @@ var
   I, S: Integer;
   Back: TArray<Integer>;
 begin
-  FWarnings.Clear;
   BuildFrame;
   if FFrame.Count = 0 then
     Exit;
@@ -268,7 +264,6 @@ begin
     end;
 
   FAlg.Calculate(FFrame);
-  FWarnings.AddStrings(FAlg.Warnings);
 
   // Only computed points of a finished stretch go back to the grid and the list
   SetLength(Back, FFrame.Count);
@@ -318,7 +313,6 @@ var
   I, R: Integer;
 begin
   // Forget the old job
-  FWarnings.Clear;
   ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
   SetLength(FRowCB, 0);
   SetLength(FRowNew, 0);
@@ -342,46 +336,9 @@ begin
 end;
 
 procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);
-var
-  S, I: Integer;
-  Segment: TSegmentInfo;
-  Row: TGeoRow;
 begin
-  Prot.Title(ALines, 'Konstrukční oměrné');
-  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-
-  for S := 0 to High(FAlg.Segments) do
-  begin
-    Segment := FAlg.Segments[S];
-    Prot.Section(Format('Úsek %d: %s → %s', [S + 1,
-      PointId(FFrame.Rows[Segment.FromRow].CB),
-      PointId(FFrame.Rows[Segment.ToRow].CB)]));
-    Prot.Columns([ColNumber, ColField(CB), ColLength('Délka'), ColPair,
-      ColText('Typ')]);
-
-    // The given points are first and last, the first has no length
-    for I := Segment.FromRow to Segment.ToRow do
-    begin
-      Row := FFrame.Rows[I];
-      if I = Segment.FromRow then
-        Prot.FrameRow(Row, [GridNumber(I), '', 'daný'])
-      else if I = Segment.ToRow then
-        Prot.FrameRow(Row, [GridNumber(I), Num(Row.SH), 'daný'])
-      else
-        Prot.FrameRow(Row, [GridNumber(I), Num(Row.SH), 'vypočtený'],
-          UpdatedTail(Row));
-    end;
-
-    Prot.Line;
-    Prot.Text('Měřená délka = ' + Num(Segment.MeasDist) +
-              '    Vypočtená délka = ' + Num(Segment.CalcDist));
-    Prot.Text(LimitText(Abs(Segment.CalcDist - Segment.MeasDist),
-      Segment.Limit));
-  end;
-  if Length(FAlg.Segments) > 0 then
-    Prot.Text(LimitSource);
-
-  Prot.Finish(FWarnings);
+  TRectangularMeasurementsProtocol.Write(Prot, ALines, FFrame, FAlg,
+    ProtocolRows);
 end;
 
 end.

@@ -397,7 +397,7 @@ begin
 
   if NDir = 0 then
     AddError('Zadejte alespoň jednu orientaci s měřeným směrem.');
-  Result := Warnings.Count = 0;
+  Result := Errors.Count = 0;
 end;
 
 // Residuals and limits of every orientation. Returns the distance to the
@@ -438,8 +438,8 @@ begin
     if not IsNan(R.Ds) and not IsNan(R.Limit) and
        not (Abs(R.Ds) < R.Limit) then
       AddWarning(Format('Orientace %s: rozdíl délek %.3f m není menší ' +
-        'než mezní rozdíl %.3f m - příloha, bod 13.5 katastrální vyhlášky',
-        [PtNo, R.Ds, R.Limit]));
+        'než mezní rozdíl %.3f m - vyhláška č. 357/2013 Sb., příloha, ' +
+        'bod 13.5', [PtNo, R.Ds, R.Limit]));
   end;
 
   // Unit mean error of the directions
@@ -480,8 +480,8 @@ begin
 
     if (AMaxDist > 0) and (D > AMaxDist) then
       AddWarning(Format('Bod %s: délka rajónu %.1f m je větší než ' +
-        'nejvzdálenější orientace %.1f m - bod 4.3.2.2.2 Návodu pro ' +
-        'obnovu katastrálního operátu',
+        'nejvzdálenější orientace %.1f m - Návod pro obnovu katastrálního ' +
+        'operátu, bod 4.3.2.2.2',
         [TPointNumber.ToDisplay(AFrame.Rows[I].CB), D, AMaxDist]));
   end;
 end;
@@ -501,7 +501,7 @@ procedure TPolarMethodAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   MaxDist: Double;   // distance to the farthest orientation
 begin
-  ClearWarnings;
+  ClearMessages;
   FInfo := Default(TPolarInfo);
   ReduceSlopeLengths(AFrame);
 

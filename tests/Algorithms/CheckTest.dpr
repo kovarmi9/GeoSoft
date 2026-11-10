@@ -83,7 +83,9 @@ begin
             R.Tolerance, BoolToStr(R.Passed, True)]));
       end;
 
-      Writeln('Varování: ', Alg.Warnings.Count);
+      Writeln('Varování: ', Alg.Errors.Count + Alg.Warnings.Count);
+      for I := 0 to Alg.Errors.Count - 1 do
+        Writeln('  ', Alg.Errors[I]);
       for I := 0 to Alg.Warnings.Count - 1 do
         Writeln('  ', Alg.Warnings[I]);
 

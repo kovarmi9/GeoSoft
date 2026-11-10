@@ -51,7 +51,20 @@ uses
   ForwardIntersection in 'ForwardIntersection.pas' {ForwardIntersectionForm},
   RectangularAdjustment in 'RectangularAdjustment.pas' {RectangularAdjustmentForm},
   Resection in 'Resection.pas' {ResectionForm},
-  Levelling in 'Levelling.pas' {LevellingForm};
+  Levelling in 'Levelling.pas' {LevellingForm},
+  ProtocolOrthogonal in '..\Protocols\ProtocolOrthogonal.pas',
+  ProtocolPolar in '..\Protocols\ProtocolPolar.pas',
+  ProtocolLineAdjustment in '..\Protocols\ProtocolLineAdjustment.pas',
+  ProtocolLineIntersection in '..\Protocols\ProtocolLineIntersection.pas',
+  ProtocolRectangularMeasurements in '..\Protocols\ProtocolRectangularMeasurements.pas',
+  ProtocolDistanceIntersection in '..\Protocols\ProtocolDistanceIntersection.pas',
+  ProtocolForwardIntersection in '..\Protocols\ProtocolForwardIntersection.pas',
+  ProtocolRectangularAdjustment in '..\Protocols\ProtocolRectangularAdjustment.pas',
+  ProtocolResection in '..\Protocols\ProtocolResection.pas',
+  ProtocolCheckMeasurements in '..\Protocols\ProtocolCheckMeasurements.pas',
+  ProtocolLevelling in '..\Protocols\ProtocolLevelling.pas',
+  ProtocolTransformation in '..\Protocols\ProtocolTransformation.pas',
+  ProtocolParcelArea in '..\Protocols\ProtocolParcelArea.pas';
 
 {$R *.res}
 

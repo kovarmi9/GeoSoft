@@ -55,7 +55,7 @@ var
   PtNo: string;
   i: Integer;
 begin
-  ClearWarnings;
+  ClearMessages;
   FBaseline := Default(TBaselineInfo);
 
   if AFrame.Count < BASELINE_ROWS then
@@ -107,7 +107,7 @@ begin
   if not IsNan(FBaseline.Tolerance) and
      (FBaseline.Diff >= FBaseline.Tolerance) then
     AddWarning(Format('Odchylka délky přímky %.3f m není menší než mezní ' +
-      'rozdíl %.3f m - příloha, bod 13.5 katastrální vyhlášky',
+      'rozdíl %.3f m - vyhláška č. 357/2013 Sb., příloha, bod 13.5',
       [FBaseline.Diff, FBaseline.Tolerance]));
 
   dx := K.X - P.X;
@@ -140,19 +140,19 @@ begin
     // Extension beyond P or K
     if offS < -L / 3 then
       AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
-        'za bodem P o %.3f m (max. L/3 = %.3f m) - bod 10.2 i) vyhlášky ' +
-        '31/1995 Sb. v platném znění',
+        'za bodem P o %.3f m (max. L/3 = %.3f m) - vyhláška ' +
+        'č. 31/1995 Sb., bod 10.2 i)',
         [PtNo, Abs(offS) - L / 3, L / 3]))
     else if offS > 4 * L / 3 then
       AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
-        'za bodem K o %.3f m (max. L/3 = %.3f m) - bod 10.2 i) vyhlášky ' +
-        '31/1995 Sb. v platném znění',
+        'za bodem K o %.3f m (max. L/3 = %.3f m) - vyhláška ' +
+        'č. 31/1995 Sb., bod 10.2 i)',
         [PtNo, offS - 4 * L / 3, L / 3]));
 
     // Perpendicular offset checks
     if Abs(offQ) > qMax then
       AddWarning(Format('Bod %s: délka kolmice je větší než povolených ' +
-        '%.1f m - bod 10.2 j) vyhlášky 31/1995 Sb. v platném znění',
+        '%.1f m - vyhláška č. 31/1995 Sb., bod 10.2 j)',
         [PtNo, qMax]));
 
     AFrame.Rows[i].X := P.X + A * offS - B * offQ;

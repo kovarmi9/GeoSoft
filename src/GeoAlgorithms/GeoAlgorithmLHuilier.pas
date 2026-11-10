@@ -28,7 +28,7 @@ var
   i, n: Integer;
   sum: Double;
 begin
-  ClearWarnings;
+  ClearMessages;
   FArea := NaN;
 
   n := AFrame.Count;

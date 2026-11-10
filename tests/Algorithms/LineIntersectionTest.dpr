@@ -45,6 +45,10 @@ begin
   end;
 
   // Vypis upozorneni a chyb
+  for I := 0 to Alg.Errors.Count - 1 do
+  begin
+    Writeln('  ', Alg.Errors[I]);
+  end;
   for I := 0 to Alg.Warnings.Count - 1 do
   begin
     Writeln('  ', Alg.Warnings[I]);

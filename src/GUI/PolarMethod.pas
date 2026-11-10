@@ -23,10 +23,9 @@ uses
   GeoDataFrame,
   GeoGridBridge,
   GeoAlgorithmPolar,
-  GeoAlgorithmTransformBase,
   PointDictionary,
   PointPrefixState, CoordOrderState, ProtocolTable, GeoGrid, Vcl.Mask,
-  Vcl.Menus, SettingsState, PointNumber, Validation;
+  Vcl.Menus, SettingsState, PointNumber, Validation, ProtocolPolar;
 
 type
   TPolarMethodForm = class(TCalcBaseForm)
@@ -61,9 +60,6 @@ type
     procedure Recompute;
     procedure ClearResults;
     procedure ApplyColumnsToGrids;
-    procedure WriteFit;
-    procedure WriteOrientations;
-    function MeasuredColumns(ADetail: Boolean): TArray<TProtocolColumn>;
   protected
     function BuildFrame: Boolean; override;
     procedure Loaded; override;
@@ -530,7 +526,7 @@ begin
   Recompute;
 
   if not FAlg.Info.Valid then
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
 end;
 
 // Row 0 is the station. With X it is an orientation, without X a detail point
@@ -593,119 +589,16 @@ begin
   GridDetail.RowCount := DetailRow + 1;
 end;
 
-// The station, its orientations and the detail points
 procedure TPolarMethodForm.WriteProtocol(ALines: TStrings);
 var
   I: Integer;
-  Columns: TArray<TProtocolColumn>;
+  Rows: TProtocolRows;
 begin
-  if not BeginProtocol(ALines, 'Polární metoda', FAlg.Info.Valid, FFrame,
-    FAlg.Warnings) then
-    Exit;
-  if FAlg.Info.FreeStation then
-    Prot.Text('Volné stanovisko')
-  else
-    Prot.Text('Pevné stanovisko');
-
-  Prot.Section('STANOVISKO');
-  if GSettings.Polar.Heights then
-    Prot.Columns([ColField(CB), ColPair, ColField(Z),
-      ColField(VS, 'Výška stroje')])
-  else
-    Prot.Columns([ColField(CB), ColPair]);
-  Prot.FrameRow(FFrame.Rows[0], []);
-  if GSettings.Polar.Heights and FAlg.Info.FreeStation then
-    Prot.Text('Výška stanoviska z orientací: ' +
-      IntToStr(FAlg.Info.HeightCount));
-  if FAlg.Info.FreeStation then
-    WriteFit;
-  WriteOrientations;
-
-  // The detail points follow the orientations
-  if FFrame.Count > FAlg.Info.OrientCount + 1 then
-  begin
-    Prot.Section('PODROBNÉ BODY');
-    Columns := MeasuredColumns(True) + [ColPair];
-    if GSettings.Polar.Heights then
-      Columns := Columns + [ColField(Z)];
-    Prot.Columns(Columns);
-    for I := FAlg.Info.OrientCount + 1 to FFrame.Count - 1 do
-      Prot.FrameRow(FFrame.Rows[I], [GridNumber(I)],
-        UpdatedTail(FFrame.Rows[I]));
-  end;
-
-  Prot.Finish(FAlg.Warnings);
-end;
-
-// How the free station fits, KatV 13.7 to 13.9
-procedure TPolarMethodForm.WriteFit;
-var
-  I, Quality: Integer;
-  Fit: TPointResiduals;
-begin
-  Fit := FAlg.Residuals;
-  Quality := FFrame.Rows[0].KK;
-  if FAlg.Info.Congruent then
-    Prot.Section('ODCHYLKY TRANSFORMACE (shodnostní)')
-  else
-    Prot.Section('ODCHYLKY TRANSFORMACE (Helmertova, q = ' +
-      Num(FAlg.Info.q, 7) + ')');
-  Prot.Columns([ColPoint, ColLength('Vy'), ColLength('Vx'), ColLength('Sxy'),
-    ColText('')]);
-  for I := 0 to High(Fit) do
-    Prot.Row([PointId(Fit[I].PointNumber), Num(Fit[I].Vy), Num(Fit[I].Vx),
-              Num(Fit[I].Sxy), BandText(Fit[I].Sxy, Quality)]);
-  Prot.Line;
-  Prot.Text(QualityText(Quality));
-  Prot.Text('Odchylky dle KatV, body přílohy 13.7 až 13.9');
-end;
-
-// What was measured, as the grid shows it by the settings
-function TPolarMethodForm.MeasuredColumns(ADetail: Boolean): TArray<TProtocolColumn>;
-begin
-  Result := [ColNumber, ColField(CB), ColField(HZ)];
-  if GSettings.Polar.SlopeLengths or GSettings.Polar.Heights then
-    Result := Result + [ColField(ZU, 'Zenit')];
-  if GSettings.Polar.SlopeLengths then
-    Result := Result + [ColField(SS, 'Šikmá délka')];
-  Result := Result + [ColField(SH, 'Délka')];
-  if ADetail and GSettings.Polar.Offset then
-    Result := Result + [ColField(Sta, 'Doměrek')];
-  if ADetail and GSettings.Polar.Perpendicular then
-    Result := Result + [ColField(Kol, 'Kolmice')];
-  if GSettings.Polar.Heights then
-    Result := Result + [ColField(VC, 'Výška cíle')];
-end;
-
-// The orientations with their residuals, then the shift
-procedure TPolarMethodForm.WriteOrientations;
-var
-  I: Integer;
-  Res: TOrientResult;
-  Columns: TArray<TProtocolColumn>;
-begin
-  Prot.Section('ORIENTACE');
-  Columns := MeasuredColumns(False) + [ColLength('ds'), ColLength('Mezní'),
-    ColAngle('dfi'), ColLength('Váha'), ColAngle('Normovaná')];
-  if GSettings.Polar.Heights then
-    Columns := Columns + [ColLength('dZ')];
-  Prot.Columns(Columns);
-  // What was not measured stays blank, dZ is for information only
+  Rows := ProtocolRows;
+  // Č. from the orientation grid
   for I := 1 to FAlg.Info.OrientCount do
-  begin
-    Res := TPolarMethodAlgorithm.ResultOf(FFrame.Rows[0], FFrame.Rows[I],
-      FAlg.Info.phi, FAlg.Scale, FAlg.Info.Longest);
-    Prot.FrameRow(FFrame.Rows[I], [IntToStr(FOrientRows[I - 1]),
-      Num(Res.Ds), Num(Res.Limit), Ang(Res.dPhi), Num(Res.p, 3),
-      Ang(Res.Normed), Num(Res.dZ)]);
-  end;
-  Prot.Line;
-  Prot.Text('Měřítko délek = ' + Num(FAlg.Scale, 7));
-  Prot.Text('Or. posun = ' + Ang(FAlg.Info.phi) +
-            '    m0 = √([pvv] / (n - 1)) = ' + Ang(FAlg.Info.m0) +
-            '    Mezní = ' + Ang(MEZNI_DFI));
-  Prot.Text('Normovaná odchylka = v·√p, v je odchylka a p váha orientace');
-  Prot.Text(LimitSource);
+    Rows.Numbers[I] := IntToStr(FOrientRows[I - 1]);
+  TPolarProtocol.Write(Prot, ALines, FFrame, FAlg, Rows);
 end;
 
 end.

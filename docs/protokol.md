@@ -8,7 +8,8 @@ Každé výpočetní okno ukazuje protokol posledního výpočtu: nadpis s názv
   (např. překročená mez).
 
 Sloupec **Č.** je řádek v tabulce okna. Body, které výpočet v seznamu
-souřadnic přepsal, mají na konci řádku `*** bod v seznamu aktualizován ***`.
+souřadnic přepsal, mají na konci řádku `*** bod v seznamu přepsán ***`,
+zprůměrované body `*** bod v seznamu zprůměrován ***`.
 Čísla mají desetinnou čárku a počet míst podle Nastavení. Menu
 **Uložit protokol** uloží protokol okna do souboru.
 

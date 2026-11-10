@@ -55,7 +55,7 @@ var
   D, t, u: Double;
   OnSegmentI, OnSegmentII: Boolean;
 begin
-  ClearWarnings;
+  ClearMessages;
   FValid := False;
   FOmega := NaN;
   FPlace := ipNone;

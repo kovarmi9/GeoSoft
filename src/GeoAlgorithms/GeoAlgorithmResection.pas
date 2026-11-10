@@ -60,7 +60,7 @@ var
   DeltaYTU, DeltaXTU, DeltaY2T, DeltaX2T: Double;
   k, dAlpha, dBeta: Double;
 begin
-  ClearWarnings;
+  ClearMessages;
   FValid := False;
   FAlpha := NaN;
   FBeta := NaN;

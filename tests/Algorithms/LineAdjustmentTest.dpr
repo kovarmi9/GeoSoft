@@ -38,6 +38,8 @@ begin
   Writeln(ATitle);
   Writeln(Format('  přímka %.3f m, KK %d, Uxy %.3f m',
     [Alg.LineLength, Alg.Quality, Alg.Limit]));
+  for I := 0 to Alg.Errors.Count - 1 do
+    Writeln('  ', Alg.Errors[I]);
   for I := 0 to Alg.Warnings.Count - 1 do
     Writeln('  ', Alg.Warnings[I]);
   for I := LINE_ROWS to Frame.Count - 1 do

@@ -19,19 +19,23 @@ type
   // Shared infrastructure for every algorithm, whatever its interface is
   TAlgorithmBase = class
   private
+    FErrors: TStringList;
     FWarnings: TStringList;
     FScale: Double;
   protected
     /// <summary>A note, the calculation goes on.</summary>
     procedure AddWarning(const AMsg: string);
-    /// <summary>The calculation cannot go on, marked by ErrorMark.</summary>
+    /// <summary>A mistake, that part has no result.</summary>
     procedure AddError(const AMsg: string);
-    procedure ClearWarnings;
+    /// <summary>Empties Errors and Warnings.</summary>
+    procedure ClearMessages;
   public
     constructor Create;
     destructor Destroy; override;
 
-    // Messages of the last run, an error has ErrorMark in Objects
+    /// <summary>Errors of the last run, parts without a result.</summary>
+    property Errors: TStringList read FErrors;
+    /// <summary>Notes of the last run, the results stand.</summary>
     property Warnings: TStringList read FWarnings;
 
     /// <summary>Length scale to the S-JTSK plane, 1 by default.</summary>
@@ -48,10 +52,6 @@ type
     class function IsGiven(const ARow: TGeoRow): Boolean;
   end;
 
-var
-  /// <summary>Object of an error message in Warnings.</summary>
-  ErrorMark: TObject;
-
 implementation
 
 uses
@@ -60,12 +60,14 @@ uses
 constructor TAlgorithmBase.Create;
 begin
   inherited;
+  FErrors := TStringList.Create;
   FWarnings := TStringList.Create;
   FScale := 1.0;
 end;
 
 destructor TAlgorithmBase.Destroy;
 begin
+  FErrors.Free;
   FWarnings.Free;
   inherited;
 end;
@@ -77,11 +79,12 @@ end;
 
 procedure TAlgorithmBase.AddError(const AMsg: string);
 begin
-  FWarnings.AddObject(AMsg, ErrorMark);
+  FErrors.Add(AMsg);
 end;
 
-procedure TAlgorithmBase.ClearWarnings;
+procedure TAlgorithmBase.ClearMessages;
 begin
+  FErrors.Clear;
   FWarnings.Clear;
 end;
 
@@ -89,11 +92,5 @@ class function TFrameAlgorithm.IsGiven(const ARow: TGeoRow): Boolean;
 begin
   Result := not (IsNan(ARow.X) or IsNan(ARow.Y));
 end;
-
-initialization
-  ErrorMark := TObject.Create;
-
-finalization
-  ErrorMark.Free;
 
 end.

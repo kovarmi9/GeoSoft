@@ -8,7 +8,7 @@ uses
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, GeoGrid,
   GeoFieldsGrid, System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame,
   CoordOrderState, SettingsState, GeoAlgorithmResection, ProtocolTable,
-  PointNumber;
+  PointNumber, ProtocolResection;
 
 type
   TResectionForm = class(TCalcBaseForm)
@@ -177,7 +177,7 @@ begin
   Recompute;
   if not FAlg.Valid then
   begin
-    ShowMessage(Trim(FAlg.Warnings.Text));
+    ShowMessage(Trim(FAlg.Errors.Text));
     Exit;
   end;
 
@@ -205,26 +205,16 @@ begin
   ClearGrid(Grid, Grid.FixedRows + RESECTION_POINTS);
   EditStationNo.Text := '';
   for I := 0 to Min(AFrame.Count, RESECTION_POINTS) - 1 do
-    PutRow(Grid, Grid.FixedRows + I, AFrame.Rows[I], I, ABad);
+    if PutRow(Grid, Grid.FixedRows + I, AFrame.Rows[I], I, ABad) then
+      LoadGridPoint(Grid, Grid.FixedRows + I);   // from the list
   if AFrame.Count > RESECTION_POINTS then
     EditStationNo.Text := TPointNumber.ToText(AFrame.Rows[RESECTION_POINTS].CB);
   Recompute;
 end;
 
-// The given points, the angles and the station
 procedure TResectionForm.WriteProtocol(ALines: TStrings);
 begin
-  if not BeginProtocol(ALines, 'Protínání zpět', FAlg.Valid, FFrame,
-    FAlg.Warnings) then
-    Exit;
-  Prot.Text('Cassiniho řešení');
-  FrameTable('DANÉ BODY', FFrame, [ColNumber, ColField(CB), ColField(HZ),
-    ColPair, ColField(KK)], 0, RESECTION_POINTS - 1);
-  Prot.Values(['Úhel alfa 1-2', Ang(FAlg.alpha), 'Úhel beta 2-3',
-    Ang(FAlg.beta), 'Délka TU', Num(FAlg.sTU)]);
-  FrameTable('URČOVANÉ STANOVISKO', FFrame, [ColField(CB), ColPair,
-    ColField(KK)], RESECTION_POINTS, RESECTION_POINTS, FStored);
-  Prot.Finish(FAlg.Warnings);
+  TResectionProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows(FStored));
 end;
 
 end.

@@ -126,12 +126,13 @@ implementation
 {$R *.dfm}
 
 uses
-  Winapi.ShellAPI, ExistingPoint, SettingsState;
+  Winapi.ShellAPI, ExistingPoint, SettingsState, PointDatabase;
 
 const
   // The extension tells the order
   LIST_FILTER = 'Seznam souřadnic v pořadí Y, X (*.yxz)|*.yxz|' +
-    'Seznam souřadnic v pořadí X, Y (*.xyz)|*.xyz';
+    'Seznam souřadnic v pořadí X, Y (*.xyz)|*.xyz|' +
+    'Databáze SQLite (*.db)|*.db';
 
   COL_POINTNO = 0;
   // First of Y, X, see CoordColY
@@ -608,7 +609,10 @@ end;
 function TPointsManagementForm.WriteListFile(const AFileName: string): Boolean;
 begin
   try
-    Points.ExportToBinary(AFileName);
+    if TPointDatabase.IsDatabase(AFileName) then
+      TPointDatabase.Save(AFileName, Points)
+    else
+      Points.ExportToBinary(AFileName);
     FCurrentFile := AFileName;
     Points.Modified := False;
     Result := True;
@@ -644,7 +648,13 @@ function TPointsManagementForm.ExecuteListSaveDialog(const ADefaultName: string;
 var
   Ext: string;
 begin
-  if GCoordOrder = coXY then
+  // An open database stays one
+  if TPointDatabase.IsDatabase(FCurrentFile) then
+  begin
+    SaveDialog.FilterIndex := 3;
+    Ext := 'db';
+  end
+  else if GCoordOrder = coXY then
   begin
     SaveDialog.FilterIndex := 2;
     Ext := 'xyz';
@@ -760,12 +770,16 @@ begin
   Result := False;
   if not AskSaveChanges then Exit;
 
-  OpenDialog.Filter := 'Seznam souřadnic (*.yxz;*.xyz)|*.yxz;*.xyz';
+  OpenDialog.Filter :=
+    'Seznam souřadnic (*.yxz;*.xyz;*.db)|*.yxz;*.xyz;*.db';
   if not OpenDialog.Execute then Exit;
 
   // A bad file keeps the open list
   try
-    Count := Points.LoadFromBinary(OpenDialog.FileName);
+    if TPointDatabase.IsDatabase(OpenDialog.FileName) then
+      Count := TPointDatabase.Load(OpenDialog.FileName, Points)
+    else
+      Count := Points.LoadFromBinary(OpenDialog.FileName);
   except
     on E: Exception do
     begin
@@ -801,7 +815,8 @@ begin
 
   // Check the extension first
   try
-    TPointDictionary.FileOrder(FileName);
+    if not TPointDatabase.IsDatabase(FileName) then
+      TPointDictionary.FileOrder(FileName);
   except
     on E: Exception do
     begin

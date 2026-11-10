@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Menus, Vcl.ToolWin,
-  Vcl.ComCtrls;
+  Vcl.ComCtrls, Vcl.StdCtrls;
 
 type
   TGeoSoftForm = class(TForm)
@@ -35,6 +35,7 @@ type
     MenuParcelArea: TMenuItem;
     MenuTechnicalLevelling: TMenuItem;
     MenuProtocol: TMenuItem;
+    Button1: TButton;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
     procedure MenuShowListClick(Sender: TObject);
@@ -56,6 +57,7 @@ type
     procedure MenuParcelAreaClick(Sender: TObject);
     procedure MenuTechnicalLevellingClick(Sender: TObject);
     procedure MenuProtocolClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -72,7 +74,7 @@ implementation
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   CheckMeasurements, PolarMethod, PointsManagement,
   SettingsDialog, LineAdjustment, LineIntersection, DistanceIntersection,
-  ForwardIntersection, RectangularAdjustment, Resection, Levelling;
+  ForwardIntersection, RectangularAdjustment, Resection, Levelling, dbtest;
 
 // File menu: picks a list file and shows it
 procedure TGeoSoftForm.MenuFileOpenClick(Sender: TObject);
@@ -109,6 +111,11 @@ end;
 procedure TGeoSoftForm.MenuSaveListAsClick(Sender: TObject);
 begin
   PointsManagementForm.SaveListAs;
+end;
+
+procedure TGeoSoftForm.Button1Click(Sender: TObject);
+begin
+  dbtestForm.Show;
 end;
 
 procedure TGeoSoftForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

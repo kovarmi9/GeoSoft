@@ -3192,6 +3192,15 @@ object GeoSoftForm: TGeoSoftForm
     Caption = 'ToolBar'
     TabOrder = 0
   end
+  object Button1: TButton
+    Left = 56
+    Top = 72
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
   object MainMenu: TMainMenu
     Left = 584
     Top = 192

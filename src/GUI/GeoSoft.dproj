@@ -190,23 +190,11 @@
         <DCCReference Include="..\DataStructures\GeoRow.pas"/>
         <DCCReference Include="..\DataStructures\Point.pas"/>
         <DCCReference Include="..\DataStructures\PointDictionary.pas"/>
+        <DCCReference Include="..\DataStructures\PointDatabase.pas"/>
         <DCCReference Include="..\Utils\CoordOrderState.pas"/>
         <DCCReference Include="..\Utils\GeoGridBridge.pas"/>
         <DCCReference Include="..\Utils\PointPrefixState.pas"/>
         <DCCReference Include="..\Utils\ProtocolTable.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolLineIntersection.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolPolar.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolResection.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolParcelArea.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolDistanceIntersection.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolOrthogonal.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolLineAdjustment.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolRectangularMeasurements.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolRectangularAdjustment.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolForwardIntersection.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolCheckMeasurements.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolLevelling.pas"/>
-        <DCCReference Include="..\Protocols\ProtocolTransformation.pas"/>
         <DCCReference Include="..\Utils\SettingsState.pas"/>
         <DCCReference Include="..\DataStructures\Validation.pas"/>
         <DCCReference Include="..\DataStructures\PointNumber.pas"/>
@@ -238,6 +226,23 @@
         </DCCReference>
         <DCCReference Include="Levelling.pas">
             <Form>LevellingForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="..\Protocols\ProtocolOrthogonal.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolPolar.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolLineAdjustment.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolLineIntersection.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolRectangularMeasurements.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolDistanceIntersection.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolForwardIntersection.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolRectangularAdjustment.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolResection.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolCheckMeasurements.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolLevelling.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolTransformation.pas"/>
+        <DCCReference Include="..\Protocols\ProtocolParcelArea.pas"/>
+        <DCCReference Include="dbtest.pas">
+            <Form>dbtestForm</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Base">

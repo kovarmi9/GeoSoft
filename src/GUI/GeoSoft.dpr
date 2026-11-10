@@ -36,6 +36,7 @@ uses
   GeoRow in '..\DataStructures\GeoRow.pas',
   Point in '..\DataStructures\Point.pas',
   PointDictionary in '..\DataStructures\PointDictionary.pas',
+  PointDatabase in '..\DataStructures\PointDatabase.pas',
   CoordOrderState in '..\Utils\CoordOrderState.pas',
   GeoGridBridge in '..\Utils\GeoGridBridge.pas',
   PointPrefixState in '..\Utils\PointPrefixState.pas',
@@ -64,7 +65,8 @@ uses
   ProtocolCheckMeasurements in '..\Protocols\ProtocolCheckMeasurements.pas',
   ProtocolLevelling in '..\Protocols\ProtocolLevelling.pas',
   ProtocolTransformation in '..\Protocols\ProtocolTransformation.pas',
-  ProtocolParcelArea in '..\Protocols\ProtocolParcelArea.pas';
+  ProtocolParcelArea in '..\Protocols\ProtocolParcelArea.pas',
+  dbtest in 'dbtest.pas' {dbtestForm};
 
 {$R *.res}
 
@@ -86,5 +88,6 @@ begin
   Application.CreateForm(TRectangularAdjustmentForm, RectangularAdjustmentForm);
   Application.CreateForm(TResectionForm, ResectionForm);
   Application.CreateForm(TLevellingForm, LevellingForm);
+  Application.CreateForm(TdbtestForm, dbtestForm);
   Application.Run;
 end.

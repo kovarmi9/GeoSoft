@@ -141,18 +141,18 @@ begin
     if offS < -L / 3 then
       AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
         'za bodem P o %.3f m (max. L/3 = %.3f m) - vyhláška ' +
-        'č. 31/1995 Sb., bod 10.2 i)',
+        'č. 31/1995 Sb., příloha, bod 10.2 i)',
         [PtNo, Abs(offS) - L / 3, L / 3]))
     else if offS > 4 * L / 3 then
       AddWarning(Format('Bod %s: staničení přesahuje přípustné prodloužení ' +
         'za bodem K o %.3f m (max. L/3 = %.3f m) - vyhláška ' +
-        'č. 31/1995 Sb., bod 10.2 i)',
+        'č. 31/1995 Sb., příloha, bod 10.2 i)',
         [PtNo, offS - 4 * L / 3, L / 3]));
 
     // Perpendicular offset checks
     if Abs(offQ) > qMax then
       AddWarning(Format('Bod %s: délka kolmice je větší než povolených ' +
-        '%.1f m - vyhláška č. 31/1995 Sb., bod 10.2 j)',
+        '%.1f m - vyhláška č. 31/1995 Sb., příloha, bod 10.2 j)',
         [PtNo, qMax]));
 
     AFrame.Rows[i].X := P.X + A * offS - B * offQ;

@@ -85,9 +85,9 @@ $$
   (KatV, příloha 13.5 a 13.6). Rozhoduje horší kód kvality z P a K.
   Odchylka, která není menší než $u_d$, vypíše upozornění. Pro kódy
   bez Mxy se mez nekontroluje.
-- Prodloužení za bod P nebo K je nejvýš $L/3$ (vyhl. 31/1995, bod
-  10.2 i)), delší vypíše upozornění.
+- Prodloužení za bod P nebo K je nejvýš $L/3$ (vyhl. 31/1995,
+  příloha, bod 10.2 i)), delší vypíše upozornění.
 - Kolmice je nejvýš $\min(30\ \mathrm{m},\ 0{,}75\,L)$ (vyhl. 31/1995,
-  bod 10.2 j)). Delší vypíše upozornění.
+  příloha, bod 10.2 j)). Delší vypíše upozornění.
 - Chyba: P a K blíž než 1 cm nebo bez souřadnic, chybí staničení
   nebo kolmice P a K, P a K na pásmu splývají.

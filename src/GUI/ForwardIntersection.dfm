@@ -19,8 +19,8 @@ inherited ForwardIntersectionForm: TForwardIntersectionForm
     OnCellSelectable = GridCellSelectable
     ColumnFields.Strings = (
       'CB='#268#237'slo bodu'
-      'HZ=Sm'#283'r / z A'
-      'ZU=Sm'#283'r z B'
+      'HZ=Sm'#283'r'
+      'CBm=Ze stanoviska'
       'Y'
       'X'
       'KK=KK'
@@ -30,7 +30,7 @@ inherited ForwardIntersectionForm: TForwardIntersectionForm
       30
       130
       90
-      90
+      130
       100
       100
       40

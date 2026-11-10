@@ -19,12 +19,12 @@ type
 implementation
 
 uses
-  System.SysUtils, GeoRow, GeoAlgorithmPolar;
+  System.SysUtils, System.Math, GeoRow, GeoAlgorithmPolar;
 
 const
   // Header and rows share one format
   STATION_LINE = '%3s  %-3s  %-18s  %9s  %8s  %s  %2s';
-  POINT_LINE   = '%3s  %-18s  %9s  %9s  %8s  %s  %2s  %s';
+  POINT_LINE   = '%3s  %-18s  %-18s  %9s  %8s  %s  %2s  %s';
 
 class procedure TForwardIntersectionProtocol.Write(AProt: TProtocol;
   ALines: TStrings; AFrame: TGeoDataFrame;
@@ -32,6 +32,7 @@ class procedure TForwardIntersectionProtocol.Write(AProt: TProtocol;
 var
   I, J, StationRow: Integer;
   Row: TGeoRow;
+  Quality, Note: string;
 begin
   // Nothing typed yet, no protocol
   if (AFrame.Count = 0) or (AAlg.Stations[0].Row < 0) then
@@ -73,15 +74,23 @@ begin
 
   // 5. Determined points
   AProt.Section('URČOVANÉ BODY');
-  AProt.TableHeader(Format(POINT_LINE, ['Č.', 'Číslo bodu', 'Směr z A',
-    'Směr z B', 'Úhel', CoordCaption, 'KK', '']));
+  AProt.TableHeader(Format(POINT_LINE, ['Č.', 'Číslo bodu',
+    'Ze stanoviska', 'Směr', 'Úhel', CoordCaption, 'KK', '']));
   for I := 0 to AFrame.Count - 1 do
     if AAlg.Roles[I] = irPoint then
     begin
       Row := AFrame.Rows[I];
+      // Result on row from A
+      Quality := '';
+      Note := '';
+      if not IsNan(Row.X) then
+      begin
+        Quality := IntToStr(Row.KK);
+        Note := ARows.Notes[I];
+      end;
       AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
-        Ang(Row.HZ), Ang(Row.ZU), Ang(AAlg.omega[I]),
-        CoordPair(Row.X, Row.Y), IntToStr(Row.KK), ARows.Notes[I]]));
+        PointId(Row.CBm), Ang(Row.HZ), Ang(AAlg.omega[I]),
+        CoordPair(Row.X, Row.Y), Quality, Note]));
     end;
   AProt.Line;
 

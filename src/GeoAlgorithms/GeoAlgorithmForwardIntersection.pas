@@ -29,8 +29,10 @@ type
     procedure FindRoles(AFrame: TGeoDataFrame);
     function OrientStation(AFrame: TGeoDataFrame; AIndex: Integer): Boolean;
     function GetStation(AIndex: Integer): TStationInfo;
+    function FindRow(AFrame: TGeoDataFrame; APointNumber,
+      AStation: Int64): Integer;
   public
-    /// <summary>HZ direction or the one from A, ZU from B.</summary>
+    /// <summary>HZ direction, CBm the station of a new point.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     property Valid: Boolean read FValid;
@@ -80,6 +82,19 @@ begin
       FRoles[I] := irOrientation;
     InBlock := True;
   end;
+end;
+
+// -1 when no such direction
+function TForwardIntersectionAlgorithm.FindRow(AFrame: TGeoDataFrame;
+  APointNumber, AStation: Int64): Integer;
+var
+  I: Integer;
+begin
+  for I := 0 to AFrame.Count - 1 do
+    if (FRoles[I] = irPoint) and (AFrame.Rows[I].CB = APointNumber) and
+      (AFrame.Rows[I].CBm = AStation) then
+      Exit(I);
+  Result := -1;
 end;
 
 // The shift and the deviations as in the polar method
@@ -152,7 +167,7 @@ end;
 
 procedure TForwardIntersectionAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
-  I, Quality: Integer;
+  I, J, Quality: Integer;
   StationA, StationB: TGeoRow;
   DeltaXAB, DeltaYAB, sigmaAP, sigmaBP, sinOmega, sAP: Double;
   PointNumber: string;
@@ -207,7 +222,30 @@ begin
     if FRoles[I] <> irPoint then
       Continue;
     PointNumber := TPointNumber.ToDisplay(AFrame.Rows[I].CB);
-    if IsNan(AFrame.Rows[I].HZ) or IsNan(AFrame.Rows[I].ZU) then
+
+    // Only stations A and B
+    if (AFrame.Rows[I].CBm <> StationA.CB) and
+       (AFrame.Rows[I].CBm <> StationB.CB) then
+    begin
+      AddError(Format('Bod %s: směr není ze stanoviska A ani B.',
+        [PointNumber]));
+      Continue;
+    end;
+
+    // Result on row from A
+    if AFrame.Rows[I].CBm = StationB.CB then
+    begin
+      if FindRow(AFrame, AFrame.Rows[I].CB, StationA.CB) < 0 then
+        AddError(Format('Bod %s: chybí směr z A.', [PointNumber]));
+      Continue;
+    end;
+    J := FindRow(AFrame, AFrame.Rows[I].CB, StationB.CB);
+    if J < 0 then
+    begin
+      AddError(Format('Bod %s: chybí směr z B.', [PointNumber]));
+      Continue;
+    end;
+    if IsNan(AFrame.Rows[I].HZ) or IsNan(AFrame.Rows[J].HZ) then
     begin
       AddError(Format('Bod %s: chybí směr z A nebo z B.', [PointNumber]));
       Continue;
@@ -215,7 +253,7 @@ begin
 
     // Oriented directions, the rays from A and from B
     sigmaAP := (AFrame.Rows[I].HZ + FStations[0].phi) * GON_TO_RAD;
-    sigmaBP := (AFrame.Rows[I].ZU + FStations[1].phi) * GON_TO_RAD;
+    sigmaBP := (AFrame.Rows[J].HZ + FStations[1].phi) * GON_TO_RAD;
     // sin(sigmaBP - sigmaAP), zero means parallel directions
     sinOmega := Cos(sigmaAP) * Sin(sigmaBP) -
       Sin(sigmaAP) * Cos(sigmaBP);

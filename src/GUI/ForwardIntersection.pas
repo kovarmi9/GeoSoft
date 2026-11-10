@@ -3,7 +3,8 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
@@ -50,7 +51,7 @@ begin
   inherited Create(AOwner);
   FAlg := TForwardIntersectionAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([CB, HZ, ZU, X, Y, KK, Popis]);
+  FFrame := TGeoDataFrame.Create([CB, HZ, CBm, X, Y, KK, Popis]);
 end;
 
 destructor TForwardIntersectionForm.Destroy;
@@ -76,11 +77,11 @@ begin
     Result := irPoint;
 end;
 
-// A direction from B belongs only to a new point, a station has no direction
+// Station only for new points
 procedure TForwardIntersectionForm.GridCellSelectable(Sender: TObject;
   ACol, ARow: Integer; var ASelectable: Boolean);
 begin
-  if ACol = Grid.FieldToCol(ZU) then
+  if ACol = Grid.FieldToCol(CBm) then
     ASelectable := RoleOfRow(ARow) in [irPoint, irEmpty]
   else if ACol = Grid.FieldToCol(HZ) then
     ASelectable := RoleOfRow(ARow) <> irStation;
@@ -125,9 +126,10 @@ begin
       Result := Result + '    ';
     end;
 
+  // Result on row from A
   Count := 0;
   for I := 0 to High(FAlg.Roles) do
-    if FAlg.Roles[I] = irPoint then
+    if (FAlg.Roles[I] = irPoint) and not IsNan(FFrame.Rows[I].X) then
       Inc(Count);
   Result := Result + 'Určované body: ' + IntToStr(Count);
 end;
@@ -169,6 +171,13 @@ begin
     end;
   end;
 
+  // Thin row reads as line
+  for R := Grid.FixedRows to Grid.RowCount - 1 do
+    if RoleOfRow(R) = irEmpty then
+      Grid.RowHeights[R] := Grid.DefaultRowHeight div 3
+    else
+      Grid.RowHeights[R] := Grid.DefaultRowHeight;
+
   LabelStations.Caption := StationsText;
   Grid.Invalidate;              // the locked cells follow the roles
   ShowProtocol;
@@ -179,14 +188,15 @@ procedure TForwardIntersectionForm.PointCommitted(Sender: TObject;
 begin
   if ARow < Grid.FixedRows then
     Exit;
-  if ACol = Grid.FieldToCol(CB) then
+  if (ACol = Grid.FieldToCol(CB)) or (ACol = Grid.FieldToCol(CBm)) then
     NormalizePointCell(Grid, ACol, ARow);
   Recompute;
 end;
 
 procedure TForwardIntersectionForm.CalculateClick(Sender: TObject);
 var
-  I: Integer;
+  I, J: Integer;
+  OldNumber: Int64;
   Row: TGeoRow;
 begin
   ForgetAnswers;     // a new run asks again
@@ -207,10 +217,16 @@ begin
       Row := FFrame.Rows[I];
       if Trim(string(Row.Popis)) = '' then
         Row.Popis := ShortString(GPointPrefix.Popis);
+      OldNumber := Row.CB;
       StorePoint(Row);
-      FFrame.Rows[I].CB := Row.CB;
-      Grid.Cells[Grid.FieldToCol(CB), I + Grid.FixedRows] :=
-        TPointNumber.ToText(Row.CB);
+      // Renumber both rows
+      for J := 0 to FFrame.Count - 1 do
+        if (FAlg.Roles[J] = irPoint) and (FFrame.Rows[J].CB = OldNumber) then
+        begin
+          FFrame.Rows[J].CB := Row.CB;
+          Grid.Cells[Grid.FieldToCol(CB), J + Grid.FixedRows] :=
+            TPointNumber.ToText(Row.CB);
+        end;
     end;
   FStored := True;
   ShowProtocol;

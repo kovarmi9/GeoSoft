@@ -8,14 +8,16 @@ stanoviscích. Pokrývá i protínání z úhlů.
 - Jedna tabulka, bloky oddělené prázdným řádkem:
     1. stanovisko A a pod ním jeho orientace (číslo bodu a směr),
     2. stanovisko B a jeho orientace,
-    3. určované body, u každého směr z A a směr z B.
+    3. určované body, každý na dvou řádcích: směr z A a směr z B,
+       ve sloupci Ze stanoviska číslo stanoviska, ze kterého se měřil.
 - Souřadnice stanovisek a orientací se doplní ze seznamu.
 - Protínání z úhlů: na A jediná orientace na B se směrem 0, na B
   jediná orientace na A se směrem 0. Směry k bodům jsou pak úhly od
   základny.
 - Pod tabulkou se ukáže, jak program zápisník pochopil: stanoviska,
   počet orientací, orientační posun a počet určovaných bodů.
-- Směr nejde zapsat u stanoviska, směr z B jen u určovaného bodu.
+- Směr nejde zapsat u stanoviska, číslo stanoviska jen u určovaného
+  bodu. Výsledek se ukáže na řádku se směrem z A.
 - Výpočet uloží určené body do seznamu, bod, který už v seznamu je,
   se přepíše s dotazem.
 
@@ -46,7 +48,7 @@ flowchart LR
 |---|---|---|
 | $Y, X$ | `Y`, `X` | souřadnice S-JTSK |
 | $\Delta X, \Delta Y$ | — | rozdíly ze stanoviska do bodu |
-| $\psi$ | `psi`, pole `HZ`, `ZU` | měřený směr, z A a z B |
+| $\psi$ | `psi`, pole `HZ` | měřený směr, stanovisko v poli `CBm` |
 | $\sigma$ | `sigma`, `sigmaAP`, `sigmaBP` | směrník |
 | $\varphi$ | `phi` | orientační posun stanoviska |
 | $p$ | `p` | váha orientace, $s / s_{max}$ |

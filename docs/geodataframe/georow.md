@@ -11,7 +11,7 @@ Unit `src/DataStructures/GeoRow.pas`.
 | `Checked` | `Boolean` | použít ve výpočtu, nový řádek `True`, v zápisníku 1 a 0 |
 | `CB` | `Int64` | úplné číslo bodu, 15 číslic se znaménkem, 0 = bez čísla |
 | `X`, `Y`, `Z` | `Double` | souřadnice S-JTSK a výška [m] |
-| `CBm` | `Int64` | číslo druhého bodu (kontrolní oměrné), zdrojového bodu (transformace), 0 = bez čísla |
+| `CBm` | `Int64` | číslo druhého bodu (kontrolní oměrné), zdrojového bodu (transformace), stanoviska (protínání ze směrů), 0 = bez čísla |
 | `Xm`, `Ym`, `Zm` | `Double` | místní souřadnice, v transformaci a kontrolních oměrných souřadnice druhého bodu, v nivelaci čtení vzad, vpřed a boční [m] |
 | `Typ` | `Integer` | typ řádku podle úlohy: v polární metodě typ délky (0 vodorovná, 2 šikmá); v transformaci role bodu (1 identický, 2 kontrolní, 3 určovaný) |
 | `SH`, `SS` | `Double` | vodorovná a šikmá délka, jen kladná [m] |

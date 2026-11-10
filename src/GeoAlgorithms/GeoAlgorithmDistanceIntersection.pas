@@ -88,7 +88,7 @@ begin
   Quality := TAccuracy.LowerQuality(AFrame.Rows[0].KK,
     AFrame.Rows[1].KK);
 
-  // 0 or empty means not measured
+  // 0 or empty, not measured
   Check := AFrame.Rows[GIVEN_POINTS].SH;
   if IsNan(Check) or (Check = 0) then
     AddWarning('Kontrolní délka 1-2 není měřena, je jen ze souřadnic.')

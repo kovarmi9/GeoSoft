@@ -52,7 +52,7 @@ type
     Sta:        Double;                   // along the line or side, signed
     Kol:        Double;                   // across the line, signed (kolmice)
     Popis:      string[MAX_POPIS_LENGTH]; // point description
-    KK:         Integer;                  // quality code 0..8
+    KK:         Integer;                  // quality code, 0 = none
     M1:         Double;                   // results, meaning by task
     M2:         Double;
     M3:         Double;
@@ -122,16 +122,17 @@ begin
   ARow.M1 := NaN; ARow.M2 := NaN; ARow.M3 := NaN; ARow.M4 := NaN;
 end;
 
-// Overload that prints all fields - calls the field-mask overload
+// All fields, no mask
 function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer): string;
 begin
   Result := PrintGeoRow(ARow, [Low(TGeoField)..High(TGeoField)], ARowIndex);
 end;
 
+// Angles need more places
 function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer): string;
 var
   F: TGeoField;
-  S: string;
+  Mask: string;
 begin
   if ARowIndex >= 0 then
     Result := Format('--- TGeoRow %d ---', [ARowIndex]) + sLineBreak
@@ -141,33 +142,12 @@ begin
   for F := Low(TGeoField) to High(TGeoField) do
     if F in AFields then
     begin
-      case F of
-        Checked:  S := Format('%s: %d', [GeoFieldNames[F], Ord(ARow.Checked)]);
-        CB:       S := Format('%s: %d', [GeoFieldNames[F], ARow.CB]);
-        X:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.X]);
-        Y:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Y]);
-        Z:        S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Z]);
-        CBm:      S := Format('%s: %d', [GeoFieldNames[F], ARow.CBm]);
-        Xm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Xm]);
-        Ym:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Ym]);
-        Zm:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Zm]);
-        Typ:      S := Format('%s: %d', [GeoFieldNames[F], ARow.Typ]);
-        SH:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.SH]);
-        SS:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.SS]);
-        VS:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.VS]);
-        VC:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.VC]);
-        HZ:       S := Format('%s: %.6f', [GeoFieldNames[F], ARow.HZ]);
-        ZU:       S := Format('%s: %.6f', [GeoFieldNames[F], ARow.ZU]);
-        Sta:      S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Sta]);
-        Kol:      S := Format('%s: %.3f', [GeoFieldNames[F], ARow.Kol]);
-        Popis:    S := Format('%s: %s', [GeoFieldNames[F], ARow.Popis]);
-        KK:       S := Format('%s: %d', [GeoFieldNames[F], ARow.KK]);
-        M1:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M1]);
-        M2:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M2]);
-        M3:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M3]);
-        M4:       S := Format('%s: %.3f', [GeoFieldNames[F], ARow.M4]);
-      end;
-      Result := Result + S + sLineBreak;
+      if F in [HZ, ZU] then
+        Mask := '0.000000'
+      else
+        Mask := '0.000';
+      Result := Result + GeoFieldNames[F] + ': ' +
+        GeoFieldToText(ARow, F, Mask, FormatSettings) + sLineBreak;
     end;
 end;
 

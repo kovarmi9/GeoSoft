@@ -48,7 +48,7 @@ begin
     Row := AFrame.Rows[I];
     AProt.Text(Format(READING_LINE, [ARows.Numbers[I], PointId(Row.CB),
       Num(Row.Xm, 3), Num(Row.Ym, 3), Num(Row.Zm, 3), Num(Row.SH, 2),
-      Num(Row.M3, 3), Num(Row.M1, 3), Num(Row.VC, 3), ARows.Notes[I]]));
+      Num(Row.M3, 3), Num(Row.M1, 3), Num(Row.M2, 3), ARows.Notes[I]]));
   end;
   AProt.Line;
 

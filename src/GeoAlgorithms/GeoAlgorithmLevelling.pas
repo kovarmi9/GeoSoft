@@ -38,7 +38,7 @@ type
     procedure ChainHeights(AFrame: TGeoDataFrame; AFrom, ATo: Integer; AStart: Double);
     procedure CalculateBothWays(AFrame: TGeoDataFrame);
   public
-    /// <summary>Readings in Xm, Ym, Zm, heights out in VC.</summary>
+    /// <summary>Readings in Xm, Ym, Zm, heights out in M2.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     /// <summary>The reading filled in on the row.</summary>
@@ -223,20 +223,20 @@ begin
           Horizon := Height + Back;
           if not IsNan(o) then
             Horizon := Horizon + o;
-          AFrame.Rows[I].VC := Height;
+          AFrame.Rows[I].M2 := Height;
         end;
       lrSide:
         begin
           h := Back - AFrame.Rows[I].Zm;
           AFrame.Rows[I].M3 := h;
-          AFrame.Rows[I].VC := Horizon - AFrame.Rows[I].Zm;
+          AFrame.Rows[I].M2 := Horizon - AFrame.Rows[I].Zm;
         end;
       lrFore:
         begin
           h := Back - AFrame.Rows[I].Ym;
           AFrame.Rows[I].M3 := h;
           Height := Horizon - AFrame.Rows[I].Ym;
-          AFrame.Rows[I].VC := Height;
+          AFrame.Rows[I].M2 := Height;
         end;
     end;
 end;
@@ -275,9 +275,9 @@ begin
 
   // Each way on its own, the way back ends on the start
   ChainHeights(AFrame, 0, Turn, AFrame.Rows[0].Z);
-  ChainHeights(AFrame, Turn + 1, LastRow, AFrame.Rows[Turn].VC);
+  ChainHeights(AFrame, Turn + 1, LastRow, AFrame.Rows[Turn].M2);
   for I := Turn + 1 to LastRow do
-    AFrame.Rows[I].VC := AFrame.Rows[I].VC - FInfo.Misclosure;
+    AFrame.Rows[I].M2 := AFrame.Rows[I].M2 - FInfo.Misclosure;
 
   // A point measured both ways gets the mean, the start keeps its height
   for I := 0 to Turn do
@@ -290,21 +290,21 @@ begin
       if (ReadingOf(AFrame.Rows[J]) <> lrSide) and
          (AFrame.Rows[J].CB = AFrame.Rows[I].CB) then
       begin
-        Mean := (AFrame.Rows[I].VC + AFrame.Rows[J].VC) / 2;
-        AFrame.Rows[I].VC := Mean;
-        AFrame.Rows[J].VC := Mean;
+        Mean := (AFrame.Rows[I].M2 + AFrame.Rows[J].M2) / 2;
+        AFrame.Rows[I].M2 := Mean;
+        AFrame.Rows[J].M2 := Mean;
       end;
   end;
   if AFrame.Rows[0].CB <> 0 then
     for I := 0 to LastRow do
       if AFrame.Rows[I].CB = AFrame.Rows[0].CB then
-        AFrame.Rows[I].VC := AFrame.Rows[0].Z;
+        AFrame.Rows[I].M2 := AFrame.Rows[0].Z;
   // A back row without a number is the point of the fore row above it
   for I := 1 to LastRow do
     if (ReadingOf(AFrame.Rows[I]) = lrBack) and
        (AFrame.Rows[I].CB = 0) and
        (ReadingOf(AFrame.Rows[I - 1]) = lrFore) then
-      AFrame.Rows[I].VC := AFrame.Rows[I - 1].VC;
+      AFrame.Rows[I].M2 := AFrame.Rows[I - 1].M2;
 
   FInfo.Valid := True;
 end;
@@ -326,7 +326,7 @@ begin
   begin
     AFrame.Rows[I].M3 := NaN;
     AFrame.Rows[I].M1 := NaN;
-    AFrame.Rows[I].VC := NaN;
+    AFrame.Rows[I].M2 := NaN;
   end;
 
   if not CheckLayout(AFrame) then

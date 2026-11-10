@@ -51,7 +51,7 @@ flowchart LR
 | $d$ | `SH` | délka záměry |
 | $h$ | `M3` | převýšení |
 | $o_i$ | `M1` | oprava čtení vzad |
-| $H$ | `VC` | vypočtená výška |
+| $H$ | `M2` | vypočtená výška |
 | $H_Z, H_K$ | `Z` | daná výška začátku a konce |
 | $L$ | `TotalLength` | délka pořadu |
 | $\delta$ | `Misclosure` | odchylka, tam a zpět rozdíl |

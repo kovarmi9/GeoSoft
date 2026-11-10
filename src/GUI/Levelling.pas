@@ -48,9 +48,9 @@ begin
   inherited Create(AOwner);
   FAlg := TLevellingAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  // M1 correction, M3 height difference
+  // M1 correction, M2 height, M3 height difference
   FFrame := TGeoDataFrame.Create(
-    [CB, Xm, Ym, Zm, SH, Z, M3, M1, VC, Popis]);
+    [CB, Xm, Ym, Zm, SH, Z, M3, M1, M2, Popis]);
 end;
 
 destructor TLevellingForm.Destroy;
@@ -63,7 +63,7 @@ end;
 procedure TLevellingForm.ApplyDecimals;
 begin
   inherited;
-  Grid.SetFieldDecimals([Xm, Ym, Zm, SH, Z, M3, M1, VC], 3);
+  Grid.SetFieldDecimals([Xm, Ym, Zm, SH, Z, M3, M1, M2], 3);
 end;
 
 // Every row with a number or a reading, the empty ones are left out
@@ -96,7 +96,7 @@ begin
   BuildFrame;
   FAlg.BothWays := CheckBoxBothWays.Checked;
   FAlg.Calculate(FFrame);
-  FrameToGrid(Grid, FFrame, FRows, [M3, M1, VC]);
+  FrameToGrid(Grid, FFrame, FRows, [M3, M1, M2]);
   ShowProtocol;
 end;
 
@@ -112,7 +112,7 @@ begin
   begin
     PointNumber := FFrame.Rows[I].CB;
     if (PointNumber = 0) or not IsNan(FFrame.Rows[I].Z) or
-       IsNan(FFrame.Rows[I].VC) then
+       IsNan(FFrame.Rows[I].M2) then
       Continue;
 
     // A listed point keeps its position, a new one has only the height
@@ -127,7 +127,7 @@ begin
     end
     else
       Row.Popis := FFrame.Rows[I].Popis;
-    Row.Z := FFrame.Rows[I].VC;
+    Row.Z := FFrame.Rows[I].M2;
     StorePoint(Row);
   end;
 end;

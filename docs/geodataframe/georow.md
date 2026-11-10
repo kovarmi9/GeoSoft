@@ -28,7 +28,7 @@ Co je ve výstupních polích:
 | úloha | `M1` | `M2` | `M3` | `M4` |
 |---|---|---|---|---|
 | transformace | dY | dX | – | Sxy |
-| technická nivelace | oprava čtení vzad | – | převýšení | – |
+| technická nivelace | oprava čtení vzad | vypočtená výška | převýšení | – |
 | kontrolní oměrné | délka ze souřadnic | rozdíl | mezní rozdíl | vyhovuje (jen v tabulce) |
 
 ## Práce s řádkem

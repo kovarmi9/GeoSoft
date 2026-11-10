@@ -52,13 +52,13 @@ begin
   begin
     Row := Frame.Rows[I];
     Writeln(Format('  %-5s převýšení %8.4f  oprava %8.4f  výška %9.4f',
-      [IntToStr(Row.CB), Row.M3, Row.M1, Row.VC]));
+      [IntToStr(Row.CB), Row.M3, Row.M1, Row.M2]));
   end;
   Writeln;
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([CB, Z, Xm, Ym, Zm, SH, M3, M1, VC]);
+  Frame := TGeoDataFrame.Create([CB, Z, Xm, Ym, Zm, SH, M3, M1, M2]);
   Alg := TLevellingAlgorithm.Create;
   try
     // 1. Line 101 - 102, side reading 5001, misclosure +3 mm.

@@ -62,7 +62,7 @@ begin
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([CB, Z, Xm, Ym, Zm, SH, M3, M1, VC]);
+  Frame := TGeoDataFrame.Create([CB, Z, Xm, Ym, Zm, SH, M3, M1, M2]);
   Alg := TLevellingAlgorithm.Create;
   Prot := TProtocol.Create;
   Lines := TStringList.Create;

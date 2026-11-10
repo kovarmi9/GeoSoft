@@ -109,7 +109,7 @@ begin
     if I = 0 then
       Chain[I].X := 0              // the walk starts here
     else
-      Chain[I].X := AFrame.Rows[I].SH;
+      Chain[I].X := AFrame.Rows[I].Sta;
   end;
 
   BuildLocalPoints(Chain);
@@ -201,7 +201,7 @@ begin
     else
     begin
       // Into the map the length goes reduced by the scale
-      Chain[I].X := AFrame.Rows[AFrom + I].SH * Scale;
+      Chain[I].X := AFrame.Rows[AFrom + I].Sta * Scale;
       if IsNan(Chain[I].X) then
       begin
         AErrors.Add(Head + Format('bod %s nemá délku.',

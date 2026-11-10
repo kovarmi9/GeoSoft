@@ -9,7 +9,7 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.ExtCtrls, Vcl.Menus,
   System.Types, System.Math, Point, PointDictionary, PointPrefixState,
   GeoRow, GeoDataFrame, GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState,
-  GeoFieldsDef, ProtocolTable,
+  ProtocolTable,
   GeoAlgorithmBase,
   GeoAlgorithmRectangularMeasurements,
   CalcBase, Vcl.Mask, PointNumber, ProtocolRectangularMeasurements;
@@ -17,7 +17,6 @@ uses
 type
   TRectangularMeasurementsForm = class(TCalcBaseForm)
     Grid: TGeoFieldsGrid;
-    procedure FormCreate(Sender: TObject);
     procedure CalculateClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
@@ -59,23 +58,13 @@ begin
   inherited Create(AOwner);
   FAlg := TRectangularMeasurementsAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([CB, X, Y, Xm, Ym, SH, Popis, KK]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, Xm, Ym, Sta, Popis, KK]);
 end;
 
 destructor TRectangularMeasurementsForm.Destroy;
 begin
   FAlg.Free;
   inherited;
-end;
-
-procedure TRectangularMeasurementsForm.FormCreate(Sender: TObject);
-var
-  FilterData: TColumnFilterData;
-begin
-  // Left turn is written as a negative length
-  FilterData := GeoFieldColumns[SH].Filter;
-  FilterData.HasMinValue := False;
-  Grid.SetColumnFilterData(SH, FilterData);
 end;
 
 procedure TRectangularMeasurementsForm.ApplyCoordOrderToGrids;
@@ -183,7 +172,7 @@ end;
 procedure TRectangularMeasurementsForm.GridCellSelectable(Sender: TObject;
   ACol, ARow: Integer; var ASelectable: Boolean);
 begin
-  if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(SH)) then
+  if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(Sta)) then
     ASelectable := False;
 end;
 
@@ -202,7 +191,7 @@ begin
 
   // The walk is cumulative, so any change redraws all rows
   if (ACol = Grid.FieldToCol(CB)) or
-    (ACol = Grid.FieldToCol(SH)) then
+    (ACol = Grid.FieldToCol(Sta)) then
     RecalcLocal;
 end;
 

@@ -2,7 +2,6 @@ inherited RectangularAdjustmentForm: TRectangularAdjustmentForm
   ActiveControl = Grid
   Caption = 'Konstruk'#269'n'#237' om'#283'rn'#233' s vyrovn'#225'n'#237'm'
   HelpKeyword = 'vypocty/konstrukcni-omerne-s-vyrovnanim/'
-  OnCreate = FormCreate
   TextHeight = 15
   object Grid: TGeoFieldsGrid [2]
     Left = 0
@@ -21,7 +20,7 @@ inherited RectangularAdjustmentForm: TRectangularAdjustmentForm
     OnCellSelectable = GridCellSelectable
     ColumnFields.Strings = (
       'CB='#268#237'slo bodu'
-      'SH=D'#233'lka'
+      'Sta=D'#233'lka'
       'Xm=X m'#237'stn'#237
       'Ym=Y m'#237'stn'#237
       'X'

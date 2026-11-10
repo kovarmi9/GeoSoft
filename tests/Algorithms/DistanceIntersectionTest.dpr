@@ -43,7 +43,6 @@ begin
   begin
     Writeln('  Delka zakladny: ', Alg.Base:0:3);
     Writeln('  Uhel protnuti: ', Alg.Omega:0:1, ' gon');
-    Writeln('  Vlevo: ', BoolToStr(Alg.Left, True));
     Writeln('  Kontrolni delka: ', Alg.Measured:0:3);
     Writeln('  Mez: ', Alg.Limit:0:3);
   end;
@@ -74,9 +73,9 @@ begin
     // Priklad protinani z delek
     // Expected result: Y = 853262,19, X = 1010898,28
 
-    Add('202', 703.84, 853704.65, 1011445.66);
     Add('229', 846.61, 852501.72, 1011270.35);
-    Add('226', -1);
+    Add('202', 703.84, 853704.65, 1011445.66);
+    Add('226', 0);
 
     Run('Protinani z delek - bod 226');
 

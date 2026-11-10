@@ -14,10 +14,10 @@ Unit `src/DataStructures/GeoRow.pas`.
 | `CBm` | `Int64` | číslo druhého bodu (kontrolní oměrné), zdrojového bodu (transformace), 0 = bez čísla |
 | `Xm`, `Ym`, `Zm` | `Double` | místní souřadnice, v transformaci a kontrolních oměrných souřadnice druhého bodu, v nivelaci čtení vzad, vpřed a boční [m] |
 | `Typ` | `Integer` | typ řádku podle úlohy: v polární metodě typ délky (0 vodorovná, 2 šikmá); v transformaci role bodu (1 identický, 2 kontrolní, 3 určovaný) |
-| `SH`, `SS` | `Double` | vodorovná a šikmá délka, jen kladná; zatím kromě protínání z délek a konstrukčních oměrných, kde znaménko určuje stranu a zatáčku [m] |
+| `SH`, `SS` | `Double` | vodorovná a šikmá délka, jen kladná [m] |
 | `VS`, `VC` | `Double` | výška přístroje a cíle [m] |
 | `HZ`, `ZU` | `Double` | vodorovný směr a zenitový úhel [gon] |
-| `Sta` | `Double` | vzdálenost podél přímky se znaménkem: v ortogonální metodě staničení, v polární metodě doměrek [m] |
+| `Sta` | `Double` | vzdálenost podél přímky se znaménkem: v ortogonální metodě staničení, v polární metodě doměrek, v konstrukčních oměrných délka strany, + zatáčka vpravo, − vlevo [m] |
 | `Kol` | `Double` | vzdálenost kolmo k přímce se znaménkem, vpravo kladná: kolmice v polární a ortogonální metodě a ve vyrovnání do přímky [m] |
 | `Popis` | `string[32]` | popis bodu, při uložení bodu se z něj stane popis v seznamu |
 | `KK` | `Integer` | kód kvality 0–8 |

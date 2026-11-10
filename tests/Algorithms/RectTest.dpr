@@ -52,7 +52,7 @@ begin
   // 1 - computed corner, 100 m from 101
   ClearGeoRow(P1);
   P1.CB := 1;
-  P1.SH := 100;           // side length, + turns right, - left
+  P1.Sta := 100;           // side length, + turns right, - left
 
   // 102 - given end, 100,01 m from the corner, turning left
   ClearGeoRow(P102);
@@ -60,9 +60,9 @@ begin
   P102.X := 100;
   P102.Y := 100;
   P102.KK := 3;
-  P102.SH := -100.01;
+  P102.Sta := -100.01;
 
-  Frame := TGeoDataFrame.Create([CB, X, Y, SH]);
+  Frame := TGeoDataFrame.Create([CB, X, Y, Sta]);
   Alg := TRectangularMeasurementsAlgorithm.Create;
   try
     try
@@ -79,7 +79,7 @@ begin
 
       // 4. No length to the corner, the stretch stops
       P102.X := 100;
-      P1.SH := NaN;
+      P1.Sta := NaN;
       RunChain('Bod 1 bez délky (očekáváno úsek se nepočítá):');
     except
       on E: Exception do

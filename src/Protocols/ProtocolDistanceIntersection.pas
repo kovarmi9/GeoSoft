@@ -61,10 +61,7 @@ begin
     AProt.Text(LengthLimitSource);
   end;
   AProt.Text('Úhel protnutí = ' + Ang(AAlg.omega));
-  if AAlg.Left then
-    AProt.Text('Bod leží vlevo od 1→2')
-  else
-    AProt.Text('Bod leží vpravo od 1→2');
+  AProt.Text('Bod leží vpravo od 1→2');
 
   // 5. Determined points
   Row := AFrame.Rows[GIVEN_POINTS];

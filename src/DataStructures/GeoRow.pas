@@ -49,7 +49,7 @@ type
     VC:         Double;                   // target height
     HZ:         Double;                   // horizontal direction [gon]
     ZU:         Double;                   // zenith angle [gon]
-    Sta:        Double;                   // along the line, signed (doměrek)
+    Sta:        Double;                   // along the line or side, signed
     Kol:        Double;                   // across the line, signed (kolmice)
     Popis:      string[MAX_POPIS_LENGTH]; // point description
     KK:         Integer;                  // quality code 0..8

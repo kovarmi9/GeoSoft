@@ -26,7 +26,7 @@ var
 begin
   ClearGeoRow(Row);
   Row.CB := APointNumber;
-  Row.SH := ALength;
+  Row.Sta := ALength;
   Row.Y := AY;
   Row.X := AX;
   Row.KK := 3;
@@ -59,7 +59,7 @@ begin
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([CB, X, Y, SH, KK]);
+  Frame := TGeoDataFrame.Create([CB, X, Y, Sta, KK]);
   Alg := TRectangularMeasurementsAlgorithm.Create;
   Prot := TProtocol.Create;
   Lines := TStringList.Create;

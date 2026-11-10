@@ -58,24 +58,24 @@ begin
   Prot := TProtocol.Create;
   Lines := TStringList.Create;
   try
-    // 1. Point 226, no check length, on the left
-    Add('202', 703.84, 853704.65, 1011445.66);
+    // 1. Point 226, no check length, right of 229-202
     Add('229', 846.61, 852501.72, 1011270.35);
-    Add('226', -1);
+    Add('202', 703.84, 853704.65, 1011445.66);
+    Add('226', 0);
     Run('1. Bod 226 bez kontrolní délky');
 
     // 2. The same with a check length 1-2
     Frame.ClearData;
-    Add('202', 703.84, 853704.65, 1011445.66);
     Add('229', 846.61, 852501.72, 1011270.35);
-    Add('226', -1215.65);
+    Add('202', 703.84, 853704.65, 1011445.66);
+    Add('226', 1215.65);
     Run('2. Bod 226 s kontrolní délkou');
 
     // 3. A given point without coordinates
     Frame.ClearData;
-    Add('202', 703.84);
     Add('229', 846.61, 852501.72, 1011270.35);
-    Add('226', -1);
+    Add('202', 703.84);
+    Add('226', 0);
     Run('3. Daný bod bez souřadnic');
   finally
     Lines.Free;

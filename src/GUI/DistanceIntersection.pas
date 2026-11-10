@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
-  GeoFieldsDef, SettingsState, GeoAlgorithmDistanceIntersection,
+  SettingsState, GeoAlgorithmDistanceIntersection,
   ProtocolTable, PointNumber, ProtocolDistanceIntersection;
 
 type
@@ -45,18 +45,11 @@ const
   RESULT_ROW = GIVEN_POINTS + 1;        // grid row of the new point
 
 constructor TDistanceIntersectionForm.Create(AOwner: TComponent);
-var
-  FilterData: TColumnFilterData;
 begin
   inherited Create(AOwner);
   FAlg := TDistanceIntersectionAlgorithm.Create;
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create([CB, SH, X, Y, KK]);
-
-  // A negative check length puts the new point to the left
-  FilterData := GeoFieldColumns[SH].Filter;
-  FilterData.HasMinValue := False;
-  Grid.SetColumnFilterData(SH, FilterData);
 end;
 
 destructor TDistanceIntersectionForm.Destroy;
@@ -101,10 +94,7 @@ end;
 // Under the grid: the side and how the check length fits
 function TDistanceIntersectionForm.SideText: string;
 begin
-  if FAlg.Left then
-    Result := 'Bod leží vlevo od 1→2'
-  else
-    Result := 'Bod leží vpravo od 1→2';
+  Result := 'Bod leží vpravo od 1→2';
 
   if IsNan(FAlg.Measured) then
     Result := Result + '    Kontrolní délka neměřena'

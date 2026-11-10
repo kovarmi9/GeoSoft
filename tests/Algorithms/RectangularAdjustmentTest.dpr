@@ -22,7 +22,7 @@ var
 begin
   ClearGeoRow(Row);
   Row.CB := StrToInt64Def(APointNumber, 0);
-  Row.SH := ALength;
+  Row.Sta := ALength;
   Row.Y := AY;
   Row.X := AX;
   Row.KK := 3;
@@ -56,7 +56,7 @@ begin
   Writeln('  Oměrné: měřená, vyrovnaná');
   for I := 1 to Frame.Count - 1 do
     Writeln('    ', IntToStr(Frame.Rows[I].CB), ': ',
-      Frame.Rows[I].SH:0:3, '  ', Alg.Adjusted[I]:0:4);
+      Frame.Rows[I].Sta:0:3, '  ', Alg.Adjusted[I]:0:4);
 
   Writeln('  Opravy daných bodů: vy, vx');
   for Residual in Alg.Residuals do
@@ -75,7 +75,7 @@ begin
 end;
 
 begin
-  Frame := TGeoDataFrame.Create([CB, SH, Y, X, Xm, Ym, KK]);
+  Frame := TGeoDataFrame.Create([CB, Sta, Y, X, Xm, Ym, KK]);
   Alg := TRectangularAdjustmentAlgorithm.Create;
   try
     // L shape, closure -0,03 along 20 / 10 / 10,03, +0,02 along 5 / 5 / 9,98.

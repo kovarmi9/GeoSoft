@@ -16,18 +16,15 @@ type
   TDistanceIntersectionAlgorithm = class(TFrameAlgorithm)
   private
     FValid: Boolean;
-    FLeft: Boolean;
     FOmega: Double;
     FBase: Double;
     FMeasured: Double;
     FLimit: Double;
   public
-    /// <summary>SH: lengths from 1 and 2, signed check in row 3.</summary>
+    /// <summary>SH: lengths from 1 and 2, check in row 3.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     property Valid: Boolean read FValid;
-    /// <summary>The new point lies left of 1 - 2.</summary>
-    property Left: Boolean read FLeft;
     /// <summary>Angle at the new point, 0 to 200 gon.</summary>
     property omega: Double read FOmega;
     /// <summary>Length 1 - 2 from the coordinates.</summary>
@@ -43,12 +40,11 @@ implementation
 procedure TDistanceIntersectionAlgorithm.Calculate(AFrame: TGeoDataFrame);
 var
   I, Quality: Integer;
-  Check, s12, s1, s2, p, h, epsilon: Double;
+  Check, s12, s1, s2, p, h: Double;
   DeltaX12, DeltaY12, ToFirstX, ToFirstY, ToSecondX, ToSecondY: Double;
 begin
   ClearMessages;
   FValid := False;
-  FLeft := False;
   FOmega := NaN;
   FBase := NaN;
   FMeasured := NaN;
@@ -92,15 +88,13 @@ begin
   Quality := TAccuracy.LowerQuality(AFrame.Rows[0].KK,
     AFrame.Rows[1].KK);
 
-  // The check length as in the notebook: its sign gives the side,
-  // 0 or -1 means it was not measured
+  // 0 or empty means not measured
   Check := AFrame.Rows[GIVEN_POINTS].SH;
-  FLeft := not IsNan(Check) and (Check < 0);
-  if IsNan(Check) or (Check = 0) or (Check = -1) then
+  if IsNan(Check) or (Check = 0) then
     AddWarning('Kontrolní délka 1-2 není měřena, je jen ze souřadnic.')
   else
   begin
-    FMeasured := Abs(Check) * Scale;
+    FMeasured := Check * Scale;
     FLimit := TAccuracy.LengthLimit(Max(FBase, FMeasured), Quality);
     if not IsNan(FLimit) and (Abs(FMeasured - FBase) >= FLimit) then
       AddWarning(Format('Kontrolní délka 1-2: rozdíl %.3f m není menší než ' +
@@ -120,15 +114,11 @@ begin
   end;
   h := Sqrt(Max(h, 0));
 
-  // To the right of 1 - 2 is plus, as in the orthogonal method
-  if FLeft then
-    epsilon := -1
-  else
-    epsilon := 1;
+  // Right of 1 - 2, as GROMA
   AFrame.Rows[GIVEN_POINTS].X := AFrame.Rows[0].X +
-    (p * DeltaX12 - epsilon * h * DeltaY12) / s12;
+    (p * DeltaX12 - h * DeltaY12) / s12;
   AFrame.Rows[GIVEN_POINTS].Y := AFrame.Rows[0].Y +
-    (p * DeltaY12 + epsilon * h * DeltaX12) / s12;
+    (p * DeltaY12 + h * DeltaX12) / s12;
   AFrame.Rows[GIVEN_POINTS].KK := Quality;
 
   // Angle between the two lengths at the new point

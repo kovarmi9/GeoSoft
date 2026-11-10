@@ -44,7 +44,7 @@ flowchart LR
 
 | značka | v kódu | význam |
 |---|---|---|
-| $a_i$ | `SH` | délka strany se znaménkem, + vpravo, − vlevo |
+| $a_i$ | `Sta` | délka strany se znaménkem, + vpravo, − vlevo |
 | $t_i$ | `TS` | znaménko $a_i$ |
 | $m$ | `Scale` | měřítko délek |
 | $u_x, u_y$ | `DirX`, `DirY` | jednotkový směr chůze, na začátku $(1, 0)$ |

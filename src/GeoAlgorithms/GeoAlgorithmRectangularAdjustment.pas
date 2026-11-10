@@ -24,7 +24,7 @@ type
     FMeanError: Double;
   public
 
-    /// <summary>SH: signed sides, last row closes on the first.</summary>
+    /// <summary>Sta: signed sides, last row closes on the first.</summary>
     procedure Calculate(AFrame: TGeoDataFrame); override;
 
     property Valid: Boolean read FValid;
@@ -75,7 +75,7 @@ begin
     Exit;
   end;
   for I := 1 to N - 1 do
-    if IsNan(AFrame.Rows[I].SH) or (AFrame.Rows[I].SH = 0) then
+    if IsNan(AFrame.Rows[I].Sta) or (AFrame.Rows[I].Sta = 0) then
     begin
       AddError(Format('Bod %s nemá délku.',
         [TPointNumber.ToDisplay(AFrame.Rows[I].CB)]));
@@ -95,7 +95,7 @@ begin
   SumY := 0;
   for I := 1 to N - 1 do
   begin
-    TS := Sign(AFrame.Rows[I].SH);
+    TS := Sign(AFrame.Rows[I].Sta);
     NewDirX := -TS * DirY;
     DirY := TS * DirX;
     DirX := NewDirX;
@@ -104,8 +104,8 @@ begin
       FirstDirX := DirX;
       FirstDirY := DirY;
     end;
-    StepX[I] := Abs(AFrame.Rows[I].SH) * Scale * DirX;
-    StepY[I] := Abs(AFrame.Rows[I].SH) * Scale * DirY;
+    StepX[I] := Abs(AFrame.Rows[I].Sta) * Scale * DirX;
+    StepY[I] := Abs(AFrame.Rows[I].Sta) * Scale * DirY;
     ClosureX := ClosureX + StepX[I];
     ClosureY := ClosureY + StepY[I];
     SumX := SumX + Abs(StepX[I]);
@@ -133,7 +133,7 @@ begin
       StepY[I] := StepY[I] - ClosureY * Abs(StepY[I]) / SumY;
       Xm := Xm + StepX[I];
       Ym := Ym + StepY[I];
-      FAdjusted[I] := Sign(AFrame.Rows[I].SH) *
+      FAdjusted[I] := Sign(AFrame.Rows[I].Sta) *
         (Abs(StepX[I]) + Abs(StepY[I]));
     end;
     AFrame.Rows[I].Xm := Xm;

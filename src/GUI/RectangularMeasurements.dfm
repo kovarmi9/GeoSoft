@@ -3,7 +3,6 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
   HelpKeyword = 'vypocty/konstrukcni-omerne/'
   ClientHeight = 598
   StyleElements = [seFont, seClient, seBorder]
-  OnCreate = FormCreate
   ExplicitHeight = 657
   TextHeight = 15
   inherited ToolBarPrefix: TToolBar
@@ -41,7 +40,7 @@ inherited RectangularMeasurementsForm: TRectangularMeasurementsForm
     OnCellSelectable = GridCellSelectable
     ColumnFields.Strings = (
       'CB='#268#237'slo bodu'
-      'SH=D'#233'lka'
+      'Sta=D'#233'lka'
       'Xm=X m'#237'stn'#237
       'Ym=Y m'#237'stn'#237
       'X'

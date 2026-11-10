@@ -58,10 +58,10 @@ begin
           '', CoordPair(Row.X, Row.Y), 'daný', '']))
       else if I = Segment.ToRow then
         AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
-          Num(Row.SH), CoordPair(Row.X, Row.Y), 'daný', '']))
+          Num(Row.Sta), CoordPair(Row.X, Row.Y), 'daný', '']))
       else
         AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
-          Num(Row.SH), CoordPair(Row.X, Row.Y), 'vypočtený',
+          Num(Row.Sta), CoordPair(Row.X, Row.Y), 'vypočtený',
           ARows.Notes[I]]));
     end;
     AProt.Line;

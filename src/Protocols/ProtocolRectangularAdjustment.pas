@@ -85,8 +85,8 @@ begin
       end
       else
       begin
-        Distance := Num(Row.SH);
-        Correction := Num(AAlg.Adjusted[I] - Row.SH * AAlg.Scale);
+        Distance := Num(Row.Sta);
+        Correction := Num(AAlg.Adjusted[I] - Row.Sta * AAlg.Scale);
       end;
 
       AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),

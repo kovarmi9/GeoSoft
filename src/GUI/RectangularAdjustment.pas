@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, System.Math,
   Point, PointDictionary, PointPrefixState, GeoRow, GeoDataFrame,
-  GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState, GeoFieldsDef,
+  GeoGridBridge, GeoGrid, GeoFieldsGrid, CoordOrderState,
   ProtocolTable, GeoAlgorithmRectangularAdjustment,
   PointNumber, ProtocolRectangularAdjustment;
 
@@ -16,7 +16,6 @@ type
     Grid: TGeoFieldsGrid;
     PanelClosure: TPanel;
     LabelClosure: TLabel;
-    procedure FormCreate(Sender: TObject);
     procedure CalculateClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
@@ -58,23 +57,13 @@ begin
   inherited Create(AOwner);
   FAlg := TRectangularAdjustmentAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create([CB, X, Y, Xm, Ym, SH, Popis, KK]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, Xm, Ym, Sta, Popis, KK]);
 end;
 
 destructor TRectangularAdjustmentForm.Destroy;
 begin
   FAlg.Free;
   inherited;
-end;
-
-procedure TRectangularAdjustmentForm.FormCreate(Sender: TObject);
-var
-  FilterData: TColumnFilterData;
-begin
-  // Left turn is written as a negative length
-  FilterData := GeoFieldColumns[SH].Filter;
-  FilterData.HasMinValue := False;
-  Grid.SetColumnFilterData(SH, FilterData);
 end;
 
 procedure TRectangularAdjustmentForm.ApplyCoordOrderToGrids;
@@ -181,7 +170,7 @@ end;
 procedure TRectangularAdjustmentForm.GridCellSelectable(Sender: TObject;
   ACol, ARow: Integer; var ASelectable: Boolean);
 begin
-  if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(SH)) then
+  if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(Sta)) then
     ASelectable := False;
 end;
 
@@ -200,7 +189,7 @@ begin
 
   // The adjustment spreads over all sides, so any change redraws all rows
   if (ACol = Grid.FieldToCol(CB)) or
-    (ACol = Grid.FieldToCol(SH)) then
+    (ACol = Grid.FieldToCol(Sta)) then
     RecalcLocal;
 end;
 

@@ -19,7 +19,6 @@ type
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TLevellingAlgorithm;
-    FRows: TArray<Integer>;       // grid row of each frame row
     FStored: Boolean;             // heights went to the list in this run
     procedure Recompute;
     procedure StoreHeights;
@@ -74,7 +73,6 @@ var
 begin
   Result := True;
   FFrame.ClearData;
-  SetLength(FRows, 0);
 
   for R := Grid.FixedRows to Grid.RowCount - 1 do
   begin
@@ -83,9 +81,7 @@ begin
        (TLevellingAlgorithm.ReadingOf(Row) = lrNone) then
       Continue;
 
-    FFrame.AddRow(Row);
-    SetLength(FRows, FFrame.Count);
-    FRows[FFrame.Count - 1] := R;
+    AddRow(Row, R);
   end;
 end;
 
@@ -95,6 +91,7 @@ begin
   FStored := False;             // a changed notebook is not stored yet
   BuildFrame;
   FAlg.BothWays := CheckBoxBothWays.Checked;
+  FAlg.RowNumbers := FRows;
   FAlg.Calculate(FFrame);
   FrameToGrid(Grid, FFrame, FRows, [M3, M1, M2]);
   ShowProtocol;

@@ -31,6 +31,9 @@ type
   private
     FInfo: TLevellingInfo;
     FBothWays: Boolean;
+    FRowNumbers: TArray<Integer>;
+    // Č. of the row, else its order
+    function RowNumber(I: Integer): Integer;
     function CheckLayout(AFrame: TGeoDataFrame): Boolean;
     function FindTurn(AFrame: TGeoDataFrame): Integer;
     procedure SumRows(AFrame: TGeoDataFrame; AFrom, ATo: Integer; out ASum, ALength: Double);
@@ -46,6 +49,8 @@ type
 
     /// <summary>Measured there and back, the turn point twice.</summary>
     property BothWays: Boolean read FBothWays write FBothWays;
+    /// <summary>Č. of each frame row, empty means 1, 2, 3.</summary>
+    property RowNumbers: TArray<Integer> read FRowNumbers write FRowNumbers;
     property Info: TLevellingInfo read FInfo;
   end;
 
@@ -76,6 +81,14 @@ begin
     Result := lrNone;
 end;
 
+function TLevellingAlgorithm.RowNumber(I: Integer): Integer;
+begin
+  if (I < Length(FRowNumbers)) and (FRowNumbers[I] >= 0) then
+    Result := FRowNumbers[I]
+  else
+    Result := I + 1;
+end;
+
 // A setup is back, side readings, fore. The start needs a height.
 function TLevellingAlgorithm.CheckLayout(AFrame: TGeoDataFrame): Boolean;
 var
@@ -95,19 +108,19 @@ begin
   begin
     Reading := ReadingOf(AFrame.Rows[I]);
     if Reading = lrNone then
-      AddError(Format('Řádek %d: chybí čtení.', [I + 1]))
+      AddError(Format('Řádek %d: chybí čtení.', [RowNumber(I)]))
     else if Reading = lrMore then
-      AddError(Format('Řádek %d: vyplňte jen jedno čtení.', [I + 1]))
+      AddError(Format('Řádek %d: vyplňte jen jedno čtení.', [RowNumber(I)]))
     else if (Reading = lrBack) and (Previous <> lrFore) then
       AddError(Format('Řádek %d: čtení vzad bez předchozího vpřed.',
-        [I + 1]))
+        [RowNumber(I)]))
     else if (Reading <> lrBack) and (Previous = lrFore) then
-      AddError(Format('Řádek %d: chybí čtení vzad.', [I + 1]))
+      AddError(Format('Řádek %d: chybí čtení vzad.', [RowNumber(I)]))
     else
       Previous := Reading;
 
     if IsNan(AFrame.Rows[I].SH) then
-      AddError(Format('Řádek %d: chybí délka záměry.', [I + 1]));
+      AddError(Format('Řádek %d: chybí délka záměry.', [RowNumber(I)]));
   end;
   if Previous <> lrFore then
     AddError('Pořad musí končit čtením vpřed.');

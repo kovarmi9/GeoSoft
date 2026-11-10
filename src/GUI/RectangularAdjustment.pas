@@ -319,10 +319,10 @@ begin
   for I := 0 to AFrame.Count - 1 do
     if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
     begin
-      // Do not ask again for this number
-      FRowCB[R] := Trim(Grid.Cells[Grid.FieldToCol(CB), R]);
-      // Empty X means a new point
-      FRowNew[R] := IsNan(AFrame.Rows[I].X);
+      if IsNan(AFrame.Rows[I].X) then
+        FillRow(R)              // only inputs, ask as when typed
+      else
+        FRowCB[R] := Trim(Grid.Cells[Grid.FieldToCol(CB), R]);
       Inc(R);
     end;
 

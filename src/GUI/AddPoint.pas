@@ -34,9 +34,6 @@ type
     function Execute(PointNumber: Int64; out NewP: TPoint): Boolean;
   end;
 
-var
-  AddPointForm: TAddPointForm;
-
 implementation
 
 {$R *.dfm}
@@ -54,37 +51,14 @@ const
   DATA_ROW    = 1;
 
 procedure TAddPointForm.FormCreate(Sender: TObject);
-
-  // Same filter for Y, X and Z
-  procedure Coord(AIndex: Integer);
-  begin
-    StringGrid.ColumnFilters[AIndex].DataType        := cdtExpression;
-    StringGrid.ColumnFilters[AIndex].DecimalPlaces   :=
-      GSettings.LengthDecimals;
-    StringGrid.ColumnFilters[AIndex].OnInvalidCommit := ciaBlock;
-  end;
-
 var
-  Filter: TColumnFilter;
+  I: Integer;
 begin
-  Coord(COL_COORD);
-  Coord(COL_COORD + 1);
-  Coord(COL_Z);
-
-  Filter := StringGrid.ColumnFilters[COL_QUALITY];
-  Filter.DataType         := cdtInteger;
-  Filter.MaxLength        := 1;
-  Filter.HasMinValue      := True;
-  Filter.MinValue         := MIN_KK;
-  Filter.HasMaxValue      := True;
-  Filter.MaxValue         := MAX_KK;
-  Filter.OnInvalidCommit  := ciaBlock;
-  Filter.OnGetDefaultText := GetQualityDefault;
-
-  Filter := StringGrid.ColumnFilters[COL_DESC];
-  Filter.DataType         := cdtNone;
-  Filter.MaxLength        := MAX_POPIS_LENGTH;
-  Filter.OnGetDefaultText := GetDescriptionDefault;
+  // Decimals by the settings, filter events only in code
+  for I := COL_COORD to COL_Z do
+    StringGrid.ColumnFilters[I].DecimalPlaces := GSettings.LengthDecimals;
+  StringGrid.ColumnFilters[COL_QUALITY].OnGetDefaultText := GetQualityDefault;
+  StringGrid.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X
   FGridOrder := coYX;

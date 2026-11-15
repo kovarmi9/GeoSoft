@@ -26,7 +26,6 @@ type
     procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TCheckMeasurementsAlgorithm;
-    procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
     procedure RefreshComputed;
     procedure Recompute;
     procedure ClearComputed(ARow: Integer);
@@ -78,13 +77,6 @@ begin
       GridPairs.Cells[GridPairs.FieldToCol(CBm), ARow - 1];
 end;
 
-// Writes one value by field
-procedure TCheckMeasurementsForm.SetCell(F: TGeoField; ARow: Integer;
-  const S: string);
-begin
-  GridPairs.Cells[GridPairs.FieldToCol(F), ARow] := S;
-end;
-
 // Applies the point prefix, offers AddPoint for an unknown point and
 // recomputes the row.
 procedure TCheckMeasurementsForm.PairCommitted(Sender: TObject;
@@ -112,10 +104,10 @@ end;
 // Clears the computed columns of one row.
 procedure TCheckMeasurementsForm.ClearComputed(ARow: Integer);
 begin
-  SetCell(M1, ARow, '');
-  SetCell(M2, ARow, '');
-  SetCell(M3, ARow, '');
-  SetCell(M4, ARow, '');
+  SetCell(GridPairs, M1, ARow, '');
+  SetCell(GridPairs, M2, ARow, '');
+  SetCell(GridPairs, M3, ARow, '');
+  SetCell(GridPairs, M4, ARow, '');
 end;
 
 // Results into the grid, provisional in M2, M3 and M4
@@ -131,16 +123,16 @@ begin
   begin
     R   := FRows[I];
     Check := TCheckMeasurementsAlgorithm.ResultOf(FFrame.Rows[I], FAlg.Scale);
-    SetCell(M4, R, TCheckMeasurementsAlgorithm.Verdict(Check));
+    SetCell(GridPairs, M4, R, TCheckMeasurementsAlgorithm.Verdict(Check));
     if not Check.Found then
       Continue;
 
-    SetCell(M1, R, FloatToStr(Check.Computed, FS));
+    SetCell(GridPairs, M1, R, FloatToStr(Check.Computed, FS));
     if Check.HasMeasured then
     begin
-      SetCell(M2, R, FloatToStr(Check.Diff, FS));
+      SetCell(GridPairs, M2, R, FloatToStr(Check.Diff, FS));
       if not IsNan(Check.Tolerance) then
-        SetCell(M3, R, FloatToStr(Check.Tolerance, FS));
+        SetCell(GridPairs, M3, R, FloatToStr(Check.Tolerance, FS));
     end;
   end;
 end;
@@ -260,9 +252,6 @@ end;
 
 procedure TCheckMeasurementsForm.CalculateClick(Sender: TObject);
 begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   Recompute;
   if FFrame.Count = 0 then
   begin

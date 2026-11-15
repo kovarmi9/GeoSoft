@@ -66,9 +66,6 @@ type
     class function Execute: Boolean;
   end;
 
-var
-  SettingsForm: TSettingsForm;
-
 implementation
 
 {$R *.dfm}

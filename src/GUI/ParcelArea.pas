@@ -131,8 +131,6 @@ end;
 
 procedure TParcelAreaForm.CalculateClick(Sender: TObject);
 begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
   MemoProtocol.Clear;       // old area would look like a new one
 
   // The frame is the only input, so every run rebuilds it

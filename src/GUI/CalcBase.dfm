@@ -27,6 +27,8 @@
     Caption = 'ToolBarPrefix'
     List = True
     AllowTextButtons = True
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 0
     object ComboBoxKU: TComboBox
       AlignWithMargins = True
@@ -34,7 +36,7 @@
       Top = 0
       Width = 99
       Height = 23
-      Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
+      Hint = 'P'#345'ed'#269#237'sl'#237' K'#218
       ItemIndex = 0
       MaxLength = 6
       TabOrder = 0
@@ -58,7 +60,7 @@
       Top = 0
       Width = 94
       Height = 23
-      Hint = 'Popis bodu'
+      Hint = 'P'#345'ed'#269#237'sl'#237' ZPMZ'
       ItemIndex = 0
       MaxLength = 5
       TabOrder = 1
@@ -111,6 +113,7 @@
       Top = 0
       Width = 145
       Height = 23
+      Hint = 'Popis'
       TabOrder = 3
       OnChange = PrefixComboChange
       OnExit = PrefixComboExit

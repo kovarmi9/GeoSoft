@@ -199,10 +199,6 @@ var
   OldNumber: Int64;
   Row: TGeoRow;
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   Recompute;
   if not FAlg.Valid then
   begin

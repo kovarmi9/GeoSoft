@@ -281,8 +281,8 @@ begin
   FInfo.Misclosure := FInfo.SumHeight + FInfo.SumBack;
   // Annex 4.9 of decree 31/1995, L in km
   FInfo.Limit := 0.020 * Sqrt(FInfo.TotalLength / 1000);
-  if Abs(FInfo.Misclosure) > FInfo.Limit then
-    AddWarning(Format('Rozdíl tam a zpět %.3f m překračuje mezní rozdíl ' +
+  if Abs(FInfo.Misclosure) >= FInfo.Limit then
+    AddWarning(Format('Rozdíl tam a zpět %.3f m není menší než mezní rozdíl ' +
       '%.3f m - vyhláška č. 31/1995 Sb., příloha, bod 4.9',
       [FInfo.Misclosure, FInfo.Limit]));
 
@@ -379,8 +379,8 @@ begin
 
     // One way against given heights, half of L in km
     FInfo.Limit := 0.020 * Sqrt(FInfo.TotalLength / 1000 / 2);
-    if Abs(FInfo.Misclosure) > FInfo.Limit then
-      AddWarning(Format('Odchylka %.3f m překračuje mezní odchylku ' +
+    if Abs(FInfo.Misclosure) >= FInfo.Limit then
+      AddWarning(Format('Odchylka %.3f m není menší než mezní odchylka ' +
         '%.3f m (20 mm·√(L/2), měření tam proti známým výškám).',
         [FInfo.Misclosure, FInfo.Limit]));
 

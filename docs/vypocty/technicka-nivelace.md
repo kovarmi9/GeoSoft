@@ -107,8 +107,8 @@ neopravují.
 
 - Mez je podle vyhlášky 31/1995 Sb., příloha bod 4.9: tam a zpět
   $20\ \mathrm{mm} \cdot \sqrt{L}$, jen tam proti daným výškám
-  $20\ \mathrm{mm} \cdot \sqrt{L/2}$. Odchylka nad mezí vypíše
-  upozornění.
+  $20\ \mathrm{mm} \cdot \sqrt{L/2}$. Odchylka, která není menší
+  než mez, vypíše upozornění.
 - Pořad bez dané výšky konce vypíše upozornění, že výšky jsou
   bez kontroly.
 - Chyba: řádek bez čtení nebo s více čteními, čtení ve špatném

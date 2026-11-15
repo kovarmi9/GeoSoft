@@ -35,8 +35,10 @@ oknech otevře protokol zakázky v Poznámkovém bloku.
 
 ## Jak to funguje uvnitř
 
-Vzhled protokolu zná jen třída `TProtocol`, obsah zná jen úloha. Proto
-vypadají všechny protokoly stejně.
+Vzhled protokolu zná jen třída `TProtocol`, obsah zná jen zapisovač
+úlohy ve složce `Protocols`. Okno dodá jen to, co zná samo: čísla řádků
+tabulky a poznámky u přepsaných bodů. Proto vypadají všechny protokoly
+stejně a jdou testovat bez okna.
 
 ```mermaid
 sequenceDiagram
@@ -44,61 +46,74 @@ sequenceDiagram
   participant B as CalcBase.pas
   participant U as úloha.pas
   participant A as GeoAlgorithm….pas
+  participant W as Protocol….pas
   participant P as ProtocolTable.pas
   participant J as soubor .ptk
   B->>U: tlačítko Výpočet spustí výpočet úlohy
   U->>A: Calculate(frame)
   A-->>U: výsledky ve frame, CHYBA, UPOZORNĚNÍ
-  U->>P: WriteProtocol: Title, Columns, Row, Finish
+  U->>W: WriteProtocol: Write(Prot, řádky, frame, výpočet, ProtocolRows)
+  W->>P: Start, Section, TableHeader, Text, Line, Finish
   P-->>U: řádky v memu okna
-  B->>J: WriteJobProtocol: memo na konec, podle Nastavení
+  B->>J: WriteJobProtocol: protokol na konec, podle Nastavení
 ```
 
 | unit | co v něm je |
 |---|---|
-| `GUI/CalcBase.pas` | předek oken `TCalcBaseForm`: memo protokolu `MemoProtocol`, pole `Prot`, `BeginProtocol`, `FrameTable`, zápis do `.ptk` |
-| `GUI/<úloha>.pas` | `WriteProtocol` úlohy, co se do protokolu napíše |
+| `GUI/CalcBase.pas` | předek oken `TCalcBaseForm`: memo `MemoProtocol`, pole `Prot`, `ShowProtocol`, `ProtocolRows`, zápis do `.ptk` |
+| `GUI/<úloha>.pas` | `WriteProtocol` úlohy, jen zavolá zapisovač |
+| `Protocols/Protocol<úloha>.pas` | zapisovač úlohy, co se do protokolu napíše |
 | `GeoAlgorithms/GeoAlgorithm<úloha>.pas` | výpočet, zprávy `AddError` a `AddWarning` |
-| `Utils/ProtocolTable.pas` | `TProtocol` (nadpis, tabulky, čáry), sloupce `Col…`, `Num`, `Ang`, `PointId`, `CoordPair` |
+| `Utils/ProtocolTable.pas` | `TProtocol` (nadpis, oddíly, tabulky, čáry), `TProtocolRows`, `Num`, `Ang`, `PointId`, `CoordPair`, `LimitText` |
 | `GUI/PointsManagement.pas` | jméno `.ptk` podle seznamu, otevření v Poznámkovém bloku |
 
 ### Jak úloha píše protokol
 
+Okno jen předá, co má:
+
 ```pascal
-procedure TPolarMethodForm.WriteProtocol(ALines: TStrings);
+procedure TLineIntersectionForm.WriteProtocol(ALines: TStrings);
 begin
-  if not BeginProtocol(ALines, 'Polární metoda', FAlg.Info.Valid, FFrame,
-    FAlg.Warnings) then
-    Exit;
-  Prot.Text('Pevné stanovisko');
-  Prot.Section('STANOVISKO');
-  Prot.Columns([ColField(CB), ColPair]);
-  Prot.FrameRow(FFrame.Rows[0], []);
-  ...
-  Prot.Finish(FAlg.Warnings);
+  TLineIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
+    ProtocolRows(FStored));
 end;
+```
+
+Zapisovač napíše obsah:
+
+```pascal
+if not AProt.Start(ALines, 'Průsečík přímek', AAlg.Valid, AFrame,
+  AAlg.Errors, AAlg.Warnings) then
+  Exit;
+...
+AProt.Section('PRŮSEČÍK');
+AProt.TableHeader(Format(POINT_LINE,
+  ['Č.', 'Číslo bodu', CoordCaption, 'KK', '']));
+AProt.Text(Format(POINT_LINE, [ARows.Numbers[LINE_POINTS], PointId(Row.CB),
+  CoordPair(Row.X, Row.Y), IntToStr(Row.KK), ARows.Notes[LINE_POINTS]]));
+AProt.Line;
+AProt.Finish(AAlg.Errors, AAlg.Warnings);
 ```
 
 | metoda | co napíše |
 |---|---|
-| `BeginProtocol` | nadpis, když výpočet neprošel, hned CHYBU a konec |
-| `Prot.Section` | prázdný řádek a nadpis oddílu |
-| `Prot.Text`, `Prot.Values` | řádek textu, řádky `popisek = hodnota` |
-| `Prot.Columns` | hlavičku tabulky a čáru |
-| `Prot.FrameRow` | řádek z řádku frame, volné sloupce dodá okno |
-| `Prot.Row` | řádek, všechny buňky dodá okno |
-| `FrameTable` | celou tabulku z rozsahu řádků frame |
-| `Prot.Finish` | CHYBA, UPOZORNĚNÍ a koncovou čáru |
+| `Start` | nadpis, když výpočet neprošel, hned CHYBU a konec, pro prázdný zápisník nic |
+| `Section` | prázdný řádek a nadpis oddílu |
+| `Text` | řádek textu |
+| `TableHeader` | hlavičku tabulky a čáru stejně širokou |
+| `Line` | čáru na konec tabulky |
+| `Finish` | CHYBA, UPOZORNĚNÍ a koncovou čáru |
 
-### Sloupce
+### Řádky tabulek
 
-| sloupec | co vypíše |
+Hlavička i řádky tabulky se píší stejným formátovacím řetězcem
+(např. `POINT_LINE`), proto sloupce sedí pod sebou.
+
+| co | co vypíše |
 |---|---|
-| `ColNumber` | Č., řádek tabulky okna |
-| `ColField(CB)` | číslo bodu `000000 00000 0000` |
-| `ColField(HZ)`, `ColField(SH, 'Staničení')` | úhel nebo délka z řádku frame, vlastní popisek |
-| `ColPair` | Y a X v pořadí podle Nastavení |
-| `ColPoint`, `ColLength`, `ColAngle`, `ColText` | volný sloupec, text dodá okno |
-
-Šířku sloupce určí jeho druh a počet desetinných míst v Nastavení, nikdy
-není užší než popisek. Text se zarovná doleva, čísla doprava.
+| `ARows.Numbers[I]` | Č., řádek tabulky okna |
+| `ARows.Notes[I]` | poznámku za bodem, který výpočet v seznamu přepsal nebo zprůměroval |
+| `PointId` | číslo bodu `000000 00000 0000` |
+| `CoordPair`, `CoordCaption` | Y a X v pořadí podle Nastavení a jejich popisek |
+| `Num`, `Ang` | délku nebo souřadnici, úhel v gonech, počet míst podle Nastavení |
+| `LimitText` | odchylku, mezní rozdíl a vyhovuje nebo nevyhovuje |

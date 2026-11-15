@@ -51,14 +51,23 @@ object AddPointForm: TAddPointForm
         ReadOnly = True
       end
       item
+        DataType = cdtExpression
       end
       item
+        DataType = cdtExpression
       end
       item
+        DataType = cdtExpression
       end
       item
+        DataType = cdtInteger
+        MaxLength = 1
+        HasMinValue = True
+        HasMaxValue = True
+        MaxValue = 8.000000000000000000
       end
       item
+        MaxLength = 32
       end>
     ExplicitWidth = 391
     ColWidths = (

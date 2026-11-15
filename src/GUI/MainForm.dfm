@@ -14,14 +14,6 @@ object GeoSoftForm: TGeoSoftForm
   Position = poScreenCenter
   OnCloseQuery = FormCloseQuery
   TextHeight = 15
-  object ToolBar: TToolBar
-    Left = 0
-    Top = 0
-    Width = 966
-    Height = 29
-    Caption = 'ToolBar'
-    TabOrder = 0
-  end
   object Button1: TButton
     Left = 56
     Top = 72

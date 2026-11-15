@@ -50,7 +50,7 @@ begin
     Result := mbUnknown
   else if ASxy < AMxy then
     Result := mbWithinMxy
-  else if ASxy <= 2 * AMxy then
+  else if ASxy < 2 * AMxy then
     Result := mbWithinUxy
   else
     Result := mbOverUxy;

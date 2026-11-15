@@ -265,54 +265,16 @@ end;
 procedure TPolarMethodForm.DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   Grid: TGeoFieldsGrid;
-  PointNumberCol, PozCol, KKCol: Integer;
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
-
-  // The settings may hide the column
-  procedure SetCell(F: TGeoField; const S: string);
-  begin
-    if Grid.FieldToCol(F) >= 0 then
-      Grid.Cells[Grid.FieldToCol(F), ARow] := S;
-  end;
-
+  PozCol, KKCol: Integer;
 begin
   Grid := GridDetail;
   if ARow < Grid.FixedRows then Exit;
 
-  PointNumberCol  := Grid.FieldToCol(CB);
   PozCol := Grid.FieldToCol(Popis);
   KKCol  := Grid.FieldToCol(KK);
 
-  if ACol = PointNumberCol then
-  begin
-    NormalizePointCell(Grid, PointNumberCol, ARow);
-    TPointNumber.TryParse(Grid.Cells[PointNumberCol, ARow], PointNumber);
-
-    // A new number brings its own height, quality and description
-    if ARow >= Length(FDetailCB) then
-      SetLength(FDetailCB, ARow + 1);
-    if Grid.Cells[PointNumberCol, ARow] <> FDetailCB[ARow] then
-    begin
-      FDetailCB[ARow] := Grid.Cells[PointNumberCol, ARow];
-      SetCell(Z, '');
-      SetCell(KK, '');
-      SetCell(Popis, '');
-    end;
-
-    // A point from the list keeps its height, quality and description,
-    // the same as in the orthogonal method
-    if (PointNumber <> 0) and
-       TPointDictionary.GetInstance.PointExists(PointNumber) then
-    begin
-      ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
-      SetCell(Y, FloatToStr(ListPoint.Y, FS));
-      SetCell(X, FloatToStr(ListPoint.X, FS));
-      SetCell(Z, FloatToStr(ListPoint.Z, FS));
-      SetCell(KK, IntToStr(ListPoint.Quality));
-      SetCell(Popis, string(ListPoint.Description));
-    end;
-  end;
+  if ACol = Grid.FieldToCol(CB) then
+    FillDetailRow(Grid, ARow, FDetailCB);
 
   // The toolbar only prefills an empty cell, what is typed there wins
   if (PozCol >= 0) and (Trim(Grid.Cells[PozCol, ARow]) = '') then
@@ -515,9 +477,6 @@ end;
 
 procedure TPolarMethodForm.CalculateClick(Sender: TObject);
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
   ClearResults;      // old results would look like new ones
 
   // The frame is the only input, so every run rebuilds it

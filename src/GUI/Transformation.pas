@@ -262,9 +262,6 @@ var
   PointNumber: Int64;
   Msg: string;
 begin
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-  ForgetAnswers;     // ask again about points already in the list
   Recompute;
   if not FAlg.Info.Valid then
   begin

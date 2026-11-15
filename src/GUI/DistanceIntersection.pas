@@ -157,10 +157,6 @@ procedure TDistanceIntersectionForm.CalculateClick(Sender: TObject);
 var
   Row: TGeoRow;
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   // Both given points from the list
   if not CheckGivenPoints(Grid, 1, GIVEN_POINTS, 'Zadejte bod %s.') then
     Exit;

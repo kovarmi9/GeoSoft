@@ -53,7 +53,7 @@ begin
   AProt.Line;
 
   // 4. Checks, there and back or against the given heights
-  if Abs(AAlg.Info.Misclosure) <= AAlg.Info.Limit then
+  if Abs(AAlg.Info.Misclosure) < AAlg.Info.Limit then
     Verdict := 'vyhovuje'
   else
     Verdict := 'nevyhovuje';

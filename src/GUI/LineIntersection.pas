@@ -135,10 +135,6 @@ procedure TLineIntersectionForm.CalculateClick(Sender: TObject);
 var
   Row: TGeoRow;
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   // Both lines need their points from the list
   if not CheckGivenPoints(Grid, 1, LINE_POINTS, 'Zadejte bod %s.') then
     Exit;

@@ -84,7 +84,7 @@ begin
 
     if IsNan(AAlg.Limit) then
       Verdict := ''
-    else if Abs(Row.Kol) <= AAlg.Limit then
+    else if Abs(Row.Kol) < AAlg.Limit then
       Verdict := 'vyhovuje'
     else
       Verdict := 'nevyhovuje';

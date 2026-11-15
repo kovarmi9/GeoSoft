@@ -79,8 +79,8 @@ begin
     k := ((AFrame.Rows[I].Y - PointA.Y) * DeltaXAB -
       (AFrame.Rows[I].X - PointA.X) * DeltaYAB) / sAB;
 
-    if not IsNan(FLimit) and (Abs(k) > FLimit) then
-      AddWarning(Format('Bod %s: kolmice %.3f m je delší než Uxy %.3f m.',
+    if not IsNan(FLimit) and (Abs(k) >= FLimit) then
+      AddWarning(Format('Bod %s: kolmice %.3f m není kratší než Uxy %.3f m.',
         [PointNumber, Abs(k), FLimit]));
 
     // The foot of the perpendicular

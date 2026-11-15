@@ -25,7 +25,6 @@ type
     MenuFileOpen: TMenuItem;
     OpenDialog: TOpenDialog;
     StatusBar: TStatusBar;
-    ControlBar: TControlBar;
     MenuImport: TMenuItem;
     MenuExport: TMenuItem;
     MenuImportTXT: TMenuItem;
@@ -144,49 +143,14 @@ const
 // ---- Form setup -----------------------------------------------------------
 
 procedure TPointsManagementForm.FormCreate(Sender: TObject);
-
-  // Same filter for Y, X and Z
-  procedure Coord(AIndex: Integer);
-  begin
-    GridPoints.ColumnFilters[AIndex].DataType         := cdtExpression;
-    GridPoints.ColumnFilters[AIndex].OnInvalidCommit  := ciaBlock;
-    GridPoints.ColumnFilters[AIndex].OnGetDefaultText := GetZeroDefault;
-  end;
-
 var
-  Filter: TColumnFilter;
+  I: Integer;
 begin
-  // Point number: digits and a minus sign, empty deletes
-  Filter := GridPoints.ColumnFilters[COL_POINTNO];
-  Filter.DataType   := cdtInteger;
-  Filter.MaxLength  := MAX_CB_LENGTH;     // with a minus
-  Filter.AllowEmpty := True;
-  // 16 digits without a minus sign would not fit
-  Filter.HasMinValue := True;
-  Filter.MinValue    := -MAX_CB;
-  Filter.HasMaxValue := True;
-  Filter.MaxValue    := MAX_CB;
-
-  Coord(COL_COORD);       // Y
-  Coord(COL_COORD + 1);   // X
-  Coord(COL_Z);
-
-  // Quality 0-8
-  Filter := GridPoints.ColumnFilters[COL_QUALITY];
-  Filter.DataType         := cdtInteger;
-  Filter.MaxLength        := 1;
-  Filter.HasMinValue      := True;
-  Filter.MinValue         := MIN_KK;
-  Filter.HasMaxValue      := True;
-  Filter.MaxValue         := MAX_KK;
-  Filter.OnInvalidCommit  := ciaBlock;
-  Filter.OnGetDefaultText := GetQualityDefault;
-
-  // Description
-  Filter := GridPoints.ColumnFilters[COL_DESC];
-  Filter.DataType         := cdtNone;
-  Filter.MaxLength        := MAX_POPIS_LENGTH;
-  Filter.OnGetDefaultText := GetDescriptionDefault;
+  // Filter events only in code
+  for I := COL_COORD to COL_Z do
+    GridPoints.ColumnFilters[I].OnGetDefaultText := GetZeroDefault;
+  GridPoints.ColumnFilters[COL_QUALITY].OnGetDefaultText := GetQualityDefault;
+  GridPoints.ColumnFilters[COL_DESC].OnGetDefaultText := GetDescriptionDefault;
 
   // The designer has Y before X
   FGridOrder := coYX;
@@ -1038,9 +1002,6 @@ begin
   CB  := Sender as TComboBox;
   Key := 0;
 
-  if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
-    CB.Text := NormalizeNumericPrefix(CB.Text, CB.MaxLength);
-
   if Sender = ComboBoxPopis then
   begin
     GridPoints.SetFocus;
@@ -1054,14 +1015,7 @@ end;
 
 // Zeros for KU and ZPMZ
 procedure TPointsManagementForm.PrefixComboExit(Sender: TObject);
-var
-  CB: TComboBox;
 begin
-  if (Sender = ComboBoxKU) or (Sender = ComboBoxZPMZ) then
-  begin
-    CB      := Sender as TComboBox;
-    CB.Text := NormalizeNumericPrefix(CB.Text, CB.MaxLength);
-  end;
   SavePrefix;
   LoadPrefix;
 end;

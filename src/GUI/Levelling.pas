@@ -159,10 +159,6 @@ end;
 
 procedure TLevellingForm.CalculateClick(Sender: TObject);
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   Recompute;
   if FFrame.Count = 0 then
   begin

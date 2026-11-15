@@ -156,6 +156,14 @@ type
     function PutRow(AGrid: TGeoFieldsGrid; ARow: Integer;
       const GRow: TGeoRow; AIndex: Integer; ABad: TStrings): Boolean;
 
+    /// <summary>Writes a value by field, when the grid shows it.</summary>
+    procedure SetCell(AGrid: TGeoFieldsGrid; AField: TGeoField; ARow: Integer;
+      const AText: string);
+
+    /// <summary>Detail row after its point number was typed.</summary>
+    procedure FillDetailRow(AGrid: TGeoFieldsGrid; ARow: Integer;
+      var ANumbers: TArray<string>);
+
     /// <summary>WriteProtocol into the memo, without flicker.</summary>
     procedure ShowProtocol;
 
@@ -166,9 +174,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
   end;
-
-var
-  CalcBaseForm: TCalcBaseForm;
 
 implementation
 
@@ -324,10 +329,6 @@ end;
 // Zeros for KU and ZPMZ
 procedure TCalcBaseForm.PrefixComboExit(Sender: TObject);
 begin
-  ComboBoxKU.Text :=
-    NormalizeNumericPrefix(ComboBoxKU.Text, ComboBoxKU.MaxLength);
-  ComboBoxZPMZ.Text :=
-    NormalizeNumericPrefix(ComboBoxZPMZ.Text, ComboBoxZPMZ.MaxLength);
   SavePrefix;
   LoadPrefix;
 end;
@@ -522,6 +523,11 @@ function TCalcBaseForm.RunCalculation(Sender: TObject): Boolean;
 var
   Before: Integer;
 begin
+  Result := False;
+  ForgetAnswers;     // a new run asks again
+  if not CommitEditing then
+    Exit;            // the typed value is invalid
+
   Before := Prot.Count;
   FSkipJobProtocol := False;
   FCalculateClick(Sender);
@@ -782,6 +788,50 @@ end;
 procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);
 begin
   // nothing here, see the descendants
+end;
+
+// The settings may hide the column
+procedure TCalcBaseForm.SetCell(AGrid: TGeoFieldsGrid; AField: TGeoField;
+  ARow: Integer; const AText: string);
+var
+  Col: Integer;
+begin
+  Col := AGrid.FieldToCol(AField);
+  if Col >= 0 then
+    AGrid.Cells[Col, ARow] := AText;
+end;
+
+// A new number brings its own height, quality and description,
+// a point from the list keeps them
+procedure TCalcBaseForm.FillDetailRow(AGrid: TGeoFieldsGrid; ARow: Integer;
+  var ANumbers: TArray<string>);
+var
+  Col: Integer;
+  PointNumber: Int64;
+  ListPoint: Point.TPoint;
+begin
+  Col := AGrid.FieldToCol(CB);
+  NormalizePointCell(AGrid, Col, ARow);
+  TPointNumber.TryParse(AGrid.Cells[Col, ARow], PointNumber);
+
+  if ARow >= Length(ANumbers) then
+    SetLength(ANumbers, ARow + 1);
+  if AGrid.Cells[Col, ARow] <> ANumbers[ARow] then
+  begin
+    ANumbers[ARow] := AGrid.Cells[Col, ARow];
+    SetCell(AGrid, Z, ARow, '');
+    SetCell(AGrid, KK, ARow, '');
+    SetCell(AGrid, Popis, ARow, '');
+  end;
+
+  if (PointNumber = 0) or not Points.PointExists(PointNumber) then
+    Exit;
+  ListPoint := Points.GetPoint(PointNumber);
+  SetCell(AGrid, Y, ARow, FloatToStr(ListPoint.Y, FS));
+  SetCell(AGrid, X, ARow, FloatToStr(ListPoint.X, FS));
+  SetCell(AGrid, Z, ARow, FloatToStr(ListPoint.Z, FS));
+  SetCell(AGrid, KK, ARow, IntToStr(ListPoint.Quality));
+  SetCell(AGrid, Popis, ARow, string(ListPoint.Description));
 end;
 
 procedure TCalcBaseForm.ShowProtocol;

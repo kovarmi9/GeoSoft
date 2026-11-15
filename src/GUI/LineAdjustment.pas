@@ -232,10 +232,6 @@ end;
 
 procedure TLineAdjustmentForm.CalculateClick(Sender: TObject);
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   // The line needs both points from the list
   if not CheckGivenPoints(GridLine, 1, 2,
     'Zadejte bod %s řídící přímky.') then

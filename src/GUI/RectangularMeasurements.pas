@@ -25,7 +25,6 @@ type
     FAlg: TRectangularMeasurementsAlgorithm;
     FRowNew: array of Boolean;      // listed point the user calls new
     FRowCB: array of string;        // last point number per row
-    procedure SetCell(F: TGeoField; ARow: Integer; const S: string);
     procedure FillRow(const R: Integer);
     procedure RecalcLocal;
     procedure Recompute;
@@ -75,17 +74,6 @@ end;
 procedure TRectangularMeasurementsForm.ApplySettings;
 begin
   FAlg.Scale := GSettings.Scale;
-end;
-
-// Writes one value by field, when the grid shows it
-procedure TRectangularMeasurementsForm.SetCell(F: TGeoField; ARow: Integer;
-  const S: string);
-var
-  C: Integer;
-begin
-  C := Grid.FieldToCol(F);
-  if C >= 0 then
-    Grid.Cells[C, ARow] := S;
 end;
 
 // Fills the row after its point number was committed
@@ -144,15 +132,15 @@ begin
 
   if Known then
   begin
-    SetCell(Y, R, FloatToStr(ListPoint.Y, FS));
-    SetCell(X, R, FloatToStr(ListPoint.X, FS));
-    SetCell(KK, R, IntToStr(ListPoint.Quality));
-    SetCell(Popis, R, string(ListPoint.Description));
+    SetCell(Grid, Y, R, FloatToStr(ListPoint.Y, FS));
+    SetCell(Grid, X, R, FloatToStr(ListPoint.X, FS));
+    SetCell(Grid, KK, R, IntToStr(ListPoint.Quality));
+    SetCell(Grid, Popis, R, string(ListPoint.Description));
   end
   else
   begin
-    SetCell(KK, R, GPointPrefix.KK);
-    SetCell(Popis, R, GPointPrefix.Popis);
+    SetCell(Grid, KK, R, GPointPrefix.KK);
+    SetCell(Grid, Popis, R, GPointPrefix.Popis);
   end;
 end;
 
@@ -222,8 +210,8 @@ begin
       FFrame.Rows[I].X := ListPoint.X;
       FFrame.Rows[I].Y := ListPoint.Y;
       FFrame.Rows[I].KK := ListPoint.Quality;   // for the length limit
-      SetCell(Y, GridRow, FloatToStr(ListPoint.Y, FS));
-      SetCell(X, GridRow, FloatToStr(ListPoint.X, FS));
+      SetCell(Grid, Y, GridRow, FloatToStr(ListPoint.Y, FS));
+      SetCell(Grid, X, GridRow, FloatToStr(ListPoint.X, FS));
     end
     else
     begin
@@ -248,8 +236,8 @@ begin
     if not TRectangularMeasurementsAlgorithm.IsGiven(FFrame.Rows[I]) then
     begin
       // Old results would look valid if a stretch fails now
-      SetCell(Y, FRows[I], '');
-      SetCell(X, FRows[I], '');
+      SetCell(Grid, Y, FRows[I], '');
+      SetCell(Grid, X, FRows[I], '');
     end;
 
   FAlg.Calculate(FFrame);
@@ -281,9 +269,6 @@ end;
 
 procedure TRectangularMeasurementsForm.CalculateClick(Sender: TObject);
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
   MemoProtocol.Clear;
   Recompute;
 

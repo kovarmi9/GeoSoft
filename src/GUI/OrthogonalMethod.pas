@@ -220,38 +220,13 @@ end;
 procedure TOrthogonalMethodForm.DetailPointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   Grid: TGeoFieldsGrid;
-  PNum: Int64;
-  ListPoint: Point.TPoint;
 begin
   Grid := GridDetail;
   if (ARow < Grid.FixedRows) or (ACol < Grid.FixedCols) then Exit;
 
   case Grid.ColToField(ACol) of
     CB:
-      begin
-        NormalizePointCell(Grid, ACol, ARow);
-        TPointNumber.TryParse(Grid.Cells[ACol, ARow], PNum);
-
-        // A new number brings its own height, quality and description
-        if ARow >= Length(FDetailCB) then
-          SetLength(FDetailCB, ARow + 1);
-        if Grid.Cells[ACol, ARow] <> FDetailCB[ARow] then
-        begin
-          FDetailCB[ARow] := Grid.Cells[ACol, ARow];
-          if Grid.FieldToCol(Z) >= 0 then
-            Grid.Cells[Grid.FieldToCol(Z), ARow] := '';
-          if Grid.FieldToCol(KK) >= 0 then
-            Grid.Cells[Grid.FieldToCol(KK), ARow] := '';
-          if Grid.FieldToCol(Popis) >= 0 then
-            Grid.Cells[Grid.FieldToCol(Popis), ARow] := '';
-        end;
-
-        if (PNum <> 0) and TPointDictionary.GetInstance.PointExists(PNum) then
-        begin
-          ListPoint := TPointDictionary.GetInstance.GetPoint(PNum);
-          FillRowFromPoint(Grid, ARow, ListPoint);
-        end;
-      end;
+      FillDetailRow(Grid, ARow, FDetailCB);
 
     Sta, Kol:
       // Enter on an empty tape cell means zero, the same as for P and K
@@ -284,10 +259,6 @@ var
   end;
 
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   // The tape has to start and end on a known point
   if not LoadBasePoint(1, StartPoint) then
   begin

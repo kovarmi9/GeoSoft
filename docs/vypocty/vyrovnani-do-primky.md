@@ -62,7 +62,7 @@ $$
 ## Přesnost
 
 - Kód kvality vyrovnaného bodu je horší z bodů A a B.
-- Mez délky kolmice je $U_{xy} = 2\,M_{xy}$ toho kódu. Delší kolmice
-  vypíše upozornění, bod se přesto vyrovná. Pro kódy bez Mxy se
-  mez nekontroluje.
+- Mez délky kolmice je $U_{xy} = 2\,M_{xy}$ toho kódu. Kolmice,
+  která není kratší, vypíše upozornění, bod se přesto vyrovná.
+  Pro kódy bez Mxy se mez nekontroluje.
 - Body A a B blíž než 1 mm a bod bez souřadnic jsou chyba.

@@ -165,10 +165,6 @@ procedure TResectionForm.CalculateClick(Sender: TObject);
 var
   Row: TGeoRow;
 begin
-  ForgetAnswers;     // a new run asks again
-  if not CommitEditing then
-    Exit;            // the typed value is invalid
-
   // All three given points from the list
   if not CheckGivenPoints(Grid, Grid.FixedRows,
     Grid.FixedRows + RESECTION_POINTS - 1, 'Zadejte bod %s.') then

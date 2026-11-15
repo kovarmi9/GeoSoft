@@ -232,7 +232,7 @@ měření).
 - Kontrola: $[v_X] = [v_Y] = 0$.
 - $m$ se jen vypisuje, u afinní ne, a jen když je $n'$ větší než nula.
 - Bod se posoudí podle $S_{xy}$ proti $M_{xy}$ svého kódu kvality
-  (KatV 13.9, 15.6): do Mxy (menší než $M_{xy}$), do Uxy (nepřekročí
+  (KatV 13.9, 15.6): do Mxy (menší než $M_{xy}$), do Uxy (menší než
   $U_{xy}$), přes Uxy, $U_{xy} = 2\,M_{xy}$.
 - Protokol vyhodnotí kritéria KatV 13.8: všechny body do Uxy a při více
   než 20 bodech nejméně 40 % do Mxy. Jen když mají všechny body Mxy.

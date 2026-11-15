@@ -8,7 +8,6 @@ uses
 
 type
   TGeoSoftForm = class(TForm)
-    ToolBar: TToolBar;
     MainMenu: TMainMenu;
     MenuFile: TMenuItem;
     MenuFileNew: TMenuItem;

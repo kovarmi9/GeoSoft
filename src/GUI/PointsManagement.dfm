@@ -43,16 +43,32 @@ object PointsManagementForm: TPointsManagementForm
       'Popis')
     ColumnFilters = <
       item
+        DataType = cdtInteger
+        MaxLength = 16
+        HasMinValue = True
+        MinValue = -999999999999999.000000000000000000
+        HasMaxValue = True
+        MaxValue = 999999999999999.000000000000000000
+        AllowEmpty = True
       end
       item
+        DataType = cdtExpression
       end
       item
+        DataType = cdtExpression
       end
       item
+        DataType = cdtExpression
       end
       item
+        DataType = cdtInteger
+        MaxLength = 1
+        HasMinValue = True
+        HasMaxValue = True
+        MaxValue = 8.000000000000000000
       end
       item
+        MaxLength = 32
       end>
     ExplicitWidth = 420
     ColWidths = (
@@ -75,15 +91,6 @@ object PointsManagementForm: TPointsManagementForm
     ExplicitTop = 366
     ExplicitWidth = 418
   end
-  object ControlBar: TControlBar
-    Left = 0
-    Top = 0
-    Width = 494
-    Height = 50
-    Align = alTop
-    TabOrder = 2
-    ExplicitWidth = 418
-  end
   object ToolBarPrefix: TToolBar
     AlignWithMargins = True
     Left = 3
@@ -94,6 +101,8 @@ object PointsManagementForm: TPointsManagementForm
     Caption = 'ToolBarPrefix'
     List = True
     AllowTextButtons = True
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 3
     ExplicitWidth = 412
     object ComboBoxKU: TComboBox
@@ -102,7 +111,7 @@ object PointsManagementForm: TPointsManagementForm
       Top = 0
       Width = 99
       Height = 23
-      Hint = 'P'#345'ed'#269#237'sl'#237' bodu'
+      Hint = 'P'#345'ed'#269#237'sl'#237' K'#218
       ItemIndex = 0
       MaxLength = 6
       TabOrder = 0
@@ -129,7 +138,7 @@ object PointsManagementForm: TPointsManagementForm
       Top = 0
       Width = 94
       Height = 23
-      Hint = 'ZPMZ'
+      Hint = 'P'#345'ed'#269#237'sl'#237' ZPMZ'
       ItemIndex = 0
       MaxLength = 5
       TabOrder = 1
@@ -190,6 +199,7 @@ object PointsManagementForm: TPointsManagementForm
       Top = 0
       Width = 145
       Height = 23
+      Hint = 'Popis'
       TabOrder = 3
       OnChange = PrefixComboChange
       OnExit = PrefixComboExit

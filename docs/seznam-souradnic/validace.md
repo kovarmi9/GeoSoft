@@ -73,7 +73,7 @@ katastrální vyhlášky. Používají ho výpočty a protokoly.
     | $M_{xy}$ [m] | 0,14 | 0,26 | 0,50 | 0,21 | 0,50 | 1,00 |
 
 - `MxyBand` – pásmo bodu podle $S_{xy}$: do Mxy ($S_{xy} < M_{xy}$),
-  do Uxy ($S_{xy} \le U_{xy}$, $U_{xy} = 2\,M_{xy}$), přes Uxy, podle
+  do Uxy ($S_{xy} < U_{xy}$, $U_{xy} = 2\,M_{xy}$), přes Uxy, podle
   KatV 13.7 a 13.8
 - `LengthLimit` – mezní rozdíl délky
   $u_d = 2\sqrt{2}\, m_{xy} \frac{d + 12}{d + 20}$, bez $M_{xy}$ neurčen

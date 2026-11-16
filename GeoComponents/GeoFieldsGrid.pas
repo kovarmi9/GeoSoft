@@ -12,7 +12,6 @@ uses
   Vcl.Grids,
   GeoGrid,
   GeoColumnValidation,
-  GeoFieldsDef,
   GeoRow;
 
 type
@@ -26,7 +25,7 @@ type
   TGeoFieldsGrid = class(TGeoGrid)
   private
     FGeoFields: TGeoFields;
-    FColumnData: array[TGeoField] of TGeoFieldColumn;  // settings of each field
+    FFieldInfo: array[TGeoField] of TGeoFieldInfo;     // settings of each field
     FColToField: array of TGeoField;                   // column -> field
     FColumnFilters: TColumnFilters;                    // one per column
     FFieldOrder: TArray<TGeoField>;                    // empty = default order
@@ -42,6 +41,8 @@ type
     procedure RefreshHeaders;
     procedure RefreshFilters;
     function CountActiveFields: Integer;
+    /// <summary>Sets a column filter by the catalogue.</summary>
+    class procedure ApplyFieldInfo(const AInfo: TGeoFieldInfo; AFilter: TColumnFilter); static;
 
   protected
     function CellSelectable(ACol, ARow: Integer): Boolean; override;
@@ -76,10 +77,10 @@ type
     /// <summary>Display name of a field on this grid.</summary>
     procedure SetColumnDisplayName(F: TGeoField; const ADisplayName: string);
 
-    /// <summary>Filter of a field on this grid.</summary>
-    procedure SetColumnFilterData(F: TGeoField; const AData: TColumnFilterData);
+    /// <summary>Definition of a field on this grid.</summary>
+    procedure SetFieldInfo(F: TGeoField; const AInfo: TGeoFieldInfo);
 
-    /// <summary>Resets one field to GeoFieldColumns.</summary>
+    /// <summary>Resets one field to the catalogue.</summary>
     procedure ResetColumnData(F: TGeoField);
 
     /// <summary>Reset all fields to global defaults.</summary>
@@ -113,6 +114,9 @@ type
 
 implementation
 
+uses
+  Validation;
+
 { TGeoFieldsInplaceEdit }
 
 procedure TGeoFieldsInplaceEdit.KeyPress(var Key: Char);
@@ -124,6 +128,41 @@ end;
 
 { TGeoFieldsGrid }
 
+class procedure TGeoFieldsGrid.ApplyFieldInfo(const AInfo: TGeoFieldInfo; AFilter: TColumnFilter);
+begin
+  case AInfo.Kind of
+    fkPointNumber, fkInteger: AFilter.DataType := cdtInteger;
+    fkText:                   AFilter.DataType := cdtNone;
+    fkNumber:                 AFilter.DataType := cdtExpression;
+    fkResult:                 AFilter.DataType := cdtFloat;
+  end;
+
+  AFilter.MinLength := 0;
+  AFilter.MaxLength := AInfo.MaxLength;
+  AFilter.HasMinValue := AInfo.HasMinValue;
+  AFilter.MinValue := AInfo.MinValue;
+  AFilter.HasMaxValue := AInfo.HasMaxValue;
+  AFilter.MaxValue := AInfo.MaxValue;
+  AFilter.WrapAt := AInfo.WrapAt;
+
+  // Empty number means not filled
+  AFilter.AllowEmpty := AInfo.Kind in [fkPointNumber, fkNumber, fkResult];
+  if AInfo.Kind in [fkNumber, fkResult] then
+    AFilter.DecimalPlaces := AInfo.DecimalPlaces
+  else
+    AFilter.DecimalPlaces := -1;
+
+  if AInfo.Kind = fkPointNumber then
+  begin
+    // The length lets the minus sign in, the range keeps 16 digits out
+    AFilter.MaxLength := MAX_CB_LENGTH;
+    AFilter.HasMinValue := True;
+    AFilter.MinValue := -MAX_CB;
+    AFilter.HasMaxValue := True;
+    AFilter.MaxValue := MAX_CB;
+  end;
+end;
+
 constructor TGeoFieldsGrid.Create(AOwner: TComponent);
 var
   F: TGeoField;
@@ -132,7 +171,7 @@ begin
 
   // Per-instance copy of global defaults
   for F := Low(TGeoField) to High(TGeoField) do
-    FColumnData[F] := GeoFieldColumns[F];
+    FFieldInfo[F] := GeoFieldInfo[F];
 
   FGeoFields := [];
   SetLength(FColToField, 0);
@@ -217,9 +256,9 @@ begin
     Inc(N);
 
     if Caption <> '' then
-      FColumnData[F].DisplayName := Caption
+      FFieldInfo[F].Caption := Caption
     else
-      FColumnData[F].DisplayName := GeoFieldColumns[F].DisplayName;
+      FFieldInfo[F].Caption := GeoFieldInfo[F].Caption;
   end;
 
   SetLength(Order, N);
@@ -357,7 +396,7 @@ begin
 
     // Add captions for active fields
     for I := 0 to High(FColToField) do
-      ColumnHeaders.Add(FColumnData[FColToField[I]].DisplayName);
+      ColumnHeaders.Add(FFieldInfo[FColToField[I]].Caption);
   finally
     ColumnHeaders.EndUpdate;
   end;
@@ -374,7 +413,7 @@ begin
   FColumnFilters.EnsureCount(Length(FColToField));
 
   for I := 0 to High(FColToField) do
-    ApplyFieldColumnToFilter(FColumnData[FColToField[I]], FColumnFilters[I]);
+    ApplyFieldInfo(FFieldInfo[FColToField[I]], FColumnFilters[I]);
 end;
 
 procedure TGeoFieldsGrid.Loaded;
@@ -427,7 +466,7 @@ end;
 procedure TGeoFieldsGrid.SetColumnDisplayName(F: TGeoField;
   const ADisplayName: string);
 begin
-  FColumnData[F].DisplayName := ADisplayName;
+  FFieldInfo[F].Caption := ADisplayName;
   if F in FGeoFields then
     RefreshHeaders;
 end;
@@ -445,22 +484,25 @@ var
   F: TGeoField;
 begin
   for F in AFields do
-    FColumnData[F].Filter.DecimalPlaces := APlaces;
+    FFieldInfo[F].DecimalPlaces := APlaces;
   RefreshFilters;
   Invalidate;
 end;
 
-procedure TGeoFieldsGrid.SetColumnFilterData(F: TGeoField;
-  const AData: TColumnFilterData);
+procedure TGeoFieldsGrid.SetFieldInfo(F: TGeoField;
+  const AInfo: TGeoFieldInfo);
 begin
-  FColumnData[F].Filter := AData;
+  FFieldInfo[F] := AInfo;
   if F in FGeoFields then
+  begin
+    RefreshHeaders;
     RefreshFilters;
+  end;
 end;
 
 procedure TGeoFieldsGrid.ResetColumnData(F: TGeoField);
 begin
-  FColumnData[F] := GeoFieldColumns[F];
+  FFieldInfo[F] := GeoFieldInfo[F];
   if F in FGeoFields then
   begin
     RefreshHeaders;
@@ -473,7 +515,7 @@ var
   F: TGeoField;
 begin
   for F := Low(TGeoField) to High(TGeoField) do
-    FColumnData[F] := GeoFieldColumns[F];
+    FFieldInfo[F] := GeoFieldInfo[F];
   RebuildColumns;
 end;
 

@@ -35,6 +35,29 @@ type
   /// <summary>A choice of fields, e.g. [CB, X, Y].</summary>
   TGeoFields = set of TGeoField;
 
+  /// <summary>What a field holds, a grid picks its column type by it.</summary>
+  TGeoFieldKind = (
+    fkPointNumber,   // up to 15 digits and a minus sign
+    fkInteger,       // whole number
+    fkText,          // any text
+    fkNumber,        // typed number, an expression is allowed
+    fkResult         // number the program fills
+  );
+
+  /// <summary>Everything known about one field.</summary>
+  TGeoFieldInfo = record
+    Name:          string;    // in CSV and in ColumnFields
+    Caption:       string;    // default column header
+    Kind:          TGeoFieldKind;
+    DecimalPlaces: Integer;   // shown, numbers only
+    MaxLength:     Integer;   // characters, 0 = no limit
+    HasMinValue:   Boolean;
+    MinValue:      Double;
+    HasMaxValue:   Boolean;
+    MaxValue:      Double;
+    WrapAt:        Double;    // 400 for a direction in gon
+  end;
+
   /// <summary>One measurement of a task.</summary>
   TGeoRow = packed record
     Checked:    Boolean;                  // used in the calculation
@@ -92,10 +115,35 @@ function LoadRow(const AFileName: string; AIndex: Integer = 0): TGeoRow;
 function LoadRows(const AFileName: string): TGeoRowArray;
 
 const
-  /// <summary>Field names for CSV and printouts, in TGeoField order.</summary>
-  GeoFieldNames: array[TGeoField] of string = (
-    'Checked','CB','X','Y','Z','CBm','Xm','Ym','Zm','Typ','SH','SS','VS','VC','HZ','ZU','Sta','Kol',
-    'Popis','KK','M1','M2','M3','M4'
+  /// <summary>Catalogue of the fields, in TGeoField order.</summary>
+  GeoFieldInfo: array[TGeoField] of TGeoFieldInfo = (
+    (Name: 'Checked'; Caption: 'Použít';            Kind: fkInteger; MaxLength: 1;
+      HasMinValue: True; HasMaxValue: True; MaxValue: 1),
+    (Name: 'CB';      Caption: 'Číslo bodu';        Kind: fkPointNumber),
+    (Name: 'X';       Caption: 'X';                 Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'Y';       Caption: 'Y';                 Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'Z';       Caption: 'Z';                 Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'CBm';     Caption: 'Číslo bodu zdroj';  Kind: fkPointNumber),
+    (Name: 'Xm';      Caption: 'Xm';                Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'Ym';      Caption: 'Ym';                Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'Zm';      Caption: 'Zm';                Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'Typ';     Caption: 'Typ';               Kind: fkInteger; MaxLength: 1),
+    (Name: 'SH';      Caption: 'Vodorovná délka';   Kind: fkNumber;  DecimalPlaces: 2; HasMinValue: True),
+    (Name: 'SS';      Caption: 'Šikmá délka';       Kind: fkNumber;  DecimalPlaces: 2; HasMinValue: True),
+    (Name: 'VS';      Caption: 'Výška přístroje';   Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'VC';      Caption: 'Výška cíle';        Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'HZ';      Caption: 'HZ úhel [g]';       Kind: fkNumber;  DecimalPlaces: 4; WrapAt: 400),
+    (Name: 'ZU';      Caption: 'Zenitový úhel [g]'; Kind: fkNumber;  DecimalPlaces: 4;
+      HasMinValue: True; HasMaxValue: True; MaxValue: 400),
+    (Name: 'Sta';     Caption: 'Polární doměrek';   Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'Kol';     Caption: 'Polární kolmice';   Kind: fkNumber;  DecimalPlaces: 2),
+    (Name: 'Popis';   Caption: 'Popis';             Kind: fkText;    MaxLength: MAX_POPIS_LENGTH),
+    (Name: 'KK';      Caption: 'Kód kvality';       Kind: fkInteger; MaxLength: 1;
+      HasMinValue: True; MinValue: MIN_KK; HasMaxValue: True; MaxValue: MAX_KK),
+    (Name: 'M1';      Caption: 'M1';                Kind: fkResult;  DecimalPlaces: 2),
+    (Name: 'M2';      Caption: 'M2';                Kind: fkResult;  DecimalPlaces: 2),
+    (Name: 'M3';      Caption: 'M3';                Kind: fkResult;  DecimalPlaces: 2),
+    (Name: 'M4';      Caption: 'M4';                Kind: fkResult;  DecimalPlaces: 2)
   );
 
 implementation
@@ -146,7 +194,7 @@ begin
         Mask := '0.000000'
       else
         Mask := '0.000';
-      Result := Result + GeoFieldNames[F] + ': ' +
+      Result := Result + GeoFieldInfo[F].Name + ': ' +
         GeoFieldToText(ARow, F, Mask, FormatSettings) + sLineBreak;
     end;
 end;
@@ -163,7 +211,7 @@ begin
     begin
       if not First then
         Result := Result + ASep;
-      Result := Result + GeoFieldNames[F];
+      Result := Result + GeoFieldInfo[F].Name;
       First := False;
     end;
 end;
@@ -251,7 +299,7 @@ var
 begin
   Result := False;
   for F := Low(TGeoField) to High(TGeoField) do
-    if SameText(AName, GeoFieldNames[F]) then
+    if SameText(AName, GeoFieldInfo[F].Name) then
     begin
       AField := F;
       Exit(True);

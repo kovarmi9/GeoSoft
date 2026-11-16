@@ -31,6 +31,26 @@ Co je ve výstupních polích:
 | technická nivelace | oprava čtení vzad | vypočtená výška | převýšení | – |
 | kontrolní oměrné | délka ze souřadnic | rozdíl | mezní rozdíl | vyhovuje (jen v tabulce) |
 
+## Katalog polí
+
+`GeoFieldInfo` popisuje každé pole jedním řádkem, ve stejném pořadí
+jako výčet `TGeoField`.
+
+| položka | význam |
+|---|---|
+| `Name` | název pole v CSV a v `ColumnFields` |
+| `Caption` | výchozí popisek sloupce |
+| `Kind` | druh hodnoty: číslo bodu, celé číslo, text, zadávané číslo, výsledek |
+| `DecimalPlaces` | počet zobrazených míst, jen u čísel |
+| `MaxLength` | nejvyšší počet znaků, 0 = bez omezení |
+| `HasMinValue`, `MinValue`, `HasMaxValue`, `MaxValue` | rozsah hodnoty |
+| `WrapAt` | perioda, 400 u směru v gonech |
+
+Tabulka výpočetního okna si z katalogu bere popisek a filtr sloupce.
+Nové pole se přidá do výčtu, do záznamu, do katalogu a do
+`ClearGeoRow`, `GeoFieldToText` a `TextToGeoField`. Pořadí katalogu
+hlídá test `TestGeoRow`.
+
 ## Práce s řádkem
 
 - `ClearGeoRow(Row)` vymaže řádek: čísla NaN, texty prázdné, celá čísla a čísla bodů 0, `Checked` True

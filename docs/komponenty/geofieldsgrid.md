@@ -12,9 +12,9 @@ zadávání podle svého pole. Používají ji všechna výpočetní okna.
 | `GeoFields` | množina polí, která jsou právě vidět. Nastavuje ji `ApplyColumns`. |
 | `ReadOnlyFields` | pole, která plní program (výsledky). Kurzor je přeskočí, kód do nich píše dál. |
 
-Popisek bez `=` se vezme z `GeoFieldsDef`. Desetinná místa pole
-nastaví `SetFieldDecimals`, sloupec pole najde `FieldToCol`,
-pole sloupce `ColToField`.
+Popisek bez `=` se vezme z katalogu polí (`GeoFieldInfo`
+v `GeoRow.pas`). Desetinná místa pole nastaví `SetFieldDecimals`,
+sloupec pole najde `FieldToCol`, pole sloupce `ColToField`.
 
 ## Skrytí sloupců a pořadí Y a X
 

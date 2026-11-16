@@ -386,16 +386,16 @@ begin
           // Only the note is text
           if not (ColMap[J] in [CB, CBm, Popis]) and (Trim(S) <> '') and
              not TryStrToFloat(Trim(S), Number, FS) and (Bad = '') then
-            Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
+            Bad := GeoFieldInfo[ColMap[J]].Name + ' = ' + Trim(Cells[J]);
           // Digits only, 0 means none
           if (ColMap[J] in [CB, CBm]) and (Trim(S) <> '') and
              (Trim(S) <> '0') and not TPointNumber.TryParse(S, PointNumber) and
              (Bad = '') then
-            Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
+            Bad := GeoFieldInfo[ColMap[J]].Name + ' = ' + Trim(Cells[J]);
           // Checked, type and quality are whole numbers
           if (ColMap[J] in [Checked, Typ, KK]) and (Trim(S) <> '') and
              not TryStrToInt(Trim(S), Whole) and (Bad = '') then
-            Bad := GeoFieldNames[ColMap[J]] + ' = ' + Trim(Cells[J]);
+            Bad := GeoFieldInfo[ColMap[J]].Name + ' = ' + Trim(Cells[J]);
         end;
 
       // A cell that is no number leaves the whole row out

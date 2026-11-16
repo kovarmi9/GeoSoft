@@ -34,7 +34,6 @@ requires
 contains
   GeoGrid in 'GeoGrid.pas',
   GeoColumnValidation in 'GeoColumnValidation.pas',
-  GeoFieldsDef in 'GeoFieldsDef.pas',
   GeoFieldsGrid in 'GeoFieldsGrid.pas',
   GeoPointsGrid in 'GeoPointsGrid.pas',
   GeoGridReg in 'GeoGridReg.pas',

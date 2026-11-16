@@ -61,7 +61,8 @@ je neplatné zadání.
 
 ## Filtry polí
 
-Výpočetní tabulky berou filtr z pole sloupce (`GeoFieldsDef.pas`):
+Výpočetní tabulky berou filtr z katalogu polí (`GeoFieldInfo`
+v `GeoRow.pas`):
 
 | pole | typ | filtr |
 |---|---|---|
@@ -73,5 +74,5 @@ Výpočetní tabulky berou filtr z pole sloupce (`GeoFieldsDef.pas`):
 | kód kvality `KK` | celé číslo | 0 až 8 |
 | poznámka | text | nejvýš 32 znaků |
 
-Okno může filtr pole změnit, třeba ortogonální metoda povolí záporné
-staničení.
+Okno může u pole změnit popisek (`ColumnFields`) a počet míst
+(`SetFieldDecimals`), celou definici pole `SetFieldInfo`.

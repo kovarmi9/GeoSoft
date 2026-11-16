@@ -7,12 +7,15 @@
 uses
   System.SysUtils,
   System.Classes,
+  System.TypInfo,
   Validation in '..\..\src\DataStructures\Validation.pas',
   PointNumber in '..\..\src\DataStructures\PointNumber.pas',
   GeoRow in '..\..\src\DataStructures\GeoRow.pas';
 
 var
   r1, r2: TGeoRow;
+  F: TGeoField;
+  Bad: Integer;
 
 // --- Main ---
 
@@ -68,6 +71,23 @@ begin
 
     // Load all rows at once
     Writeln('Počet řádků v souboru: ', Length(LoadRows('Radek1')));
+
+    // The compiler does not check this order
+    Writeln('Katalog polí');
+    Bad := 0;
+    for F := Low(TGeoField) to High(TGeoField) do
+      if GeoFieldInfo[F].Name <> GetEnumName(TypeInfo(TGeoField), Ord(F)) then
+      begin
+        Writeln('  katalog: ', GeoFieldInfo[F].Name, ' je na místě pole ',
+          GetEnumName(TypeInfo(TGeoField), Ord(F)));
+        Inc(Bad);
+      end;
+
+
+    if Bad = 0 then
+      Writeln('  v pořádku')
+    else
+      Writeln('  chyb: ', Bad);
 
   except
     on E: Exception do

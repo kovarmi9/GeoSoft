@@ -12,8 +12,7 @@ a znovu nainstalovat.
 | `GeoPointsGrid.pas` | `TGeoPointsGrid` | seznam souřadnic, filtry podle sloupců (`ColumnFilters`) |
 | `GeoFieldsGrid.pas` | `TGeoFieldsGrid` | výpočetní okna, sloupce jsou pole `TGeoRow` |
 | `GeoColumnValidation.pas` | `TColumnFilter` | kontrola zadávání a výrazy |
-| `GeoFieldsDef.pas` | | popisky a filtry všech polí |
-| `GeoRow.pas`, `Validation.pas`, `PointNumber.pas` | | datové struktury z `src/DataStructures`: řádek, meze hodnot a číslo bodu |
+| `GeoRow.pas`, `Validation.pas`, `PointNumber.pas` | | datové struktury z `src/DataStructures`: řádek a katalog polí, meze hodnot a číslo bodu |
 
 ```mermaid
 classDiagram
@@ -21,7 +20,7 @@ classDiagram
   TGeoGrid <|-- TGeoPointsGrid
   TGeoGrid <|-- TGeoFieldsGrid
   TGeoPointsGrid ..> TColumnFilter : ColumnFilters
-  TGeoFieldsGrid ..> TColumnFilter : filtr z GeoFieldsDef
+  TGeoFieldsGrid ..> TColumnFilter : filtr z katalogu polí
 ```
 
 ## Co mají všechny tabulky společné

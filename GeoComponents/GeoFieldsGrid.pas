@@ -28,7 +28,7 @@ type
     FFieldInfo: array[TGeoField] of TGeoFieldInfo;     // settings of each field
     FColToField: array of TGeoField;                   // column -> field
     FColumnFilters: TColumnFilters;                    // one per column
-    FFieldOrder: TArray<TGeoField>;                    // empty = default order
+    FDesignFields: TArray<TGeoField>;                  // ColumnFields as fields
     FColumnFields: TStrings;                           // fields as names
     FReadOnlyFields: TGeoFields;                       // filled by the program
 
@@ -37,10 +37,8 @@ type
     procedure ApplyColumnFields;
     procedure ColumnFieldsChanged(Sender: TObject);
     procedure SetReadOnlyFields(const Value: TGeoFields);
-    procedure RebuildColumns;
     procedure RefreshHeaders;
     procedure RefreshFilters;
-    function CountActiveFields: Integer;
     /// <summary>Sets a column filter by the catalogue.</summary>
     class procedure ApplyFieldInfo(const AInfo: TGeoFieldInfo; AFilter: TColumnFilter); static;
 
@@ -62,9 +60,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    /// <summary>Sets the column order, an empty list resets it.</summary>
-    procedure SetFieldOrder(const AOrder: array of TGeoField);
+    /// <summary>Shows these fields in this order, keeps the texts.</summary>
+    procedure SetColumns(const AFields: array of TGeoField);
 
+    /// <summary>The fields of ColumnFields in the designer order.</summary>
+    property DesignFields: TArray<TGeoField> read FDesignFields;
     /// <summary>Column of a field, -1 if not shown.</summary>
     function FieldToCol(F: TGeoField): Integer;
 
@@ -193,22 +193,25 @@ begin
   Result := TGeoFieldsInplaceEdit.Create(Self);
 end;
 
+// The checked fields in the order of the list, the others behind them
 procedure TGeoFieldsGrid.SetGeoFields(const Value: TGeoFields);
-begin
-  if FGeoFields = Value then
-    Exit;
-  FGeoFields := Value;
-  RebuildColumns;
-end;
-
-procedure TGeoFieldsGrid.SetFieldOrder(const AOrder: array of TGeoField);
 var
-  I: Integer;
+  F: TGeoField;
+  Listed: TGeoFields;
+  Order: TArray<TGeoField>;
 begin
-  SetLength(FFieldOrder, Length(AOrder));
-  for I := 0 to High(AOrder) do
-    FFieldOrder[I] := AOrder[I];
-  RebuildColumns;
+  Order := nil;
+  Listed := [];
+  for F in FDesignFields do
+  begin
+    Include(Listed, F);
+    if F in Value then
+      Order := Order + [F];
+  end;
+  // Without a list they come in the order of TGeoField
+  for F in Value - Listed do
+    Order := Order + [F];
+  SetColumns(Order);
 end;
 
 // One line per column: 'FieldName' or 'FieldName=Caption'.
@@ -223,7 +226,8 @@ var
 begin
   if FColumnFields.Count = 0 then
   begin
-    SetFieldOrder([]);
+    FDesignFields := nil;
+    SetGeoFields(FGeoFields);    // the set decides alone
     Exit;
   end;
 
@@ -262,8 +266,9 @@ begin
   end;
 
   SetLength(Order, N);
-  FGeoFields := Fields;        // the list decides which columns exist
-  SetFieldOrder(Order);        // rebuilds columns, headers and filters
+  FDesignFields := Order;
+  SetColumns(Order);           // the list decides the columns
+  RefreshHeaders;              // a caption alone may have changed
 end;
 
 procedure TGeoFieldsGrid.SetColumnFields(const Value: TStrings);
@@ -307,65 +312,44 @@ begin
     Result := not (FColToField[I] in FReadOnlyFields);
 end;
 
-function TGeoFieldsGrid.CountActiveFields: Integer;
+// The cell texts move with their fields, the widths stay by position
+procedure TGeoFieldsGrid.SetColumns(const AFields: array of TGeoField);
 var
-  F: TGeoField;
+  Texts: array of array[TGeoField] of string;
+  Same: Boolean;
+  I, R: Integer;
 begin
-  Result := 0;
-  for F := Low(TGeoField) to High(TGeoField) do
-    if F in FGeoFields then
-      Inc(Result);
-end;
+  // Unchanged, nothing to do
+  Same := (Length(AFields) > 0) and (Length(AFields) = Length(FColToField));
+  for I := 0 to High(AFields) do
+    if Same and (AFields[I] <> FColToField[I]) then
+      Same := False;
+  if Same then
+    Exit;
 
-// Refills the columns used by the ordered fields, left to right,
-// with those fields in the order the caller gave.
-procedure TGeoFieldsGrid.RebuildColumns;
-var
-  F: TGeoField;
-  I, K, N: Integer;
-  DataCount: Integer;
-  Listed: TGeoFields;
-begin
-  // 1) Active fields in TGeoField order
-  DataCount := CountActiveFields;
-  SetLength(FColToField, DataCount);
-  N := 0;
-  for F := Low(TGeoField) to High(TGeoField) do
-    if F in FGeoFields then
-    begin
-      FColToField[N] := F;
-      Inc(N);
-    end;
+  SetLength(Texts, RowCount);
+  for R := FixedRows to RowCount - 1 do
+    for I := 0 to High(FColToField) do
+      Texts[R][FColToField[I]] := Cells[FixedCols + I, R];
 
-  // The listed fields go back into the slots they occupy, in the order
-  // given, so a pair can swap without moving any other column
-  Listed := [];
-  for I := 0 to High(FFieldOrder) do
-    Include(Listed, FFieldOrder[I]);
+  SetLength(FColToField, Length(AFields));
+  FGeoFields := [];
+  for I := 0 to High(AFields) do
+  begin
+    FColToField[I] := AFields[I];
+    Include(FGeoFields, AFields[I]);
+  end;
 
-  K := 0;
-  for I := 0 to High(FColToField) do
-    if FColToField[I] in Listed then
-    begin
-      while (K <= High(FFieldOrder)) and not (FFieldOrder[K] in FGeoFields) do
-        Inc(K);
-      if K > High(FFieldOrder) then
-        Break;
-      FColToField[I] := FFieldOrder[K];
-      Inc(K);
-    end;
-
-  // 2) Grid must always have at least one data column
-  if DataCount = 0 then
+  // Grid must always have at least one data column
+  if Length(FColToField) = 0 then
     ColCount := FixedCols + 1
   else
-    ColCount := FixedCols + DataCount;
+    ColCount := FixedCols + Length(FColToField);
 
   // Column widths are deliberately left alone. TCustomGrid gives a newly
   // added column DefaultColWidth by itself, and anything set in the designer
   // or by the user survives a field reorder.
 
-  // 3) Rebuild headers and validation filters
   RefreshHeaders;
   RefreshFilters;
 
@@ -375,14 +359,16 @@ begin
   if CheckColumn >= 0 then
     DefaultChecked := True;        // the same as ClearGeoRow
 
-  // 4) Hide placeholder column when no fields are active
-  if DataCount = 0 then
+  // Hide placeholder column when no fields are active
+  if Length(FColToField) = 0 then
     ColWidths[FixedCols] := 0
   else if ColWidths[FixedCols] = 0 then
     ColWidths[FixedCols] := DefaultColWidth;   // it was the placeholder
-end;
 
-procedure TGeoFieldsGrid.RefreshHeaders;
+  for R := FixedRows to RowCount - 1 do
+    for I := 0 to High(FColToField) do
+      Cells[FixedCols + I, R] := Texts[R][FColToField[I]];
+end;procedure TGeoFieldsGrid.RefreshHeaders;
 var
   I: Integer;
 begin
@@ -516,7 +502,8 @@ var
 begin
   for F := Low(TGeoField) to High(TGeoField) do
     FFieldInfo[F] := GeoFieldInfo[F];
-  RebuildColumns;
+  RefreshHeaders;
+  RefreshFilters;
 end;
 
 procedure TGeoFieldsGrid.SetGeoRow(ARow: Integer; const GRow: TGeoRow);

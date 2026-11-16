@@ -120,67 +120,11 @@ begin
   end;
 end;
 
-type
-  TFieldTexts = array[TGeoField] of string;
-  TGridTexts = array of TFieldTexts;
-
-// Cell texts by field
-procedure ReadGridTexts(AGrid: TGeoFieldsGrid; out ATexts: TGridTexts);
-var
-  Col: array[TGeoField] of Integer;
-  F: TGeoField;
-  R: Integer;
-begin
-  for F := Low(TGeoField) to High(TGeoField) do
-    Col[F] := AGrid.FieldToCol(F);
-
-  SetLength(ATexts, AGrid.RowCount);
-  for R := AGrid.FixedRows to AGrid.RowCount - 1 do
-    for F := Low(TGeoField) to High(TGeoField) do
-      if Col[F] >= 0 then
-        ATexts[R][F] := AGrid.Cells[Col[F], R];
-end;
-
-// Texts back by field
-procedure WriteGridTexts(AGrid: TGeoFieldsGrid; const ATexts: TGridTexts);
-var
-  Col: array[TGeoField] of Integer;
-  F: TGeoField;
-  R: Integer;
-begin
-  for F := Low(TGeoField) to High(TGeoField) do
-    Col[F] := AGrid.FieldToCol(F);
-
-  for R := AGrid.FixedRows to AGrid.RowCount - 1 do
-  begin
-    if R > High(ATexts) then
-      Break;
-    for F := Low(TGeoField) to High(TGeoField) do
-      if Col[F] >= 0 then
-        AGrid.Cells[Col[F], R] := ATexts[R][F];
-  end;
-end;
-
-// Current order of the data columns
-function CurrentOrder(AGrid: TGeoFieldsGrid): TArray<TGeoField>;
-var
-  I: Integer;
-begin
-  SetLength(Result, AGrid.DataFieldCount);
-  for I := 0 to High(Result) do
-    Result[I] := AGrid.ColToField(AGrid.FixedCols + I);
-end;
-
 procedure ApplyColumns(AGrid: TGeoFieldsGrid; const AHidden: TGeoFields;
   AY, AX: TGeoField);
 var
-  Order, Cur: TArray<TGeoField>;
-  Fields: TGeoFields;
-  Texts: TGridTexts;
-  I, N, P: Integer;
-  F: TGeoField;
-  S: string;
-  Same: Boolean;
+  Order: TArray<TGeoField>;
+  I, N: Integer;
 
   function IndexOf(AField: TGeoField): Integer;
   var
@@ -211,48 +155,24 @@ var
   end;
 
 begin
-  if (AGrid = nil) or (AGrid.ColumnFields.Count = 0) then
+  if (AGrid = nil) or (Length(AGrid.DesignFields) = 0) then
     Exit;
 
   // The designer order, without the hidden fields
-  SetLength(Order, AGrid.ColumnFields.Count);
-  Fields := [];
+  Order := Copy(AGrid.DesignFields);
   N := 0;
-  for I := 0 to AGrid.ColumnFields.Count - 1 do
-  begin
-    S := AGrid.ColumnFields[I];
-    P := Pos('=', S);
-    if P > 0 then
-      S := Copy(S, 1, P - 1);
-    if not FindGeoField(Trim(S), F) or (F in AHidden) or (F in Fields) then
-      Continue;
-
-    Order[N] := F;
-    Include(Fields, F);
-    Inc(N);
-  end;
+  for I := 0 to High(Order) do
+    if not (Order[I] in AHidden) then
+    begin
+      Order[N] := Order[I];
+      Inc(N);
+    end;
   SetLength(Order, N);
-
   Swap(Y, X);
   Swap(Ym, Xm);
   Swap(AY, AX);         // only the task knows its pair
 
-  // Unchanged, nothing to do
-  if AGrid.GeoFields = Fields then
-  begin
-    Cur := CurrentOrder(AGrid);
-    Same := Length(Cur) = N;
-    for I := 0 to N - 1 do
-      if Same and (Cur[I] <> Order[I]) then
-        Same := False;
-    if Same then
-      Exit;
-  end;
-
-  ReadGridTexts(AGrid, Texts);       // content is the application's
-  AGrid.GeoFields := Fields;         // layout is the component's
-  AGrid.SetFieldOrder(Order);
-  WriteGridTexts(AGrid, Texts);
+  AGrid.SetColumns(Order);
 end;
 
 procedure ApplyCoordOrder(AYCtrl, AXCtrl: TWinControl);

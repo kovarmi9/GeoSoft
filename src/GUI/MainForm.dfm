@@ -20,8 +20,22 @@ object GeoSoftForm: TGeoSoftForm
     Width = 75
     Height = 25
     Caption = 'Button1'
-    TabOrder = 1
+    TabOrder = 0
     OnClick = Button1Click
+  end
+  object GeoFieldsGrid1: TGeoFieldsGrid
+    Left = 216
+    Top = 416
+    Width = 697
+    Height = 225
+    ColCount = 3
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goRowSizing, goColSizing, goEditing, goTabs, goFixedRowDefAlign]
+    TabOrder = 1
+    DefaultChecked = True
+    ColumnFields.Strings = (
+      'M4'
+      'M1 = em jedna')
+    ReadOnlyFields = []
   end
   object MainMenu: TMainMenu
     Left = 584

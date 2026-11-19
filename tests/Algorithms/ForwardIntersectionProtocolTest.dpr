@@ -38,22 +38,13 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is the grid row, the last point was stored again
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
-  for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I + 1);
-    Rows.Notes[I] := '';
-  end;
-  Rows.Notes[Frame.Count - 1] := OverwrittenText;
-  Rows.Notes[Frame.Count - 2] := OverwrittenText;
-
-  TForwardIntersectionProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+  Frame.Rows[Frame.Count - 1].Stored := gsOverwritten;
+  Frame.Rows[Frame.Count - 2].Stored := gsOverwritten;
+  TForwardIntersectionProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

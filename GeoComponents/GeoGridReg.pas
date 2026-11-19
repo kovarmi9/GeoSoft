@@ -1,5 +1,7 @@
 ﻿unit GeoGridReg;
 
+// Puts the grids on the component palette
+
 interface
 
 procedure Register;

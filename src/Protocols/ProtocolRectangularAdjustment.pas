@@ -12,9 +12,7 @@ type
   TRectangularAdjustmentProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TRectangularAdjustmentAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TRectangularAdjustmentAlgorithm);
   end;
 
 implementation
@@ -27,9 +25,8 @@ const
   POINT_LINE    = '%3s  %-18s  %8s  %7s  %s  %-9s  %s';
   RESIDUAL_LINE = '%-18s  %6s  %6s';
 
-class procedure TRectangularAdjustmentProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame;
-  AAlg: TRectangularAdjustmentAlgorithm; const ARows: TProtocolRows);
+class procedure TRectangularAdjustmentProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TRectangularAdjustmentAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -74,7 +71,7 @@ begin
       begin
         Kind := 'vypočtený';
         if I < AFrame.Count - 1 then
-          Note := ARows.Notes[I];
+          Note := StoredText(Row);
       end;
 
       // The first point has no side in front of it
@@ -89,7 +86,7 @@ begin
         Correction := Num(AAlg.Adjusted[I] - Row.Sta * AAlg.Scale);
       end;
 
-      AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(POINT_LINE, [LineId(AFrame, I), PointId(Row.CB),
         Distance, Correction, CoordPair(Row.X, Row.Y), Kind, Note]));
     end;
     AProt.Line;

@@ -19,8 +19,7 @@ var
   Lines: TStringList;
 
 // One row, Y and X only for P and K
-procedure Add(APointNumber: Int64; AStationing, AOffset: Double;
-  AY: Double = NaN; AX: Double = NaN);
+procedure Add(APointNumber: Int64; AStationing, AOffset: Double; AY: Double = NaN; AX: Double = NaN);
 var
   Row: TGeoRow;
 begin
@@ -38,23 +37,14 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is P, K and the detail grid row, the last point stored again
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
-  for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I - 1);
-    Rows.Notes[I] := '';
-  end;
-  Rows.Numbers[0] := 'P';
-  Rows.Numbers[1] := 'K';
-  Rows.Notes[Frame.Count - 1] := OverwrittenText;
-
-  TOrthogonalProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+  for I := 2 to Frame.Count - 1 do
+    Frame.Rows[I].Line := I - 1;
+  Frame.Rows[Frame.Count - 1].Stored := gsOverwritten;
+  TOrthogonalProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

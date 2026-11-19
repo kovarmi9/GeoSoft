@@ -11,9 +11,7 @@ type
   TForwardIntersectionProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TForwardIntersectionAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TForwardIntersectionAlgorithm);
   end;
 
 implementation
@@ -26,9 +24,8 @@ const
   STATION_LINE = '%3s  %-3s  %-18s  %9s  %8s  %s  %2s';
   POINT_LINE   = '%3s  %-18s  %-18s  %9s  %8s  %s  %2s  %s';
 
-class procedure TForwardIntersectionProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame;
-  AAlg: TForwardIntersectionAlgorithm; const ARows: TProtocolRows);
+class procedure TForwardIntersectionProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TForwardIntersectionAlgorithm);
 var
   I, J, StationRow: Integer;
   Row: TGeoRow;
@@ -53,7 +50,7 @@ begin
       'dfi', CoordCaption, 'KK']));
 
     Row := AFrame.Rows[StationRow];
-    AProt.Text(Format(STATION_LINE, [ARows.Numbers[StationRow], 'St:',
+    AProt.Text(Format(STATION_LINE, [LineId(AFrame, StationRow), 'St:',
       PointId(Row.CB), Ang(Row.HZ), '', CoordPair(Row.X, Row.Y),
       IntToStr(Row.KK)]));
 
@@ -62,7 +59,7 @@ begin
     while (I < AFrame.Count) and (AAlg.Roles[I] = irOrientation) do
     begin
       Row := AFrame.Rows[I];
-      AProt.Text(Format(STATION_LINE, [ARows.Numbers[I], '',
+      AProt.Text(Format(STATION_LINE, [LineId(AFrame, I), '',
         PointId(Row.CB), Ang(Row.HZ), Ang(AAlg.dPhi[I]),
         CoordPair(Row.X, Row.Y), IntToStr(Row.KK)]));
       Inc(I);
@@ -86,9 +83,9 @@ begin
       if not IsNan(Row.X) then
       begin
         Quality := IntToStr(Row.KK);
-        Note := ARows.Notes[I];
+        Note := StoredText(Row);
       end;
-      AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(POINT_LINE, [LineId(AFrame, I), PointId(Row.CB),
         PointId(Row.CBm), Ang(Row.HZ), Ang(AAlg.omega[I]),
         CoordPair(Row.X, Row.Y), Quality, Note]));
     end;

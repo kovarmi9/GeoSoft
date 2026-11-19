@@ -61,10 +61,8 @@ type
     procedure MenuGoToPointClick(Sender: TObject);
     procedure GridCellCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure GridSelectCell(Sender: TObject; ACol, ARow: Integer;
-      var CanSelect: Boolean);
-    procedure GridMouseDown(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
+    procedure GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
+    procedure GridMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
   private
     FCurrentFile: string;
     FRowPoint:    array of Int64;    // point of each row, 0 = none
@@ -78,9 +76,9 @@ type
     procedure LoadPrefix;
     procedure SavePrefix;
     function  CurrentQuality: Integer;
-    procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
-    procedure GetZeroDefault(var AText: string; var AHandled: Boolean);
-    procedure GetDescriptionDefault(var AText: string; var AHandled: Boolean);
+    procedure GetQualityDefault(var AText: string);
+    procedure GetZeroDefault(var AText: string);
+    procedure GetDescriptionDefault(var AText: string);
     function  RowPoint(ARow: Integer): Int64;
     procedure SetRowPoint(ARow: Integer; ANum: Int64);
     procedure NumberCommitted(ARow: Integer);
@@ -98,8 +96,7 @@ type
     procedure DoExport(AFormat: TFileFormat);
     procedure ShowError(const AText: string);
     function  WriteListFile(const AFileName: string): Boolean;
-    function  ExecuteListSaveDialog(const ADefaultName: string;
-      out AFileName: string): Boolean;
+    function  ExecuteListSaveDialog(const ADefaultName: string; out AFileName: string): Boolean;
   public
     /// <summary>Asks for a file and starts an empty list in it.</summary>
     function CreateNewList: Boolean;
@@ -291,8 +288,7 @@ begin
 end;
 
 // Every confirmed cell is saved
-procedure TPointsManagementForm.GridCellCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TPointsManagementForm.GridCellCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
   if ARow < GridPoints.FixedRows then
     Exit;
@@ -376,8 +372,7 @@ begin
 end;
 
 // Delete, Ctrl+A, and no Enter without a number
-procedure TPointsManagementForm.FormKeyDown(Sender: TObject; var Key: Word;
-  Shift: TShiftState);
+procedure TPointsManagementForm.FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if (Key = VK_DELETE) and NumbersBrowsed then
   begin
@@ -409,12 +404,12 @@ begin
 
   // Only when the grid has focus
   if (ActiveControl <> GridPoints) and
-     ((ActiveControl = nil) or (ActiveControl.Parent <> GridPoints)) then
+    ((ActiveControl = nil) or (ActiveControl.Parent <> GridPoints)) then
     Exit;
 
   // A typed number is enough
   Result := (GridPoints.Col <> COL_POINTNO) or
-            (Trim(GridPoints.Cells[COL_POINTNO, GridPoints.Row]) = '');
+    (Trim(GridPoints.Cells[COL_POINTNO, GridPoints.Row]) = '');
 end;
 
 // Deletes every selected point after one question
@@ -440,7 +435,7 @@ begin
   else
     Question := Format('Smazat označené body (%d)?', [Count]);
   if Application.MessageBox(PChar(Question), 'Dotaz',
-                            MB_YESNO or MB_ICONQUESTION) <> IDYES then
+    MB_YESNO or MB_ICONQUESTION) <> IDYES then
     Exit;
 
   for i := 1 to GridPoints.RowCount - 1 do
@@ -497,12 +492,11 @@ end;
 function TPointsManagementForm.NumbersBrowsed: Boolean;
 begin
   Result := (ActiveControl = GridPoints) and not GridPoints.EditorMode and
-            (GridPoints.Col = COL_POINTNO);
+    (GridPoints.Col = COL_POINTNO);
 end;
 
 // Selection like in Explorer, Col is still the old one
-procedure TPointsManagementForm.GridSelectCell(Sender: TObject;
-  ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TPointsManagementForm.GridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 var
   ShiftDown, CtrlDown: Boolean;
 begin
@@ -525,8 +519,7 @@ begin
 end;
 
 // Ctrl+click adds the point to the selection or takes it out
-procedure TPointsManagementForm.GridMouseDown(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+procedure TPointsManagementForm.GridMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   ACol, ARow: Integer;
 begin
@@ -599,7 +592,7 @@ begin
   Result := True;
   if not Points.Modified then Exit;
   case Application.MessageBox('Uložit změny?', 'Dotaz',
-                              MB_YESNOCANCEL or MB_ICONQUESTION) of
+    MB_YESNOCANCEL or MB_ICONQUESTION) of
     IDYES:    Result := DoSave;   // cancelled or failed save keeps the list
     IDNO:     ;
     IDCANCEL: Result := False;
@@ -607,8 +600,7 @@ begin
 end;
 
 // Save dialog, .yxz or .xyz
-function TPointsManagementForm.ExecuteListSaveDialog(const ADefaultName: string;
-  out AFileName: string): Boolean;
+function TPointsManagementForm.ExecuteListSaveDialog(const ADefaultName: string; out AFileName: string): Boolean;
 var
   Ext: string;
 begin
@@ -706,8 +698,7 @@ var
   R: Integer;
 begin
   Text := '';
-  if not InputQuery('Jdi na bod', 'Číslo bodu:', Text) or
-    (Trim(Text) = '') then
+  if not InputQuery('Jdi na bod', 'Číslo bodu:', Text) or (Trim(Text) = '') then
     Exit;
   TPointNumber.TryParse(BuildPointIdFromPrefixState(Trim(Text)), PointNumber);
   for R := GridPoints.FixedRows to GridPoints.RowCount - 1 do
@@ -734,8 +725,7 @@ begin
   Result := False;
   if not AskSaveChanges then Exit;
 
-  OpenDialog.Filter :=
-    'Seznam souřadnic (*.yxz;*.xyz;*.db)|*.yxz;*.xyz;*.db';
+  OpenDialog.Filter := 'Seznam souřadnic (*.yxz;*.xyz;*.db)|*.yxz;*.xyz;*.db';
   if not OpenDialog.Execute then Exit;
 
   // A bad file keeps the open list
@@ -918,7 +908,7 @@ begin
     SaveDialog.FileName := ''
   else
     SaveDialog.FileName := ChangeFileExt(ExtractFileName(FCurrentFile),
-                                          '.' + SaveDialog.DefaultExt);
+      '.' + SaveDialog.DefaultExt);
 
   if not SaveDialog.Execute then Exit;
 
@@ -961,28 +951,23 @@ begin
 end;
 
 // Enter on an empty KK gives the toolbar KK
-procedure TPointsManagementForm.GetQualityDefault(var AText: string; var AHandled: Boolean);
+procedure TPointsManagementForm.GetQualityDefault(var AText: string);
 begin
   if ComboBoxKK.ItemIndex >= 0 then
-  begin
-    AText    := IntToStr(CurrentQuality);
-    AHandled := True;
-  end;
-  // No KK selected: Enter is blocked
+    AText := IntToStr(CurrentQuality);
+  // No KK selected - the cell gets 0
 end;
 
 // Enter on an empty coordinate gives 0
-procedure TPointsManagementForm.GetZeroDefault(var AText: string; var AHandled: Boolean);
+procedure TPointsManagementForm.GetZeroDefault(var AText: string);
 begin
-  AText    := '0';
-  AHandled := True;
+  AText := '0';
 end;
 
 // Enter on an empty description gives the one from the toolbar
-procedure TPointsManagementForm.GetDescriptionDefault(var AText: string; var AHandled: Boolean);
+procedure TPointsManagementForm.GetDescriptionDefault(var AText: string);
 begin
-  AText    := Trim(ComboBoxPopis.Text);
-  AHandled := True;
+  AText := Trim(ComboBoxPopis.Text);
 end;
 
 // ---- Prefix combos --------------------------------------------------------

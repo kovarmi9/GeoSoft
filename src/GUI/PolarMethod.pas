@@ -53,7 +53,6 @@ type
     procedure DetailCellCommitted(Sender: TObject; ACol, ARow: Integer);
   private
     FAlg: TPolarMethodAlgorithm;
-    FOrientRows: TArray<Integer>; // orientation grid row of each orientation
     FDetailCB: TArray<string>;    // number each detail row was filled for
     function  StationNo: string;
     function  FillStation: Boolean;
@@ -90,7 +89,7 @@ begin
   FNotebookName := CSV_NAME;
   FFrame := TGeoDataFrame.Create(
     [CB, X, Y, Z, VS, VC, HZ, Typ, SH, SS, ZU, Sta, Kol,
-     KK, Popis]);
+    KK, Popis]);
 end;
 
 destructor TPolarMethodForm.Destroy;
@@ -367,14 +366,13 @@ var
       Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
       Row.KK := ListPoint.Quality;
       Row.Popis := ListPoint.Description;
-      FOrientRows := FOrientRows + [I];
+      Row.Line := I;                  // Č. from the orientation grid
       Add(-1);
     end;
   end;
 
 begin
   FFrame.ClearData;
-  SetLength(FOrientRows, 0);
   FreeMode := not CheckBoxFixedStation.Checked;
   Msg := '';
 
@@ -534,10 +532,10 @@ begin
     Row := AFrame.Rows[I];
     if not IsNan(Row.X) then
     begin
-      if PutRow(GridOrientation, OrientRow, Row, I, ABad) then
+      if PutRow(GridOrientation, OrientRow, Row, ABad) then
         Inc(OrientRow);
     end
-    else if PutRow(GridDetail, DetailRow, Row, I, ABad) then
+    else if PutRow(GridDetail, DetailRow, Row, ABad) then
     begin
       FDetailCB[DetailRow] :=
         GridDetail.Cells[GridDetail.FieldToCol(CB), DetailRow];
@@ -549,15 +547,8 @@ begin
 end;
 
 procedure TPolarMethodForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Rows: TProtocolRows;
 begin
-  Rows := ProtocolRows;
-  // Č. from the orientation grid
-  for I := 1 to FAlg.Info.OrientCount do
-    Rows.Numbers[I] := IntToStr(FOrientRows[I - 1]);
-  TPolarProtocol.Write(Prot, ALines, FFrame, FAlg, Rows);
+  TPolarProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

@@ -19,8 +19,7 @@ var
   Lines: TStringList;
 
 // One row: role, target number and Y X, source number and Y X
-procedure Add(ARole: Integer; const ANumber: string; AY, AX: Double;
-  const ASourceNumber: string; AYm, AXm: Double);
+procedure Add(ARole: Integer; const ANumber: string; AY, AX: Double; const ASourceNumber: string; AYm, AXm: Double);
 var
   Row: TGeoRow;
 begin
@@ -40,20 +39,11 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
-  for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I + 1);
-    Rows.Notes[I] := '';
-  end;
-  Rows.Notes[Frame.Count - 1] := OverwrittenText;
-
-  TTransformationProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+  Frame.Rows[Frame.Count - 1].Stored := gsOverwritten;
+  TTransformationProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

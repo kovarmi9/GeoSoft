@@ -11,9 +11,7 @@ type
   TLineIntersectionProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TLineIntersectionAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TLineIntersectionAlgorithm);
   end;
 
 implementation
@@ -24,10 +22,12 @@ uses
 const
   // Header and rows share one format
   POINT_LINE = '%4s  %-18s  %s  %2s  %s';   // Č. is up to II-2
+  // Č. as grid row headers
+  POINT_NAMES: array[0..LINE_POINTS] of string =
+    ('I-1', 'I-2', 'II-1', 'II-2', 'P');
 
-class procedure TLineIntersectionProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TLineIntersectionAlgorithm;
-  const ARows: TProtocolRows);
+class procedure TLineIntersectionProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TLineIntersectionAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -43,7 +43,7 @@ begin
   for I := 0 to LINE_POINTS - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+    AProt.Text(Format(POINT_LINE, [POINT_NAMES[I], PointId(Row.CB),
       CoordPair(Row.X, Row.Y), IntToStr(Row.KK), '']));
   end;
   AProt.Line;
@@ -57,8 +57,8 @@ begin
   AProt.Section('PRŮSEČÍK');
   AProt.TableHeader(Format(POINT_LINE,
     ['Č.', 'Číslo bodu', CoordCaption, 'KK', '']));
-  AProt.Text(Format(POINT_LINE, [ARows.Numbers[LINE_POINTS], PointId(Row.CB),
-    CoordPair(Row.X, Row.Y), IntToStr(Row.KK), ARows.Notes[LINE_POINTS]]));
+  AProt.Text(Format(POINT_LINE, [POINT_NAMES[LINE_POINTS], PointId(Row.CB),
+    CoordPair(Row.X, Row.Y), IntToStr(Row.KK), StoredText(Row)]));
   AProt.Line;
 
   // 6. Messages and the end

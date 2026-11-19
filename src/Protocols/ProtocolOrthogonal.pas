@@ -11,9 +11,7 @@ type
   TOrthogonalProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TOrthogonalMethodAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TOrthogonalMethodAlgorithm);
   end;
 
 implementation
@@ -24,10 +22,11 @@ uses
 const
   // Header and rows share one format
   POINT_LINE = '%3s  %-18s  %9s  %8s  %s  %s';
+  // Č. as grid row headers
+  BASELINE_NAMES: array[0..BASELINE_ROWS - 1] of string = ('P', 'K');
 
-class procedure TOrthogonalProtocol.Write(AProt: TProtocol; ALines: TStrings;
-  AFrame: TGeoDataFrame; AAlg: TOrthogonalMethodAlgorithm;
-  const ARows: TProtocolRows);
+class procedure TOrthogonalProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TOrthogonalMethodAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -46,7 +45,7 @@ begin
   for I := 0 to BASELINE_ROWS - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+    AProt.Text(Format(POINT_LINE, [BASELINE_NAMES[I], PointId(Row.CB),
       Num(Row.Sta), Num(Row.Kol), CoordPair(Row.X, Row.Y), '']));
   end;
   AProt.Line;
@@ -63,9 +62,9 @@ begin
   begin
     Row := AFrame.Rows[I];
     if not IsNan(Row.X) then
-      AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(POINT_LINE, [LineId(AFrame, I), PointId(Row.CB),
         Num(Row.Sta), Num(Row.Kol), CoordPair(Row.X, Row.Y),
-        ARows.Notes[I]]));
+        StoredText(Row)]));
   end;
   AProt.Line;
 

@@ -12,9 +12,9 @@ a vyrovnaný bod leží v její patě.
   vyplněné vytvoří nový bod a původní zůstane.
 - Po každém Enteru se ukáže pata kolmice a délka kolmice. Kolmice
   vpravo od směru A→B je kladná, jako v ortogonální metodě.
-- Výpočet uloží vyrovnané body do seznamu, bod, který už v seznamu je,
-  se přepíše s dotazem. Vyrovnaný bod si ponechá výšku a popis
-  původního bodu.
+- Po každém Enteru se vyrovnané body uloží do seznamu, bod, který už
+  v seznamu je, se přepíše s dotazem. Vyrovnaný bod si ponechá výšku
+  původního bodu, popis převezme jen do prázdné buňky.
 - Opakovaný výpočet počítá vždy z bodu před posunem.
 - Jeden zápisník je jedna přímka.
 
@@ -22,7 +22,8 @@ a vyrovnaný bod leží v její patě.
 
 | unit | výpočet |
 |---|---|
-| `GUI/LineAdjustment.pas` | tabulky → frame, výsledky zpět, protokol, uložení bodů, zápisník |
+| `GUI/LineAdjustment.pas` | tabulky → frame, výsledky zpět, uložení bodů, zápisník |
+| `Protocols/ProtocolLineAdjustment.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmLineAdjustment.pas` | pata kolmice, délka kolmice, kód kvality, mez |
 
 ```mermaid

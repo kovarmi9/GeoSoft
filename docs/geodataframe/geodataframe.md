@@ -23,11 +23,12 @@ používá. Unit `src/DataStructures/GeoDataFrame.pas`.
 - `Create([CB, X, Y])` vytvoří prázdnou tabulku s vybranými poli, `Free` ji uvolní
 - `AddRow(Row)` přidá kopii řádku, `ClearData` smaže všechny řádky
 - `Rows[I].X := 1045986.745` změní hodnotu v řádku
+- `LineOf(I)` vrátí Č. řádku `I` (`Line`), a když je 0, pak `I + 1`
 - řádek má vždy všech 24 polí, do CSV a výpisu jdou jen pole z `Fields`
 - `Print` vypíše tabulku pro ladění
 
 ## CSV a soubor
 
 - `ToCSV(Soubor)` uloží tabulku do CSV se středníkem a desetinnou čárkou (český Excel)
-- `FromCSV(Soubor)` ji načte zpět a `Fields` nastaví podle hlavičky, neznámé sloupce a prázdné řádky přeskočí. Řádek s buňkou, která není číslo, nebo s neplatným číslem bodu (písmeno, víc než 15 číslic) vynechá a vypíše do `ABad`; `Lines` drží číslo řádku v souboru
-- `SaveToFile(Soubor)` a `LoadFromFile(Soubor)` uloží a načtou tabulku i s výběrem polí do binárního souboru, první záznam je hlavička s maskou polí
+- `FromCSV(Soubor)` ji načte zpět a `Fields` nastaví podle hlavičky, neznámé sloupce a prázdné řádky přeskočí. Řádek s neplatnou hodnotou (text místo čísla, desetinné číslo u `Typ` a `KK`, `Checked` jiné než 0 a 1, písmeno nebo víc než 15 číslic v čísle bodu) vynechá a vypíše do `ABad`. Načtený řádek má v `Line` číslo řádku v souboru (hlavička je řádek 1).
+- `SaveToFile(Soubor)` a `LoadFromFile(Soubor)` uloží a načtou tabulku i s výběrem polí do binárního souboru, první záznam je hlavička s maskou polí, řádky se uloží celé i s `Line` a `Stored`

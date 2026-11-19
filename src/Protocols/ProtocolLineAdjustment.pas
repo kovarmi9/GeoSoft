@@ -11,9 +11,7 @@ type
   TLineAdjustmentProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TLineAdjustmentAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TLineAdjustmentAlgorithm);
   end;
 
 implementation
@@ -25,10 +23,11 @@ const
   // Header and rows share one format
   LINE_POINT_LINE = '%3s  %-18s  %s  %2s';
   MOVE_LINE       = '%3s  %-3s  %-18s  %s  %8s  %-10s  %s';
+  // Č. as grid row headers
+  LINE_NAMES: array[0..LINE_ROWS - 1] of string = ('A', 'B');
 
-class procedure TLineAdjustmentProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TLineAdjustmentAlgorithm;
-  const ARows: TProtocolRows);
+class procedure TLineAdjustmentProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TLineAdjustmentAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -46,7 +45,7 @@ begin
   for I := 0 to LINE_ROWS - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(LINE_POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+    AProt.Text(Format(LINE_POINT_LINE, [LINE_NAMES[I], PointId(Row.CB),
       CoordPair(Row.X, Row.Y), IntToStr(Row.KK)]));
   end;
   AProt.Line;
@@ -67,7 +66,7 @@ begin
   for I := LINE_ROWS to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(MOVE_LINE, [ARows.Numbers[I], 'Z:', PointId(Row.CB),
+    AProt.Text(Format(MOVE_LINE, [LineId(AFrame, I), 'Z:', PointId(Row.CB),
       CoordPair(Row.Xm, Row.Ym), '', '', '']));
     if IsNan(Row.Kol) then
     begin
@@ -90,7 +89,7 @@ begin
       Verdict := 'nevyhovuje';
 
     AProt.Text(Format(MOVE_LINE, ['', 'Do:', PointId(NewNumber),
-      CoordPair(Row.X, Row.Y), Num(Row.Kol), Verdict, ARows.Notes[I]]));
+      CoordPair(Row.X, Row.Y), Num(Row.Kol), Verdict, StoredText(Row)]));
   end;
   AProt.Line;
 

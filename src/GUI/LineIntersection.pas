@@ -3,7 +3,8 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, CoordOrderState,
@@ -19,12 +20,10 @@ type
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TLineIntersectionAlgorithm;
-    FStored: Boolean;             // the point went to the list in this run
     procedure Recompute;
   protected
     function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
-    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -90,7 +89,6 @@ procedure TLineIntersectionForm.Recompute;
 var
   Row: TGeoRow;
 begin
-  FStored := False;             // a changed job is not stored yet
   BuildFrame;
   FAlg.Calculate(FFrame);
 
@@ -113,8 +111,7 @@ begin
   ShowProtocol;
 end;
 
-procedure TLineIntersectionForm.PointCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TLineIntersectionForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
   if (ARow < Grid.FixedRows) or (ACol <> Grid.FieldToCol(CB)) then
     Exit;
@@ -122,7 +119,7 @@ begin
   NormalizePointCell(Grid, ACol, ARow);
   // An empty cell is a row not filled in yet, not a mistake
   if (ARow < RESULT_ROW) and (Trim(Grid.Cells[ACol, ARow]) <> '') and
-     not LoadGridPoint(Grid, ARow) then
+    not LoadGridPoint(Grid, ARow) then
   begin
     Grid.RejectCommit;
     Exit;
@@ -158,35 +155,27 @@ begin
   Row.Popis := ShortString(GPointPrefix.Popis);
   StorePoint(Row);
   FFrame.Rows[LINE_POINTS].CB := Row.CB;
+  FFrame.Rows[LINE_POINTS].Stored := Row.Stored;
   Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);
-  FStored := True;
   ShowProtocol;
 end;
 
 // Row by row into the grid, the intersection is computed again
-procedure TLineIntersectionForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TLineIntersectionForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I: Integer;
 begin
   ClearGrid(Grid, RESULT_ROW + 1);
   for I := 0 to Min(AFrame.Count, RESULT_ROW) - 1 do
-    if PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad) and
-       (I + 1 < RESULT_ROW) then
+    if PutRow(Grid, I + 1, AFrame.Rows[I], ABad) and
+      (I + 1 < RESULT_ROW) then
       LoadGridPoint(Grid, I + 1);   // given points from the list
   Recompute;
 end;
 
-// The row headers of the grid: I-1 .. II-2 and P
-function TLineIntersectionForm.GridNumber(AFrameRow: Integer): string;
-begin
-  Result := Grid.Cells[0, AFrameRow + 1];
-end;
-
 procedure TLineIntersectionForm.WriteProtocol(ALines: TStrings);
 begin
-  TLineIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
-    ProtocolRows(FStored));
+  TLineIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

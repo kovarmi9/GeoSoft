@@ -12,7 +12,7 @@ Kontroly hodnot jsou rozdělené podle vrstev. Každý unit hlídá jednu věc:
 flowchart TB
   P["Program: formuláře, algoritmy"] --> A["Accuracy.pas<br>přesnost výsledků podle KN"]
   P --> V
-  K["Komponenty<br>GeoColumnValidation.pas"] --> V
+  K["Komponenty<br>GeoFieldsGrid.pas"] --> V
   V["Validation.pas<br>meze a hodnoty bodu"]
   R["GeoRow.pas, Point.pas"] --> V
 ```
@@ -34,8 +34,9 @@ konstruktorem projde kontrolou.
 Neplatná hodnota se nahradí tiše, bez hlášení. Hodnoty proto hlídají
 už tabulky při psaní, validace je poslední pojistka.
 
-Meze jsou zapsané jen jednou, jako konstanty ve `Validation.pas`. Podle nich
-se řídí bod, `TGeoRow` i filtry tabulek:
+Meze jsou zapsané jako konstanty ve `Validation.pas`. Podle nich se řídí
+bod, `TGeoRow` a filtry výpočetních tabulek. Tabulky seznamu souřadnic
+a okna Přidat bod mají stejné meze zapsané v `.dfm`:
 
 | konstanta | hodnota | význam |
 |---|---|---|

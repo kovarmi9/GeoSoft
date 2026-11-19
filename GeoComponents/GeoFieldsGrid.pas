@@ -7,91 +7,78 @@ interface
 uses
   System.Classes,
   System.SysUtils,
-  Winapi.Windows,
-  Vcl.Controls,
-  Vcl.Grids,
   GeoGrid,
   GeoColumnValidation,
   GeoRow;
 
 type
-  /// <summary>Inplace editor, the grid filters the keys.</summary>
-  TGeoFieldsInplaceEdit = class(TGeoInplaceEdit)
-  protected
-    procedure KeyPress(var Key: Char); override;
-  end;
-
   /// <summary>Grid whose columns are TGeoRow fields.</summary>
   TGeoFieldsGrid = class(TGeoGrid)
   private
+    // Columns
     FGeoFields: TGeoFields;
-    FFieldInfo: array[TGeoField] of TGeoFieldInfo;     // settings of each field
-    FColToField: array of TGeoField;                   // column -> field
-    FColumnFilters: TColumnFilters;                    // one per column
-    FDesignFields: TArray<TGeoField>;                  // ColumnFields as fields
     FColumnFields: TStrings;                           // fields as names
+    FDesignFields: TArray<TGeoField>;                  // ColumnFields as fields
+    FColToField: array of TGeoField;                   // column -> field
+    // Field settings
+    FFieldInfo: array[TGeoField] of TGeoFieldInfo;     // settings of each field
     FReadOnlyFields: TGeoFields;                       // filled by the program
 
+    // Columns
     procedure SetGeoFields(const Value: TGeoFields);
     procedure SetColumnFields(const Value: TStrings);
-    procedure ApplyColumnFields;
     procedure ColumnFieldsChanged(Sender: TObject);
-    procedure SetReadOnlyFields(const Value: TGeoFields);
+    procedure ApplyColumnFields;
+    // Headers and filters
     procedure RefreshHeaders;
     procedure RefreshFilters;
     /// <summary>Sets a column filter by the catalogue.</summary>
     class procedure ApplyFieldInfo(const AInfo: TGeoFieldInfo; AFilter: TColumnFilter); static;
+    procedure SetReadOnlyFields(const Value: TGeoFields);
 
   protected
-    function CellSelectable(ACol, ARow: Integer): Boolean; override;
-    function CellFilter(ACol: Integer): TColumnFilter; override;
+    // Columns
     function GeoFieldsStored: Boolean;
-    function CreateEditor: TInplaceEdit; override;
     procedure Loaded; override;
 
     // Column headers are derived from ColumnFields, not set from outside
     property ColumnHeaders;
 
-
-    /// <summary>Delegate from the inplace editor's KeyPress.</summary>
-    procedure EditorKeyPress(const AText: string; var Key: Char); virtual;
-
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
+    // Columns
     /// <summary>Shows these fields in this order, keeps the texts.</summary>
     procedure SetColumns(const AFields: array of TGeoField);
-
     /// <summary>The fields of ColumnFields in the designer order.</summary>
     property DesignFields: TArray<TGeoField> read FDesignFields;
+
+    // Fields and columns
     /// <summary>Column of a field, -1 if not shown.</summary>
     function FieldToCol(F: TGeoField): Integer;
-
     /// <summary>Field of a data column, raises out of range.</summary>
     function ColToField(ACol: Integer): TGeoField;
-
     /// <summary>How many data columns carry a field.</summary>
     function DataFieldCount: Integer;
 
+    // Field settings
+    /// <summary>Decimal places shown for the given fields.</summary>
+    procedure SetFieldDecimals(const AFields: TGeoFields; APlaces: Integer);
     /// <summary>Display name of a field on this grid.</summary>
     procedure SetColumnDisplayName(F: TGeoField; const ADisplayName: string);
-
     /// <summary>Definition of a field on this grid.</summary>
     procedure SetFieldInfo(F: TGeoField; const AInfo: TGeoFieldInfo);
-
     /// <summary>Resets one field to the catalogue.</summary>
     procedure ResetColumnData(F: TGeoField);
-
     /// <summary>Reset all fields to global defaults.</summary>
     procedure ResetAllColumnData;
 
+    // Rows
+    /// <summary>Writes the shown fields of GRow into grid row ARow.</summary>
     procedure SetGeoRow(ARow: Integer; const GRow: TGeoRow);
+    /// <summary>Reads grid row ARow, the other fields stay empty.</summary>
     procedure GetGeoRow(ARow: Integer; out GRow: TGeoRow);
-
-    /// <summary>Decimal places shown for the given fields.</summary>
-    procedure SetFieldDecimals(const AFields: TGeoFields; APlaces: Integer);
-
     /// <summary>Checks a row like typing, '' or the bad value.</summary>
     function CheckGeoRow(const GRow: TGeoRow): string;
 
@@ -100,16 +87,13 @@ type
     property RowHeaders;
 
     /// <summary>Shown fields, stored only without ColumnFields.</summary>
-    property GeoFields: TGeoFields
-      read FGeoFields write SetGeoFields stored GeoFieldsStored;
+    property GeoFields: TGeoFields read FGeoFields write SetGeoFields stored GeoFieldsStored;
 
     /// <summary>Columns, one per line: Field or Field=Caption.</summary>
-    property ColumnFields: TStrings
-      read FColumnFields write SetColumnFields;
+    property ColumnFields: TStrings read FColumnFields write SetColumnFields;
 
     /// <summary>Fields the program fills, the cursor skips them.</summary>
-    property ReadOnlyFields: TGeoFields
-      read FReadOnlyFields write SetReadOnlyFields;
+    property ReadOnlyFields: TGeoFields read FReadOnlyFields write SetReadOnlyFields;
   end;
 
 implementation
@@ -117,51 +101,7 @@ implementation
 uses
   Validation;
 
-{ TGeoFieldsInplaceEdit }
-
-procedure TGeoFieldsInplaceEdit.KeyPress(var Key: Char);
-begin
-  if Owner is TGeoFieldsGrid then
-    TGeoFieldsGrid(Owner).EditorKeyPress(TextWithoutSelection, Key);
-  inherited KeyPress(Key);
-end;
-
 { TGeoFieldsGrid }
-
-class procedure TGeoFieldsGrid.ApplyFieldInfo(const AInfo: TGeoFieldInfo; AFilter: TColumnFilter);
-begin
-  case AInfo.Kind of
-    fkPointNumber, fkInteger: AFilter.DataType := cdtInteger;
-    fkText:                   AFilter.DataType := cdtNone;
-    fkNumber:                 AFilter.DataType := cdtExpression;
-    fkResult:                 AFilter.DataType := cdtFloat;
-  end;
-
-  AFilter.MinLength := 0;
-  AFilter.MaxLength := AInfo.MaxLength;
-  AFilter.HasMinValue := AInfo.HasMinValue;
-  AFilter.MinValue := AInfo.MinValue;
-  AFilter.HasMaxValue := AInfo.HasMaxValue;
-  AFilter.MaxValue := AInfo.MaxValue;
-  AFilter.WrapAt := AInfo.WrapAt;
-
-  // Empty number means not filled
-  AFilter.AllowEmpty := AInfo.Kind in [fkPointNumber, fkNumber, fkResult];
-  if AInfo.Kind in [fkNumber, fkResult] then
-    AFilter.DecimalPlaces := AInfo.DecimalPlaces
-  else
-    AFilter.DecimalPlaces := -1;
-
-  if AInfo.Kind = fkPointNumber then
-  begin
-    // The length lets the minus sign in, the range keeps 16 digits out
-    AFilter.MaxLength := MAX_CB_LENGTH;
-    AFilter.HasMinValue := True;
-    AFilter.MinValue := -MAX_CB;
-    AFilter.HasMaxValue := True;
-    AFilter.MaxValue := MAX_CB;
-  end;
-end;
 
 constructor TGeoFieldsGrid.Create(AOwner: TComponent);
 var
@@ -173,10 +113,6 @@ begin
   for F := Low(TGeoField) to High(TGeoField) do
     FFieldInfo[F] := GeoFieldInfo[F];
 
-  FGeoFields := [];
-  SetLength(FColToField, 0);
-
-  FColumnFilters := TColumnFilters.Create(Self);
   FColumnFields := TStringList.Create;
   TStringList(FColumnFields).OnChange := ColumnFieldsChanged;
 end;
@@ -184,34 +120,28 @@ end;
 destructor TGeoFieldsGrid.Destroy;
 begin
   FColumnFields.Free;
-  FColumnFilters.Free;
   inherited Destroy;
 end;
 
-function TGeoFieldsGrid.CreateEditor: TInplaceEdit;
+{ --- Columns --- }
+
+procedure TGeoFieldsGrid.Loaded;
 begin
-  Result := TGeoFieldsInplaceEdit.Create(Self);
+  inherited Loaded;
+  ApplyColumnFields;   // ColumnFields or GeoFields into columns
 end;
 
-// The checked fields in the order of the list, the others behind them
-procedure TGeoFieldsGrid.SetGeoFields(const Value: TGeoFields);
-var
-  F: TGeoField;
-  Listed: TGeoFields;
-  Order: TArray<TGeoField>;
+// The DFM and the Object Inspector fill the list without the setter
+procedure TGeoFieldsGrid.ColumnFieldsChanged(Sender: TObject);
 begin
-  Order := nil;
-  Listed := [];
-  for F in FDesignFields do
-  begin
-    Include(Listed, F);
-    if F in Value then
-      Order := Order + [F];
-  end;
-  // Without a list they come in the order of TGeoField
-  for F in Value - Listed do
-    Order := Order + [F];
-  SetColumns(Order);
+  if csLoading in ComponentState then
+    Exit;                          // Loaded applies it once, after streaming
+  ApplyColumnFields;
+end;
+
+procedure TGeoFieldsGrid.SetColumnFields(const Value: TStrings);
+begin
+  FColumnFields.Assign(Value);   // the list fires OnChange
 end;
 
 // One line per column: 'FieldName' or 'FieldName=Caption'.
@@ -271,45 +201,31 @@ begin
   RefreshHeaders;              // a caption alone may have changed
 end;
 
-procedure TGeoFieldsGrid.SetColumnFields(const Value: TStrings);
+// The checked fields in the order of the list, the others behind them
+procedure TGeoFieldsGrid.SetGeoFields(const Value: TGeoFields);
+var
+  F: TGeoField;
+  Listed: TGeoFields;
+  Order: TArray<TGeoField>;
 begin
-  FColumnFields.Assign(Value);   // the list fires OnChange
-end;
-
-// The DFM and the Object Inspector fill the list without the setter
-procedure TGeoFieldsGrid.ColumnFieldsChanged(Sender: TObject);
-begin
-  if csLoading in ComponentState then
-    Exit;                          // Loaded applies it once, after streaming
-  ApplyColumnFields;
-end;
-
-procedure TGeoFieldsGrid.SetReadOnlyFields(const Value: TGeoFields);
-begin
-  if FReadOnlyFields = Value then
-    Exit;
-  FReadOnlyFields := Value;
-  Invalidate;
+  Order := nil;
+  Listed := [];
+  for F in FDesignFields do
+  begin
+    Include(Listed, F);
+    if F in Value then
+      Order := Order + [F];
+  end;
+  // Without a list they come in the order of TGeoField
+  for F in Value - Listed do
+    Order := Order + [F];
+  SetColumns(Order);
 end;
 
 // ColumnFields already says which fields the grid shows
 function TGeoFieldsGrid.GeoFieldsStored: Boolean;
 begin
   Result := FColumnFields.Count = 0;
-end;
-
-// A column the program fills is not for the cursor
-function TGeoFieldsGrid.CellSelectable(ACol, ARow: Integer): Boolean;
-var
-  I: Integer;
-begin
-  Result := inherited CellSelectable(ACol, ARow);
-  if not Result then
-    Exit;
-
-  I := ACol - FixedCols;
-  if (I >= 0) and (I <= High(FColToField)) then
-    Result := not (FColToField[I] in FReadOnlyFields);
 end;
 
 // The cell texts move with their fields, the widths stay by position
@@ -368,7 +284,11 @@ begin
   for R := FixedRows to RowCount - 1 do
     for I := 0 to High(FColToField) do
       Cells[FixedCols + I, R] := Texts[R][FColToField[I]];
-end;procedure TGeoFieldsGrid.RefreshHeaders;
+end;
+
+{ --- Headers and filters --- }
+
+procedure TGeoFieldsGrid.RefreshHeaders;
 var
   I: Integer;
 begin
@@ -396,28 +316,60 @@ procedure TGeoFieldsGrid.RefreshFilters;
 var
   I: Integer;
 begin
-  FColumnFilters.EnsureCount(Length(FColToField));
+  ColumnFilters.EnsureCount(Length(FColToField));
 
   for I := 0 to High(FColToField) do
-    ApplyFieldInfo(FFieldInfo[FColToField[I]], FColumnFilters[I]);
+  begin
+    ApplyFieldInfo(FFieldInfo[FColToField[I]], ColumnFilters[I]);
+    // The program fills it, the base grid locks it
+    ColumnFilters[I].ReadOnly := FColToField[I] in FReadOnlyFields;
+  end;
 end;
 
-procedure TGeoFieldsGrid.Loaded;
+class procedure TGeoFieldsGrid.ApplyFieldInfo(const AInfo: TGeoFieldInfo; AFilter: TColumnFilter);
 begin
-  inherited Loaded;
-  ApplyColumnFields;   // streamed FieldOrder and GeoFields into columns
+  case AInfo.Kind of
+    fkPointNumber, fkInteger: AFilter.DataType := cdtInteger;
+    fkText:                   AFilter.DataType := cdtNone;
+    fkNumber:                 AFilter.DataType := cdtExpression;
+    fkResult:                 AFilter.DataType := cdtFloat;
+  end;
+
+  AFilter.MinLength := 0;
+  AFilter.MaxLength := AInfo.MaxLength;
+  AFilter.HasMinValue := AInfo.HasMinValue;
+  AFilter.MinValue := AInfo.MinValue;
+  AFilter.HasMaxValue := AInfo.HasMaxValue;
+  AFilter.MaxValue := AInfo.MaxValue;
+  AFilter.WrapAt := AInfo.WrapAt;
+
+  // Empty number means not filled
+  AFilter.AllowEmpty := AInfo.Kind in [fkPointNumber, fkNumber, fkResult];
+  if AInfo.Kind in [fkNumber, fkResult] then
+    AFilter.DecimalPlaces := AInfo.DecimalPlaces
+  else
+    AFilter.DecimalPlaces := -1;
+
+  if AInfo.Kind = fkPointNumber then
+  begin
+    // The length lets the minus sign in, the range keeps 16 digits out
+    AFilter.MaxLength := MAX_CB_LENGTH;
+    AFilter.HasMinValue := True;
+    AFilter.MinValue := -MAX_CB;
+    AFilter.HasMaxValue := True;
+    AFilter.MaxValue := MAX_CB;
+  end;
 end;
 
-procedure TGeoFieldsGrid.EditorKeyPress(const AText: string; var Key: Char);
-var
-  Filter: TColumnFilter;
+procedure TGeoFieldsGrid.SetReadOnlyFields(const Value: TGeoFields);
 begin
-  Filter := CellFilter(Col);
-  if Filter <> nil then
-    FilterKeyPress(Filter, AText, Key);
+  if FReadOnlyFields = Value then
+    Exit;
+  FReadOnlyFields := Value;
+  RefreshFilters;
 end;
 
-{ Column mapping helpers }
+{ --- Fields and columns --- }
 
 function TGeoFieldsGrid.FieldToCol(F: TGeoField): Integer;
 var
@@ -447,21 +399,7 @@ begin
   Result := Length(FColToField);
 end;
 
-{ Per-instance overrides }
-
-procedure TGeoFieldsGrid.SetColumnDisplayName(F: TGeoField;
-  const ADisplayName: string);
-begin
-  FFieldInfo[F].Caption := ADisplayName;
-  if F in FGeoFields then
-    RefreshHeaders;
-end;
-
-// Filters start at the first data column
-function TGeoFieldsGrid.CellFilter(ACol: Integer): TColumnFilter;
-begin
-  Result := ResolveFilter(FColumnFilters, ACol - FixedCols);
-end;
+{ --- Field settings --- }
 
 // Only the places change, the rest of each column stays as it is
 procedure TGeoFieldsGrid.SetFieldDecimals(const AFields: TGeoFields;
@@ -472,7 +410,14 @@ begin
   for F in AFields do
     FFieldInfo[F].DecimalPlaces := APlaces;
   RefreshFilters;
-  Invalidate;
+end;
+
+procedure TGeoFieldsGrid.SetColumnDisplayName(F: TGeoField;
+  const ADisplayName: string);
+begin
+  FFieldInfo[F].Caption := ADisplayName;
+  if F in FGeoFields then
+    RefreshHeaders;
 end;
 
 procedure TGeoFieldsGrid.SetFieldInfo(F: TGeoField;
@@ -505,6 +450,8 @@ begin
   RefreshHeaders;
   RefreshFilters;
 end;
+
+{ --- Rows --- }
 
 procedure TGeoFieldsGrid.SetGeoRow(ARow: Integer; const GRow: TGeoRow);
 var
@@ -553,7 +500,7 @@ begin
     S := GeoFieldToText(GRow, F, '', FormatSettings);
     if S = '' then
       Continue;                  // empty is OK
-    if not ValidateText(FColumnFilters[I], S) then
+    if not ValidateText(ColumnFilters[I], S) then
       Exit(Cells[FixedCols + I, 0] + ' = ' + S);   // column header
   end;
 end;

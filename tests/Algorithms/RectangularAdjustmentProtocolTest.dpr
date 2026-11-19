@@ -19,8 +19,7 @@ var
   Lines: TStringList;
 
 // One row, Y and X only for a given point
-procedure Add(const APointNumber: string; ALength: Double;
-  AY: Double = NaN; AX: Double = NaN);
+procedure Add(const APointNumber: string; ALength: Double; AY: Double = NaN; AX: Double = NaN);
 var
   Row: TGeoRow;
 begin
@@ -37,21 +36,12 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is the grid row, the corner 903 was stored again
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
-  for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I + 1);
-    Rows.Notes[I] := '';
-  end;
-  Rows.Notes[2] := OverwrittenText;
-
-  TRectangularAdjustmentProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+  Frame.Rows[2].Stored := gsOverwritten;
+  TRectangularAdjustmentProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

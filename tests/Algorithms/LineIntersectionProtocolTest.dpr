@@ -35,17 +35,13 @@ end;
 procedure Run(const ATitle: string; AUpdated: Boolean);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. as the grid shows it, I-1 to II-2 and P
-  Rows.Numbers := ['I-1', 'I-2', 'II-1', 'II-2', 'P'];
-  Rows.Notes := ['', '', '', '', ''];
   if AUpdated then
-    Rows.Notes[LINE_POINTS] := OverwrittenText;
-
-  TLineIntersectionProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+    Frame.Rows[LINE_POINTS].Stored := gsOverwritten;
+  TLineIntersectionProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

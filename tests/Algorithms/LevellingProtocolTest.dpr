@@ -19,8 +19,7 @@ var
   Lines: TStringList;
 
 // One reading: B back, F fore, S side, a given height at the known ends
-procedure Add(const APointNumber: string; AKind: Char;
-  AReading, ALength: Double; AHeight: Double = NaN);
+procedure Add(const APointNumber: string; AKind: Char; AReading, ALength: Double; AHeight: Double = NaN);
 var
   Row: TGeoRow;
 begin
@@ -40,21 +39,12 @@ end;
 procedure Run(const ATitle: string; AStored: Integer = -1);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
-  for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I + 1);
-    Rows.Notes[I] := '';
-  end;
   if AStored >= 0 then
-    Rows.Notes[AStored] := OverwrittenText;
-
-  TLevellingProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+    Frame.Rows[AStored].Stored := gsOverwritten;
+  TLevellingProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

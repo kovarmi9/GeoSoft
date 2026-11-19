@@ -11,9 +11,7 @@ type
   TLevellingProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TLevellingAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TLevellingAlgorithm);
   end;
 
 implementation
@@ -25,8 +23,8 @@ const
   // Header and rows share one format
   READING_LINE = '%3s  %-18s  %7s  %7s  %7s  %7s  %9s  %7s  %10s  %s';
 
-class procedure TLevellingProtocol.Write(AProt: TProtocol; ALines: TStrings;
-  AFrame: TGeoDataFrame; AAlg: TLevellingAlgorithm; const ARows: TProtocolRows);
+class procedure TLevellingProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TLevellingAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -46,9 +44,9 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(READING_LINE, [ARows.Numbers[I], PointId(Row.CB),
+    AProt.Text(Format(READING_LINE, [LineId(AFrame, I), PointId(Row.CB),
       Num(Row.Xm, 3), Num(Row.Ym, 3), Num(Row.Zm, 3), Num(Row.SH, 2),
-      Num(Row.M3, 3), Num(Row.M1, 3), Num(Row.M2, 3), ARows.Notes[I]]));
+      Num(Row.M3, 3), Num(Row.M1, 3), Num(Row.M2, 3), StoredText(Row)]));
   end;
   AProt.Line;
 

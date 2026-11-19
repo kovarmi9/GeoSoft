@@ -25,7 +25,8 @@ umístí na dané body.
 
 | unit | výpočet |
 |---|---|
-| `GUI/RectangularMeasurements.pas` | tabulka → frame, místní souřadnice, výsledky zpět, uložení bodů, zápisník, protokol |
+| `GUI/RectangularMeasurements.pas` | tabulka → frame, místní souřadnice, výsledky zpět, uložení bodů, zápisník |
+| `Protocols/ProtocolRectangularMeasurements.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmRectangularMeasurements.pas` | místní obrazec, úseky, transformace, mez délky |
 | `GeoAlgorithms/GeoAlgorithmTransformCongruent.pas` | shodnostní transformace, viz [Transformace](transformace.md) |
 | `GeoAlgorithms/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
@@ -89,4 +90,6 @@ $$
   Pro kódy bez Mxy se mez nekontroluje.
 - Úsek s více než 8 mezilehlými body vypíše upozornění.
 - Chyba: první bod řetězce není daný, bod úseku nemá délku, daný bod
-  nemá souřadnice, úsek s méně než 3 body.
+  nemá souřadnice, za posledním daným bodem zbyly body bez dalšího
+  daného bodu (Za bodem … už není známý bod).
+- Dva dané body těsně za sebou netvoří úsek, výpočet je přeskočí.

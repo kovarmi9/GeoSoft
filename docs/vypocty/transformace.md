@@ -31,7 +31,8 @@ Transformace je rovinná, výšky se netransformují.
 
 | unit | výpočet |
 |---|---|
-| `GUI/Transformation.pas` | tabulka → frame (role v `Typ`: 1, 2, 3), výsledky zpět, uložení bodů, zápisník, protokol |
+| `GUI/Transformation.pas` | tabulka → frame (role v `Typ`: 1, 2, 3), výsledky zpět, uložení bodů, zápisník |
+| `Protocols/ProtocolTransformation.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmTransformation.pas` | řízení výpočtu, kontrolní a určované body, počty bodů v pásmech |
 | `GeoAlgorithms/GeoAlgorithmTransformBase.pas` | předek klíčů: těžiště, posuny, transformace bodů, opravy |
 | `GeoAlgorithms/GeoAlgorithmTransformSimilarity.pas` | podobnostní, λ1 a λ2 |

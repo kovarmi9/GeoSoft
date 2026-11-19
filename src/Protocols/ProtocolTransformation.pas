@@ -10,19 +10,13 @@ uses
 type
   TTransformationProtocol = class
   private
-    class procedure WriteResiduals(AProt: TProtocol; AFrame: TGeoDataFrame;
-      const ARows: TProtocolRows; ARole: Integer; const ACaption: string);
-    class procedure WriteSummary(AProt: TProtocol; AFrame: TGeoDataFrame;
-      AAlg: TTransformationFrameAlgorithm);
-    class procedure WriteKey(AProt: TProtocol;
-      AAlg: TTransformationFrameAlgorithm);
-    class procedure WriteDetermined(AProt: TProtocol; AFrame: TGeoDataFrame;
-      const ARows: TProtocolRows);
+    class procedure WriteResiduals(AProt: TProtocol; AFrame: TGeoDataFrame; ARole: Integer; const ACaption: string);
+    class procedure WriteSummary(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TTransformationFrameAlgorithm);
+    class procedure WriteKey(AProt: TProtocol; AAlg: TTransformationFrameAlgorithm);
+    class procedure WriteDetermined(AProt: TProtocol; AFrame: TGeoDataFrame);
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TTransformationFrameAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TTransformationFrameAlgorithm);
   end;
 
 implementation
@@ -36,9 +30,8 @@ const
   RESIDUAL_LINE   = '%3s  %-18s  %6s  %6s  %6s  %2s  %s';
   DETERMINED_LINE = '%3s  %-3s  %-18s  %s  %2s  %s';
 
-class procedure TTransformationProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TTransformationFrameAlgorithm;
-  const ARows: TProtocolRows);
+class procedure TTransformationProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TTransformationFrameAlgorithm);
 const
   KIND_TEXT: array[TTransformationType] of string = ('Shodnostní',
     'Podobnostní (Helmertova)', 'Afinní');
@@ -62,7 +55,7 @@ begin
     Row := AFrame.Rows[I];
     if (Row.Typ <> DRUH_IDENTICKY) or IsNan(Row.M4) then
       Continue;
-    AProt.Text(Format(IDENTICAL_LINE, [ARows.Numbers[I], 'Z:',
+    AProt.Text(Format(IDENTICAL_LINE, [LineId(AFrame, I), 'Z:',
       PointId(Row.CBm), CoordPair(Row.Xm, Row.Ym)]));
     AProt.Text(Format(IDENTICAL_LINE, ['', 'Do:', PointId(Row.CB),
       CoordPair(Row.X, Row.Y)]));
@@ -70,12 +63,10 @@ begin
   AProt.Line;
 
   // 4. Checks, the residuals of the key and of the check points
-  WriteResiduals(AProt, AFrame, ARows, DRUH_IDENTICKY,
-    'ODCHYLKY TRANSFORMACE');
+  WriteResiduals(AProt, AFrame, DRUH_IDENTICKY, 'ODCHYLKY TRANSFORMACE');
   WriteSummary(AProt, AFrame, AAlg);
   if AAlg.Info.CheckCount > 0 then
-    WriteResiduals(AProt, AFrame, ARows, DRUH_KONTROLNI,
-      'KONTROLNÍ BODY (mimo klíč)');
+    WriteResiduals(AProt, AFrame, DRUH_KONTROLNI, 'KONTROLNÍ BODY (mimo klíč)');
   WriteKey(AProt, AAlg);
 
   // 5. Determined points
@@ -83,7 +74,7 @@ begin
   begin
     AProt.Section('TRANSFORMACE - PODROBNÉ BODY');
     WriteKey(AProt, AAlg);
-    WriteDetermined(AProt, AFrame, ARows);
+    WriteDetermined(AProt, AFrame);
   end;
 
   // 6. Messages and the end
@@ -91,8 +82,7 @@ begin
 end;
 
 // Vy, Vx, Sxy and the band of the rows of one role
-class procedure TTransformationProtocol.WriteResiduals(AProt: TProtocol;
-  AFrame: TGeoDataFrame; const ARows: TProtocolRows; ARole: Integer;
+class procedure TTransformationProtocol.WriteResiduals(AProt: TProtocol; AFrame: TGeoDataFrame; ARole: Integer;
   const ACaption: string);
 var
   I: Integer;
@@ -105,7 +95,7 @@ begin
   begin
     Row := AFrame.Rows[I];
     if (Row.Typ = ARole) and not IsNan(Row.M4) then
-      AProt.Text(Format(RESIDUAL_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(RESIDUAL_LINE, [LineId(AFrame, I), PointId(Row.CB),
         Num(Row.M1), Num(Row.M2), Num(Row.M4), IntToStr(Row.KK),
         BandText(Row.M4, Row.KK)]));
   end;
@@ -113,8 +103,8 @@ begin
 end;
 
 // KatV 13.7 to 13.9 and § 75 (4), the algorithm has counted the bands
-class procedure TTransformationProtocol.WriteSummary(AProt: TProtocol;
-  AFrame: TGeoDataFrame; AAlg: TTransformationFrameAlgorithm);
+class procedure TTransformationProtocol.WriteSummary(AProt: TProtocol; AFrame: TGeoDataFrame;
+  AAlg: TTransformationFrameAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -160,8 +150,7 @@ begin
 end;
 
 // The coefficients and the formula
-class procedure TTransformationProtocol.WriteKey(AProt: TProtocol;
-  AAlg: TTransformationFrameAlgorithm);
+class procedure TTransformationProtocol.WriteKey(AProt: TProtocol; AAlg: TTransformationFrameAlgorithm);
 var
   Info: TTransformationInfo;
 begin
@@ -180,8 +169,7 @@ begin
 end;
 
 // Z: the source point, Do: the target point with its quality code
-class procedure TTransformationProtocol.WriteDetermined(AProt: TProtocol;
-  AFrame: TGeoDataFrame; const ARows: TProtocolRows);
+class procedure TTransformationProtocol.WriteDetermined(AProt: TProtocol; AFrame: TGeoDataFrame);
 var
   I: Integer;
   Row: TGeoRow;
@@ -194,14 +182,14 @@ begin
     Row := AFrame.Rows[I];
     if (Row.Typ <> DRUH_URCOVANY) or IsNan(Row.X) then
       Continue;
-    AProt.Text(Format(DETERMINED_LINE, [ARows.Numbers[I], 'Z:',
+    AProt.Text(Format(DETERMINED_LINE, [LineId(AFrame, I), 'Z:',
       PointId(Row.CBm), CoordPair(Row.Xm, Row.Ym), '', '']));
     if Row.CB = 0 then
       AProt.Text(Format(DETERMINED_LINE, ['', 'Do:', '',
         CoordPair(Row.X, Row.Y), '', '*** neuloženo, chybí číslo bodu ***']))
     else
       AProt.Text(Format(DETERMINED_LINE, ['', 'Do:', PointId(Row.CB),
-        CoordPair(Row.X, Row.Y), IntToStr(Row.KK), ARows.Notes[I]]));
+        CoordPair(Row.X, Row.Y), IntToStr(Row.KK), StoredText(Row)]));
   end;
   AProt.Line;
 end;

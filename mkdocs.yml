@@ -69,5 +69,6 @@ nav:
   - Komponenty:
       - komponenty/index.md
       - TGeoGrid: komponenty/geogrid.md
+      - TGeoPointsGrid: komponenty/geopointsgrid.md
       - TGeoFieldsGrid: komponenty/geofieldsgrid.md
       - Kontrola zadávání: komponenty/kontrola-zadavani.md

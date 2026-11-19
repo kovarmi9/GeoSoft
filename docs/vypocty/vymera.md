@@ -18,7 +18,8 @@ a zaokrouhlí ji na výměru.
 
 | unit | výpočet |
 |---|---|
-| `GUI/ParcelArea.pas` | tabulka → frame, body ze seznamu, výměra, zápisník, protokol |
+| `GUI/ParcelArea.pas` | tabulka → frame, body ze seznamu, zápisník |
+| `Protocols/ProtocolParcelArea.pas` | protokol, výměra zaokrouhlená na celé m² |
 | `GeoAlgorithms/GeoAlgorithmLHuilier.pas` | plocha |
 
 ```mermaid

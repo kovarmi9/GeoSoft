@@ -11,9 +11,7 @@ type
   TResectionProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TResectionAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TResectionAlgorithm);
   end;
 
 implementation
@@ -26,8 +24,8 @@ const
   GIVEN_LINE   = '%3s  %-18s  %9s  %s  %2s';
   STATION_LINE = '%-18s  %s  %2s  %s';
 
-class procedure TResectionProtocol.Write(AProt: TProtocol; ALines: TStrings;
-  AFrame: TGeoDataFrame; AAlg: TResectionAlgorithm; const ARows: TProtocolRows);
+class procedure TResectionProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TResectionAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -46,7 +44,7 @@ begin
   for I := 0 to RESECTION_POINTS - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(GIVEN_LINE, [ARows.Numbers[I], PointId(Row.CB),
+    AProt.Text(Format(GIVEN_LINE, [LineId(AFrame, I), PointId(Row.CB),
       Ang(Row.HZ), CoordPair(Row.X, Row.Y), IntToStr(Row.KK)]));
   end;
   AProt.Line;
@@ -62,7 +60,7 @@ begin
   AProt.TableHeader(Format(STATION_LINE,
     ['Číslo bodu', CoordCaption, 'KK', '']));
   AProt.Text(Format(STATION_LINE, [PointId(Row.CB), CoordPair(Row.X, Row.Y),
-    IntToStr(Row.KK), ARows.Notes[RESECTION_POINTS]]));
+    IntToStr(Row.KK), StoredText(Row)]));
   AProt.Line;
 
   // 6. Messages and the end

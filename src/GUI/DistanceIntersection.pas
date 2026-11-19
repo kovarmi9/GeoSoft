@@ -20,7 +20,6 @@ type
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TDistanceIntersectionAlgorithm;
-    FStored: Boolean;             // the point went to the list in this run
     procedure Recompute;
     function SideText: string;
   protected
@@ -109,7 +108,6 @@ procedure TDistanceIntersectionForm.Recompute;
 var
   Row: TGeoRow;
 begin
-  FStored := False;             // a changed job is not stored yet
   BuildFrame;
   FAlg.Calculate(FFrame);
 
@@ -132,8 +130,7 @@ begin
   ShowProtocol;
 end;
 
-procedure TDistanceIntersectionForm.PointCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TDistanceIntersectionForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
   if ARow < Grid.FixedRows then
     Exit;
@@ -143,7 +140,7 @@ begin
     NormalizePointCell(Grid, ACol, ARow);
     // An empty cell is a row not filled in yet, not a mistake
     if (ARow < RESULT_ROW) and (Trim(Grid.Cells[ACol, ARow]) <> '') and
-       not LoadGridPoint(Grid, ARow) then
+      not LoadGridPoint(Grid, ARow) then
     begin
       Grid.RejectCommit;
       Exit;
@@ -180,29 +177,26 @@ begin
   Row.Popis := ShortString(GPointPrefix.Popis);
   StorePoint(Row);
   FFrame.Rows[GIVEN_POINTS].CB := Row.CB;
+  FFrame.Rows[GIVEN_POINTS].Stored := Row.Stored;
   Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);
-  FStored := True;
   ShowProtocol;
 end;
 
 // Row by row into the grid, the new point is computed again
-procedure TDistanceIntersectionForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TDistanceIntersectionForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I: Integer;
 begin
   ClearGrid(Grid, RESULT_ROW + 1);
   for I := 0 to Min(AFrame.Count, RESULT_ROW) - 1 do
-    if PutRow(Grid, I + 1, AFrame.Rows[I], I, ABad) and
-       (I < GIVEN_POINTS) then
+    if PutRow(Grid, I + 1, AFrame.Rows[I], ABad) and (I < GIVEN_POINTS) then
       LoadGridPoint(Grid, I + 1);   // given points from the list
   Recompute;
 end;
 
 procedure TDistanceIntersectionForm.WriteProtocol(ALines: TStrings);
 begin
-  TDistanceIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
-    ProtocolRows(FStored));
+  TDistanceIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

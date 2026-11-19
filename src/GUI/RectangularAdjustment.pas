@@ -19,8 +19,7 @@ type
     LabelClosure: TLabel;
     procedure CalculateClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
-    procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
-      var ASelectable: Boolean);
+    procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer; var ASelectable: Boolean);
   private
     FAlg: TRectangularAdjustmentAlgorithm;
     FRowNew: array of Boolean;      // listed point the user calls new
@@ -101,8 +100,7 @@ begin
   Known := TPointDictionary.GetInstance.PointExists(PointNumber);
 
   // The closing row is the first point again, no second question
-  if (R > First) and (Length(FRowCB) > First) and
-    (CBText = FRowCB[First]) then
+  if (R > First) and (Length(FRowCB) > First) and (CBText = FRowCB[First]) then
     FRowNew[R] := FRowNew[First]
   else if Known then
   begin
@@ -156,16 +154,14 @@ begin
 end;
 
 // The first point starts the figure, no length leads to it
-procedure TRectangularAdjustmentForm.GridCellSelectable(Sender: TObject;
-  ACol, ARow: Integer; var ASelectable: Boolean);
+procedure TRectangularAdjustmentForm.GridCellSelectable(Sender: TObject; ACol, ARow: Integer; var ASelectable: Boolean);
 begin
   if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(Sta)) then
     ASelectable := False;
 end;
 
 // Normalizes the number and refills the row
-procedure TRectangularAdjustmentForm.CellCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TRectangularAdjustmentForm.CellCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
   if ARow < Grid.FixedRows then
     Exit;
@@ -177,8 +173,7 @@ begin
   end;
 
   // The adjustment spreads over all sides, so any change redraws all rows
-  if (ACol = Grid.FieldToCol(CB)) or
-    (ACol = Grid.FieldToCol(Sta)) then
+  if (ACol = Grid.FieldToCol(CB)) or (ACol = Grid.FieldToCol(Sta)) then
     RecalcLocal;
 end;
 
@@ -199,8 +194,8 @@ begin
     PointNumber := FFrame.Rows[I].CB;
 
     // A listed point is given, unless the user said it is a new one
-    IsGiven := TPointDictionary.GetInstance.PointExists(PointNumber)
-      and not ((GridRow <= High(FRowNew)) and FRowNew[GridRow]);
+    IsGiven := TPointDictionary.GetInstance.PointExists(PointNumber) and
+      not ((GridRow <= High(FRowNew)) and FRowNew[GridRow]);
 
     if IsGiven then
     begin
@@ -278,8 +273,7 @@ begin
 end;
 
 // Puts the loaded rows into the grid
-procedure TRectangularAdjustmentForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TRectangularAdjustmentForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
@@ -292,7 +286,7 @@ begin
 
   R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], ABad) then
     begin
       if IsNan(AFrame.Rows[I].X) then
         FillRow(R)              // only inputs, ask as when typed
@@ -308,8 +302,7 @@ end;
 
 procedure TRectangularAdjustmentForm.WriteProtocol(ALines: TStrings);
 begin
-  TRectangularAdjustmentProtocol.Write(Prot, ALines, FFrame, FAlg,
-    ProtocolRows);
+  TRectangularAdjustmentProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

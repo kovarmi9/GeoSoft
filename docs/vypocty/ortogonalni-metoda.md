@@ -12,7 +12,8 @@ do S-JTSK.
   Kolmice vpravo od směru P→K je kladná. Záporné staničení je bod
   před bodem P.
 - Prázdné staničení nebo kolmice se po Enteru doplní nulou.
-- Tlačítko Výpočet nejdřív ověří, že P a K jsou v seznamu.
+- Tlačítko Výpočet nejdřív ověří, že P a K jsou v seznamu, a pak
+  odemkne dolní tabulku.
 - Po každé změně v dolní tabulce se body přepočítají a uloží
   do seznamu. Bod, který už v seznamu je, se přepíše s dotazem
   (ponechat, nový, průměr, nové číslo).
@@ -25,7 +26,8 @@ do S-JTSK.
 
 | unit | výpočet |
 |---|---|
-| `GUI/OrthogonalMethod.pas` | tabulky → frame, výsledky zpět, uložení bodů, zápisník, protokol |
+| `GUI/OrthogonalMethod.pas` | tabulky → frame, výsledky zpět, uložení bodů, zápisník |
+| `Protocols/ProtocolOrthogonal.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmOrthogonal.pas` | transformace, délka přímky, kontroly prodloužení a kolmice |
 | `GeoAlgorithms/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
 

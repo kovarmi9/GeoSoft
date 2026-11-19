@@ -9,6 +9,7 @@ flowchart TB
   A["AskSaveChanges<br>„Uložit změny?“"] --> D["DoSave<br>bez souboru → SaveListAs"]
   D --> S["SaveListAs<br>dialog na jméno"]
   S --> W["WriteListFile<br>jediný zápis na disk"]
+  D --> W
   W --> E["ExportToBinary<br>dočasný soubor, pak nahradí"]
 ```
 
@@ -33,7 +34,8 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-  X["DoExport<br>jméno seznamu + .txt / .csv"] --> T["ExportText<br>seřazeno podle čísla"]
+  X["DoExport<br>jméno seznamu + .txt / .csv"] --> E["ExportToTXT / ExportToCSV<br>tabulátor / středník"]
+  E --> T["ExportText<br>seřazeno podle čísla"]
 ```
 
 ## Tabulka
@@ -41,6 +43,7 @@ flowchart TB
 ```mermaid
 flowchart TB
   G["GridCellCommitted"] --> N["NumberCommitted<br>předčíslí, přečíslování"]
+  G -->|ostatní sloupce| S
   N --> S["StoreRow<br>nový bod: KK a popis z lišty"]
   S --> A["AddOrUpdatePoint<br>změna hned v seznamu"]
 ```

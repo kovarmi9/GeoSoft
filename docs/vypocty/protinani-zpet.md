@@ -3,6 +3,26 @@
 Úloha 8 určí souřadnice stanoviska ze dvou úhlů měřených na tři dané
 body. Program počítá Cassiniho řešením.
 
+## Co umí
+
+- Nahoře je stanovisko: číslo určovaného bodu, pod ním jeho Y, X
+  a kód kvality, které program jen ukazuje.
+- Tabulka Dané body má tři řádky, bod 2 je prostřední. Souřadnice
+  a kód kvality se doplní ze seznamu, do sloupce Směr se napíše
+  měřený směr ze stanoviska.
+- Po každém Enteru se stanovisko spočítá a ukáže.
+- Výpočet uloží stanovisko do seznamu, bod, který už v seznamu je, se
+  přepíše s dotazem. Bez čísla stanoviska se nic neuloží.
+- Jeden zápisník je jedno stanovisko.
+
+## Kde se co počítá
+
+| unit | výpočet |
+|---|---|
+| `GUI/Resection.pas` | tabulka a stanovisko → frame, dané body ze seznamu, výsledek zpět, uložení bodu, zápisník |
+| `Protocols/ProtocolResection.pas` | protokol |
+| `GeoAlgorithms/GeoAlgorithmResection.pas` | úhly α a β, pomocné body T a U, stanovisko, kontrola, kód kvality |
+
 ## Matematika
 
 ### Zadání
@@ -184,6 +204,15 @@ $\alpha = 141{,}0182^{\mathrm{g}}$, $\beta = 93{,}5052^{\mathrm{g}}$
 | $\cot\alpha$, $\cot\beta$ | $-0{,}751\,268$, $0{,}102\,376$ |
 | $T$ | $Y_T = 738\,864{,}83$, $X_T = 1\,042\,998{,}37$ |
 | $U$ | $Y_U = 739\,436{,}13$, $X_U = 1\,046\,770{,}08$ |
-| $\Delta Y_{TU}$, $\Delta X_{TU}$ | $571{,}30$, $3\,771{,}71$ |
+| $\Delta Y_{TU}$, $\Delta X_{TU}$ | $571{,}30$, $3\,771{,}72$ |
 | $k$ | $0{,}337\,83$ |
 | $S$ (104) | $Y_S = 739\,272{,}33$, $X_S = 1\,045\,688{,}67$ |
+
+## Přesnost
+
+- Kód kvality stanoviska je nejhorší ze tří daných bodů.
+- Kontrola úhlů α a β musí vyjít do 0,0001 gon, jinak je to chyba.
+- Chyba je také: daný bod bez souřadnic, chybějící směr, dané body
+  blíž než 0,001 m, úhel α nebo β 0 nebo 200 gon a délka TU pod 0,001 m
+  (stanovisko na nebezpečné kružnici).
+- Protokol vypíše dané body, úhly α a β, délku TU a stanovisko.

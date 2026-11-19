@@ -3,8 +3,7 @@
 interface
 
 uses
-  System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Menus, Vcl.ToolWin,
-  Vcl.ComCtrls, Vcl.StdCtrls, Vcl.Grids, GeoGrid, GeoFieldsGrid;
+  System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Menus, Vcl.StdCtrls;
 
 type
   TGeoSoftForm = class(TForm)
@@ -35,7 +34,6 @@ type
     MenuTechnicalLevelling: TMenuItem;
     MenuProtocol: TMenuItem;
     Button1: TButton;
-    GeoFieldsGrid1: TGeoFieldsGrid;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
     procedure MenuShowListClick(Sender: TObject);

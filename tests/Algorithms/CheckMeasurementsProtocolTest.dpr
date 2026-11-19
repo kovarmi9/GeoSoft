@@ -55,20 +55,11 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is the grid row, nothing is stored
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
-  for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I + 1);
-    Rows.Notes[I] := '';
-  end;
-
-  TCheckMeasurementsProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+  TCheckMeasurementsProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

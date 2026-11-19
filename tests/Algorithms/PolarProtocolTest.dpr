@@ -40,22 +40,15 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Heights := GSettings.Polar.Heights;
   Alg.Calculate(Frame);
 
   // Č. is the grid row, the last row was stored again
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
   for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I);
-    Rows.Notes[I] := '';
-  end;
-  Rows.Notes[Frame.Count - 1] := OverwrittenText;
-
-  TPolarProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+    Frame.Rows[I].Line := I;
+  Frame.Rows[Frame.Count - 1].Stored := gsOverwritten;
+  TPolarProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

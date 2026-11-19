@@ -19,8 +19,7 @@ type
     Grid: TGeoFieldsGrid;
     procedure CalculateClick(Sender: TObject);
     procedure CellCommitted(Sender: TObject; ACol, ARow: Integer);
-    procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
-      var ASelectable: Boolean);
+    procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer; var ASelectable: Boolean);
   private
     FAlg: TRectangularMeasurementsAlgorithm;
     FRowNew: array of Boolean;      // listed point the user calls new
@@ -157,16 +156,14 @@ begin
 end;
 
 // The first point starts the chain, no length leads to it
-procedure TRectangularMeasurementsForm.GridCellSelectable(Sender: TObject;
-  ACol, ARow: Integer; var ASelectable: Boolean);
+procedure TRectangularMeasurementsForm.GridCellSelectable(Sender: TObject; ACol, ARow: Integer; var ASelectable: Boolean);
 begin
   if (ARow = Grid.FixedRows) and (ACol = Grid.FieldToCol(Sta)) then
     ASelectable := False;
 end;
 
 // Normalizes the number and refills the row
-procedure TRectangularMeasurementsForm.CellCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TRectangularMeasurementsForm.CellCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
   if ARow < Grid.FixedRows then
     Exit;
@@ -178,8 +175,7 @@ begin
   end;
 
   // The walk is cumulative, so any change redraws all rows
-  if (ACol = Grid.FieldToCol(CB)) or
-    (ACol = Grid.FieldToCol(Sta)) then
+  if (ACol = Grid.FieldToCol(CB)) or (ACol = Grid.FieldToCol(Sta)) then
     RecalcLocal;
 end;
 
@@ -200,8 +196,8 @@ begin
     PointNumber := FFrame.Rows[I].CB;
 
     // A listed point is given, unless the user said it is a new one
-    IsGiven := TPointDictionary.GetInstance.PointExists(PointNumber)
-      and not ((GridRow <= High(FRowNew)) and FRowNew[GridRow]);
+    IsGiven := TPointDictionary.GetInstance.PointExists(PointNumber) and
+      not ((GridRow <= High(FRowNew)) and FRowNew[GridRow]);
 
     if IsGiven then
     begin
@@ -248,8 +244,7 @@ begin
     Back[I] := -1;
   for S := 0 to High(FAlg.Segments) do
     for I := FAlg.Segments[S].FromRow to FAlg.Segments[S].ToRow do
-      if (I <> FAlg.Segments[S].FromRow) and
-         (I <> FAlg.Segments[S].ToRow) then
+      if (I <> FAlg.Segments[S].FromRow) and (I <> FAlg.Segments[S].ToRow) then
         Back[I] := FRows[I];
 
   // Store first, a renumbered point goes to the grid with its new number
@@ -281,8 +276,7 @@ begin
 end;
 
 // Puts the loaded rows into the grid
-procedure TRectangularMeasurementsForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TRectangularMeasurementsForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
@@ -295,7 +289,7 @@ begin
 
   R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], ABad) then
     begin
       if IsNan(AFrame.Rows[I].X) then
         FillRow(R)              // only inputs, ask as when typed
@@ -311,8 +305,7 @@ end;
 
 procedure TRectangularMeasurementsForm.WriteProtocol(ALines: TStrings);
 begin
-  TRectangularMeasurementsProtocol.Write(Prot, ALines, FFrame, FAlg,
-    ProtocolRows);
+  TRectangularMeasurementsProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

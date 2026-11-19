@@ -10,11 +10,35 @@ zadávání podle svého pole. Používají ji všechna výpočetní okna.
 |---|---|
 | `ColumnFields` | které sloupce tabulka má a v jakém pořadí, jeden řádek `Pole=Popisek` na sloupec. Nastavuje se v Object Inspectoru. |
 | `GeoFields` | množina polí, která jsou právě vidět. Tabulka bez `ColumnFields` z ní bere sloupce v pořadí výčtu. |
-| `ReadOnlyFields` | pole, která plní program (výsledky). Kurzor je přeskočí, kód do nich píše dál. |
+| `ReadOnlyFields` | pole, která plní program (výsledky). Tabulka jim dá do filtru `ReadOnly`, kurzor je přeskočí, kód do nich píše dál. |
 
 Popisek bez `=` se vezme z katalogu polí (`GeoFieldInfo`
 v `GeoRow.pas`). Desetinná místa pole nastaví `SetFieldDecimals`,
 sloupec pole najde `FieldToCol`, pole sloupce `ColToField`.
+
+## Filtry z katalogu
+
+Při každé změně sloupců vyrobí tabulka filtry podle katalogu polí
+(`ApplyFieldInfo`):
+
+| druh pole | typ filtru | prázdná buňka | desetiny |
+|---|---|---|---|
+| `fkPointNumber` | celé číslo, až 15 číslic a znaménko | smí | – |
+| `fkInteger` | celé číslo | dá 0 | – |
+| `fkText` | text | zůstane | – |
+| `fkNumber` | výraz | smí | podle katalogu |
+| `fkResult` | číslo | smí | podle katalogu |
+
+Meze, délka a perioda se převezmou z katalogu, `ReadOnly`
+z `ReadOnlyFields`.
+
+## Řádek tabulky a TGeoRow
+
+| metoda | co dělá |
+|---|---|
+| `GetGeoRow(Řádek, Row)` | přečte řádek tabulky do `TGeoRow`, pole bez sloupce zůstanou prázdná (`ClearGeoRow`) |
+| `SetGeoRow(Řádek, Row)` | zapíše zobrazená pole `TGeoRow` do řádku tabulky |
+| `CheckGeoRow(Row)` | zkontroluje řádek jako při psaní, vrátí `''`, nebo „popisek = špatná hodnota“ |
 
 ## Skrytí sloupců a pořadí Y a X
 
@@ -40,15 +64,20 @@ flowchart LR
   D --> E["SetColumns<br/>TGeoFieldsGrid"]
 ```
 
-Příklad z polární metody: sloupce, které výpočet zatím nepoužívá,
-jsou skryté vždy, výška cíle a popis podle Nastavení.
+Příklad z polární metody: co se skryje, určuje Nastavení.
 
 ```pascal
-  Hidden := [SS, ZU, Sta, Kol];
-  if not GSettings.Polar.ShowTargetHeight then
-    Include(Hidden, VC);
-  if not GSettings.Polar.ShowDescription then
-    Include(Hidden, Popis);
+  Hidden := [];
+  if not GSettings.Polar.Offset then
+    Include(Hidden, Sta);
+  if not GSettings.Polar.Perpendicular then
+    Include(Hidden, Kol);
+  // Horizontal length, or the slope one with its zenith angle
+  if GSettings.Polar.SlopeLengths then
+    Include(Hidden, SH)
+  else
+    Include(Hidden, SS);
+  …
   ApplyColumns(GridOrientation, Hidden);
   ApplyColumns(GridDetail, Hidden);
 ```

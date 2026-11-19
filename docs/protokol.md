@@ -36,9 +36,14 @@ oknech otevře protokol zakázky v Poznámkovém bloku.
 ## Jak to funguje uvnitř
 
 Vzhled protokolu zná jen třída `TProtocol`, obsah zná jen zapisovač
-úlohy ve složce `Protocols`. Okno dodá jen to, co zná samo: čísla řádků
-tabulky a poznámky u přepsaných bodů. Proto vypadají všechny protokoly
-stejně a jdou testovat bez okna.
+úlohy ve složce `Protocols`. Okno předá jen frame a výpočet. Proto
+vypadají všechny protokoly stejně a jdou testovat bez okna.
+
+Č. a poznámku o uložení bodu nese řádek frame: `Line` (řádek gridu)
+a `Stored` (bod přepsán nebo zprůměrován). `Line` nastaví předek okna
+při plnění frame, u konstrukčních oměrných `GridToFrame` a u orientací
+polární metody okno samo. `Stored` nastaví `StorePoint`. Řádek bez `Line`
+dostane pořadí 1, 2, 3. Pevné řádky (P/K, A/B, I-1…P) mají v Č. název.
 
 ```mermaid
 sequenceDiagram
@@ -52,7 +57,7 @@ sequenceDiagram
   B->>U: tlačítko Výpočet spustí výpočet úlohy
   U->>A: Calculate(frame)
   A-->>U: výsledky ve frame, CHYBA, UPOZORNĚNÍ
-  U->>W: WriteProtocol: Write(Prot, řádky, frame, výpočet, ProtocolRows)
+  U->>W: WriteProtocol: Write(Prot, řádky, frame, výpočet)
   W->>P: Start, Section, TableHeader, Text, Line, Finish
   P-->>U: řádky v memu okna
   B->>J: WriteJobProtocol: protokol na konec, podle Nastavení
@@ -60,11 +65,11 @@ sequenceDiagram
 
 | unit | co v něm je |
 |---|---|
-| `GUI/CalcBase.pas` | předek oken `TCalcBaseForm`: memo `MemoProtocol`, pole `Prot`, `ShowProtocol`, `ProtocolRows`, zápis do `.ptk` |
+| `GUI/CalcBase.pas` | předek oken `TCalcBaseForm`: memo `MemoProtocol`, pole `Prot`, `ShowProtocol`, zápis do `.ptk` |
 | `GUI/<úloha>.pas` | `WriteProtocol` úlohy, jen zavolá zapisovač |
 | `Protocols/Protocol<úloha>.pas` | zapisovač úlohy, co se do protokolu napíše |
 | `GeoAlgorithms/GeoAlgorithm<úloha>.pas` | výpočet, zprávy `AddError` a `AddWarning` |
-| `Utils/ProtocolTable.pas` | `TProtocol` (nadpis, oddíly, tabulky, čáry), `TProtocolRows`, `Num`, `Ang`, `PointId`, `CoordPair`, `LimitText` |
+| `Utils/ProtocolTable.pas` | `TProtocol` (nadpis, oddíly, tabulky, čáry), `LineId`, `StoredText`, `Num`, `Ang`, `PointId`, `CoordPair`, `LimitText` |
 | `GUI/PointsManagement.pas` | jméno `.ptk` podle seznamu, otevření v Poznámkovém bloku |
 
 ### Jak úloha píše protokol
@@ -74,8 +79,7 @@ Okno jen předá, co má:
 ```pascal
 procedure TLineIntersectionForm.WriteProtocol(ALines: TStrings);
 begin
-  TLineIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
-    ProtocolRows(FStored));
+  TLineIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 ```
 
@@ -89,8 +93,8 @@ if not AProt.Start(ALines, 'Průsečík přímek', AAlg.Valid, AFrame,
 AProt.Section('PRŮSEČÍK');
 AProt.TableHeader(Format(POINT_LINE,
   ['Č.', 'Číslo bodu', CoordCaption, 'KK', '']));
-AProt.Text(Format(POINT_LINE, [ARows.Numbers[LINE_POINTS], PointId(Row.CB),
-  CoordPair(Row.X, Row.Y), IntToStr(Row.KK), ARows.Notes[LINE_POINTS]]));
+AProt.Text(Format(POINT_LINE, [POINT_NAMES[LINE_POINTS], PointId(Row.CB),
+  CoordPair(Row.X, Row.Y), IntToStr(Row.KK), StoredText(Row)]));
 AProt.Line;
 AProt.Finish(AAlg.Errors, AAlg.Warnings);
 ```
@@ -111,8 +115,8 @@ Hlavička i řádky tabulky se píší stejným formátovacím řetězcem
 
 | co | co vypíše |
 |---|---|
-| `ARows.Numbers[I]` | Č., řádek tabulky okna |
-| `ARows.Notes[I]` | poznámku za bodem, který výpočet v seznamu přepsal nebo zprůměroval |
+| `LineId(AFrame, I)` | Č., řádek tabulky okna (`Line`), bez něj pořadí 1, 2, 3 |
+| `StoredText(Row)` | poznámku za bodem, který výpočet v seznamu přepsal nebo zprůměroval (`Stored`) |
 | `PointId` | číslo bodu `000000 00000 0000` |
 | `CoordPair`, `CoordCaption` | Y a X v pořadí podle Nastavení a jejich popisek |
 | `Num`, `Ang` | délku nebo souřadnici, úhel v gonech, počet míst podle Nastavení |

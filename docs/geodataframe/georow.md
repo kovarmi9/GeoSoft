@@ -1,7 +1,8 @@
 # Řádek TGeoRow
 
 Řádek představuje jedno měření. Všechny úlohy používají stejný řádek
-se stejnými 24 poli, liší se jen tím, která pole vyplní.
+se stejnými 24 poli, liší se jen tím, která pole vyplní. Navíc nese
+`Line` a `Stored` pro protokol.
 Unit `src/DataStructures/GeoRow.pas`.
 
 ## Pole
@@ -22,6 +23,11 @@ Unit `src/DataStructures/GeoRow.pas`.
 | `Popis` | `string[32]` | popis bodu, při uložení bodu se z něj stane popis v seznamu |
 | `KK` | `Integer` | kód kvality 0–8 |
 | `M1` … `M4` | `Double` | výsledky výpočtu, význam podle úlohy, viz tabulka níže [m] |
+| `Line` | `Integer` | Č., řádek gridu, po `FromCSV` řádek v souboru, 0 = žádné |
+| `Stored` | `TGeoStored` | co Výpočet udělal s bodem v seznamu: `gsNone`, `gsOverwritten` (přepsán), `gsAveraged` (zprůměrován) |
+
+`Line` a `Stored` nejsou pole `TGeoField`: nejsou v katalogu, v CSV
+ani v tabulce okna.
 
 Co je ve výstupních polích:
 
@@ -53,13 +59,13 @@ hlídá test `TestGeoRow`.
 
 ## Práce s řádkem
 
-- `ClearGeoRow(Row)` vymaže řádek: čísla NaN, texty prázdné, celá čísla a čísla bodů 0, `Checked` True
+- `ClearGeoRow(Row)` vymaže řádek: čísla NaN, texty prázdné, celá čísla a čísla bodů 0, `Checked` True, `Line` 0, `Stored` `gsNone`
 - `IsNan(Row.X)` pozná nevyplněné číslo, porovnání s nulou nestačí
 - `Row.CB = 0` pozná řádek bez čísla bodu, poznámka má nejvýš 32 znaků, delší se zkrátí
 - `GeoFieldToText` zapíše číslo bodu jako 15 číslic (`000000000014001`), `TextToGeoField` přijme jen číslice s případným mínusem
 - pořadí polí je dáno výčtem `TGeoField` (`Checked` = 0 … `M4` = 23)
 - `GeoFieldToText(Row, X, '0.000', FS)` vrátí pole jako text, NaN dá prázdný text
-- `TextToGeoField(Row, Y, '743841,459', FS)` zapíše text do pole, co není číslo, pole nezmění
+- `TextToGeoField(Row, Y, '743841,459', FS)` zapíše text do pole a vrátí True, neplatná hodnota pole nezmění a vrátí False, prázdný text pole nezmění
 - `FindGeoField('x', F)` najde pole podle názvu, na velikosti písmen nezáleží
 - `PrintGeoRow(Row)` vypíše řádek pro ladění, nevyplněné číslo jako `NAN`
 - řádek hodnoty nekontroluje, kontroluje je grid při psaní
@@ -69,4 +75,5 @@ hlídá test `TestGeoRow`.
 - `SaveRow(Soubor, Row)` zapíše řádek a soubor přepíše, `SaveRow(Soubor, Row, True)` připíše na konec
 - `SaveRows(Soubor, Pole)` totéž pro více řádků
 - `LoadRow(Soubor, I)` přečte řádek `I` (od 0), `LoadRows(Soubor)` všechny
+- soubor obsahuje celý záznam, i `Line` a `Stored`
 - soubor se vždy zavře, i při chybě, chyba má českou hlášku

@@ -16,6 +16,7 @@ var
   r1, r2: TGeoRow;
   F: TGeoField;
   Bad: Integer;
+  FS: TFormatSettings;
 
 // --- Main ---
 
@@ -54,6 +55,8 @@ begin
     // Append a second row to the file
     r2 := r1;
     r2.CB := 2;
+    r2.Line := 7;
+    r2.Stored := gsAveraged;
     SaveRow('Radek1', r2, True);
 
     // Clear the row
@@ -63,11 +66,29 @@ begin
     Writeln('Výpis vymazaného řádku');
     Writeln(PrintGeoRow(r1));
 
+    // Line and Stored start empty
+    Writeln('Line ', r1.Line, ', Stored ', Ord(r1.Stored));
+
+    // False only for a bad value
+    FS := TFormatSettings.Create;
+    FS.DecimalSeparator := ',';
+    Writeln('TextToGeoField vrací:');
+    Writeln('  X = 12,5: ', TextToGeoField(r1, X, '12,5', FS));
+    Writeln('  X = abc: ', TextToGeoField(r1, X, 'abc', FS),
+      ', X zůstane ', FloatToStr(r1.X, FS));
+    Writeln('  X prázdné: ', TextToGeoField(r1, X, '', FS));
+    Writeln('  Checked = 2: ', TextToGeoField(r1, Checked, '2', FS));
+    Writeln('  CB = 0: ', TextToGeoField(r1, CB, '0', FS));
+    Writeln('  CB = abc: ', TextToGeoField(r1, CB, 'abc', FS));
+    Writeln('  KK = 1,5: ', TextToGeoField(r1, KK, '1,5', FS));
+
     // Load both rows by index
     Writeln('Načtený řádek 0 (CB ahoj)');
     Writeln(PrintGeoRow(LoadRow('Radek1', 0)));
     Writeln('Načtený řádek 1 (CB druhy)');
     Writeln(PrintGeoRow(LoadRow('Radek1', 1)));
+    Writeln('Line a Stored ze souboru: ', LoadRow('Radek1', 1).Line, ', ',
+      Ord(LoadRow('Radek1', 1).Stored));
 
     // Load all rows at once
     Writeln('Počet řádků v souboru: ', Length(LoadRows('Radek1')));

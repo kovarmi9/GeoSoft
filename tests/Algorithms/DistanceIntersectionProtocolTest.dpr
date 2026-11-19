@@ -19,8 +19,7 @@ var
   Lines: TStringList;
 
 // One point with its length, Y and X as in the list
-procedure Add(const APointNumber: string; ALength: Double;
-  AY: Double = NaN; AX: Double = NaN);
+procedure Add(const APointNumber: string; ALength: Double; AY: Double = NaN; AX: Double = NaN);
 var
   Row: TGeoRow;
 begin
@@ -37,15 +36,12 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is the grid row, the new point was stored again
-  Rows.Numbers := ['1', '2', '3'];
-  Rows.Notes := ['', '', OverwrittenText];
-
-  TDistanceIntersectionProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+  Frame.Rows[2].Stored := gsOverwritten;
+  TDistanceIntersectionProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

@@ -13,4 +13,6 @@ TXT a CSV. Binární soubor se jím neřídí, pořadí v něm určuje přípona
 |---|---|
 | `CoordRead`, `CoordWrite` | přečte, zapíše dvojici souřadnic bodu v aktuálním pořadí |
 | `CoordColY`, `CoordColX` | sloupec tabulky, ve kterém je Y, X |
-| `SwapGridColumns` | prohodí dva celé sloupce tabulky |
+| `SwapGridColumns` | prohodí dva sousední sloupce i se šířkou a texty, u `TGeoPointsGrid` i popisky a filtry; seznam souřadnic a Přidat bod |
+| `ApplyColumns` | výpočetní tabulka: sloupce v pořadí z návrháře bez skrytých polí, dvojice Y a X, Ym a Xm a jedna další dvojice úlohy v nastaveném pořadí |
+| `ApplyCoordOrder` | prohodí políčka Y a X ve formuláři |

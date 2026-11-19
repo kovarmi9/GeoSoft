@@ -26,8 +26,8 @@ type
     procedure ApplyCoordOrderToGrid;
     procedure FocusInputCell;
     function  CoordMissing(ACol: Integer; const AName: string): Boolean;
-    procedure GetQualityDefault(var AText: string; var AHandled: Boolean);
-    procedure GetDescriptionDefault(var AText: string; var AHandled: Boolean);
+    procedure GetQualityDefault(var AText: string);
+    procedure GetDescriptionDefault(var AText: string);
     class function ReadDefaultQuality: Integer; static;
   public
     /// <summary>Asks for the missing point, False on Cancel.</summary>
@@ -79,17 +79,15 @@ begin
 end;
 
 // Enter on an empty KK gives the toolbar KK
-procedure TAddPointForm.GetQualityDefault(var AText: string; var AHandled: Boolean);
+procedure TAddPointForm.GetQualityDefault(var AText: string);
 begin
-  AText    := IntToStr(ReadDefaultQuality);
-  AHandled := True;
+  AText := IntToStr(ReadDefaultQuality);
 end;
 
 // Enter on an empty description gives the one from the toolbar
-procedure TAddPointForm.GetDescriptionDefault(var AText: string; var AHandled: Boolean);
+procedure TAddPointForm.GetDescriptionDefault(var AText: string);
 begin
-  AText    := GPointPrefix.Popis;
-  AHandled := True;
+  AText := GPointPrefix.Popis;
 end;
 
 // Error and cursor back if not a number
@@ -118,7 +116,7 @@ begin
     StringGrid.EditorMode := False;
 
   CanClose := not CoordMissing(CoordColY(COL_COORD), 'Y') and
-              not CoordMissing(CoordColX(COL_COORD), 'X');
+    not CoordMissing(CoordColX(COL_COORD), 'X');
 end;
 
 function TAddPointForm.Execute(PointNumber: Int64; out NewP: TPoint): Boolean;

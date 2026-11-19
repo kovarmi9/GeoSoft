@@ -3,7 +3,8 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointDictionary, PointPrefixState, GeoRow,
@@ -23,7 +24,6 @@ type
   protected
     function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
-    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -47,8 +47,7 @@ begin
   FAlg := TLineAdjustmentAlgorithm.Create;
   // Xm and Ym keep the point before the move, for the protocol
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create(
-    [CB, CBm, X, Y, Z, Xm, Ym, Kol, KK, Popis]);
+  FFrame := TGeoDataFrame.Create([CB, CBm, X, Y, Z, Xm, Ym, Kol, KK, Popis]);
 end;
 
 destructor TLineAdjustmentForm.Destroy;
@@ -147,6 +146,7 @@ begin
       if Row.CBm <> 0 then
         Row.CB := Row.CBm;
       StorePoint(Row);
+      FFrame.Rows[I].Stored := Row.Stored;
       // A number given in the dialog goes to the grid
       if Row.CB <> FFrame.Rows[I].CB then
         FFrame.Rows[I].CBm := Row.CB;
@@ -158,35 +158,12 @@ begin
   ShowProtocol;
 end;
 
-// A and B are rows of the line grid, the others of the point grid
-function TLineAdjustmentForm.GridNumber(AFrameRow: Integer): string;
-begin
-  if FRows[AFrameRow] < 0 then
-    Result := GridLine.Cells[0, AFrameRow + 1]
-  else
-    Result := inherited GridNumber(AFrameRow);
-end;
-
 procedure TLineAdjustmentForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Row: TGeoRow;
-  Rows: TProtocolRows;
 begin
-  Rows := ProtocolRows;
-  // The note goes with the stored number
-  for I := LINE_ROWS to FFrame.Count - 1 do
-  begin
-    Row := FFrame.Rows[I];
-    if Row.CBm <> 0 then
-      Row.CB := Row.CBm;
-    Rows.Notes[I] := UpdatedTail(Row);
-  end;
-  TLineAdjustmentProtocol.Write(Prot, ALines, FFrame, FAlg, Rows);
+  TLineAdjustmentProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
-procedure TLineAdjustmentForm.LinePointCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TLineAdjustmentForm.LinePointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
   if (ARow < GridLine.FixedRows) or (ACol <> GridLine.FieldToCol(CB)) then
     Exit;
@@ -194,7 +171,7 @@ begin
   NormalizePointCell(GridLine, ACol, ARow);
   // An empty cell is a row not filled in yet, not a mistake
   if (Trim(GridLine.Cells[ACol, ARow]) <> '') and
-     not LoadGridPoint(GridLine, ARow) then
+    not LoadGridPoint(GridLine, ARow) then
   begin
     GridLine.RejectCommit;
     Exit;
@@ -204,8 +181,7 @@ begin
   Recompute;
 end;
 
-procedure TLineAdjustmentForm.PointCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TLineAdjustmentForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   PointNumber: Int64;
   ListPoint: Point.TPoint;
@@ -233,8 +209,7 @@ end;
 procedure TLineAdjustmentForm.CalculateClick(Sender: TObject);
 begin
   // The line needs both points from the list
-  if not CheckGivenPoints(GridLine, 1, 2,
-    'Zadejte bod %s řídící přímky.') then
+  if not CheckGivenPoints(GridLine, 1, 2, 'Zadejte bod %s řídící přímky.') then
     Exit;
 
   Recompute;
@@ -243,8 +218,7 @@ begin
 end;
 
 // The first two rows are A and B, results come with the next Výpočet
-procedure TLineAdjustmentForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TLineAdjustmentForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
@@ -252,11 +226,11 @@ begin
   ClearGrid(GridPoints, GridPoints.FixedRows + AFrame.Count + 1);
 
   for I := 0 to Min(AFrame.Count, LINE_ROWS) - 1 do
-    PutRow(GridLine, I + 1, AFrame.Rows[I], I, ABad);
+    PutRow(GridLine, I + 1, AFrame.Rows[I], ABad);
 
   R := GridPoints.FixedRows;
   for I := LINE_ROWS to AFrame.Count - 1 do
-    if PutRow(GridPoints, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(GridPoints, R, AFrame.Rows[I], ABad) then
     begin
       GridPoints.Cells[GridPoints.FieldToCol(Y), R] := '';
       GridPoints.Cells[GridPoints.FieldToCol(X), R] := '';

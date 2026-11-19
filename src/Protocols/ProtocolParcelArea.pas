@@ -11,9 +11,8 @@ type
   TParcelAreaProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TLHuilierAlgorithm;
-      const ARows: TProtocolRows; const AParcel: string);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TLHuilierAlgorithm;
+      const AParcel: string);
   end;
 
 implementation
@@ -25,9 +24,8 @@ const
   // Header and rows share one format
   POINT_LINE = '%3s  %-18s  %s';
 
-class procedure TParcelAreaProtocol.Write(AProt: TProtocol; ALines: TStrings;
-  AFrame: TGeoDataFrame; AAlg: TLHuilierAlgorithm; const ARows: TProtocolRows;
-  const AParcel: string);
+class procedure TParcelAreaProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TLHuilierAlgorithm; const AParcel: string);
 var
   I: Integer;
   Row: TGeoRow;
@@ -46,7 +44,7 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+    AProt.Text(Format(POINT_LINE, [LineId(AFrame, I), PointId(Row.CB),
       CoordPair(Row.X, Row.Y)]));
   end;
   AProt.Line;

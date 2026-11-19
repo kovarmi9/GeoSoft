@@ -3,7 +3,8 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, GeoGrid, GeoFieldsGrid,
   System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame, GeoGridBridge,
@@ -19,7 +20,6 @@ type
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TLevellingAlgorithm;
-    FStored: Boolean;             // heights went to the list in this run
     procedure Recompute;
     procedure StoreHeights;
   protected
@@ -48,8 +48,7 @@ begin
   FAlg := TLevellingAlgorithm.Create;
   FNotebookName := CSV_NAME;
   // M1 correction, M2 height, M3 height difference
-  FFrame := TGeoDataFrame.Create(
-    [CB, Xm, Ym, Zm, SH, Z, M3, M1, M2, Popis]);
+  FFrame := TGeoDataFrame.Create([CB, Xm, Ym, Zm, SH, Z, M3, M1, M2, Popis]);
 end;
 
 destructor TLevellingForm.Destroy;
@@ -77,8 +76,7 @@ begin
   for R := Grid.FixedRows to Grid.RowCount - 1 do
   begin
     Grid.GetGeoRow(R, Row);
-    if (Row.CB = 0) and
-       (TLevellingAlgorithm.ReadingOf(Row) = lrNone) then
+    if (Row.CB = 0) and (TLevellingAlgorithm.ReadingOf(Row) = lrNone) then
       Continue;
 
     AddRow(Row, R);
@@ -88,10 +86,8 @@ end;
 // The frame is the only input, so every change rebuilds it
 procedure TLevellingForm.Recompute;
 begin
-  FStored := False;             // a changed notebook is not stored yet
   BuildFrame;
   FAlg.BothWays := CheckBoxBothWays.Checked;
-  FAlg.RowNumbers := FRows;
   FAlg.Calculate(FFrame);
   FrameToGrid(Grid, FFrame, FRows, [M3, M1, M2]);
   ShowProtocol;
@@ -109,7 +105,7 @@ begin
   begin
     PointNumber := FFrame.Rows[I].CB;
     if (PointNumber = 0) or not IsNan(FFrame.Rows[I].Z) or
-       IsNan(FFrame.Rows[I].M2) then
+      IsNan(FFrame.Rows[I].M2) then
       Continue;
 
     // A listed point keeps its position, a new one has only the height
@@ -126,6 +122,7 @@ begin
       Row.Popis := FFrame.Rows[I].Popis;
     Row.Z := FFrame.Rows[I].M2;
     StorePoint(Row);
+    FFrame.Rows[I].Stored := Row.Stored;
   end;
 end;
 
@@ -143,8 +140,8 @@ begin
     NormalizePointCell(Grid, ACol, ARow);
     TPointNumber.TryParse(Grid.Cells[ACol, ARow], PointNumber);
     if (PointNumber <> 0) and
-       (Trim(Grid.Cells[Grid.FieldToCol(Z), ARow]) = '') and
-       OriginalPoint(PointNumber, ListPoint) then
+      (Trim(Grid.Cells[Grid.FieldToCol(Z), ARow]) = '') and
+      OriginalPoint(PointNumber, ListPoint) then
       Grid.Cells[Grid.FieldToCol(Z), ARow] := FloatToStr(ListPoint.Z, FS);
   end;
 
@@ -172,7 +169,6 @@ begin
   end;
 
   StoreHeights;
-  FStored := True;
   ShowProtocol;    // marks the updated points
 end;
 
@@ -185,23 +181,15 @@ begin
 
   R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], ABad) then
       Inc(R);
   Grid.RowCount := R + 1;
   Recompute;
 end;
 
 procedure TLevellingForm.WriteProtocol(ALines: TStrings);
-var
-  I: Integer;
-  Rows: TProtocolRows;
 begin
-  Rows := ProtocolRows(FStored);
-  // A point with a given height is not stored
-  for I := 0 to FFrame.Count - 1 do
-    if not IsNan(FFrame.Rows[I].Z) then
-      Rows.Notes[I] := '';
-  TLevellingProtocol.Write(Prot, ALines, FFrame, FAlg, Rows);
+  TLevellingProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

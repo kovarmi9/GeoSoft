@@ -36,15 +36,12 @@ end;
 procedure Run(const ATitle: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is the grid row, the station was stored again
-  Rows.Numbers := ['1', '2', '3', '4'];
-  Rows.Notes := ['', '', '', OverwrittenText];
-
-  TResectionProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+  Frame.Rows[3].Stored := gsOverwritten;
+  TResectionProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

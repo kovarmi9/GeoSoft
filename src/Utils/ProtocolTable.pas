@@ -22,12 +22,6 @@ const
   AveragedText    = '*** bod v seznamu zprůměrován ***';
 
 type
-  // What only the form knows about the rows of the frame
-  TProtocolRows = record
-    Numbers: TArray<string>;   // Č. of each frame row, as the grid shows it
-    Notes: TArray<string>;     // note behind a point stored again
-  end;
-
   TProtocol = class
   private
     FLines: TStrings;                    // where the protocol is written
@@ -72,6 +66,10 @@ function CoordCaption: string;
 
 /// <summary>Point number as 000000 00000 0000, '' for 0.</summary>
 function PointId(ANumber: Int64): string;
+/// <summary>Č. of frame row I, as the notebook shows it.</summary>
+function LineId(AFrame: TGeoDataFrame; I: Integer): string;
+/// <summary>The note behind a point stored again, else ''.</summary>
+function StoredText(const ARow: TGeoRow): string;
 
 /// <summary>Difference against its limit, KatV 13.5: less than ud.</summary>
 function LimitText(ADifference, ALimit: Double): string;
@@ -125,6 +123,21 @@ end;
 function PointId(ANumber: Int64): string;
 begin
   Result := TPointNumber.ToDisplay(ANumber);
+end;
+
+function LineId(AFrame: TGeoDataFrame; I: Integer): string;
+begin
+  Result := IntToStr(AFrame.LineOf(I));
+end;
+
+function StoredText(const ARow: TGeoRow): string;
+begin
+  case ARow.Stored of
+    gsOverwritten: Result := OverwrittenText;
+    gsAveraged:    Result := AveragedText;
+  else
+    Result := '';
+  end;
 end;
 
 function LimitText(ADifference, ALimit: Double): string;
@@ -201,11 +214,9 @@ end;
 class function TProtocol.CoordNames: string;
 begin
   if GCoordOrder = coYX then
-    Result := Pad('Y', CoordWidth, False) + ColGap +
-              Pad('X', CoordWidth, False)
+    Result := Pad('Y', CoordWidth, False) + ColGap + Pad('X', CoordWidth, False)
   else
-    Result := Pad('X', CoordWidth, False) + ColGap +
-              Pad('Y', CoordWidth, False);
+    Result := Pad('X', CoordWidth, False) + ColGap + Pad('Y', CoordWidth, False);
 end;
 
 // Numbers to the right, texts to the left

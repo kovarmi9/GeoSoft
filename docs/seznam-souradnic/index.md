@@ -21,6 +21,7 @@ seznam s body, bod se o seznamu ani o okně nedozví.
 flowchart TB
   O["Okna<br>PointsManagement.pas, AddPoint.pas"] --> L["Seznam bodů<br>PointDictionary.pas"]
   O --> H["Pomocné<br>CoordOrderState.pas, PointPrefixState.pas"]
+  L --> H
   L --> B["Bod<br>Point.pas, Validation.pas"]
   L --> F["Soubory .yxz .xyz .txt .csv"]
 ```

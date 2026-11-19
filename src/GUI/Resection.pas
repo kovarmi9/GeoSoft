@@ -3,7 +3,8 @@
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, CalcBase, Vcl.Menus, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.ToolWin, Vcl.Grids, Vcl.Mask, GeoGrid,
   GeoFieldsGrid, System.Math, Point, PointPrefixState, GeoRow, GeoDataFrame,
@@ -25,7 +26,6 @@ type
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TResectionAlgorithm;
-    FStored: Boolean;             // the station went to the list in this run
     function StationNo: string;
     procedure Recompute;
   protected
@@ -117,7 +117,6 @@ procedure TResectionForm.Recompute;
 var
   Row: TGeoRow;
 begin
-  FStored := False;             // a changed job is not stored yet
   BuildFrame;
   FAlg.Calculate(FFrame);
 
@@ -151,7 +150,7 @@ begin
     NormalizePointCell(Grid, ACol, ARow);
     // An empty cell is a row not filled in yet, not a mistake
     if (Trim(Grid.Cells[ACol, ARow]) <> '') and
-       not LoadGridPoint(Grid, ARow) then
+      not LoadGridPoint(Grid, ARow) then
     begin
       Grid.RejectCommit;
       Exit;
@@ -188,8 +187,8 @@ begin
   // A number given in the dialog goes to the edit
   StorePoint(Row);
   FFrame.Rows[RESECTION_POINTS].CB := Row.CB;
+  FFrame.Rows[RESECTION_POINTS].Stored := Row.Stored;
   EditStationNo.Text := TPointNumber.ToText(Row.CB);
-  FStored := True;
   ShowProtocol;
 end;
 
@@ -201,7 +200,7 @@ begin
   ClearGrid(Grid, Grid.FixedRows + RESECTION_POINTS);
   EditStationNo.Text := '';
   for I := 0 to Min(AFrame.Count, RESECTION_POINTS) - 1 do
-    if PutRow(Grid, Grid.FixedRows + I, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, Grid.FixedRows + I, AFrame.Rows[I], ABad) then
       LoadGridPoint(Grid, Grid.FixedRows + I);   // from the list
   if AFrame.Count > RESECTION_POINTS then
     EditStationNo.Text := TPointNumber.ToText(AFrame.Rows[RESECTION_POINTS].CB);
@@ -210,7 +209,7 @@ end;
 
 procedure TResectionForm.WriteProtocol(ALines: TStrings);
 begin
-  TResectionProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows(FStored));
+  TResectionProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

@@ -19,7 +19,8 @@
 
 | unit | výpočet |
 |---|---|
-| `GUI/LineIntersection.pas` | tabulka → frame, výsledek zpět, protokol, uložení bodu, zápisník |
+| `GUI/LineIntersection.pas` | tabulka → frame, výsledek zpět, uložení bodu, zápisník |
+| `Protocols/ProtocolLineIntersection.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmLineIntersection.pas` | průsečík, poloha, úhel protnutí, kód kvality |
 
 ```mermaid

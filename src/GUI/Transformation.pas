@@ -21,13 +21,11 @@ type
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
     procedure KeyChanged(Sender: TObject);
     procedure CalculateClick(Sender: TObject);
-    procedure GridGetEditText(Sender: TObject; ACol, ARow: Integer;
-      var Value: string);
+    procedure GridGetEditText(Sender: TObject; ACol, ARow: Integer; var Value: string);
   private
     FAlg: TTransformationFrameAlgorithm;
     FOldNumber: Int64;        // target number before the edit
-    procedure FillFromList(ARow: Integer; ANumberField, AYField,
-      AXField: TGeoField; const APoint: Point.TPoint);
+    procedure FillFromList(ARow: Integer; ANumberField, AYField, AXField: TGeoField; const APoint: Point.TPoint);
     function IsGiven(APointNumber: Int64): Boolean;
     procedure Recompute;
     procedure ShowSummary;
@@ -92,16 +90,14 @@ begin
 end;
 
 // The target number before the edit
-procedure TTransformationForm.GridGetEditText(Sender: TObject;
-  ACol, ARow: Integer; var Value: string);
+procedure TTransformationForm.GridGetEditText(Sender: TObject; ACol, ARow: Integer; var Value: string);
 begin
   if ACol = Grid.FieldToCol(CB) then
     TPointNumber.TryParse(Value, FOldNumber);
 end;
 
 // A given target fills itself and suggests the source -n
-procedure TTransformationForm.PointCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TTransformationForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   PointNumber, SourceNumber: Int64;
   Points: TPointDictionary;
@@ -144,7 +140,7 @@ begin
 
       // Source under the negative number, a typed one stays
       if (Trim(Grid.Cells[Grid.FieldToCol(CBm), ARow]) = '') and
-         Points.PointExists(-PointNumber) then
+        Points.PointExists(-PointNumber) then
         FillFromList(ARow, CBm, Ym, Xm, Points.GetPoint(-PointNumber));
     end;
   end
@@ -274,8 +270,7 @@ begin
   Unnumbered := 0;
   for I := 0 to FFrame.Count - 1 do
   begin
-    if (FFrame.Rows[I].Typ <> DRUH_URCOVANY) or
-       IsNan(FFrame.Rows[I].X) then
+    if (FFrame.Rows[I].Typ <> DRUH_URCOVANY) or IsNan(FFrame.Rows[I].X) then
       Continue;
 
     PointNumber := FFrame.Rows[I].CB;
@@ -289,7 +284,7 @@ begin
     FFrame.Rows[I].KK := TValidation.QualityFromText(GPointPrefix.KK);
     // No height from the key, a stored point keeps its own
     if IsNan(FFrame.Rows[I].Z) and
-       TPointDictionary.GetInstance.PointExists(PointNumber) then
+      TPointDictionary.GetInstance.PointExists(PointNumber) then
       FFrame.Rows[I].Z := TPointDictionary.GetInstance.GetPoint(PointNumber).Z;
     StorePoint(FFrame.Rows[I]);
     Inc(Stored);
@@ -307,8 +302,7 @@ begin
 end;
 
 // One row of the file is one row of the grid, Typ gives the check box
-procedure TTransformationForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TTransformationForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
@@ -316,7 +310,7 @@ begin
 
   R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], ABad) then
       Inc(R);
   Grid.RowCount := R + 1;
   Recompute;
@@ -324,7 +318,7 @@ end;
 
 procedure TTransformationForm.WriteProtocol(ALines: TStrings);
 begin
-  TTransformationProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows);
+  TTransformationProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

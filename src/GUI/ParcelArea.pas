@@ -68,16 +68,13 @@ var
   PointNumber: Int64;
   ListPoint: Point.TPoint;
 begin
-  TPointNumber.TryParse(
-    Grid.Cells[Grid.FieldToCol(CB), R], PointNumber);
+  TPointNumber.TryParse(Grid.Cells[Grid.FieldToCol(CB), R], PointNumber);
   if PointNumber = 0 then Exit;
 
   if LookupPoint(PointNumber, ListPoint) then
   begin
-    Grid.Cells[Grid.FieldToCol(Y), R] :=
-      FloatToStr(ListPoint.Y, FS);
-    Grid.Cells[Grid.FieldToCol(X), R] :=
-      FloatToStr(ListPoint.X, FS);
+    Grid.Cells[Grid.FieldToCol(Y), R] := FloatToStr(ListPoint.Y, FS);
+    Grid.Cells[Grid.FieldToCol(X), R] := FloatToStr(ListPoint.X, FS);
   end;
 end;
 
@@ -152,15 +149,14 @@ begin
 
   R := Grid.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(Grid, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(Grid, R, AFrame.Rows[I], ABad) then
       Inc(R);
   Grid.RowCount := R + 1;
 end;
 
 procedure TParcelAreaForm.WriteProtocol(ALines: TStrings);
 begin
-  TParcelAreaProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows,
-    Trim(EditParcel.Text));
+  TParcelAreaProtocol.Write(Prot, ALines, FFrame, FAlg, Trim(EditParcel.Text));
 end;
 
 end.

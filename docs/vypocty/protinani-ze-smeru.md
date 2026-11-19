@@ -25,7 +25,8 @@ stanoviscích. Pokrývá i protínání z úhlů.
 
 | unit | výpočet |
 |---|---|
-| `GUI/ForwardIntersection.pas` | tabulka → frame, výsledky zpět, protokol, uložení bodů, zápisník |
+| `GUI/ForwardIntersection.pas` | tabulka → frame, výsledky zpět, uložení bodů, zápisník |
+| `Protocols/ProtocolForwardIntersection.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmForwardIntersection.pas` | bloky, orientace stanovisek, určované body, úhel protnutí |
 | `GeoAlgorithms/GeoAlgorithmPolar.pas` | orientační posun a odchylky orientací, společné s polární metodou |
 

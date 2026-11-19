@@ -45,7 +45,6 @@ type
     function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
     procedure ApplySettings; override;
-    function GridNumber(AFrameRow: Integer): string; override;
     procedure WriteProtocol(ALines: TStrings); override;
     procedure LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings); override;
   public
@@ -69,8 +68,7 @@ begin
 
   FAlg := TOrthogonalMethodAlgorithm.Create;
   FNotebookName := CSV_NAME;
-  FFrame := TGeoDataFrame.Create(
-    [CB, X, Y, Z, Sta, Kol, KK, Popis]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, Z, Sta, Kol, KK, Popis]);
 end;
 
 destructor TOrthogonalMethodForm.Destroy;
@@ -199,14 +197,14 @@ var
 begin
   // Enter on an empty tape cell means zero, the user confirmed it
   if ((ACol = GridBaseline.FieldToCol(Sta)) or
-      (ACol = GridBaseline.FieldToCol(Kol))) and
-     (Trim(GridBaseline.Cells[ACol, ARow]) = '') then
+    (ACol = GridBaseline.FieldToCol(Kol))) and
+    (Trim(GridBaseline.Cells[ACol, ARow]) = '') then
     GridBaseline.Cells[ACol, ARow] := '0';
 
   // An empty cell is a row not filled in yet, not a mistake
   if (ACol = GridBaseline.FieldToCol(CB)) and
-     (Trim(GridBaseline.Cells[ACol, ARow]) <> '') and
-     not LoadBasePoint(ARow, ListPoint) then
+    (Trim(GridBaseline.Cells[ACol, ARow]) <> '') and
+    not LoadBasePoint(ARow, ListPoint) then
   begin
     GridBaseline.RejectCommit;
     Exit;
@@ -286,8 +284,7 @@ begin
 end;
 
 // The first two rows are P and K
-procedure TOrthogonalMethodForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TOrthogonalMethodForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
@@ -297,11 +294,11 @@ begin
   SetLength(FDetailCB, GridDetail.RowCount);
 
   for I := 0 to Min(AFrame.Count, 2) - 1 do
-    PutRow(GridBaseline, I + 1, AFrame.Rows[I], I, ABad);
+    PutRow(GridBaseline, I + 1, AFrame.Rows[I], ABad);
 
   R := GridDetail.FixedRows;
   for I := 2 to AFrame.Count - 1 do
-    if PutRow(GridDetail, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(GridDetail, R, AFrame.Rows[I], ABad) then
     begin
       // Do not fill this number again
       FDetailCB[R] := GridDetail.Cells[GridDetail.FieldToCol(CB), R];
@@ -313,22 +310,11 @@ begin
   GridDetail.Enabled := False;
 end;
 
-// P and K are the baseline, the others rows of the detail grid
-function TOrthogonalMethodForm.GridNumber(AFrameRow: Integer): string;
-begin
-  case AFrameRow of
-    0: Result := 'P';
-    1: Result := 'K';
-  else
-    Result := inherited GridNumber(AFrameRow);
-  end;
-end;
-
 // The whole protocol is rewritten after every computed row, so an edited
 // row replaces its old line instead of adding a second one.
 procedure TOrthogonalMethodForm.WriteProtocol(ALines: TStrings);
 begin
-  TOrthogonalProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows);
+  TOrthogonalProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

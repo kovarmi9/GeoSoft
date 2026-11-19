@@ -33,20 +33,11 @@ end;
 procedure Run(const ATitle, AParcel: string);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is the grid row, nothing is stored
-  SetLength(Rows.Numbers, Frame.Count);
-  SetLength(Rows.Notes, Frame.Count);
-  for I := 0 to Frame.Count - 1 do
-  begin
-    Rows.Numbers[I] := IntToStr(I + 1);
-    Rows.Notes[I] := '';
-  end;
-
-  TParcelAreaProtocol.Write(Prot, Lines, Frame, Alg, Rows, AParcel);
+  TParcelAreaProtocol.Write(Prot, Lines, Frame, Alg, AParcel);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

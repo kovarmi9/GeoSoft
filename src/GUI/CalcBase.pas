@@ -83,7 +83,6 @@ type
     FFrame: TGeoDataFrame;    // the notebook, the form creates it
     FNotebookName: string;    // the notebook file next to the exe
     Prot: TProtocol;          // shared by every WriteProtocol
-    FLoadLines: TArray<Integer>;   // line in the file of each loaded row
     FRows: TArray<Integer>;   // grid row of each frame row, -1 = none
 
     /// <summary>A new showing asks again about existing points.</summary>
@@ -104,19 +103,8 @@ type
     /// <summary>Saves a computed point, asks if its number exists.</summary>
     procedure StorePoint(var ARow: TGeoRow);
 
-    /// <summary>True if a point from the list was overwritten.</summary>
-    function WasInList(const ARow: TGeoRow): Boolean;
-
-    /// <summary>UpdatedText for a point the run overwrote, else ''.</summary>
-    function UpdatedTail(const ARow: TGeoRow): string;
-
     /// <summary>Adds a frame row and remembers its grid row.</summary>
     procedure AddRow(const ARow: TGeoRow; AGridRow: Integer = -1);
-
-    /// <summary>Č. of a frame row, the grid row by default.</summary>
-    function GridNumber(AFrameRow: Integer): string; virtual;
-    /// <summary>Č. and the notes of the rows, no notes when nothing was stored.</summary>
-    function ProtocolRows(AStored: Boolean = True): TProtocolRows;
 
     /// <summary>The run stored nothing, keep it out of the .ptk.</summary>
     procedure SkipJobProtocol;
@@ -128,8 +116,7 @@ type
     /// <summary>Y, X and KK of the grid row from the list.</summary>
     function LoadGridPoint(AGrid: TGeoFieldsGrid; ARow: Integer): Boolean;
     /// <summary>Given rows from the list, stops on a missing one.</summary>
-    function CheckGivenPoints(AGrid: TGeoFieldsGrid; AFirst, ALast: Integer;
-      const AMessage: string): Boolean;
+    function CheckGivenPoints(AGrid: TGeoFieldsGrid; AFirst, ALast: Integer; const AMessage: string): Boolean;
 
     /// <summary>True for a point this form added to the list itself.</summary>
     function IsNewPoint(APointNumber: Int64): Boolean;
@@ -153,16 +140,13 @@ type
     procedure ClearGrid(AGrid: TGeoGrid; ARowCount: Integer);
 
     /// <summary>Puts one row into the grid, a bad one to ABad.</summary>
-    function PutRow(AGrid: TGeoFieldsGrid; ARow: Integer;
-      const GRow: TGeoRow; AIndex: Integer; ABad: TStrings): Boolean;
+    function PutRow(AGrid: TGeoFieldsGrid; ARow: Integer; const GRow: TGeoRow; ABad: TStrings): Boolean;
 
     /// <summary>Writes a value by field, when the grid shows it.</summary>
-    procedure SetCell(AGrid: TGeoFieldsGrid; AField: TGeoField; ARow: Integer;
-      const AText: string);
+    procedure SetCell(AGrid: TGeoFieldsGrid; AField: TGeoField; ARow: Integer; const AText: string);
 
     /// <summary>Detail row after its point number was typed.</summary>
-    procedure FillDetailRow(AGrid: TGeoFieldsGrid; ARow: Integer;
-      var ANumbers: TArray<string>);
+    procedure FillDetailRow(AGrid: TGeoFieldsGrid; ARow: Integer; var ANumbers: TArray<string>);
 
     /// <summary>WriteProtocol into the memo, without flicker.</summary>
     procedure ShowProtocol;
@@ -345,11 +329,11 @@ begin
 
   // NaN height becomes 0
   NewPoint := Point.TPoint.Create(PointNumber, ARow.X, ARow.Y, ARow.Z, ARow.KK,
-                              string(ARow.Popis));
+    string(ARow.Popis));
 
   // New point, or one this form computed before
   if not Points.PointExists(PointNumber) or
-     FNewPoints.Contains(PointNumber) then
+    FNewPoints.Contains(PointNumber) then
   begin
     if not FNewPoints.Contains(PointNumber) then
       FNewPoints.Add(PointNumber);
@@ -368,9 +352,15 @@ begin
 
   case FAnswers[PointNumber] of
     ANS_NEW:
-      Points.AddOrUpdatePoint(NewPoint);
+      begin
+        Points.AddOrUpdatePoint(NewPoint);
+        ARow.Stored := gsOverwritten;
+      end;
     ANS_AVERAGE:
-      Points.AddOrUpdatePoint(AveragePoint(OldPoint, NewPoint));
+      begin
+        Points.AddOrUpdatePoint(AveragePoint(OldPoint, NewPoint));
+        ARow.Stored := gsAveraged;
+      end;
     ANS_NUMBER:
       if AskNewNumber(NewPointNumber) then
       begin
@@ -385,60 +375,14 @@ begin
   end;                              // keep and Esc leave the old point
 end;
 
-function TCalcBaseForm.WasInList(const ARow: TGeoRow): Boolean;
-var
-  PointNumber: Int64;
-  Answer: Integer;
-begin
-  PointNumber := ARow.CB;
-  if FNewPoints.Contains(PointNumber) then
-    Exit(False);
-  // Only a point the user let overwrite was updated
-  Result := FAnswers.TryGetValue(PointNumber, Answer) and
-    ((Answer = ANS_NEW) or (Answer = ANS_AVERAGE));
-end;
-
-// Overwritten or averaged, as the user answered
-function TCalcBaseForm.UpdatedTail(const ARow: TGeoRow): string;
-begin
-  if not WasInList(ARow) then
-    Result := ''
-  else if FAnswers[ARow.CB] = ANS_AVERAGE then
-    Result := AveragedText
-  else
-    Result := OverwrittenText;
-end;
-
-// The protocol numbers a row by its grid row
+// The grids have one header row, so the grid row is Č.
 procedure TCalcBaseForm.AddRow(const ARow: TGeoRow; AGridRow: Integer);
 begin
   FFrame.AddRow(ARow);
   SetLength(FRows, FFrame.Count);
   FRows[FFrame.Count - 1] := AGridRow;
-end;
-
-// The grids have one header row, so the grid row is Č.
-function TCalcBaseForm.GridNumber(AFrameRow: Integer): string;
-begin
-  if (AFrameRow < Length(FRows)) and (FRows[AFrameRow] >= 0) then
-    Result := IntToStr(FRows[AFrameRow])
-  else
-    Result := IntToStr(AFrameRow + 1);
-end;
-
-function TCalcBaseForm.ProtocolRows(AStored: Boolean): TProtocolRows;
-var
-  I: Integer;
-begin
-  SetLength(Result.Numbers, FFrame.Count);
-  SetLength(Result.Notes, FFrame.Count);
-  for I := 0 to FFrame.Count - 1 do
-  begin
-    Result.Numbers[I] := GridNumber(I);
-    Result.Notes[I] := '';
-    if AStored then
-      Result.Notes[I] := UpdatedTail(FFrame.Rows[I]);
-  end;
+  if AGridRow >= 0 then
+    FFrame.Rows[FFrame.Count - 1].Line := AGridRow;
 end;
 
 function TCalcBaseForm.OriginalPoint(APointNumber: Int64; out APoint: Point.TPoint): Boolean;
@@ -466,8 +410,7 @@ begin
   end;
 end;
 
-function TCalcBaseForm.LoadGridPoint(AGrid: TGeoFieldsGrid;
-  ARow: Integer): Boolean;
+function TCalcBaseForm.LoadGridPoint(AGrid: TGeoFieldsGrid; ARow: Integer): Boolean;
 var
   PointNumber: Int64;
   ListPoint: Point.TPoint;
@@ -483,8 +426,7 @@ begin
 end;
 
 // Cursor waits on the gap
-function TCalcBaseForm.CheckGivenPoints(AGrid: TGeoFieldsGrid; AFirst,
-  ALast: Integer; const AMessage: string): Boolean;
+function TCalcBaseForm.CheckGivenPoints(AGrid: TGeoFieldsGrid; AFirst, ALast: Integer; const AMessage: string): Boolean;
 var
   R: Integer;
 begin
@@ -583,7 +525,7 @@ begin
       Job.LoadFromFile(FileName, TEncoding.UTF8);
     Job.Add(Format(' Zapsáno %s    KÚ %s    ZPMZ %s',
       [FormatDateTime('d. m. yyyy h:nn', Now), GPointPrefix.KU,
-       GPointPrefix.ZPMZ]));
+      GPointPrefix.ZPMZ]));
     Job.AddStrings(Prot.Lines);
     Job.Add('');
     Job.SaveToFile(FileName, TEncoding.UTF8);
@@ -674,7 +616,6 @@ begin
       end;
     end;
     ForgetJob;                 // a new job
-    FLoadLines := Frame.Lines;
     MemoProtocol.Clear;        // the old job had its own
     LoadFrame(Frame, Bad);
     if Bad.Count > 0 then
@@ -726,8 +667,8 @@ begin
     PChar('Smaže se všechno, co je v tomto okně zadané, i protokol.' +
       sLineBreak + 'Seznam souřadnic, lišta předčíslí a nastavení ' +
       'zůstanou beze změny.'),
-    'Resetovat zadání?', MB_YESNO or MB_ICONQUESTION or MB_DEFBUTTON2)
-    <> IDYES then
+    'Resetovat zadání?', MB_YESNO or MB_ICONQUESTION or MB_DEFBUTTON2) <>
+    IDYES then
     Exit;
   ResetNotebook;
 end;
@@ -773,7 +714,7 @@ begin
 end;
 
 function TCalcBaseForm.PutRow(AGrid: TGeoFieldsGrid; ARow: Integer;
-  const GRow: TGeoRow; AIndex: Integer; ABad: TStrings): Boolean;
+  const GRow: TGeoRow; ABad: TStrings): Boolean;
 var
   Msg: string;
 begin
@@ -782,7 +723,7 @@ begin
   if Result then
     AGrid.SetGeoRow(ARow, GRow)
   else
-    ABad.Add(Format('řádek %d: %s', [FLoadLines[AIndex], Msg]));
+    ABad.Add(Format('řádek %d: %s', [GRow.Line, Msg]));
 end;
 
 procedure TCalcBaseForm.WriteProtocol(ALines: TStrings);
@@ -791,8 +732,7 @@ begin
 end;
 
 // The settings may hide the column
-procedure TCalcBaseForm.SetCell(AGrid: TGeoFieldsGrid; AField: TGeoField;
-  ARow: Integer; const AText: string);
+procedure TCalcBaseForm.SetCell(AGrid: TGeoFieldsGrid; AField: TGeoField; ARow: Integer; const AText: string);
 var
   Col: Integer;
 begin
@@ -803,8 +743,7 @@ end;
 
 // A new number brings its own height, quality and description,
 // a point from the list keeps them
-procedure TCalcBaseForm.FillDetailRow(AGrid: TGeoFieldsGrid; ARow: Integer;
-  var ANumbers: TArray<string>);
+procedure TCalcBaseForm.FillDetailRow(AGrid: TGeoFieldsGrid; ARow: Integer; var ANumbers: TArray<string>);
 var
   Col: Integer;
   PointNumber: Int64;

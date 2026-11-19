@@ -20,7 +20,8 @@
 
 | unit | výpočet |
 |---|---|
-| `GUI/DistanceIntersection.pas` | tabulka → frame, výsledek zpět, protokol, uložení bodu, zápisník |
+| `GUI/DistanceIntersection.pas` | tabulka → frame, výsledek zpět, uložení bodu, zápisník |
+| `Protocols/ProtocolDistanceIntersection.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmDistanceIntersection.pas` | nový bod, kontrolní délka, úhel protnutí, kód kvality |
 
 ```mermaid

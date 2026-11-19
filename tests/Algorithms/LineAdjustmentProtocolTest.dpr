@@ -19,8 +19,7 @@ var
   Lines: TStringList;
 
 // One point, Xm and Ym keep it before the move
-procedure Add(const APointNumber: string; AY, AX: Double;
-  AQuality: Integer = 3; const ANewNumber: string = '');
+procedure Add(const APointNumber: string; AY, AX: Double; AQuality: Integer = 3; const ANewNumber: string = '');
 var
   Row: TGeoRow;
 begin
@@ -39,17 +38,14 @@ end;
 procedure Run(const ATitle: string; AUpdated: Boolean);
 var
   I: Integer;
-  Rows: TProtocolRows;
 begin
   Alg.Calculate(Frame);
 
   // Č. is A, B and the point grid row
-  Rows.Numbers := ['A', 'B', '1'];
-  Rows.Notes := ['', '', ''];
+  Frame.Rows[LINE_ROWS].Line := 1;
   if AUpdated then
-    Rows.Notes[LINE_ROWS] := OverwrittenText;
-
-  TLineAdjustmentProtocol.Write(Prot, Lines, Frame, Alg, Rows);
+    Frame.Rows[LINE_ROWS].Stored := gsOverwritten;
+  TLineAdjustmentProtocol.Write(Prot, Lines, Frame, Alg);
   Writeln(ATitle);
   for I := 0 to Lines.Count - 1 do
     Writeln(Lines[I]);

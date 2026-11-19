@@ -25,7 +25,8 @@ je pevné (bod ze seznamu), nebo volné (určí se z orientací).
 
 | unit | výpočet |
 |---|---|
-| `GUI/PolarMethod.pas` | tabulky → frame, výsledky zpět, protokol, uložení bodů, zápisník |
+| `GUI/PolarMethod.pas` | tabulky → frame, výsledky zpět, uložení bodů, zápisník |
+| `Protocols/ProtocolPolar.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmPolar.pas` | orientační posun, volné stanovisko, podrobné body, výšky |
 
 ```mermaid

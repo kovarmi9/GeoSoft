@@ -24,7 +24,8 @@ umístí na všechny dané body.
 
 | unit | výpočet |
 |---|---|
-| `GUI/RectangularAdjustment.pas` | tabulka → frame, místní souřadnice, výsledky zpět, uložení bodů, zápisník, protokol |
+| `GUI/RectangularAdjustment.pas` | tabulka → frame, místní souřadnice, výsledky zpět, uložení bodů, zápisník |
+| `Protocols/ProtocolRectangularAdjustment.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmRectangularAdjustment.pas` | obrazec, uzávěr, oprava stran, transformace |
 | `GeoAlgorithms/GeoAlgorithmTransformCongruent.pas` | shodnostní transformace, viz [Transformace](transformace.md) |
 

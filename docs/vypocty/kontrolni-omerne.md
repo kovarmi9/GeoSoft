@@ -21,7 +21,8 @@ ze souřadnic (KatV § 81 bod 8).
 
 | unit | výpočet |
 |---|---|
-| `GUI/CheckMeasurements.pas` | tabulka → frame, body ze seznamu, horší kód kvality, výsledky do tabulky, zápisník, protokol |
+| `GUI/CheckMeasurements.pas` | tabulka → frame, body ze seznamu, horší kód kvality, výsledky do tabulky, zápisník |
+| `Protocols/ProtocolCheckMeasurements.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmCheckMeasurements.pas` | délka ze souřadnic, rozdíl, mez, souhrn |
 | `GeoAlgorithms/Accuracy.pas` | mezní rozdíl délky a horší kód kvality |
 
@@ -31,7 +32,7 @@ flowchart LR
   F -->|Calculate| A["GeoAlgorithmCheckMeasurements.pas<br>délka ze souřadnic, rozdíl, mez"]
   V["Accuracy.pas<br>LengthLimit, LowerQuality"] --> A
   A -->|ResultOf| T
-  A -->|WriteProtocol| P["Protokol<br>ProtocolTable.pas"]
+  A -->|WriteProtocol| P["Protokol<br>ProtocolCheckMeasurements.pas"]
 ```
 
 ## Matematika

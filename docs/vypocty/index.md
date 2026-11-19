@@ -31,7 +31,8 @@ tabulky je jedno měření.
 - Vypočtené body se ukládají do seznamu. Bod, který už v seznamu je,
   se přepíše s dotazem: ponechat, nový, průměr, nové číslo.
 - Č. v protokolu odpovídá řádku v tabulce, i když se prázdné řádky
-  přeskočí.
+  přeskočí. Pevné řádky (například P a K, A a B, I-1 až P) mají v Č.
+  svůj název.
 - Zápisník se ukládá a načítá jako CSV vedle programu. Vadné řádky
   se při načtení přeskočí a vypíšou.
 - Nápověda otevře stránku úlohy v této dokumentaci.
@@ -46,9 +47,10 @@ flowchart LR
   A -->|výsledky ve frame| F
   F -->|FrameToGrid| T
   F -->|StorePoint| S
-  F -->|WriteProtocol| P["Protokol<br>ProtocolTable.pas"]
+  F -->|WriteProtocol| P["Protokol<br>Protocols/Protocol….pas"]
 ```
 
 Výpočet dostane vždy jen frame a výsledky zapíše zpět do něj. Okno
-si u každého řádku frame pamatuje řádek tabulky (`FRows`), podle toho
-vrací výsledky do tabulky a čísluje protokol.
+si u každého řádku frame pamatuje řádek tabulky (`FRows`) a podle toho
+vrací výsledky do tabulky. Č. pro protokol nese řádek frame v poli
+`Line`, viz [Protokol](../protokol.md).

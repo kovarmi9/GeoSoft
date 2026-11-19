@@ -10,19 +10,13 @@ uses
 type
   TPolarProtocol = class
   private
-    class procedure WriteStation(AProt: TProtocol; AFrame: TGeoDataFrame;
-      AAlg: TPolarMethodAlgorithm);
-    class procedure WriteOrientations(AProt: TProtocol; AFrame: TGeoDataFrame;
-      AAlg: TPolarMethodAlgorithm; const ARows: TProtocolRows);
-    class procedure WriteFit(AProt: TProtocol; AFrame: TGeoDataFrame;
-      AAlg: TPolarMethodAlgorithm);
-    class procedure WriteDetails(AProt: TProtocol; AFrame: TGeoDataFrame;
-      AAlg: TPolarMethodAlgorithm; const ARows: TProtocolRows);
+    class procedure WriteStation(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
+    class procedure WriteOrientations(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
+    class procedure WriteFit(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
+    class procedure WriteDetails(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
   end;
 
 implementation
@@ -41,8 +35,7 @@ const
   DETAIL_HEIGHT_LINE  = '%3s  %-18s  %9s  %9s  %11s  %8s  %8s  %8s  %10s  %s  %8s  %s';
 
 // The station, its height only when heights are computed
-class procedure TPolarProtocol.WriteStation(AProt: TProtocol; AFrame: TGeoDataFrame;
-  AAlg: TPolarMethodAlgorithm);
+class procedure TPolarProtocol.WriteStation(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
 var
   Row: TGeoRow;
 begin
@@ -69,8 +62,7 @@ begin
 end;
 
 // The orientations with their checks, then the shift
-class procedure TPolarProtocol.WriteOrientations(AProt: TProtocol; AFrame: TGeoDataFrame;
-  AAlg: TPolarMethodAlgorithm; const ARows: TProtocolRows);
+class procedure TPolarProtocol.WriteOrientations(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -92,13 +84,13 @@ begin
     OrientResult := TPolarMethodAlgorithm.ResultOf(AFrame.Rows[0], Row,
       AAlg.Info.phi, AAlg.Scale, AAlg.Info.Longest);
     if AAlg.Heights then
-      AProt.Text(Format(ORIENT_HEIGHT_LINE, [ARows.Numbers[I],
+      AProt.Text(Format(ORIENT_HEIGHT_LINE, [LineId(AFrame, I),
         PointId(Row.CB), Ang(Row.HZ), Ang(Row.ZU), Num(Row.SS), Num(Row.SH),
         Num(Row.VC), Num(OrientResult.Ds), Num(OrientResult.Limit),
         Ang(OrientResult.dPhi), Num(OrientResult.p, 3),
         Ang(OrientResult.Normed), Num(OrientResult.dZ)]))
     else
-      AProt.Text(Format(ORIENT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(ORIENT_LINE, [LineId(AFrame, I), PointId(Row.CB),
         Ang(Row.HZ), Num(Row.SH), Num(OrientResult.Ds),
         Num(OrientResult.Limit), Ang(OrientResult.dPhi),
         Num(OrientResult.p, 3), Ang(OrientResult.Normed)]));
@@ -114,8 +106,7 @@ begin
 end;
 
 // How the free station fits, KatV 13.7 to 13.9
-class procedure TPolarProtocol.WriteFit(AProt: TProtocol; AFrame: TGeoDataFrame;
-  AAlg: TPolarMethodAlgorithm);
+class procedure TPolarProtocol.WriteFit(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
 var
   I, Quality: Integer;
   Fit: TPointResiduals;
@@ -140,8 +131,7 @@ begin
 end;
 
 // The detail points, a point stored again is marked
-class procedure TPolarProtocol.WriteDetails(AProt: TProtocol; AFrame: TGeoDataFrame;
-  AAlg: TPolarMethodAlgorithm; const ARows: TProtocolRows);
+class procedure TPolarProtocol.WriteDetails(AProt: TProtocol; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -160,21 +150,19 @@ begin
   begin
     Row := AFrame.Rows[I];
     if AAlg.Heights then
-      AProt.Text(Format(DETAIL_HEIGHT_LINE, [ARows.Numbers[I],
+      AProt.Text(Format(DETAIL_HEIGHT_LINE, [LineId(AFrame, I),
         PointId(Row.CB), Ang(Row.HZ), Ang(Row.ZU), Num(Row.SS), Num(Row.SH),
         Num(Row.Sta), Num(Row.Kol), Num(Row.VC), CoordPair(Row.X, Row.Y),
-        Num(Row.Z), ARows.Notes[I]]))
+        Num(Row.Z), StoredText(Row)]))
     else
-      AProt.Text(Format(DETAIL_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(DETAIL_LINE, [LineId(AFrame, I), PointId(Row.CB),
         Ang(Row.HZ), Num(Row.SH), Num(Row.Sta), Num(Row.Kol),
-        CoordPair(Row.X, Row.Y), ARows.Notes[I]]));
+        CoordPair(Row.X, Row.Y), StoredText(Row)]));
   end;
   AProt.Line;
 end;
 
-class procedure TPolarProtocol.Write(AProt: TProtocol; ALines: TStrings;
-  AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm;
-  const ARows: TProtocolRows);
+class procedure TPolarProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TPolarMethodAlgorithm);
 begin
   if not AProt.Start(ALines, 'Polární metoda', AAlg.Info.Valid, AFrame,
     AAlg.Errors, AAlg.Warnings) then
@@ -190,7 +178,7 @@ begin
   WriteStation(AProt, AFrame, AAlg);
 
   // 3. Measurements, with the checks of each orientation
-  WriteOrientations(AProt, AFrame, AAlg, ARows);
+  WriteOrientations(AProt, AFrame, AAlg);
 
   // 4. Checks
   if AAlg.Info.FreeStation then
@@ -198,7 +186,7 @@ begin
 
   // 5. Determined points
   if AFrame.Count > AAlg.Info.OrientCount + 1 then
-    WriteDetails(AProt, AFrame, AAlg, ARows);
+    WriteDetails(AProt, AFrame, AAlg);
 
   // 6. Messages and the end
   AProt.Finish(AAlg.Errors, AAlg.Warnings);

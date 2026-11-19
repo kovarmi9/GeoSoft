@@ -16,6 +16,8 @@ var
   r1: TGeoRow;
   gdf1, gdf2: TGeoDataFrame;
   csv1: TStringList;
+  Bad: TStringList;
+  I: Integer;
 
 // --- Main ---
 
@@ -160,6 +162,32 @@ begin
     Writeln('Vytištění nově načteného gdf1 ze souboru:');
     Writeln(gdf1.Print);
     gdf1.Free;
+
+    // Bad cells leave the row out
+    csv1 := TStringList.Create;
+    Bad := TStringList.Create;
+    csv1.Add('Checked;CB;X;KK;Popis');
+    csv1.Add('1;"1";10,5;3;dobrý');
+    csv1.Add('');
+    csv1.Add('2;"2";10,5;3;Checked jen 0 a 1');
+    csv1.Add('1;"abc";10,5;3;písmeno v čísle bodu');
+    csv1.Add('1;"4";x;3;text místo čísla');
+    csv1.Add('1;"5";10.5;1,5;desetinné KK');
+    csv1.Add('0;"0";;;prázdné buňky');
+    gdf1 := TGeoDataFrame.Create;
+    gdf1.FromCSV(csv1, ';', ',', Bad);
+    Writeln('Vadné řádky CSV:');
+    Write(Bad.Text);
+    Writeln('Načtené řádky, Line a LineOf:');
+    for I := 0 to gdf1.Count - 1 do
+      Writeln('  CB ', gdf1.Rows[I].CB, '  Line ', gdf1.Rows[I].Line,
+        '  LineOf ', gdf1.LineOf(I));
+    // Built in code, no Line
+    gdf1.AddRow;
+    Writeln('  řádek bez Line: LineOf ', gdf1.LineOf(gdf1.Count - 1));
+    gdf1.Free;
+    csv1.Free;
+    Bad.Free;
 
 
   except

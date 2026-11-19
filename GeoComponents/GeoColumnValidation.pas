@@ -24,8 +24,8 @@ type
     ciaBeepAndClear  // beep + clear the cell
   );
 
-  /// <summary>Default text for an empty cell, set AHandled.</summary>
-  TGetDefaultTextEvent = procedure(var AText: string; var AHandled: Boolean) of object;
+  /// <summary>Text for an empty cell, '' gives the column default.</summary>
+  TGetDefaultTextEvent = procedure(var AText: string) of object;
 
   /// <summary>Validation and formatting rules for one column.</summary>
   TColumnFilter = class(TCollectionItem)
@@ -44,81 +44,58 @@ type
     FOnInvalidCommit: TCommitInvalidAction;
     FOnGetDefaultText: TGetDefaultTextEvent;
 
-    procedure SetDataType(const Value: TColumnDataType);
-    procedure SetMinLength(const Value: Integer);
-    procedure SetMaxLength(const Value: Integer);
-    procedure SetHasMinValue(const Value: Boolean);
-    procedure SetMinValue(const Value: Double);
-    procedure SetHasMaxValue(const Value: Boolean);
-    procedure SetMaxValue(const Value: Double);
+    // Setters that change the table look
     procedure SetDecimalPlaces(const Value: Integer);
-    procedure SetAllowEmpty(const Value: Boolean);
-    procedure SetWrapAt(const Value: Double);
     procedure SetReadOnly(const Value: Boolean);
 
     function GetColumn: Integer;
-    procedure SetOnInvalidCommit(const Value: TCommitInvalidAction);
 
   public
     constructor Create(Collection: TCollection); override;
     procedure Assign(Source: TPersistent); override;
 
     /// <summary>Default text for an empty cell, set in code.</summary>
-    property OnGetDefaultText: TGetDefaultTextEvent
-      read FOnGetDefaultText write FOnGetDefaultText;
+    property OnGetDefaultText: TGetDefaultTextEvent read FOnGetDefaultText write FOnGetDefaultText;
 
   published
     /// <summary>Column index, read-only, given by the position.</summary>
     property Column: Integer read GetColumn stored False;
 
     /// <summary>Data type accepted by this column.</summary>
-    property DataType: TColumnDataType
-      read FDataType write SetDataType default cdtNone;
+    property DataType: TColumnDataType read FDataType write FDataType default cdtNone;
 
     /// <summary>Minimum required length (0 = no minimum).</summary>
-    property MinLength: Integer
-      read FMinLength write SetMinLength default 0;
+    property MinLength: Integer read FMinLength write FMinLength default 0;
 
     /// <summary>Maximum allowed length (0 = unlimited).</summary>
-    property MaxLength: Integer
-      read FMaxLength write SetMaxLength default 0;
+    property MaxLength: Integer read FMaxLength write FMaxLength default 0;
 
     /// <summary>Enable lower bound check on numeric value.</summary>
-    property HasMinValue: Boolean
-      read FHasMinValue write SetHasMinValue default False;
+    property HasMinValue: Boolean read FHasMinValue write FHasMinValue default False;
 
     /// <summary>Lowest value, used when HasMinValue is True.</summary>
-    property MinValue: Double
-      read FMinValue write SetMinValue;
+    property MinValue: Double read FMinValue write FMinValue;
 
     /// <summary>Enable upper bound check on numeric value.</summary>
-    property HasMaxValue: Boolean
-      read FHasMaxValue write SetHasMaxValue default False;
+    property HasMaxValue: Boolean read FHasMaxValue write FHasMaxValue default False;
 
     /// <summary>Highest value, used when HasMaxValue is True.</summary>
-    property MaxValue: Double
-      read FMaxValue write SetMaxValue;
+    property MaxValue: Double read FMaxValue write FMaxValue;
 
     /// <summary>Decimals shown, -1 as is, the cell keeps all.</summary>
-    property DecimalPlaces: Integer
-      read FDecimalPlaces write SetDecimalPlaces default -1;
+    property DecimalPlaces: Integer read FDecimalPlaces write SetDecimalPlaces default -1;
 
     /// <summary>True keeps an empty cell, False makes it 0.</summary>
-    property AllowEmpty: Boolean
-      read FAllowEmpty write SetAllowEmpty default False;
+    property AllowEmpty: Boolean read FAllowEmpty write FAllowEmpty default False;
 
     /// <summary>Period of the value, 400 for gon, 0 for none.</summary>
-    property WrapAt: Double
-      read FWrapAt write SetWrapAt;
+    property WrapAt: Double read FWrapAt write FWrapAt;
 
     /// <summary>ciaBlock keeps the value, ciaBeepAndClear clears it.</summary>
-    property OnInvalidCommit: TCommitInvalidAction
-      read FOnInvalidCommit write SetOnInvalidCommit
-      default ciaBlock;
+    property OnInvalidCommit: TCommitInvalidAction read FOnInvalidCommit write FOnInvalidCommit default ciaBlock;
 
     /// <summary>Filled by the program, the cursor skips it.</summary>
-    property ReadOnly: Boolean
-      read FReadOnly write SetReadOnly default False;
+    property ReadOnly: Boolean read FReadOnly write SetReadOnly default False;
   end;
 
   /// <summary>Filters of a grid, one per column.</summary>
@@ -127,7 +104,6 @@ type
     FOnChanged: TNotifyEvent;
 
     function GetItem(Index: Integer): TColumnFilter;
-    procedure SetItem(Index: Integer; const Value: TColumnFilter);
 
   protected
     procedure Update(Item: TCollectionItem); override;
@@ -141,36 +117,27 @@ type
     /// <summary>Grows or shrinks the collection to the column count.</summary>
     procedure EnsureCount(AColCount: Integer);
 
-    property Items[Index: Integer]: TColumnFilter
-      read GetItem write SetItem; default;
+    /// <summary>The filter of column Index.</summary>
+    property Items[Index: Integer]: TColumnFilter read GetItem; default;
 
     /// <summary>Fires after any item inside the collection changes.</summary>
-    property OnChanged: TNotifyEvent
-      read FOnChanged write FOnChanged;
+    property OnChanged: TNotifyEvent read FOnChanged write FOnChanged;
   end;
 
 /// <summary>Drops a typed character the column does not allow.</summary>
-procedure FilterKeyPress(AFilter: TColumnFilter;
-                         const AText: string; var Key: Char);
+procedure FilterKeyPress(AFilter: TColumnFilter; const AText: string; var Key: Char);
 
 /// <summary>True if the text passes length, type and range.</summary>
-function ValidateText(AFilter: TColumnFilter;
-                      const AText: string): Boolean;
+function ValidateText(AFilter: TColumnFilter; const AText: string): Boolean;
 
 /// <summary>Validates the text, an expression becomes its value.</summary>
-function TryCommitText(AFilter: TColumnFilter;
-                       var AText: string): Boolean;
+function TryCommitText(AFilter: TColumnFilter; var AText: string): Boolean;
 
 /// <summary>A number with ADecimals places, half rounds up.</summary>
 function FormatDouble(AValue: Double; ADecimals: Integer): string;
 
-/// <summary>The filter of the column, or nil if there is none.</summary>
-function ResolveFilter(AFilters: TColumnFilters;
-                       AColumn: Integer): TColumnFilter;
-
 /// <summary>Evaluates + - * / ^ ( ), True on success.</summary>
-function TryEvaluateExpression(const Expr: string;
-                               out Value: Double): Boolean;
+function TryEvaluateExpression(const AExpression: string; out AValue: Double): Boolean;
 
 implementation
 
@@ -179,41 +146,30 @@ implementation
 constructor TColumnFilter.Create(Collection: TCollection);
 begin
   inherited Create(Collection);
-  FDataType        := cdtNone;
-  FMinLength       := 0;
-  FMaxLength       := 0;
-  FHasMinValue     := False;
-  FMinValue        := 0.0;
-  FHasMaxValue     := False;
-  FMaxValue        := 0.0;
-  FDecimalPlaces   := -1;
-  FAllowEmpty      := False;
-  FWrapAt          := 0;
-  FReadOnly        := False;
-  FOnInvalidCommit := ciaBlock;
+  FDecimalPlaces := -1;   // the rest starts as 0, False
 end;
 
 procedure TColumnFilter.Assign(Source: TPersistent);
 var
-  Src: TColumnFilter;
+  SourceFilter: TColumnFilter;
 begin
   if Source is TColumnFilter then
   begin
-    Src := TColumnFilter(Source);
-    FDataType        := Src.FDataType;
-    FMinLength       := Src.FMinLength;
-    FMaxLength       := Src.FMaxLength;
-    FHasMinValue     := Src.FHasMinValue;
-    FMinValue        := Src.FMinValue;
-    FHasMaxValue     := Src.FHasMaxValue;
-    FMaxValue        := Src.FMaxValue;
-    FDecimalPlaces   := Src.FDecimalPlaces;
-    FAllowEmpty      := Src.FAllowEmpty;
-    FWrapAt          := Src.FWrapAt;
-    FReadOnly        := Src.FReadOnly;
-    FOnInvalidCommit := Src.FOnInvalidCommit;
+    SourceFilter := TColumnFilter(Source);
+    FDataType        := SourceFilter.FDataType;
+    FMinLength       := SourceFilter.FMinLength;
+    FMaxLength       := SourceFilter.FMaxLength;
+    FHasMinValue     := SourceFilter.FHasMinValue;
+    FMinValue        := SourceFilter.FMinValue;
+    FHasMaxValue     := SourceFilter.FHasMaxValue;
+    FMaxValue        := SourceFilter.FMaxValue;
+    FDecimalPlaces   := SourceFilter.FDecimalPlaces;
+    FAllowEmpty      := SourceFilter.FAllowEmpty;
+    FWrapAt          := SourceFilter.FWrapAt;
+    FReadOnly        := SourceFilter.FReadOnly;
+    FOnInvalidCommit := SourceFilter.FOnInvalidCommit;
     // FOnGetDefaultText is not copied, it is set in code, not in the designer
-    Changed(False);
+    Changed(False);   // this item only, grid redraws
   end
   else
     inherited Assign(Source);
@@ -224,88 +180,18 @@ begin
   Result := Index;
 end;
 
-procedure TColumnFilter.SetDataType(const Value: TColumnDataType);
-begin
-  if FDataType = Value then Exit;
-  FDataType := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetMinLength(const Value: Integer);
-begin
-  if FMinLength = Value then Exit;
-  FMinLength := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetMaxLength(const Value: Integer);
-begin
-  if FMaxLength = Value then Exit;
-  FMaxLength := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetHasMinValue(const Value: Boolean);
-begin
-  if FHasMinValue = Value then Exit;
-  FHasMinValue := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetMinValue(const Value: Double);
-begin
-  if FMinValue = Value then Exit;
-  FMinValue := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetHasMaxValue(const Value: Boolean);
-begin
-  if FHasMaxValue = Value then Exit;
-  FHasMaxValue := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetMaxValue(const Value: Double);
-begin
-  if FMaxValue = Value then Exit;
-  FMaxValue := Value;
-  Changed(False);
-end;
-
 procedure TColumnFilter.SetDecimalPlaces(const Value: Integer);
 begin
   if FDecimalPlaces = Value then Exit;
   FDecimalPlaces := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetAllowEmpty(const Value: Boolean);
-begin
-  if FAllowEmpty = Value then Exit;
-  FAllowEmpty := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetWrapAt(const Value: Double);
-begin
-  if FWrapAt = Value then Exit;
-  FWrapAt := Value;
-  Changed(False);
+  Changed(False);   // this item only, grid redraws
 end;
 
 procedure TColumnFilter.SetReadOnly(const Value: Boolean);
 begin
   if FReadOnly = Value then Exit;
   FReadOnly := Value;
-  Changed(False);
-end;
-
-procedure TColumnFilter.SetOnInvalidCommit(const Value: TCommitInvalidAction);
-begin
-  if FOnInvalidCommit = Value then Exit;
-  FOnInvalidCommit := Value;
-  Changed(False);
+  Changed(False);   // this item only, grid redraws
 end;
 
 { TColumnFilters }
@@ -335,11 +221,6 @@ begin
   Result := TColumnFilter(inherited GetItem(Index));
 end;
 
-procedure TColumnFilters.SetItem(Index: Integer; const Value: TColumnFilter);
-begin
-  inherited SetItem(Index, Value);
-end;
-
 procedure TColumnFilters.Update(Item: TCollectionItem);
 begin
   inherited Update(Item);
@@ -351,149 +232,160 @@ end;
 //
 //  Grammar:
 //    Expression := Term   (('+' | '-') Term)*            left-associative
-//    Term       := Factor (('*' | '/') Factor)*          left-associative
-//    Factor     := Unary  ('^' Factor)?                  right-associative
-//    Unary      := ('+' | '-') Unary | Primary
+//    Term       := Unary  (('*' | '/') Unary)*           left-associative
+//    Unary      := ('+' | '-') Unary | Factor
+//    Factor     := Primary ('^' Unary)?                  right-associative
 //    Primary    := '(' Expression ')' | Number
 //    Number     := Digit+ (DecimalSep Digit+)?
 
 type
   EExpressionParserError = class(Exception);
 
+  /// <summary>Computes a typed expression by the grammar.</summary>
+  // The text is read from left to right, FPosition is the cursor. Each
+  // Parse method reads its part of the text and leaves the cursor behind
+  // it. A method calls the one below first, so * goes before +. A mistake
+  // raises EExpressionParserError and Parse turns it into False.
   TExpressionParser = class
   private
     FText: string;
-    FPos: Integer;
+    FPosition: Integer;           // cursor, 1 = first character
     function AtEnd: Boolean;
     function Peek: Char;
     function Consume: Char;
-    procedure Expect(Ch: Char);
+    procedure Expect(AChar: Char);
     procedure SkipSpaces;
     function ParseExpression: Double;
     function ParseTerm: Double;
-    function ParseFactor: Double;
     function ParseUnary: Double;
+    function ParseFactor: Double;
     function ParsePrimary: Double;
     function ParseNumber: Double;
   public
     constructor Create(const AText: string);
-    function Parse(out Value: Double): Boolean;
+    function Parse(out AValue: Double): Boolean;
   end;
 
 constructor TExpressionParser.Create(const AText: string);
 begin
   FText := AText;
-  FPos := 1;
+  FPosition := 1;
 end;
 
 function TExpressionParser.AtEnd: Boolean;
 begin
-  Result := FPos > Length(FText);
+  Result := FPosition > Length(FText);
 end;
 
+// #0 at the end
 function TExpressionParser.Peek: Char;
 begin
   if AtEnd then
     Result := #0
   else
-    Result := FText[FPos];
+    Result := FText[FPosition];
 end;
 
 function TExpressionParser.Consume: Char;
 begin
   Result := Peek;
   if not AtEnd then
-    Inc(FPos);
+    Inc(FPosition);
 end;
 
-procedure TExpressionParser.Expect(Ch: Char);
+procedure TExpressionParser.Expect(AChar: Char);
 begin
   SkipSpaces;
-  if Peek <> Ch then
+  if Peek <> AChar then
     raise EExpressionParserError.CreateFmt(
-      'Expected "%s" at position %d', [Ch, FPos]);
+      'Expected "%s" at position %d', [AChar, FPosition]);
   Consume;
 end;
 
 procedure TExpressionParser.SkipSpaces;
 begin
-  while (not AtEnd) and (Peek = ' ') do
-    Inc(FPos);
+  while Peek = ' ' do
+    Inc(FPosition);
 end;
 
+// a + b - c
 function TExpressionParser.ParseExpression: Double;
 var
-  Op: Char;
-  Rhs: Double;
+  Symbol: Char;
+  Right: Double;
 begin
   Result := ParseTerm;
   SkipSpaces;
-  while (not AtEnd) and CharInSet(Peek, ['+', '-']) do
+  while CharInSet(Peek, ['+', '-']) do
   begin
-    Op := Consume;
-    Rhs := ParseTerm;
-    if Op = '+' then
-      Result := Result + Rhs
+    Symbol := Consume;
+    Right := ParseTerm;
+    if Symbol = '+' then
+      Result := Result + Right
     else
-      Result := Result - Rhs;
+      Result := Result - Right;
     SkipSpaces;
   end;
 end;
 
+// a * b / c
 function TExpressionParser.ParseTerm: Double;
 var
-  Op: Char;
-  Rhs: Double;
+  Symbol: Char;
+  Right: Double;
 begin
-  Result := ParseFactor;
+  Result := ParseUnary;
   SkipSpaces;
-  while (not AtEnd) and CharInSet(Peek, ['*', '/']) do
+  while CharInSet(Peek, ['*', '/']) do
   begin
-    Op := Consume;
-    Rhs := ParseFactor;
-    if Op = '*' then
-      Result := Result * Rhs
+    Symbol := Consume;
+    Right := ParseUnary;
+    if Symbol = '*' then
+      Result := Result * Right
     else
     begin
-      if Rhs = 0 then
+      if Right = 0 then
         raise EExpressionParserError.Create('Division by zero');
-      Result := Result / Rhs;
+      Result := Result / Right;
     end;
     SkipSpaces;
   end;
 end;
 
-function TExpressionParser.ParseFactor: Double;
-var
-  Rhs: Double;
-begin
-  Result := ParseUnary;
-  SkipSpaces;
-  if (not AtEnd) and (Peek = '^') then
-  begin
-    Consume;
-    Rhs := ParseFactor;  // right-associative
-    Result := Power(Result, Rhs);
-  end;
-end;
-
+// -2^2 = -4
 function TExpressionParser.ParseUnary: Double;
 begin
   SkipSpaces;
-  if Peek = '+' then
-  begin
-    Consume;
-    Result := ParseUnary;
-  end
-  else if Peek = '-' then
+  if Peek = '-' then
   begin
     Consume;
     Result := -ParseUnary;
   end
+  else if Peek = '+' then
+  begin
+    Consume;
+    Result := ParseUnary;
+  end
   else
-    Result := ParsePrimary;
+    Result := ParseFactor;
 end;
 
+// a ^ b
+function TExpressionParser.ParseFactor: Double;
+var
+  Exponent: Double;
+begin
+  Result := ParsePrimary;
+  SkipSpaces;
+  if Peek = '^' then
+  begin
+    Consume;
+    Exponent := ParseUnary;   // right-associative, 2^-1 too
+    Result := Power(Result, Exponent);
+  end;
+end;
+
+// (a) or a number
 function TExpressionParser.ParsePrimary: Double;
 begin
   SkipSpaces;
@@ -507,46 +399,44 @@ begin
     Result := ParseNumber;
 end;
 
+// Dot and comma mean decimals
 function TExpressionParser.ParseNumber: Double;
 var
-  StartPos: Integer;
-  NumStr: string;
-  Sep: Char;
+  Start: Integer;
+  NumberText: string;
+  Separator: Char;
 begin
   SkipSpaces;
-  StartPos := FPos;
-
-  while (not AtEnd) and CharInSet(Peek, ['0'..'9']) do
+  Start := FPosition;
+  while CharInSet(Peek, ['0'..'9']) do
     Consume;
 
-  Sep := FormatSettings.DecimalSeparator;
-  if (not AtEnd) and ((Peek = '.') or (Peek = ',') or (Peek = Sep)) then
+  Separator := FormatSettings.DecimalSeparator;
+  if (Peek = '.') or (Peek = ',') or (Peek = Separator) then
   begin
     Consume;
-    while (not AtEnd) and CharInSet(Peek, ['0'..'9']) do
+    while CharInSet(Peek, ['0'..'9']) do
       Consume;
   end;
 
-  if StartPos = FPos then
+  if Start = FPosition then
     raise EExpressionParserError.CreateFmt(
-      'Expected number at position %d', [FPos]);
+      'Expected number at position %d', [FPosition]);
 
-  NumStr := Copy(FText, StartPos, FPos - StartPos);
-  NumStr := StringReplace(NumStr, '.', Sep, [rfReplaceAll]);
-  NumStr := StringReplace(NumStr, ',', Sep, [rfReplaceAll]);
-
-  if not TryStrToFloat(NumStr, Result, FormatSettings) then
-    raise EExpressionParserError.CreateFmt(
-      'Invalid number "%s"', [NumStr]);
+  NumberText := Copy(FText, Start, FPosition - Start);
+  NumberText := StringReplace(NumberText, '.', Separator, [rfReplaceAll]);
+  NumberText := StringReplace(NumberText, ',', Separator, [rfReplaceAll]);
+  if not TryStrToFloat(NumberText, Result, FormatSettings) then
+    raise EExpressionParserError.CreateFmt('Invalid number "%s"', [NumberText]);
 end;
 
-function TExpressionParser.Parse(out Value: Double): Boolean;
+function TExpressionParser.Parse(out AValue: Double): Boolean;
 begin
-  Value := 0;
+  AValue := 0;
   try
-    Value := ParseExpression;
+    AValue := ParseExpression;
     // NaN or Inf is not a valid value
-    if IsNan(Value) or IsInfinite(Value) then
+    if IsNan(AValue) or IsInfinite(AValue) then
       Exit(False);
     SkipSpaces;
     // Any trailing non-whitespace means the expression did not fully parse
@@ -554,23 +444,20 @@ begin
   except
     on EExpressionParserError do
       Result := False;
-    on EConvertError do
-      Result := False;
   end;
 end;
 
-function TryEvaluateExpression(const Expr: string;
-                               out Value: Double): Boolean;
+function TryEvaluateExpression(const AExpression: string; out AValue: Double): Boolean;
 var
   Parser: TExpressionParser;
 begin
-  Value := 0;
-  if Trim(Expr) = '' then
+  AValue := 0;
+  if Trim(AExpression) = '' then
     Exit(False);
 
-  Parser := TExpressionParser.Create(Expr);
+  Parser := TExpressionParser.Create(AExpression);
   try
-    Result := Parser.Parse(Value);
+    Result := Parser.Parse(AValue);
   finally
     Parser.Free;
   end;
@@ -588,8 +475,7 @@ begin
     Result := FormatFloat('0.' + StringOfChar('0', ADecimals), AValue);
 end;
 
-function CheckLengthBounds(AFilter: TColumnFilter;
-                           const AText: string): Boolean;
+function CheckLengthBounds(AFilter: TColumnFilter; const AText: string): Boolean;
 begin
   Result := True;
   if (AFilter.MinLength > 0) and (Length(AText) < AFilter.MinLength) then
@@ -617,12 +503,11 @@ begin
     AValue := AValue + AFilter.WrapAt;
 end;
 
-function TryGetNumericValue(AFilter: TColumnFilter;
-                            const AText: string; out Value: Double): Boolean;
+function TryGetNumericValue(AFilter: TColumnFilter; const AText: string; out AValue: Double): Boolean;
 var
   Text: string;
 begin
-  Value := 0;
+  AValue := 0;
   Result := False;
   Text := Trim(AText);
   if Text = '' then
@@ -630,9 +515,9 @@ begin
 
   case AFilter.DataType of
     cdtExpression:
-      Result := TryEvaluateExpression(Text, Value);
+      Result := TryEvaluateExpression(Text, AValue);
   else
-    Result := TryStrToFloat(Text, Value, FormatSettings);
+    Result := TryStrToFloat(Text, AValue, FormatSettings);
   end;
 end;
 
@@ -647,8 +532,8 @@ begin
     Exit;
   for I := 1 to Length(AText) do
     // A minus sign only in front
-    if not CharInSet(AText[I], ['0'..'9'])
-      and not ((AText[I] = '-') and (I = 1)) then
+    if not CharInSet(AText[I], ['0'..'9']) and
+      not ((AText[I] = '-') and (I = 1)) then
       Exit;
   Result := True;
 end;
@@ -656,42 +541,35 @@ end;
 function ValidateFloatText(const AText: string): Boolean;
 var
   I: Integer;
-  Ch: Char;
+  Character: Char;
   HasDecimal, HasDigit: Boolean;
-  Sep: Char;
+  Separator: Char;
 begin
   Result := False;
   if AText = '' then
     Exit;
 
-  Sep := FormatSettings.DecimalSeparator;
+  Separator := FormatSettings.DecimalSeparator;
   HasDecimal := False;
   HasDigit := False;
 
   for I := 1 to Length(AText) do
   begin
-    Ch := AText[I];
-    if (Ch = '-') and (I = 1) then
+    Character := AText[I];
+    if (Character = '-') and (I = 1) then
       Continue
-    else if Ch = Sep then
+    else if Character = Separator then
     begin
       if HasDecimal then Exit;
       HasDecimal := True;
     end
-    else if CharInSet(Ch, ['0'..'9']) then
+    else if CharInSet(Character, ['0'..'9']) then
       HasDigit := True
     else
       Exit;
   end;
 
   Result := HasDigit;
-end;
-
-function ValidateExpressionText(const AText: string): Boolean;
-var
-  V: Double;
-begin
-  Result := TryEvaluateExpression(AText, V);
 end;
 
 { --- Key filtering --- }
@@ -709,17 +587,17 @@ end;
 
 procedure FilterFloatKey(const AText: string; var Key: Char);
 var
-  Sep: Char;
+  Separator: Char;
 begin
-  Sep := FormatSettings.DecimalSeparator;
+  Separator := FormatSettings.DecimalSeparator;
 
   if (Key = '.') or (Key = ',') then
-    Key := Sep;
+    Key := Separator;
 
   if CharInSet(Key, ['0'..'9']) then
     Exit;
 
-  if (Key = Sep) and (Pos(Sep, AText) = 0) then
+  if (Key = Separator) and (Pos(Separator, AText) = 0) then
     Exit;
 
   if (Key = '-') and (AText = '') then
@@ -730,17 +608,17 @@ end;
 
 procedure FilterExpressionKey(const AText: string; var Key: Char);
 var
-  Sep: Char;
+  Separator: Char;
 begin
-  Sep := FormatSettings.DecimalSeparator;
+  Separator := FormatSettings.DecimalSeparator;
 
   if (Key = '.') or (Key = ',') then
-    Key := Sep;
+    Key := Separator;
 
   if CharInSet(Key, ['0'..'9']) then
     Exit;
 
-  if Key = Sep then
+  if Key = Separator then
     Exit;
 
   if CharInSet(Key, ['+', '-', '*', '/', '^', '(', ')', ' ']) then
@@ -751,8 +629,7 @@ end;
 
 { --- Public API --- }
 
-procedure FilterKeyPress(AFilter: TColumnFilter;
-                         const AText: string; var Key: Char);
+procedure FilterKeyPress(AFilter: TColumnFilter; const AText: string; var Key: Char);
 begin
   if AFilter = nil then
     Exit;
@@ -783,10 +660,9 @@ begin
   end;
 end;
 
-function ValidateText(AFilter: TColumnFilter;
-                      const AText: string): Boolean;
+function ValidateText(AFilter: TColumnFilter; const AText: string): Boolean;
 var
-  V: Double;
+  Value: Double;
 begin
   Result := True;
   if AFilter = nil then
@@ -806,15 +682,15 @@ begin
       if not ValidateFloatText(AText) then Exit(False);
 
     cdtExpression:
-      if not ValidateExpressionText(AText) then Exit(False);
+      if not TryEvaluateExpression(AText, Value) then Exit(False);
   end;
 
   // Value bound check only makes sense for numeric types
   if (AFilter.DataType <> cdtNone) and
-     (AFilter.HasMinValue or AFilter.HasMaxValue) then
+    (AFilter.HasMinValue or AFilter.HasMaxValue) then
   begin
-    if TryGetNumericValue(AFilter, AText, V) then
-      if not CheckValueBounds(AFilter, V) then
+    if TryGetNumericValue(AFilter, AText, Value) then
+      if not CheckValueBounds(AFilter, Value) then
         Exit(False);
   end;
 end;
@@ -827,10 +703,9 @@ begin
     Result := FormatFloat('0.##################', AValue);
 end;
 
-function TryCommitText(AFilter: TColumnFilter;
-                       var AText: string): Boolean;
+function TryCommitText(AFilter: TColumnFilter; var AText: string): Boolean;
 var
-  V: Double;
+  Value: Double;
 begin
   if (AFilter <> nil) and (Trim(AText) = '') then
   begin
@@ -851,33 +726,14 @@ begin
   if AFilter = nil then
     Exit;
 
-  case AFilter.DataType of
-    cdtExpression:
-      if TryEvaluateExpression(AText, V) then
-      begin
-        Wrap(AFilter, V);
-        if not CheckValueBounds(AFilter, V) then
-          Exit(False);
-        AText := PlainFloatText(V); // full value, the grid rounds the drawing
-      end;
-
-    cdtFloat:
-      if TryStrToFloat(AText, V, FormatSettings) then
-      begin
-        Wrap(AFilter, V);
-        AText := PlainFloatText(V);
-      end;
+  if (AFilter.DataType in [cdtFloat, cdtExpression]) and
+    TryGetNumericValue(AFilter, AText, Value) then
+  begin
+    Wrap(AFilter, Value);
+    if not CheckValueBounds(AFilter, Value) then
+      Exit(False);
+    AText := PlainFloatText(Value); // full value, the grid rounds the drawing
   end;
-end;
-
-function ResolveFilter(AFilters: TColumnFilters;
-                       AColumn: Integer): TColumnFilter;
-begin
-  Result := nil;
-  if AFilters = nil then
-    Exit;
-  if (AColumn >= 0) and (AColumn < AFilters.Count) then
-    Result := AFilters[AColumn];
 end;
 
 end.

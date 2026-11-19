@@ -8,12 +8,13 @@ seznam mezitím změnil, třeba výpočtem; rozepsaná buňka tak zůstane.
 - **Nový bod** vznikne zadáním čísla do prázdného posledního řádku.
   Číslo bodu přijímá jen číslice, nejvýš 15, a mínus na začátku. Číslo do 4 číslic se doplní
   o KÚ a ZPMZ z lišty, číslo do 9 číslic jen o KÚ. Enter na prázdné buňce doplní souřadnici nulou,
-  kód kvality a popis z lišty.
+  kód kvality a popis z lišty. Bez kódu kvality v liště dostane buňka 0.
 - **Přečíslování** – přepsáním čísla v řádku; číslo, které v seznamu už je,
   program odmítne.
 - **Označení** ve sloupci čísla: klik, Ctrl+klik (přidat nebo ubrat),
   Shift+klik nebo Shift+šipky (rozsah), Ctrl+A (vše).
 - **Smazání** – klávesa Delete smaže označené body po potvrzení.
+  Vymazané číslo bodu smaže bod také po potvrzení.
 - **Jdi na bod** (Ctrl+F) – zeptá se na číslo bodu, krátké číslo doplní
   předčíslím z lišty a přesune kurzor na řádek bodu. Bod, který
   v seznamu není, ohlásí.

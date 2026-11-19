@@ -6,19 +6,16 @@ uses
   System.SysUtils, GeoRow, GeoDataFrame, GeoFieldsGrid;
 
 // Copies grid rows into frame, tells which grid row each frame row came from
-procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
-  out ARows: TArray<Integer>);
+procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame; out ARows: TArray<Integer>);
 
 // Writes the listed fields back into the grid, in full, the grid rounds
 // what it shows. A row with ARows[i] < 0 is skipped.
-procedure FrameToGrid(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
-  const ARows: TArray<Integer>; const AFields: TGeoFields;
+procedure FrameToGrid(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame; const ARows: TArray<Integer>; const AFields: TGeoFields;
   const AFormat: string = '');
 
 implementation
 
-procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
-  out ARows: TArray<Integer>);
+procedure GridToFrame(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame; out ARows: TArray<Integer>);
 var
   R, N: Integer;
   Row: TGeoRow;
@@ -34,6 +31,7 @@ begin
     // Skip rows without point number
     if Row.CB = 0 then
       Continue;
+    Row.Line := R;
 
     AFrame.AddRow(Row);
 
@@ -43,8 +41,7 @@ begin
   end;
 end;
 
-procedure FrameToGrid(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame;
-  const ARows: TArray<Integer>; const AFields: TGeoFields;
+procedure FrameToGrid(AGrid: TGeoFieldsGrid; AFrame: TGeoDataFrame; const ARows: TArray<Integer>; const AFields: TGeoFields;
   const AFormat: string);
 var
   I, C: Integer;

@@ -1,5 +1,7 @@
 ﻿unit GeoGrid;
 
+// TStringGrid with Enter navigation, filters and check boxes
+
 interface
 
 uses
@@ -12,8 +14,8 @@ uses
   Vcl.Controls,
   Vcl.Forms,
   GeoColumnValidation;
-type
 
+type
   /// <summary>Defines behavior when navigation reaches last cell.</summary>
   TEnterEndBehavior = (
     ebStayOnLastCell, // stay on last cell
@@ -26,167 +28,160 @@ type
   TCellCommittedEvent = procedure(Sender: TObject; ACol, ARow: Integer) of object;
 
   /// <summary>Asks the form whether a cell is for typing.</summary>
-  TCellSelectableEvent = procedure(Sender: TObject; ACol, ARow: Integer;
-    var ASelectable: Boolean) of object;
+  TCellSelectableEvent = procedure(Sender: TObject; ACol, ARow: Integer; var ASelectable: Boolean) of object;
 
   /// <summary>Custom inplace editor handling Enter/Tab navigation.</summary>
   TGeoInplaceEdit = class(TInplaceEdit)
   protected
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-    /// <summary>Blocks Enter, KeyDown navigates and validates.</summary>
+    /// <summary>Blocks Enter and drops keys the column refuses.</summary>
     procedure KeyPress(var Key: Char); override;
     /// <summary>Text left after the typed key replaces the selection.</summary>
     function TextWithoutSelection: string;
   end;
 
-  /// <summary>Custom grid with custom navigation and header support.</summary>
+  /// <summary>Grid with Enter navigation, filters and check boxes.</summary>
   TGeoGrid = class(TStringGrid)
   private
+    // Moving the cursor
     FEnterEndBehavior: TEnterEndBehavior;
-    FColumnHeaders: TStrings;
-    FRowHeaders: TStrings;
-    FOnCellCommitted: TCellCommittedEvent;
     FOnCellSelectable: TCellSelectableEvent;
-
+    // Committing a cell
+    FOnCellCommitted: TCellCommittedEvent;
+    FCommitted: Boolean;              // Enter committed it already
+    /// <summary>Set by CommitCell when the value is invalid.</summary>
+    FLastCommitFailed: Boolean;
+    // Column filters
+    FColumnFilters: TColumnFilters;   // one per data column
+    // Check box column
     FCheckColumn: Integer;            // -1 = no check box column
     FHeaderChecked: Boolean;          // the header "select all" box
     FDefaultChecked: Boolean;
     FOnCheckChanged: TNotifyEvent;
+    // Headers
+    FColumnHeaders: TStrings;
+    FRowHeaders: TStrings;
     FRowNumbers: Boolean;
-    FCommitted: Boolean;              // Enter committed it already
 
-    procedure SetRowNumbers(const Value: Boolean);
-
-    procedure SetCheckColumn(const Value: Integer);
-    procedure SetDefaultChecked(const Value: Boolean);
-    function  GetChecked(ARow: Integer): Boolean;
-    procedure SetChecked(ARow: Integer; const Value: Boolean);
-    procedure DrawCheckBox(ARow: Integer; const ARect: TRect);
+    // Moving the cursor
     procedure OpenEditor;
     procedure WMChar(var Msg: TWMChar); message WM_CHAR;
-
+    /// <summary>First selectable cell from ACol, ADelta 1 or -1.</summary>
+    function SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;
+    /// <summary>First column of a row the cursor may land on.</summary>
+    function FirstSelectableCol(ARow: Integer): Integer;
+    /// <summary>Next selectable cell, False at the grid end.</summary>
+    function NextSelectable(var ACol, ARow: Integer): Boolean;
+    /// <summary>Previous selectable cell, False at the first.</summary>
+    function PrevSelectable(var ACol, ARow: Integer): Boolean;
+    /// <summary>Steps one cell back, False at the first cell.</summary>
+    function MoveToPrevCell(AOpenEditor: Boolean): Boolean;
+    /// <summary>Moves the focus to the next or previous control.</summary>
+    procedure LeaveGrid(ABackwards: Boolean);
+    // Committing a cell
+    /// <summary>Esc in the editor, drops the typed text.</summary>
+    procedure CancelEdit;
+    // Column filters
+    procedure SetColumnFilters(const Value: TColumnFilters);
+    procedure ColumnFiltersChanged(Sender: TObject);
+    // Check box column
+    procedure SetCheckColumn(const Value: Integer);
+    procedure SetDefaultChecked(const Value: Boolean);
+    function GetChecked(ARow: Integer): Boolean;
+    procedure SetChecked(ARow: Integer; const Value: Boolean);
+    procedure DrawCheckBox(ARow: Integer; const ARect: TRect);
+    // Headers
     procedure SetColumnHeaders(const Value: TStrings);
     procedure SetRowHeaders(const Value: TStrings);
+    procedure SetRowNumbers(const Value: Boolean);
 
   protected
-    /// <summary>Set by CommitCell when the value is invalid.</summary>
-    FLastCommitFailed: Boolean;
-
-    /// <summary>Returns True if cell is header (fixed row/col).</summary>
-    function IsHeaderCell(ACol, ARow: Integer): Boolean; virtual;
-
-    /// <summary>Returns True if cell is normal data cell.</summary>
-    function IsDataCell(ACol, ARow: Integer): Boolean; virtual;
-
+    // Moving the cursor
     /// <summary>Create custom inplace editor.</summary>
     function CreateEditor: TInplaceEdit; override;
-
-    /// <summary>Custom drawing (headers centered + bold).</summary>
-    procedure DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); override;
-
-    /// <summary>Filter of a column, nil when it has none.</summary>
-    function CellFilter(ACol: Integer): TColumnFilter; virtual;
-
-    /// <summary>Intercept Enter/Tab navigation.</summary>
+    /// <summary>Every key the grid answers itself.</summary>
     procedure KeyDown(var Key: Word; Shift: TShiftState); override;
-
     /// <summary>Main navigation logic (Enter/Tab behavior).</summary>
-    procedure MoveToNextCell(PressedKey: Word; Shift: TShiftState); virtual;
-
+    procedure MoveToNextCell(AKey: Word); virtual;
     /// <summary>False for a cell the cursor must skip.</summary>
     function CellSelectable(ACol, ARow: Integer): Boolean; virtual;
 
-    /// <summary>First selectable cell from ACol, ADelta 1 or -1.</summary>
-    function SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;
-
-    /// <summary>First column of a row the cursor may land on.</summary>
-    function FirstSelectableCol(ARow: Integer): Integer;
-
-    /// <summary>Next selectable cell, False at the grid end.</summary>
-    function NextSelectable(var ACol, ARow: Integer): Boolean;
-
-    /// <summary>Previous selectable cell, False at the first.</summary>
-    function PrevSelectable(var ACol, ARow: Integer): Boolean;
-
-    /// <summary>Esc in the editor, drops the typed text.</summary>
-    procedure CancelEdit;
-
-    /// <summary>Steps one cell back, False at the first cell.</summary>
-    function MoveToPrevCell(AOpenEditor: Boolean): Boolean;
-
-    /// <summary>Moves the focus to the next or previous control.</summary>
-    procedure LeaveGrid(ABackwards: Boolean);
-
+    // Committing a cell
     /// <summary>Writes the editor text and fires OnCellCommitted.</summary>
     procedure CommitCell; virtual;
-
     /// <summary>Fires before every cell change - calls CommitCell.</summary>
     function SelectCell(ACol, ARow: Integer): Boolean; override;
 
+    // Column filters
+    /// <summary>Filter of a column, nil when it has none.</summary>
+    function CellFilter(ACol: Integer): TColumnFilter;
+    /// <summary>One filter per data column, filled by descendants.</summary>
+    property ColumnFilters: TColumnFilters read FColumnFilters write SetColumnFilters;
+
+    // Drawing
+    /// <summary>Returns True if cell is header (fixed row/col).</summary>
+    function IsHeaderCell(ACol, ARow: Integer): Boolean; virtual;
+    /// <summary>Returns True if cell is normal data cell.</summary>
+    function IsDataCell(ACol, ARow: Integer): Boolean; virtual;
+    /// <summary>Custom drawing (headers centered + bold).</summary>
+    procedure DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState); override;
+
+    // Check box column
+    /// <summary>A click in the check box column toggles the box.</summary>
+    procedure MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer); override;
+
+    // Headers
     /// <summary>Apply header texts to grid.</summary>
     procedure UpdateHeaders; virtual;
-
     /// <summary>Called after component is loaded (DFM).</summary>
     procedure Loaded; override;
 
-    /// <summary>A click in the check box column toggles the box.</summary>
-    procedure MouseDown(Button: TMouseButton; Shift: TShiftState;
-      X, Y: Integer); override;
-
   public
     constructor Create(AOwner: TComponent); override;
-    destructor  Destroy; override;
+    destructor Destroy; override;
 
-    /// <summary>The cell as shown: a number rounded by its filter.</summary>
-    function DisplayText(ACol, ARow: Integer): string;
-
-    /// <summary>Column header captions. Published by descendants.</summary>
-    property ColumnHeaders: TStrings
-      read FColumnHeaders write SetColumnHeaders;
-
-    /// <summary>Row header captions. Published by descendants.</summary>
-    property RowHeaders: TStrings
-      read FRowHeaders write SetRowHeaders;
-
+    // Committing a cell
     /// <summary>Commits the cell, False blocks the navigation.</summary>
     function CommitCurrentCell: Boolean;
-
     /// <summary>Beeps and keeps the editor open on the cell.</summary>
     procedure RejectCommit;
 
+    // Drawing
+    /// <summary>The cell as shown: a number rounded by its filter.</summary>
+    function DisplayText(ACol, ARow: Integer): string;
+
+    // Check box column
     /// <summary>Check box of a row, kept in its cell as 1 or 0.</summary>
     property Checked[ARow: Integer]: Boolean read GetChecked write SetChecked;
 
+    // Headers
+    /// <summary>Column header captions. Published by descendants.</summary>
+    property ColumnHeaders: TStrings read FColumnHeaders write SetColumnHeaders;
+    /// <summary>Row header captions. Published by descendants.</summary>
+    property RowHeaders: TStrings read FRowHeaders write SetRowHeaders;
+
   published
-    /// <summary>Check box column, -1 none, set by field grids.</summary>
-    property CheckColumn: Integer
-      read FCheckColumn write SetCheckColumn default -1;
-
-    /// <summary>State of a box whose cell is empty.</summary>
-    property DefaultChecked: Boolean
-      read FDefaultChecked write SetDefaultChecked default False;
-
-    /// <summary>Numbers 1, 2, 3 in the header column.</summary>
-    property RowNumbers: Boolean
-      read FRowNumbers write SetRowNumbers default True;
-
-    /// <summary>Fired after any check box changes.</summary>
-    property OnCheckChanged: TNotifyEvent
-      read FOnCheckChanged write FOnCheckChanged;
-
+    // Moving the cursor
     /// <summary>What Enter or Tab does on the last cell.</summary>
-    property EnterEndBehavior: TEnterEndBehavior
-      read FEnterEndBehavior write FEnterEndBehavior
-      default ebStayOnLastCell;
-
-    /// <summary>Fired after a cell value is committed.</summary>
-    property OnCellCommitted: TCellCommittedEvent
-      read FOnCellCommitted write FOnCellCommitted;
-
+    property EnterEndBehavior: TEnterEndBehavior read FEnterEndBehavior write FEnterEndBehavior default ebStayOnLastCell;
     /// <summary>Lets the form close single cells.</summary>
-    property OnCellSelectable: TCellSelectableEvent
-      read FOnCellSelectable write FOnCellSelectable;
+    property OnCellSelectable: TCellSelectableEvent read FOnCellSelectable write FOnCellSelectable;
 
+    // Committing a cell
+    /// <summary>Fired after a cell value is committed.</summary>
+    property OnCellCommitted: TCellCommittedEvent read FOnCellCommitted write FOnCellCommitted;
+
+    // Check box column
+    /// <summary>Check box column, -1 none, set by field grids.</summary>
+    property CheckColumn: Integer read FCheckColumn write SetCheckColumn default -1;
+    /// <summary>State of a box whose cell is empty.</summary>
+    property DefaultChecked: Boolean read FDefaultChecked write SetDefaultChecked default False;
+    /// <summary>Fired after any check box changes.</summary>
+    property OnCheckChanged: TNotifyEvent read FOnCheckChanged write FOnCheckChanged;
+
+    // Headers
+    /// <summary>Numbers 1, 2, 3 in the header column.</summary>
+    property RowNumbers: Boolean read FRowNumbers write SetRowNumbers default True;
   end;
 
 implementation
@@ -194,32 +189,8 @@ implementation
 uses
   System.SysUtils;
 
-const
-  // Pale grey - a locked cell must still read as data, not as a header
-  clReadOnlyCell = TColor($00F4F4F4);
-
 { TGeoInplaceEdit }
 
-// Blocks Enter (#13), the editor must not close before the check.
-// Navigation is handled entirely by KeyDown.
-procedure TGeoInplaceEdit.KeyPress(var Key: Char);
-begin
-  if Key = #13 then
-  begin
-    Key := #0;
-    Exit;
-  end;
-  inherited KeyPress(Key);
-end;
-
-// Selected text is replaced by the typed key
-function TGeoInplaceEdit.TextWithoutSelection: string;
-begin
-  Result := Copy(Text, 1, SelStart) +
-    Copy(Text, SelStart + SelLength + 1, MaxInt);
-end;
-
-// Handle Enter/Tab inside inplace editor
 procedure TGeoInplaceEdit.KeyDown(var Key: Word; Shift: TShiftState);
 begin
   if (Key = VK_RETURN) or (Key = VK_TAB) then
@@ -234,144 +205,66 @@ begin
   inherited KeyDown(Key, Shift);
 end;
 
+// Enter is KeyDown's job, the filter drops other keys
+procedure TGeoInplaceEdit.KeyPress(var Key: Char);
+var
+  Filter: TColumnFilter;
+begin
+  if Key = #13 then
+  begin
+    Key := #0;
+    Exit;
+  end;
+  // The column allows only some characters
+  if Owner is TGeoGrid then
+  begin
+    Filter := TGeoGrid(Owner).CellFilter(TGeoGrid(Owner).Col);
+    if Filter <> nil then
+      FilterKeyPress(Filter, TextWithoutSelection, Key);
+  end;
+  inherited KeyPress(Key);
+end;
+
+// Selected text is replaced by the typed key
+function TGeoInplaceEdit.TextWithoutSelection: string;
+begin
+  Result := Copy(Text, 1, SelStart) +
+    Copy(Text, SelStart + SelLength + 1, MaxInt);
+end;
+
 { TGeoGrid }
 
-// Initialize grid options
 constructor TGeoGrid.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   Options := Options + [goEditing, goTabs, goColSizing, goRowSizing];
-  FEnterEndBehavior := ebStayOnLastCell;
   FCheckColumn := -1;
   FRowNumbers := True;
   FColumnHeaders := TStringList.Create;
   FRowHeaders    := TStringList.Create;
+  FColumnFilters := TColumnFilters.Create(Self);
+  FColumnFilters.OnChanged := ColumnFiltersChanged;
 end;
 
 destructor TGeoGrid.Destroy;
 begin
   FColumnHeaders.Free;
   FRowHeaders.Free;
+  FColumnFilters.Free;
   inherited Destroy;
 end;
 
-function TGeoGrid.IsHeaderCell(ACol, ARow: Integer): Boolean;
-begin
-  Result := (ACol < FixedCols) or (ARow < FixedRows);
-end;
-
-function TGeoGrid.IsDataCell(ACol, ARow: Integer): Boolean;
-begin
-  Result := not IsHeaderCell(ACol, ARow);
-end;
-
-// The descendants have the filters
-function TGeoGrid.CellFilter(ACol: Integer): TColumnFilter;
-begin
-  Result := nil;
-end;
-
-// The cell keeps the full value, only what is shown is rounded
-function TGeoGrid.DisplayText(ACol, ARow: Integer): string;
-var
-  Filter: TColumnFilter;
-  Value: Double;
-begin
-  Result := Cells[ACol, ARow];
-  Filter := CellFilter(ACol);
-  if (Filter <> nil) and (Filter.DecimalPlaces >= 0) and
-     (Filter.DataType in [cdtFloat, cdtExpression]) and
-     TryStrToFloat(Result, Value) then
-    Result := FormatDouble(Value, Filter.DecimalPlaces);
-end;
+{ --- Moving the cursor --- }
 
 function TGeoGrid.CreateEditor: TInplaceEdit;
 begin
   Result := TGeoInplaceEdit.Create(Self);
 end;
 
-// Opens the editor, never on the check box column
-procedure TGeoGrid.OpenEditor;
-begin
-  if (goEditing in Options) and (Col <> FCheckColumn) then
-  begin
-    EditorMode := True;
-    InplaceEditor.SelectAll;
-  end;
-end;
-
-// No typing into the check box column, Space is handled by KeyDown
-procedure TGeoGrid.WMChar(var Msg: TWMChar);
-begin
-  if Col = FCheckColumn then
-    Exit;
-  inherited;
-end;
-
-// Draw header cells centered and bold
-procedure TGeoGrid.DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
-var
-  S: string;
-  TextX, TextY: Integer;
-  TextArea: TRect;
-begin
-  if IsHeaderCell(ACol, ARow) then
-  begin
-    Canvas.Brush.Color := clBtnFace;
-    Canvas.Font.Style  := [fsBold];
-    Canvas.FillRect(Rect);
-
-    S := Cells[ACol, ARow];
-    if ACol = FCheckColumn then
-      S := ''                     // no caption, only the box
-    else if FRowNumbers and (S = '') and (ACol = 0) and
-            (ARow >= FixedRows) then
-      S := IntToStr(ARow - FixedRows + 1);   // only drawn, not in Cells
-
-    TextX := Rect.Left + (Rect.Width  - Canvas.TextWidth(S)) div 2;
-    TextY := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
-    Canvas.TextRect(Rect, TextX, TextY, S);
-
-    // The form may paint over the header - a checkbox, an icon, ...
-    // Called directly: inherited would draw the caption a second time.
-    if Assigned(OnDrawCell) then
-      OnDrawCell(Self, ACol, ARow, Rect, State);
-  end
-  else
-  begin
-    // A cell the cursor cannot reach is not for typing - show it
-    if not CellSelectable(ACol, ARow) then
-      Canvas.Brush.Color := clReadOnlyCell;
-    S := DisplayText(ACol, ARow);
-    if ACol = FCheckColumn then
-      S := '';                    // only the box, not the text under it
-    // A form that paints cells itself takes DisplayText on its own
-    if (S = Cells[ACol, ARow]) or Assigned(OnDrawCell) then
-      inherited DrawCell(ACol, ARow, Rect, State)
-    else
-    begin
-      // Delphi would draw the full value, so draw the rounded one here
-      DefaultTextDrawing := False;
-      try
-        inherited DrawCell(ACol, ARow, Rect, State);
-      finally
-        DefaultTextDrawing := True;
-      end;
-      TextArea := Rect;
-      TextArea.Inflate(-1, -1);
-      Canvas.TextRect(TextArea, TextArea.Left + 5,
-        TextArea.Top + (TextArea.Height - Canvas.TextHeight(S)) div 2, S);
-    end;
-  end;
-
-  if ACol = FCheckColumn then
-    DrawCheckBox(ARow, Rect);
-end;
-
 // Every key the grid answers itself, the inplace editor forwards them here
 procedure TGeoGrid.KeyDown(var Key: Word; Shift: TShiftState);
 var
-  C, D: Integer;
+  C, Direction: Integer;
 begin
   // The inplace editor forwards Esc here, so one branch serves both states
   if Key = VK_ESCAPE then
@@ -398,7 +291,7 @@ begin
 
   // Space toggles the check box the cursor stands on, F2 opens nothing
   if (Col = FCheckColumn) and (Shift = []) and
-     ((Key = VK_SPACE) or (Key = VK_F2)) then
+    ((Key = VK_SPACE) or (Key = VK_F2)) then
   begin
     if Key = VK_SPACE then
       Checked[Row] := not Checked[Row];
@@ -411,9 +304,9 @@ begin
   if ((Key = VK_LEFT) or (Key = VK_RIGHT)) and not EditorMode and
     (Shift = []) then
   begin
-    if Key = VK_LEFT then D := -1 else D := 1;
-    C := Col + D;
-    if SelectableInRow(C, Row, D) then
+    if Key = VK_LEFT then Direction := -1 else Direction := 1;
+    C := Col + Direction;
+    if SelectableInRow(C, Row, Direction) then
       MoveColRow(C, Row, True, True);
     Key := 0;
     Exit;
@@ -437,7 +330,7 @@ begin
           LeaveGrid(True);
       end
       else
-        MoveToNextCell(Key, Shift);
+        MoveToNextCell(Key);
     finally
       FCommitted := False;
     end;
@@ -448,28 +341,79 @@ begin
   inherited KeyDown(Key, Shift);
 end;
 
-function TGeoGrid.CellSelectable(ACol, ARow: Integer): Boolean;
+// No typing into the check box column, Space is handled by KeyDown
+procedure TGeoGrid.WMChar(var Msg: TWMChar);
 begin
-  Result := True;
-  // The form may close single cells, the rest stays open
-  if Assigned(FOnCellSelectable) then
-    FOnCellSelectable(Self, ACol, ARow, Result);
+  if Col = FCheckColumn then
+    Exit;
+  inherited;
 end;
 
-function TGeoGrid.SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;
+procedure TGeoGrid.MoveToNextCell(AKey: Word);
+var
+  C, R: Integer;
+  EndBehavior: TEnterEndBehavior;
 begin
-  while (ACol >= FixedCols) and (ACol < ColCount) and
-        not CellSelectable(ACol, ARow) do
-    Inc(ACol, ADelta);
+  // KeyDown has already committed the cell and stops on failure
+  EditorMode := False;
 
-  Result := (ACol >= FixedCols) and (ACol < ColCount);
+  // Next cell the cursor may land on, refused columns are skipped
+  C := Col;
+  R := Row;
+  if NextSelectable(C, R) then
+    MoveColRow(C, R, True, True)
+
+  // Handle movement at the last cell
+  else
+  begin
+    // Tab is a form key and always leaves at the edge, Enter obeys the setting
+    if AKey = VK_TAB then
+      EndBehavior := ebMoveFocusNext
+    else
+      EndBehavior := FEnterEndBehavior;
+
+    case EndBehavior of
+      ebStayOnLastCell:
+        ;                          // already on the last cell we may use
+
+      ebWrapToStart:
+        MoveColRow(FirstSelectableCol(FixedRows), FixedRows, True, True);
+
+      ebAddRow:
+        begin
+          RowCount := RowCount + 1;
+          MoveColRow(FirstSelectableCol(Row + 1), Row + 1, True, True);
+        end;
+
+      ebMoveFocusNext:
+        begin
+          LeaveGrid(False);
+          Exit;
+        end;
+    end;
+  end;
+
+  // Open the editor after Enter
+  if AKey = VK_RETURN then
+    OpenEditor;
 end;
 
-function TGeoGrid.FirstSelectableCol(ARow: Integer): Integer;
+// Esc steps back without opening the editor, Shift+Enter opens it
+function TGeoGrid.MoveToPrevCell(AOpenEditor: Boolean): Boolean;
+var
+  C, R: Integer;
 begin
-  Result := FixedCols;
-  if not SelectableInRow(Result, ARow, 1) then
-    Result := ColCount - 1;   // whole row locked, land on the last column
+  EditorMode := False;
+
+  C := Col;
+  R := Row;
+  Result := PrevSelectable(C, R);
+  if not Result then
+    Exit;                       // already at the start
+
+  MoveColRow(C, R, True, True);
+  if AOpenEditor then
+    OpenEditor;
 end;
 
 function TGeoGrid.NextSelectable(var ACol, ARow: Integer): Boolean;
@@ -498,33 +442,44 @@ begin
   Result := False;                // first cell, nowhere to step back
 end;
 
-// Esc leaves the editor and clears the cell, the same as Delete does on a
-// selected cell. The cursor stays, so the next Esc steps back.
-procedure TGeoGrid.CancelEdit;
+function TGeoGrid.SelectableInRow(var ACol: Integer; ARow, ADelta: Integer): Boolean;
 begin
-  EditorMode := False;      // HideEdit writes the typed text into the cell
-  Cells[Col, Row] := '';    // ... and this throws it away
-  FLastCommitFailed := False;
-  CommitCell;               // the form recomputes what depended on it
+  while (ACol >= FixedCols) and (ACol < ColCount) and
+    not CellSelectable(ACol, ARow) do
+    Inc(ACol, ADelta);
+
+  Result := (ACol >= FixedCols) and (ACol < ColCount);
 end;
 
-// Esc steps back without opening the editor, Shift+Enter opens it
-function TGeoGrid.MoveToPrevCell(AOpenEditor: Boolean): Boolean;
-var
-  C, R: Integer;
+function TGeoGrid.FirstSelectableCol(ARow: Integer): Integer;
 begin
-  if EditorMode then
-    EditorMode := False;
+  Result := FixedCols;
+  if not SelectableInRow(Result, ARow, 1) then
+    Result := ColCount - 1;   // whole row locked, land on the last column
+end;
 
-  C := Col;
-  R := Row;
-  Result := PrevSelectable(C, R);
-  if not Result then
-    Exit;                       // already at the start
+function TGeoGrid.CellSelectable(ACol, ARow: Integer): Boolean;
+var
+  Filter: TColumnFilter;
+begin
+  Result := True;
+  // The form may close single cells, the rest stays open
+  if Assigned(FOnCellSelectable) then
+    FOnCellSelectable(Self, ACol, ARow, Result);
+  // A column the program fills is not for the cursor
+  Filter := CellFilter(ACol);
+  if Result and (Filter <> nil) and Filter.ReadOnly then
+    Result := False;
+end;
 
-  MoveColRow(C, R, True, True);
-  if AOpenEditor then
-    OpenEditor;
+// Opens the editor, never on the check box column
+procedure TGeoGrid.OpenEditor;
+begin
+  if (goEditing in Options) and (Col <> FCheckColumn) then
+  begin
+    EditorMode := True;
+    InplaceEditor.SelectAll;
+  end;
 end;
 
 procedure TGeoGrid.LeaveGrid(ABackwards: Boolean);
@@ -534,68 +489,20 @@ begin
   PostMessage(GetParentForm(Self).Handle, WM_NEXTDLGCTL, Ord(ABackwards), 0);
 end;
 
-// Navigation logic
-procedure TGeoGrid.MoveToNextCell(PressedKey: Word; Shift: TShiftState);
-var
-  C, R: Integer;
-  EndBehavior: TEnterEndBehavior;
+{ --- Committing a cell --- }
+
+function TGeoGrid.CommitCurrentCell: Boolean;
 begin
-  // Clamp current position to data area
-  if Row < FixedRows then
-    Row := FixedRows;
-  if Col < FixedCols then
-    Col := FixedCols;
-
-  // KeyDown has already committed the cell and stops on failure
-  if EditorMode then
-    EditorMode := False;
-
-  // Next cell the cursor may land on, refused columns are skipped
-  C := Col;
-  R := Row;
-  if NextSelectable(C, R) then
-    MoveColRow(C, R, True, True)
-
-  // Handle movement at the last cell
-  else
-  begin
-    // Tab is a form key and always leaves at the edge, Enter obeys the setting
-    if PressedKey = VK_TAB then
-      EndBehavior := ebMoveFocusNext
-    else
-      EndBehavior := FEnterEndBehavior;
-
-    case EndBehavior of
-      ebStayOnLastCell:
-        ;                          // already on the last cell we may use
-
-      ebWrapToStart:
-        MoveColRow(FirstSelectableCol(FixedRows), FixedRows, True, True);
-
-      ebAddRow:
-        begin
-          RowCount := RowCount + 1;
-          MoveColRow(FirstSelectableCol(Row + 1), Row + 1, True, True);
-        end;
-
-      ebMoveFocusNext:
-        begin
-          LeaveGrid(False);
-          Exit;
-        end;
-    end;
-  end;
-
-  // Open the editor after Enter
-  if PressedKey = VK_RETURN then
-    OpenEditor;
+  // CommitCell sets FLastCommitFailed := True when the value is invalid
+  CommitCell;
+  Result := not FLastCommitFailed;
+  FLastCommitFailed := False;
 end;
 
 procedure TGeoGrid.CommitCell;
 var
   Filter: TColumnFilter;
-  Text, DefaultText: string;
-  DefaultHandled: Boolean;
+  Text: string;
 begin
   FLastCommitFailed := False;
   if EditorMode and Assigned(InplaceEditor) and not IsHeaderCell(Col, Row) then
@@ -607,26 +514,21 @@ begin
       // Empty cell takes the default
       if (Trim(Text) = '') and Assigned(Filter.OnGetDefaultText) then
       begin
-        DefaultText := '';
-        DefaultHandled := False;
-        Filter.OnGetDefaultText(DefaultText, DefaultHandled);
-        if DefaultHandled then
-          Text := DefaultText;
+        Text := '';
+        Filter.OnGetDefaultText(Text);
       end;
 
       if not TryCommitText(Filter, Text) then
       begin
-        case Filter.OnInvalidCommit of
-          ciaBeepAndClear:
-            begin
-              Cells[Col, Row]    := '';
-              InplaceEditor.Text := '';
-              MessageBeep(MB_ICONWARNING);
-            end;
-          ciaBlock:
-            RejectCommit;
+        if Filter.OnInvalidCommit = ciaBlock then
+        begin
+          RejectCommit;
+          Exit;
         end;
-        Exit;
+        // ciaBeepAndClear, form still recomputes
+        Text := '';
+        InplaceEditor.Text := '';
+        MessageBeep(MB_ICONWARNING);
       end;
     end;
     Cells[Col, Row] := Text;
@@ -634,14 +536,6 @@ begin
 
   if Assigned(FOnCellCommitted) then
     FOnCellCommitted(Self, Col, Row);
-end;
-
-function TGeoGrid.CommitCurrentCell: Boolean;
-begin
-  // CommitCell sets FLastCommitFailed := True when the value is invalid
-  CommitCell;
-  Result := not FLastCommitFailed;
-  FLastCommitFailed := False;
 end;
 
 procedure TGeoGrid.RejectCommit;
@@ -673,21 +567,159 @@ begin
   Result := inherited SelectCell(ACol, ARow);
 end;
 
-{ --- Check box column --- }
-
-procedure TGeoGrid.SetCheckColumn(const Value: Integer);
+// Esc leaves the editor and clears the cell, the same as Delete does on a
+// selected cell. The cursor stays, so the next Esc steps back.
+procedure TGeoGrid.CancelEdit;
 begin
-  if FCheckColumn = Value then Exit;
-  FCheckColumn := Value;
+  EditorMode := False;      // HideEdit writes the typed text into the cell
+  Cells[Col, Row] := '';    // ... and this throws it away
+  FLastCommitFailed := False;
+  CommitCell;               // the form recomputes what depended on it
+end;
+
+{ --- Column filters --- }
+
+// Filters start at the first data column
+function TGeoGrid.CellFilter(ACol: Integer): TColumnFilter;
+var
+  I: Integer;
+begin
+  I := ACol - FixedCols;
+  if (I >= 0) and (I < FColumnFilters.Count) then
+    Result := FColumnFilters[I]
+  else
+    Result := nil;
+end;
+
+procedure TGeoGrid.SetColumnFilters(const Value: TColumnFilters);
+begin
+  FColumnFilters.Assign(Value);
+end;
+
+// Decimals and ReadOnly change the look
+procedure TGeoGrid.ColumnFiltersChanged(Sender: TObject);
+begin
   Invalidate;
 end;
 
-procedure TGeoGrid.SetDefaultChecked(const Value: Boolean);
+{ --- Drawing --- }
+
+// Draw header cells centered and bold
+procedure TGeoGrid.DrawCell(ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+var
+  S: string;
+  TextX, TextY: Integer;
+  TextArea: TRect;
 begin
-  if FDefaultChecked = Value then Exit;   // keeps the header box
-  FDefaultChecked := Value;
-  FHeaderChecked := Value;
-  Invalidate;
+  if IsHeaderCell(ACol, ARow) then
+  begin
+    Canvas.Brush.Color := clBtnFace;
+    Canvas.Font.Style  := [fsBold];
+    Canvas.FillRect(Rect);
+
+    S := Cells[ACol, ARow];
+    if ACol = FCheckColumn then
+      S := ''                     // no caption, only the box
+    else if FRowNumbers and (S = '') and (ACol = 0) and (ARow >= FixedRows) then
+      S := IntToStr(ARow - FixedRows + 1);   // only drawn, not in Cells
+
+    TextX := Rect.Left + (Rect.Width  - Canvas.TextWidth(S)) div 2;
+    TextY := Rect.Top  + (Rect.Height - Canvas.TextHeight(S)) div 2;
+    Canvas.TextRect(Rect, TextX, TextY, S);
+
+    // The form may paint over the header - a checkbox, an icon, ...
+    // Called directly: inherited would draw the caption a second time.
+    if Assigned(OnDrawCell) then
+      OnDrawCell(Self, ACol, ARow, Rect, State);
+  end
+  else
+  begin
+    // A cell the cursor cannot reach is not for typing - show it
+    if not CellSelectable(ACol, ARow) then
+      Canvas.Brush.Color := clWebWhiteSmoke;   // lighter than the header
+    S := DisplayText(ACol, ARow);
+    if ACol = FCheckColumn then
+      S := '';                    // only the box, not the text under it
+    // A form that paints cells itself takes DisplayText on its own
+    if (S = Cells[ACol, ARow]) or Assigned(OnDrawCell) then
+      inherited DrawCell(ACol, ARow, Rect, State)
+    else
+    begin
+      // Delphi would draw the full value, so draw the rounded one here
+      DefaultTextDrawing := False;
+      try
+        inherited DrawCell(ACol, ARow, Rect, State);
+      finally
+        DefaultTextDrawing := True;
+      end;
+      TextArea := Rect;
+      TextArea.Inflate(-1, -1);
+      Canvas.TextRect(TextArea, TextArea.Left + 5,
+        TextArea.Top + (TextArea.Height - Canvas.TextHeight(S)) div 2, S);
+    end;
+  end;
+
+  if ACol = FCheckColumn then
+    DrawCheckBox(ARow, Rect);
+end;
+
+// The cell keeps the full value, only what is shown is rounded
+function TGeoGrid.DisplayText(ACol, ARow: Integer): string;
+var
+  Filter: TColumnFilter;
+  Value: Double;
+begin
+  Result := Cells[ACol, ARow];
+  Filter := CellFilter(ACol);
+  if (Filter <> nil) and (Filter.DecimalPlaces >= 0) and
+    (Filter.DataType in [cdtFloat, cdtExpression]) and
+    TryStrToFloat(Result, Value) then
+    Result := FormatDouble(Value, Filter.DecimalPlaces);
+end;
+
+function TGeoGrid.IsHeaderCell(ACol, ARow: Integer): Boolean;
+begin
+  Result := (ACol < FixedCols) or (ARow < FixedRows);
+end;
+
+function TGeoGrid.IsDataCell(ACol, ARow: Integer): Boolean;
+begin
+  Result := not IsHeaderCell(ACol, ARow);
+end;
+
+{ --- Check box column --- }
+
+// A click in the check box column toggles the box instead of moving the
+// cursor. The box in the header row switches every other row.
+procedure TGeoGrid.MouseDown(Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+  ClickCol, ClickRow, I: Integer;
+begin
+  if (FCheckColumn >= 0) and (Button = mbLeft) then
+  begin
+    MouseToCell(X, Y, ClickCol, ClickRow);
+    if (ClickCol = FCheckColumn) and (ClickRow >= 0) then
+    begin
+      if ClickRow < FixedRows then
+      begin
+        FHeaderChecked := not FHeaderChecked;
+        for I := FixedRows to RowCount - 1 do
+          if FHeaderChecked then
+            Cells[FCheckColumn, I] := '1'
+          else
+            Cells[FCheckColumn, I] := '0';
+        Invalidate;
+        if Assigned(FOnCheckChanged) then
+          FOnCheckChanged(Self);
+      end
+      else
+        Checked[ClickRow] := not Checked[ClickRow];
+
+      Exit;
+    end;
+  end;
+
+  inherited MouseDown(Button, Shift, X, Y);
 end;
 
 // The cell keeps the state, so it moves with its row
@@ -737,55 +769,28 @@ begin
   DrawFrameControl(Canvas.Handle, R, DFC_BUTTON, Flags);
 end;
 
-// A click in the check box column toggles the box instead of moving the
-// cursor. The box in the header row switches every other row.
-procedure TGeoGrid.MouseDown(Button: TMouseButton; Shift: TShiftState;
-  X, Y: Integer);
-var
-  ACol, ARow, I: Integer;
+procedure TGeoGrid.SetCheckColumn(const Value: Integer);
 begin
-  if (FCheckColumn >= 0) and (Button = mbLeft) then
-  begin
-    MouseToCell(X, Y, ACol, ARow);
-    if (ACol = FCheckColumn) and (ARow >= 0) then
-    begin
-      if ARow < FixedRows then
-      begin
-        FHeaderChecked := not FHeaderChecked;
-        for I := FixedRows to RowCount - 1 do
-          if FHeaderChecked then
-            Cells[FCheckColumn, I] := '1'
-          else
-            Cells[FCheckColumn, I] := '0';
-        Invalidate;
-        if Assigned(FOnCheckChanged) then
-          FOnCheckChanged(Self);
-      end
-      else
-        Checked[ARow] := not Checked[ARow];
-
-      Exit;
-    end;
-  end;
-
-  inherited MouseDown(Button, Shift, X, Y);
-end;
-
-procedure TGeoGrid.SetColumnHeaders(const Value: TStrings);
-begin
-  FColumnHeaders.Assign(Value);
-  UpdateHeaders;
-end;
-
-procedure TGeoGrid.SetRowNumbers(const Value: Boolean);
-begin
-  FRowNumbers := Value;
+  if FCheckColumn = Value then Exit;
+  FCheckColumn := Value;
   Invalidate;
 end;
 
-procedure TGeoGrid.SetRowHeaders(const Value: TStrings);
+procedure TGeoGrid.SetDefaultChecked(const Value: Boolean);
 begin
-  FRowHeaders.Assign(Value);
+  if FDefaultChecked = Value then Exit;   // keeps the header box
+  FDefaultChecked := Value;
+  FHeaderChecked := Value;
+  Invalidate;
+end;
+
+{ --- Headers --- }
+
+procedure TGeoGrid.Loaded;
+begin
+  inherited Loaded;
+  // Every grid lets the user resize columns
+  Options := Options + [goColSizing];
   UpdateHeaders;
 end;
 
@@ -812,15 +817,24 @@ begin
     for R := 0 to RowCount - 1 do
       if R < FRowHeaders.Count then
         Cells[0, R] := FRowHeaders[R];
-
 end;
 
-procedure TGeoGrid.Loaded;
+procedure TGeoGrid.SetColumnHeaders(const Value: TStrings);
 begin
-  inherited Loaded;
-  // Every grid lets the user resize columns
-  Options := Options + [goColSizing];
+  FColumnHeaders.Assign(Value);
   UpdateHeaders;
+end;
+
+procedure TGeoGrid.SetRowHeaders(const Value: TStrings);
+begin
+  FRowHeaders.Assign(Value);
+  UpdateHeaders;
+end;
+
+procedure TGeoGrid.SetRowNumbers(const Value: Boolean);
+begin
+  FRowNumbers := Value;
+  Invalidate;
 end;
 
 end.

@@ -12,9 +12,8 @@ type
   TRectangularMeasurementsProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TRectangularMeasurementsAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+      AAlg: TRectangularMeasurementsAlgorithm);
   end;
 
 implementation
@@ -26,9 +25,8 @@ const
   // Header and rows share one format
   POINT_LINE = '%3s  %-18s  %8s  %s  %-9s  %s';
 
-class procedure TRectangularMeasurementsProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame;
-  AAlg: TRectangularMeasurementsAlgorithm; const ARows: TProtocolRows);
+class procedure TRectangularMeasurementsProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TRectangularMeasurementsAlgorithm);
 var
   S, I: Integer;
   Segment: TSegmentInfo;
@@ -54,15 +52,15 @@ begin
     begin
       Row := AFrame.Rows[I];
       if I = Segment.FromRow then
-        AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+        AProt.Text(Format(POINT_LINE, [LineId(AFrame, I), PointId(Row.CB),
           '', CoordPair(Row.X, Row.Y), 'daný', '']))
       else if I = Segment.ToRow then
-        AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+        AProt.Text(Format(POINT_LINE, [LineId(AFrame, I), PointId(Row.CB),
           Num(Row.Sta), CoordPair(Row.X, Row.Y), 'daný', '']))
       else
-        AProt.Text(Format(POINT_LINE, [ARows.Numbers[I], PointId(Row.CB),
+        AProt.Text(Format(POINT_LINE, [LineId(AFrame, I), PointId(Row.CB),
           Num(Row.Sta), CoordPair(Row.X, Row.Y), 'vypočtený',
-          ARows.Notes[I]]));
+          StoredText(Row)]));
     end;
     AProt.Line;
 

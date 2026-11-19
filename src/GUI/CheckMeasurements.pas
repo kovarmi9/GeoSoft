@@ -20,8 +20,7 @@ type
   TCheckMeasurementsForm = class(TCalcBaseForm)
     GridPairs: TGeoFieldsGrid;
     procedure CalculateClick(Sender: TObject);
-    procedure GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer;
-      var CanSelect: Boolean);
+    procedure GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
     procedure SaveClick(Sender: TObject);
     procedure PairCommitted(Sender: TObject; ACol, ARow: Integer);
   private
@@ -56,8 +55,7 @@ begin
   FAlg := TCheckMeasurementsAlgorithm.Create;
   // M1 from coordinates, M2 difference, M3 limit, M4 verdict,
   // M2 to M4 only shown
-  FFrame := TGeoDataFrame.Create(
-    [CB, X, Y, CBm, Xm, Ym, SH, M1, KK, Popis]);
+  FFrame := TGeoDataFrame.Create([CB, X, Y, CBm, Xm, Ym, SH, M1, KK, Popis]);
 end;
 
 destructor TCheckMeasurementsForm.Destroy;
@@ -68,19 +66,17 @@ end;
 
 // A new row continues the chain, so its "from" repeats the "to" of the row
 // above.
-procedure TCheckMeasurementsForm.GridPairsSelectCell(Sender: TObject;
-  ACol, ARow: Integer; var CanSelect: Boolean);
+procedure TCheckMeasurementsForm.GridPairsSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
 begin
   if (ACol = GridPairs.FieldToCol(CB)) and (ARow > GridPairs.FixedRows) and
-     (Trim(GridPairs.Cells[ACol, ARow]) = '') then
+    (Trim(GridPairs.Cells[ACol, ARow]) = '') then
     GridPairs.Cells[ACol, ARow] :=
       GridPairs.Cells[GridPairs.FieldToCol(CBm), ARow - 1];
 end;
 
 // Applies the point prefix, offers AddPoint for an unknown point and
 // recomputes the row.
-procedure TCheckMeasurementsForm.PairCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TCheckMeasurementsForm.PairCommitted(Sender: TObject; ACol, ARow: Integer);
 var
   PointNumber: Int64;
   ListPoint: Point.TPoint;
@@ -88,7 +84,7 @@ begin
   if ARow < GridPairs.FixedRows then Exit;
 
   if (ACol = GridPairs.FieldToCol(CB)) or
-     (ACol = GridPairs.FieldToCol(CBm)) then
+    (ACol = GridPairs.FieldToCol(CBm)) then
   begin
     NormalizePointCell(GridPairs, ACol, ARow);
 
@@ -171,7 +167,7 @@ begin
 
     // A pair without coordinates stays in, only its coordinates are empty
     if Dict.PointExists(PointNumberFrom) and
-       Dict.PointExists(PointNumberTo) then
+      Dict.PointExists(PointNumberTo) then
     begin
       ListPointFrom := Dict.GetPoint(PointNumberFrom);
       ListPointTo := Dict.GetPoint(PointNumberTo);
@@ -230,8 +226,7 @@ begin
 end;
 
 // One row is one pair
-procedure TCheckMeasurementsForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TCheckMeasurementsForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I, R: Integer;
 begin
@@ -239,7 +234,7 @@ begin
 
   R := GridPairs.FixedRows;
   for I := 0 to AFrame.Count - 1 do
-    if PutRow(GridPairs, R, AFrame.Rows[I], I, ABad) then
+    if PutRow(GridPairs, R, AFrame.Rows[I], ABad) then
       Inc(R);
   GridPairs.RowCount := R + 1;
   Recompute;               // fill the results
@@ -247,7 +242,7 @@ end;
 
 procedure TCheckMeasurementsForm.WriteProtocol(ALines: TStrings);
 begin
-  TCheckMeasurementsProtocol.Write(Prot, ALines, FFrame, FAlg, ProtocolRows);
+  TCheckMeasurementsProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 procedure TCheckMeasurementsForm.CalculateClick(Sender: TObject);

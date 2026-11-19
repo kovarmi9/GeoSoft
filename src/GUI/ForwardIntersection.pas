@@ -17,12 +17,10 @@ type
     PanelStations: TPanel;
     LabelStations: TLabel;
     procedure PointCommitted(Sender: TObject; ACol, ARow: Integer);
-    procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer;
-      var ASelectable: Boolean);
+    procedure GridCellSelectable(Sender: TObject; ACol, ARow: Integer; var ASelectable: Boolean);
     procedure CalculateClick(Sender: TObject);
   private
     FAlg: TForwardIntersectionAlgorithm;
-    FStored: Boolean;             // the points went to the list in this run
     procedure Recompute;
     function StationsText: string;
     function RoleOfRow(ARow: Integer): TIntersectionRole;
@@ -78,8 +76,7 @@ begin
 end;
 
 // Station only for new points
-procedure TForwardIntersectionForm.GridCellSelectable(Sender: TObject;
-  ACol, ARow: Integer; var ASelectable: Boolean);
+procedure TForwardIntersectionForm.GridCellSelectable(Sender: TObject; ACol, ARow: Integer; var ASelectable: Boolean);
 begin
   if ACol = Grid.FieldToCol(CBm) then
     ASelectable := RoleOfRow(ARow) in [irPoint, irEmpty]
@@ -141,7 +138,6 @@ var
   Row: TGeoRow;
   ListPoint: Point.TPoint;
 begin
-  FStored := False;             // a changed job is not stored yet
   BuildFrame;
   FAlg.Calculate(FFrame);
 
@@ -183,8 +179,7 @@ begin
   ShowProtocol;
 end;
 
-procedure TForwardIntersectionForm.PointCommitted(Sender: TObject;
-  ACol, ARow: Integer);
+procedure TForwardIntersectionForm.PointCommitted(Sender: TObject; ACol, ARow: Integer);
 begin
   if ARow < Grid.FixedRows then
     Exit;
@@ -220,30 +215,28 @@ begin
         if (FAlg.Roles[J] = irPoint) and (FFrame.Rows[J].CB = OldNumber) then
         begin
           FFrame.Rows[J].CB := Row.CB;
+          FFrame.Rows[J].Stored := Row.Stored;
           Grid.Cells[Grid.FieldToCol(CB), J + Grid.FixedRows] :=
             TPointNumber.ToText(Row.CB);
         end;
     end;
-  FStored := True;
   ShowProtocol;
 end;
 
 // Row by row, the empty rows too, the points are computed again
-procedure TForwardIntersectionForm.LoadFrame(AFrame: TGeoDataFrame;
-  ABad: TStrings);
+procedure TForwardIntersectionForm.LoadFrame(AFrame: TGeoDataFrame; ABad: TStrings);
 var
   I: Integer;
 begin
   ClearGrid(Grid, Grid.FixedRows + AFrame.Count + 1);
   for I := 0 to AFrame.Count - 1 do
-    PutRow(Grid, I + Grid.FixedRows, AFrame.Rows[I], I, ABad);
+    PutRow(Grid, I + Grid.FixedRows, AFrame.Rows[I], ABad);
   Recompute;
 end;
 
 procedure TForwardIntersectionForm.WriteProtocol(ALines: TStrings);
 begin
-  TForwardIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg,
-    ProtocolRows(FStored));
+  TForwardIntersectionProtocol.Write(Prot, ALines, FFrame, FAlg);
 end;
 
 end.

@@ -10,13 +10,10 @@ uses
 type
   TCheckMeasurementsProtocol = class
   private
-    class procedure AddPointNumber(var APointNumbers: TArray<Int64>;
-      APointNumber: Int64);
+    class procedure AddPointNumber(var APointNumbers: TArray<Int64>; APointNumber: Int64);
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TCheckMeasurementsAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TCheckMeasurementsAlgorithm);
   end;
 
 implementation
@@ -29,9 +26,8 @@ const
   USED_LINE  = '%3s  %-18s  %s  %8s';
   CHECK_LINE = '%3s  %-18s  %-18s  %8s  %12s  %8s  %8s  %s';
 
-class procedure TCheckMeasurementsProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TCheckMeasurementsAlgorithm;
-  const ARows: TProtocolRows);
+class procedure TCheckMeasurementsProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TCheckMeasurementsAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -79,17 +75,17 @@ begin
     Check := TCheckMeasurementsAlgorithm.ResultOf(Row, AAlg.Scale);
 
     if not Check.Found then
-      AProt.Text(Format(CHECK_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(CHECK_LINE, [LineId(AFrame, I), PointId(Row.CB),
         PointId(Row.CBm), '', '', '', '',
         '*** nelze spočítat, chybí bod ***']))
     else if Check.HasMeasured then
-      AProt.Text(Format(CHECK_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(CHECK_LINE, [LineId(AFrame, I), PointId(Row.CB),
         PointId(Row.CBm), Num(Check.Measured), Num(Check.Computed),
         Num(Check.Diff), Num(Check.Tolerance),
         TCheckMeasurementsAlgorithm.Verdict(Check)]))
     else
       // KatV annex 17.11 - a value that was not measured goes in brackets
-      AProt.Text(Format(CHECK_LINE, [ARows.Numbers[I], PointId(Row.CB),
+      AProt.Text(Format(CHECK_LINE, [LineId(AFrame, I), PointId(Row.CB),
         PointId(Row.CBm), '', '(' + Num(Check.Computed) + ')', '', '',
         'neměřeno']));
 
@@ -118,8 +114,7 @@ begin
 end;
 
 // Every point of the job once, in order of first use
-class procedure TCheckMeasurementsProtocol.AddPointNumber(
-  var APointNumbers: TArray<Int64>; APointNumber: Int64);
+class procedure TCheckMeasurementsProtocol.AddPointNumber(var APointNumbers: TArray<Int64>; APointNumber: Int64);
 var
   I, Count: Integer;
 begin

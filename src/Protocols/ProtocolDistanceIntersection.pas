@@ -11,9 +11,7 @@ type
   TDistanceIntersectionProtocol = class
   public
     /// <summary>Writes the protocol of the last run into ALines.</summary>
-    class procedure Write(AProt: TProtocol; ALines: TStrings;
-      AFrame: TGeoDataFrame; AAlg: TDistanceIntersectionAlgorithm;
-      const ARows: TProtocolRows);
+    class procedure Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TDistanceIntersectionAlgorithm);
   end;
 
 implementation
@@ -26,9 +24,8 @@ const
   GIVEN_LINE = '%3s  %-18s  %8s  %s  %2s';
   POINT_LINE = '%3s  %-18s  %s  %2s  %s';
 
-class procedure TDistanceIntersectionProtocol.Write(AProt: TProtocol;
-  ALines: TStrings; AFrame: TGeoDataFrame; AAlg: TDistanceIntersectionAlgorithm;
-  const ARows: TProtocolRows);
+class procedure TDistanceIntersectionProtocol.Write(AProt: TProtocol; ALines: TStrings; AFrame: TGeoDataFrame;
+  AAlg: TDistanceIntersectionAlgorithm);
 var
   I: Integer;
   Row: TGeoRow;
@@ -47,7 +44,7 @@ begin
   for I := 0 to GIVEN_POINTS - 1 do
   begin
     Row := AFrame.Rows[I];
-    AProt.Text(Format(GIVEN_LINE, [ARows.Numbers[I], PointId(Row.CB),
+    AProt.Text(Format(GIVEN_LINE, [LineId(AFrame, I), PointId(Row.CB),
       Num(Row.SH), CoordPair(Row.X, Row.Y), IntToStr(Row.KK)]));
   end;
   AProt.Line;
@@ -68,9 +65,9 @@ begin
   AProt.Section('URČOVANÝ BOD');
   AProt.TableHeader(Format(POINT_LINE,
     ['Č.', 'Číslo bodu', CoordCaption, 'KK', '']));
-  AProt.Text(Format(POINT_LINE, [ARows.Numbers[GIVEN_POINTS],
+  AProt.Text(Format(POINT_LINE, [LineId(AFrame, GIVEN_POINTS),
     PointId(Row.CB), CoordPair(Row.X, Row.Y), IntToStr(Row.KK),
-    ARows.Notes[GIVEN_POINTS]]));
+    StoredText(Row)]));
   AProt.Line;
 
   // 6. Messages and the end

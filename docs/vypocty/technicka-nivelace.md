@@ -18,14 +18,16 @@ Pořad se měří jen tam, nebo tam a zpět.
 - **Tam a zpět** (zaškrtávátko): bod obratu se zapíše na řádek vpřed
   i na následující řádek vzad, pořad skončí na bodě začátku.
 - Po každé změně se pořad přepočítá. Výpočet uloží vypočtené výšky
-  do seznamu. Bod ze seznamu si ponechá polohu, nový bod má jen výšku.
+  do seznamu, jen u bodů s číslem a bez dané výšky. Bod ze seznamu
+  si ponechá polohu, nový bod má jen výšku.
 - Jeden zápisník je jeden pořad.
 
 ## Kde se co počítá
 
 | unit | výpočet |
 |---|---|
-| `GUI/Levelling.pas` | tabulka → frame, dané výšky ze seznamu, výsledky zpět, uložení výšek, zápisník, protokol |
+| `GUI/Levelling.pas` | tabulka → frame, dané výšky ze seznamu, výsledky zpět, uložení výšek, zápisník |
+| `Protocols/ProtocolLevelling.pas` | protokol |
 | `GeoAlgorithms/GeoAlgorithmLevelling.pas` | kontrola zápisníku, převýšení, odchylka, mez, oprava, výšky |
 
 ```mermaid

@@ -1,9 +1,11 @@
 ﻿unit GeoDataFrame;
 
+// Rows of one task, CSV and binary file
+
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Math, GeoRow, PointNumber;
+  System.SysUtils, System.Classes, System.Math, GeoRow;
 
 type
   /// <summary>Rows of one task and the fields it uses.</summary>
@@ -13,16 +15,13 @@ type
     FCapacity: Integer;      // number of rows allocated
     FFields: TGeoFields;     // active field columns
     FRows: TGeoRowArray;     // row storage
-    FLines: TArray<Integer>; // line in the file of each row
 
     procedure Reserve(ANeed: Integer);
     procedure SetCount(const Value: Integer);
 
   public
-    /// <summary>Empty table with all fields.</summary>
-    constructor Create; overload;
-    /// <summary>Empty table with the given fields.</summary>
-    constructor Create(const AFields: TGeoFields); overload;
+    /// <summary>Empty table with the given fields, all by default.</summary>
+    constructor Create(const AFields: TGeoFields = [Low(TGeoField)..High(TGeoField)]);
 
     /// <summary>Number of rows. Setting it adds or drops rows.</summary>
     property Count: Integer read FCount write SetCount;
@@ -32,18 +31,16 @@ type
     property Fields: TGeoFields read FFields write FFields;
     /// <summary>The rows. Use Count, not Length(Rows).</summary>
     property Rows: TGeoRowArray read FRows;
-    /// <summary>Line in the file of each row, only after FromCSV.</summary>
-    property Lines: TArray<Integer> read FLines;
 
     /// <summary>Deletes all rows. Fields stay.</summary>
     procedure ClearData;
 
-    /// <summary>Adds one empty row.</summary>
-    procedure AddRow; overload;
-    /// <summary>Adds ACount empty rows.</summary>
-    procedure AddRow(ACount: Integer); overload;
+    /// <summary>Adds ACount empty rows, one by default.</summary>
+    procedure AddRow(ACount: Integer = 1); overload;
     /// <summary>Adds a copy of the row.</summary>
     procedure AddRow(const ARow: TGeoRow); overload;
+    /// <summary>Č. of row I, its order when it has no Line.</summary>
+    function LineOf(I: Integer): Integer;
 
     /// <summary>Readable dump of the frame.</summary>
     function Print: string;
@@ -88,54 +85,32 @@ end;
 // Splits one CSV line into cells, handles quotes and ""
 function SplitCsvLine(const ALine: string; ASep: Char): TStrArray;
 var
-  I, N: Integer;
+  Ch, Previous: Char;
   InQuotes: Boolean;
-  Ch: Char;
   Buf: string;
 begin
-  SetLength(Result, 0);
+  Result := nil;
   Buf := '';
   InQuotes := False;
-  N := 0;
-  I := 1;
-
-  while I <= Length(ALine) do
+  Previous := #0;
+  for Ch in ALine do
   begin
-    Ch := ALine[I];
-
     if Ch = '"' then
     begin
-      // "" inside quotes means one " in the cell
-      if InQuotes and (I < Length(ALine)) and (ALine[I + 1] = '"') then
-      begin
-        Buf := Buf + '"';
-        I := I + 2;
-        Continue;
-      end
-      else
-      begin
-        InQuotes := not InQuotes;
-        I := I + 1;
-        Continue;
-      end;
-    end;
-
-    if (not InQuotes) and (Ch = ASep) then
+      InQuotes := not InQuotes;
+      if InQuotes and (Previous = '"') then
+        Buf := Buf + '"';      // "" is one " in the cell
+    end
+    else if (Ch = ASep) and not InQuotes then
     begin
-      SetLength(Result, N + 1);
-      Result[N] := Buf;
-      N := N + 1;
+      Result := Result + [Buf];
       Buf := '';
-      I := I + 1;
-      Continue;
-    end;
-
-    Buf := Buf + Ch;
-    I := I + 1;
+    end
+    else
+      Buf := Buf + Ch;
+    Previous := Ch;
   end;
-
-  SetLength(Result, N + 1);
-  Result[N] := Buf;
+  Result := Result + [Buf];
 end;
 
 // Converts a TGeoFields set to a bitmask (one bit per enum ordinal)
@@ -161,16 +136,10 @@ begin
 end;
 
 // Count, Capacity and Rows start empty: Delphi zeroes every new object
-constructor TGeoDataFrame.Create;
-begin
-  inherited Create;
-  FFields := [Low(TGeoField)..High(TGeoField)];
-end;
-
 constructor TGeoDataFrame.Create(const AFields: TGeoFields);
 begin
-  Self.Create;
-  Fields := AFields;
+  inherited Create;
+  FFields := AFields;
 end;
 
 // Doubles capacity until it covers ANeed. Does nothing if it already does
@@ -187,56 +156,30 @@ end;
 
 procedure TGeoDataFrame.SetCount(const Value: Integer);
 var
-  I, OldCount: Integer;
+  I: Integer;
 begin
   if Value < 0 then
     raise ERangeError.CreateFmt('Neplatný počet řádků: %d', [Value]);
 
-  OldCount := FCount;
-
-  if Value > FCapacity then
-    Reserve(Value);
-
-  // New rows start empty
-  if Value > OldCount then
-  begin
-    for I := OldCount to Value - 1 do
-      ClearGeoRow(FRows[I]);
-  end
-  else if Value < OldCount then
-  begin
-    // Empty the dropped rows too
-    for I := Value to OldCount - 1 do
-      ClearGeoRow(FRows[I]);
-  end;
-
+  Reserve(Value);
+  // New rows start empty, dropped rows are emptied too
+  for I := Min(Value, FCount) to Max(Value, FCount) - 1 do
+    ClearGeoRow(FRows[I]);
   FCount := Value;
 end;
 
 procedure TGeoDataFrame.ClearData;
 begin
   SetLength(FRows, 0);
-  FLines := nil;
   FCount := 0;
   FCapacity := 0;
   // FFields is intentionally kept
 end;
 
-procedure TGeoDataFrame.AddRow;
-begin
-  AddRow(1);
-end;
-
 procedure TGeoDataFrame.AddRow(ACount: Integer);
-var
-  I, NewCount: Integer;
 begin
-  if ACount <= 0 then Exit;
-  NewCount := FCount + ACount;
-  Reserve(NewCount);
-  for I := FCount to NewCount - 1 do
-    ClearGeoRow(FRows[I]);
-  FCount := NewCount;
+  if ACount > 0 then
+    Count := FCount + ACount;
 end;
 
 procedure TGeoDataFrame.AddRow(const ARow: TGeoRow);
@@ -246,6 +189,14 @@ begin
   Row := ARow;     // ARow may point into FRows, which AddRow(1) can move
   AddRow(1);
   FRows[FCount - 1] := Row;
+end;
+
+// Built in code, no lines
+function TGeoDataFrame.LineOf(I: Integer): Integer;
+begin
+  Result := FRows[I].Line;
+  if Result = 0 then
+    Result := I + 1;
 end;
 
 function TGeoDataFrame.Print: string;
@@ -325,12 +276,8 @@ var
   ColMap: array of TGeoField;
   ColKnown: array of Boolean;
   I, J: Integer;
-  Field: TGeoField;
   UsedFields: TGeoFields;
   S, Bad: string;
-  Number: Double;
-  Whole: Integer;
-  PointNumber: Int64;
 begin
   if (ACSV = nil) or (ACSV.Count = 0) then
   begin
@@ -349,14 +296,9 @@ begin
 
   for J := 0 to ColCount - 1 do
   begin
-    if FindGeoField(Trim(Header[J]), Field) then
-    begin
-      ColMap[J]   := Field;
-      ColKnown[J] := True;
-      Include(UsedFields, Field);
-    end
-    else
-      ColKnown[J] := False;
+    ColKnown[J] := FindGeoField(Trim(Header[J]), ColMap[J]);
+    if ColKnown[J] then
+      Include(UsedFields, ColMap[J]);
   end;
 
   // A wrong cell separator leaves the whole header as one unknown name
@@ -373,6 +315,7 @@ begin
     if Trim(ACSV[I]) <> '' then
     begin
       AddRow;
+      FRows[FCount - 1].Line := I + 1;   // the header is line 1
       Bad := '';
       Cells := SplitCsvLine(ACSV[I], ACellSep);
       for J := 0 to High(Cells) do
@@ -382,19 +325,8 @@ begin
           // Accept a dot too, not in the note
           if ColMap[J] <> Popis then
             S := StringReplace(S, '.', ADecSep, [rfReplaceAll]);
-          TextToGeoField(FRows[FCount - 1], ColMap[J], S, FS);
-          // Only the note is text
-          if not (ColMap[J] in [CB, CBm, Popis]) and (Trim(S) <> '') and
-             not TryStrToFloat(Trim(S), Number, FS) and (Bad = '') then
-            Bad := GeoFieldInfo[ColMap[J]].Name + ' = ' + Trim(Cells[J]);
-          // Digits only, 0 means none
-          if (ColMap[J] in [CB, CBm]) and (Trim(S) <> '') and
-             (Trim(S) <> '0') and not TPointNumber.TryParse(S, PointNumber) and
-             (Bad = '') then
-            Bad := GeoFieldInfo[ColMap[J]].Name + ' = ' + Trim(Cells[J]);
-          // Checked, type and quality are whole numbers
-          if (ColMap[J] in [Checked, Typ, KK]) and (Trim(S) <> '') and
-             not TryStrToInt(Trim(S), Whole) and (Bad = '') then
+          if not TextToGeoField(FRows[FCount - 1], ColMap[J], S, FS) and
+            (Bad = '') then
             Bad := GeoFieldInfo[ColMap[J]].Name + ' = ' + Trim(Cells[J]);
         end;
 
@@ -404,9 +336,7 @@ begin
         Count := Count - 1;
         if Assigned(ABad) then
           ABad.Add(Format('řádek %d: %s', [I + 1, Bad]));
-      end
-      else
-        FLines := FLines + [I + 1];    // the header is line 1
+      end;
     end;
 end;
 
@@ -426,49 +356,30 @@ end;
 
 procedure TGeoDataFrame.SaveToFile(const AFileName: string);
 var
-  Buffer: TGeoRowArray;
   Header: TGeoRow;
-  I: Integer;
 begin
-  SetLength(Buffer, FCount + 1);
-
-  // The first record is always the header with the field mask
+  // The first record is the header with the field mask
   ClearGeoRow(Header);
   Header.Typ := Integer(GeoFieldsToMask(FFields));
-
-  Buffer[0] := Header;
-
-  for I := 0 to FCount - 1 do
-    Buffer[I + 1] := FRows[I];
-
-  SaveRows(AFileName, Buffer);
+  SaveRow(AFileName, Header);
+  SaveRows(AFileName, Copy(FRows, 0, FCount), True);
 end;
 
 procedure TGeoDataFrame.LoadFromFile(const AFileName: string);
 var
   AllRows: TGeoRowArray;
-  Header: TGeoRow;
-  UsedFields: TGeoFields;
-  First, I: Integer;
+  I: Integer;
 begin
   AllRows := LoadRows(AFileName);
-
+  ClearData;
   if Length(AllRows) = 0 then
-  begin
-    ClearData;
     Exit;
-  end;
 
   // The first record is the header with the field mask
-  Header := AllRows[0];
-  UsedFields := MaskToGeoFields(LongWord(Header.Typ));
-  First := 1;               // data start after the header
-
-  ClearData;
-  FFields := UsedFields;
-  SetCount(Length(AllRows) - First);
+  FFields := MaskToGeoFields(LongWord(AllRows[0].Typ));
+  Count := Length(AllRows) - 1;
   for I := 0 to Count - 1 do
-    FRows[I] := AllRows[I + First];
+    FRows[I] := AllRows[I + 1];
 end;
 
 end.

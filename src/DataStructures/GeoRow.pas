@@ -1,6 +1,6 @@
 ﻿unit GeoRow;
 
-// One row of a task notebook, its fields and binary file.
+// One row of a task notebook, its fields and binary file
 
 interface
 
@@ -26,10 +26,7 @@ type
     Kol,
     Popis,
     KK,
-    M1,
-    M2,
-    M3,
-    M4
+    M1, M2, M3, M4
   );
 
   /// <summary>A choice of fields, e.g. [CB, X, Y].</summary>
@@ -58,6 +55,13 @@ type
     WrapAt:        Double;    // 400 for a direction in gon
   end;
 
+  /// <summary>What Výpočet did with the point in the list.</summary>
+  TGeoStored = (
+    gsNone,          // not stored, or new point
+    gsOverwritten,   // the list point was replaced
+    gsAveraged       // the list point was averaged
+  );
+
   /// <summary>One measurement of a task.</summary>
   TGeoRow = packed record
     Checked:    Boolean;                  // used in the calculation
@@ -76,30 +80,29 @@ type
     Kol:        Double;                   // across the line, signed (kolmice)
     Popis:      string[MAX_POPIS_LENGTH]; // point description
     KK:         Integer;                  // quality code, 0 = none
-    M1:         Double;                   // results, meaning by task
-    M2:         Double;
-    M3:         Double;
-    M4:         Double;
+    M1, M2, M3, M4: Double;               // results, meaning by task
+    // For the protocol only, not in TGeoField
+    Line:       Integer;                  // grid row or CSV line, 0 = none
+    Stored:     TGeoStored;               // set by StorePoint
   end;
 
   /// <summary>Array of rows.</summary>
   TGeoRowArray = array of TGeoRow;
 
-/// <summary>Empties the row: numbers NaN, texts '', integers 0, Checked True.</summary>
+/// <summary>Empties the row: numbers NaN, the rest 0, Checked True.</summary>
 procedure ClearGeoRow(var ARow: TGeoRow);
 
-/// <summary>Readable dump of the row, one field per line.</summary>
-function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer = -1): string; overload;
 /// <summary>Readable dump of the chosen fields of the row.</summary>
-function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer = -1): string; overload;
+function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields = [Low(TGeoField)..High(TGeoField)];
+  ARowIndex: Integer = -1): string;
 
 /// <summary>Names of the fields, separated by ASep.</summary>
 function PrintGeoFields(const AFields: TGeoFields; const ASep: string = ', '): string;
 
 /// <summary>One field as text. NaN gives ''.</summary>
 function GeoFieldToText(const ARow: TGeoRow; AField: TGeoField; const AFormat: string; const AFS: TFormatSettings): string;
-/// <summary>Text into one field. Non-number text keeps the field.</summary>
-procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField; const AText: string; const AFS: TFormatSettings);
+/// <summary>Text into one field, False for a bad value.</summary>
+function TextToGeoField(var ARow: TGeoRow; AField: TGeoField; const AText: string; const AFS: TFormatSettings): Boolean;
 
 /// <summary>Finds a field by its name. Case does not matter.</summary>
 function FindGeoField(const AName: string; out AField: TGeoField): Boolean;
@@ -117,8 +120,7 @@ function LoadRows(const AFileName: string): TGeoRowArray;
 const
   /// <summary>Catalogue of the fields, in TGeoField order.</summary>
   GeoFieldInfo: array[TGeoField] of TGeoFieldInfo = (
-    (Name: 'Checked'; Caption: 'Použít';            Kind: fkInteger; MaxLength: 1;
-      HasMinValue: True; HasMaxValue: True; MaxValue: 1),
+    (Name: 'Checked'; Caption: 'Použít';            Kind: fkInteger; MaxLength: 1; HasMinValue: True; HasMaxValue: True; MaxValue: 1),
     (Name: 'CB';      Caption: 'Číslo bodu';        Kind: fkPointNumber),
     (Name: 'X';       Caption: 'X';                 Kind: fkNumber;  DecimalPlaces: 2),
     (Name: 'Y';       Caption: 'Y';                 Kind: fkNumber;  DecimalPlaces: 2),
@@ -133,13 +135,11 @@ const
     (Name: 'VS';      Caption: 'Výška přístroje';   Kind: fkNumber;  DecimalPlaces: 2),
     (Name: 'VC';      Caption: 'Výška cíle';        Kind: fkNumber;  DecimalPlaces: 2),
     (Name: 'HZ';      Caption: 'HZ úhel [g]';       Kind: fkNumber;  DecimalPlaces: 4; WrapAt: 400),
-    (Name: 'ZU';      Caption: 'Zenitový úhel [g]'; Kind: fkNumber;  DecimalPlaces: 4;
-      HasMinValue: True; HasMaxValue: True; MaxValue: 400),
+    (Name: 'ZU';      Caption: 'Zenitový úhel [g]'; Kind: fkNumber;  DecimalPlaces: 4; HasMinValue: True; HasMaxValue: True; MaxValue: 400),
     (Name: 'Sta';     Caption: 'Polární doměrek';   Kind: fkNumber;  DecimalPlaces: 2),
     (Name: 'Kol';     Caption: 'Polární kolmice';   Kind: fkNumber;  DecimalPlaces: 2),
     (Name: 'Popis';   Caption: 'Popis';             Kind: fkText;    MaxLength: MAX_POPIS_LENGTH),
-    (Name: 'KK';      Caption: 'Kód kvality';       Kind: fkInteger; MaxLength: 1;
-      HasMinValue: True; MinValue: MIN_KK; HasMaxValue: True; MaxValue: MAX_KK),
+    (Name: 'KK';      Caption: 'Kód kvality';       Kind: fkInteger; MaxLength: 1; HasMinValue: True; MinValue: MIN_KK; HasMaxValue: True; MaxValue: MAX_KK),
     (Name: 'M1';      Caption: 'M1';                Kind: fkResult;  DecimalPlaces: 2),
     (Name: 'M2';      Caption: 'M2';                Kind: fkResult;  DecimalPlaces: 2),
     (Name: 'M3';      Caption: 'M3';                Kind: fkResult;  DecimalPlaces: 2),
@@ -150,33 +150,16 @@ implementation
 
 procedure ClearGeoRow(var ARow: TGeoRow);
 begin
-  ARow.Checked := True;     // a new row is used
-  ARow.CB := 0;
+  ARow := Default(TGeoRow);   // 0, '', gsNone
+  ARow.Checked := True;       // a new row is used
   // NaN marks a value nobody filled in
   ARow.X := NaN; ARow.Y := NaN; ARow.Z := NaN;
-  ARow.CBm := 0;
   ARow.Xm := NaN; ARow.Ym := NaN; ARow.Zm := NaN;
-  ARow.Typ := 0;
-  ARow.SH := NaN;
-  ARow.SS := NaN;
-  ARow.VS := NaN;
-  ARow.VC := NaN;
-  ARow.HZ := NaN;
-  ARow.ZU := NaN;
-  ARow.Sta := NaN;
-  ARow.Kol := NaN;
-  ARow.Popis := '';
-  ARow.KK := 0;
+  ARow.SH := NaN; ARow.SS := NaN; ARow.VS := NaN; ARow.VC := NaN;
+  ARow.HZ := NaN; ARow.ZU := NaN; ARow.Sta := NaN; ARow.Kol := NaN;
   ARow.M1 := NaN; ARow.M2 := NaN; ARow.M3 := NaN; ARow.M4 := NaN;
 end;
 
-// All fields, no mask
-function PrintGeoRow(const ARow: TGeoRow; ARowIndex: Integer): string;
-begin
-  Result := PrintGeoRow(ARow, [Low(TGeoField)..High(TGeoField)], ARowIndex);
-end;
-
-// Angles need more places
 function PrintGeoRow(const ARow: TGeoRow; const AFields: TGeoFields; ARowIndex: Integer): string;
 var
   F: TGeoField;
@@ -191,7 +174,7 @@ begin
     if F in AFields then
     begin
       if F in [HZ, ZU] then
-        Mask := '0.000000'
+        Mask := '0.000000'      // angles need more places
       else
         Mask := '0.000';
       Result := Result + GeoFieldInfo[F].Name + ': ' +
@@ -202,17 +185,14 @@ end;
 function PrintGeoFields(const AFields: TGeoFields; const ASep: string): string;
 var
   F: TGeoField;
-  First: Boolean;
 begin
   Result := '';
-  First := True;
   for F := Low(TGeoField) to High(TGeoField) do
     if F in AFields then
     begin
-      if not First then
+      if Result <> '' then
         Result := Result + ASep;
       Result := Result + GeoFieldInfo[F].Name;
-      First := False;
     end;
 end;
 
@@ -258,38 +238,44 @@ begin
 end;
 
 // Text that is not a number leaves the field alone, so an empty cell stays NaN
-procedure TextToGeoField(var ARow: TGeoRow; AField: TGeoField; const AText: string; const AFS: TFormatSettings);
+function TextToGeoField(var ARow: TGeoRow; AField: TGeoField; const AText: string; const AFS: TFormatSettings): Boolean;
 var
   S: string;
   N: Integer;
   P: Int64;
 begin
   S := Trim(AText);
+  Result := True;
+  if S = '' then
+    Exit;
   case AField of
-    Checked:  if (S = '0') or (S = '1') then ARow.Checked := S = '1';
-    CB:       if TPointNumber.TryParse(S, P) then ARow.CB := P;
-    X:        TryStrToFloat(S, ARow.X, AFS);
-    Y:        TryStrToFloat(S, ARow.Y, AFS);
-    Z:        TryStrToFloat(S, ARow.Z, AFS);
-    CBm:      if TPointNumber.TryParse(S, P) then ARow.CBm := P;
-    Xm:       TryStrToFloat(S, ARow.Xm, AFS);
-    Ym:       TryStrToFloat(S, ARow.Ym, AFS);
-    Zm:       TryStrToFloat(S, ARow.Zm, AFS);
-    Typ:      if TryStrToInt(S, N) then ARow.Typ := N;
-    SH:       TryStrToFloat(S, ARow.SH, AFS);
-    SS:       TryStrToFloat(S, ARow.SS, AFS);
-    VS:       TryStrToFloat(S, ARow.VS, AFS);
-    VC:       TryStrToFloat(S, ARow.VC, AFS);
-    HZ:       TryStrToFloat(S, ARow.HZ, AFS);
-    ZU:       TryStrToFloat(S, ARow.ZU, AFS);
-    Sta:      TryStrToFloat(S, ARow.Sta, AFS);
-    Kol:      TryStrToFloat(S, ARow.Kol, AFS);
+    Checked:  if (S = '0') or (S = '1') then ARow.Checked := S = '1'
+              else Result := False;
+    CB:       if TPointNumber.TryParse(S, P) then ARow.CB := P
+              else Result := S = '0';
+    X:        Result := TryStrToFloat(S, ARow.X, AFS);
+    Y:        Result := TryStrToFloat(S, ARow.Y, AFS);
+    Z:        Result := TryStrToFloat(S, ARow.Z, AFS);
+    CBm:      if TPointNumber.TryParse(S, P) then ARow.CBm := P
+              else Result := S = '0';
+    Xm:       Result := TryStrToFloat(S, ARow.Xm, AFS);
+    Ym:       Result := TryStrToFloat(S, ARow.Ym, AFS);
+    Zm:       Result := TryStrToFloat(S, ARow.Zm, AFS);
+    Typ:      if TryStrToInt(S, N) then ARow.Typ := N else Result := False;
+    SH:       Result := TryStrToFloat(S, ARow.SH, AFS);
+    SS:       Result := TryStrToFloat(S, ARow.SS, AFS);
+    VS:       Result := TryStrToFloat(S, ARow.VS, AFS);
+    VC:       Result := TryStrToFloat(S, ARow.VC, AFS);
+    HZ:       Result := TryStrToFloat(S, ARow.HZ, AFS);
+    ZU:       Result := TryStrToFloat(S, ARow.ZU, AFS);
+    Sta:      Result := TryStrToFloat(S, ARow.Sta, AFS);
+    Kol:      Result := TryStrToFloat(S, ARow.Kol, AFS);
     Popis:    ARow.Popis := ShortString(Copy(S, 1, MAX_POPIS_LENGTH));
-    KK:       if TryStrToInt(S, N) then ARow.KK := N;
-    M1:       TryStrToFloat(S, ARow.M1, AFS);
-    M2:       TryStrToFloat(S, ARow.M2, AFS);
-    M3:       TryStrToFloat(S, ARow.M3, AFS);
-    M4:       TryStrToFloat(S, ARow.M4, AFS);
+    KK:       if TryStrToInt(S, N) then ARow.KK := N else Result := False;
+    M1:       Result := TryStrToFloat(S, ARow.M1, AFS);
+    M2:       Result := TryStrToFloat(S, ARow.M2, AFS);
+    M3:       Result := TryStrToFloat(S, ARow.M3, AFS);
+    M4:       Result := TryStrToFloat(S, ARow.M4, AFS);
   end;
 end;
 

@@ -31,9 +31,6 @@ type
   private
     FInfo: TLevellingInfo;
     FBothWays: Boolean;
-    FRowNumbers: TArray<Integer>;
-    // Č. of the row, else its order
-    function RowNumber(I: Integer): Integer;
     function CheckLayout(AFrame: TGeoDataFrame): Boolean;
     function FindTurn(AFrame: TGeoDataFrame): Integer;
     procedure SumRows(AFrame: TGeoDataFrame; AFrom, ATo: Integer; out ASum, ALength: Double);
@@ -49,15 +46,13 @@ type
 
     /// <summary>Measured there and back, the turn point twice.</summary>
     property BothWays: Boolean read FBothWays write FBothWays;
-    /// <summary>Č. of each frame row, empty means 1, 2, 3.</summary>
-    property RowNumbers: TArray<Integer> read FRowNumbers write FRowNumbers;
+    /// <summary>Results of the last run.</summary>
     property Info: TLevellingInfo read FInfo;
   end;
 
 implementation
 
-class function TLevellingAlgorithm.ReadingOf(
-  const ARow: TGeoRow): TLevellingReading;
+class function TLevellingAlgorithm.ReadingOf(const ARow: TGeoRow): TLevellingReading;
 var
   Count: Integer;
 begin
@@ -81,14 +76,6 @@ begin
     Result := lrNone;
 end;
 
-function TLevellingAlgorithm.RowNumber(I: Integer): Integer;
-begin
-  if (I < Length(FRowNumbers)) and (FRowNumbers[I] >= 0) then
-    Result := FRowNumbers[I]
-  else
-    Result := I + 1;
-end;
-
 // A setup is back, side readings, fore. The start needs a height.
 function TLevellingAlgorithm.CheckLayout(AFrame: TGeoDataFrame): Boolean;
 var
@@ -108,19 +95,19 @@ begin
   begin
     Reading := ReadingOf(AFrame.Rows[I]);
     if Reading = lrNone then
-      AddError(Format('Řádek %d: chybí čtení.', [RowNumber(I)]))
+      AddError(Format('Řádek %d: chybí čtení.', [AFrame.LineOf(I)]))
     else if Reading = lrMore then
-      AddError(Format('Řádek %d: vyplňte jen jedno čtení.', [RowNumber(I)]))
+      AddError(Format('Řádek %d: vyplňte jen jedno čtení.', [AFrame.LineOf(I)]))
     else if (Reading = lrBack) and (Previous <> lrFore) then
       AddError(Format('Řádek %d: čtení vzad bez předchozího vpřed.',
-        [RowNumber(I)]))
+        [AFrame.LineOf(I)]))
     else if (Reading <> lrBack) and (Previous = lrFore) then
-      AddError(Format('Řádek %d: chybí čtení vzad.', [RowNumber(I)]))
+      AddError(Format('Řádek %d: chybí čtení vzad.', [AFrame.LineOf(I)]))
     else
       Previous := Reading;
 
     if IsNan(AFrame.Rows[I].SH) then
-      AddError(Format('Řádek %d: chybí délka záměry.', [RowNumber(I)]));
+      AddError(Format('Řádek %d: chybí délka záměry.', [AFrame.LineOf(I)]));
   end;
   if Previous <> lrFore then
     AddError('Pořad musí končit čtením vpřed.');
@@ -140,9 +127,9 @@ begin
   Result := -1;
   for I := 0 to AFrame.Count - 2 do
     if (ReadingOf(AFrame.Rows[I]) = lrFore) and
-       (ReadingOf(AFrame.Rows[I + 1]) = lrBack) and
-       (AFrame.Rows[I].CB <> 0) and
-       (AFrame.Rows[I].CB = AFrame.Rows[I + 1].CB) then
+      (ReadingOf(AFrame.Rows[I + 1]) = lrBack) and
+      (AFrame.Rows[I].CB <> 0) and
+      (AFrame.Rows[I].CB = AFrame.Rows[I + 1].CB) then
     begin
       if Result >= 0 then
       begin
@@ -210,7 +197,7 @@ begin
     Best := -1;
     for I := 0 to High(Backs) do
       if not Chosen[I] and ((Best < 0) or
-         (AFrame.Rows[Backs[I]].Xm > AFrame.Rows[Backs[Best]].Xm)) then
+        (AFrame.Rows[Backs[I]].Xm > AFrame.Rows[Backs[Best]].Xm)) then
         Best := I;
     Chosen[Best] := True;
     AFrame.Rows[Backs[Best]].M1 := AFrame.Rows[Backs[Best]].M1 +
@@ -296,12 +283,12 @@ begin
   for I := 0 to Turn do
   begin
     if (ReadingOf(AFrame.Rows[I]) = lrSide) or
-       (AFrame.Rows[I].CB = 0) or
-       (AFrame.Rows[I].CB = AFrame.Rows[0].CB) then
+      (AFrame.Rows[I].CB = 0) or
+      (AFrame.Rows[I].CB = AFrame.Rows[0].CB) then
       Continue;
     for J := Turn + 1 to LastRow do
       if (ReadingOf(AFrame.Rows[J]) <> lrSide) and
-         (AFrame.Rows[J].CB = AFrame.Rows[I].CB) then
+        (AFrame.Rows[J].CB = AFrame.Rows[I].CB) then
       begin
         Mean := (AFrame.Rows[I].M2 + AFrame.Rows[J].M2) / 2;
         AFrame.Rows[I].M2 := Mean;
@@ -315,8 +302,8 @@ begin
   // A back row without a number is the point of the fore row above it
   for I := 1 to LastRow do
     if (ReadingOf(AFrame.Rows[I]) = lrBack) and
-       (AFrame.Rows[I].CB = 0) and
-       (ReadingOf(AFrame.Rows[I - 1]) = lrFore) then
+      (AFrame.Rows[I].CB = 0) and
+      (ReadingOf(AFrame.Rows[I - 1]) = lrFore) then
       AFrame.Rows[I].M2 := AFrame.Rows[I - 1].M2;
 
   FInfo.Valid := True;

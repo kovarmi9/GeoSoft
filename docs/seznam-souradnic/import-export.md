@@ -15,9 +15,11 @@ Ukázka řádku TXT (oddělovač je tabulátor) v pořadí Y, X:
 000000000000012	825000,123	1075000,456	312,500	3	hraniční kámen
 ```
 
-CSV má stejný řádek, jen se středníky. Textové soubory se čtou a zapisují
-v kódování Windows (ANSI); soubor uložený v UTF-8 bude mít v popisu
-rozsypanou diakritiku.
+CSV má stejný řádek, jen se středníky. Popis, který obsahuje oddělovač
+nebo uvozovky, se zapíše do uvozovek (uvozovky uvnitř zdvojené) a import
+ho přečte zpět celý. Soubory se zapisují v kódování Windows (ANSI). Při
+čtení se soubor v UTF-8 se značkou BOM (například „CSV UTF-8“ z Excelu)
+pozná sám, soubor v UTF-8 bez BOM bude mít v popisu rozsypanou diakritiku.
 
 Import seznam nemaže: nejdřív přečte celý soubor, pak body přidá. U bodu,
 jehož číslo již v seznamu existuje, se zeptá: ponechat původní, uložit nový,

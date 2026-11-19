@@ -189,28 +189,34 @@ end;
 procedure TPointDictionary.ExportText(const FileName: string;
   ADelimiter: Char; APlaces: Integer);
 var
-  TxtFile: TextFile;
+  Lines, Fields: TStringList;
   Key: Int64;
   P: TPoint;
   C1, C2: Double;
 begin
-  AssignFile(TxtFile, FileName);
-  Rewrite(TxtFile);
+  Lines := TStringList.Create;
+  Fields := TStringList.Create;
   try
+    Fields.Delimiter := ADelimiter;
+    Fields.StrictDelimiter := True;
     for Key in SortedNumbers do
     begin
       P := FPointDict[Key];
       CoordRead(P, C1, C2);
-      WriteLn(TxtFile,
-        TPointNumber.ToText(P.PointNumber) + ADelimiter +
-        FloatToStrF(C1, ffFixed, 18, APlaces, CommaFormat) + ADelimiter +
-        FloatToStrF(C2, ffFixed, 18, APlaces, CommaFormat) + ADelimiter +
-        FloatToStrF(P.Z, ffFixed, 18, APlaces, CommaFormat) + ADelimiter +
-        IntToStr(P.Quality) + ADelimiter +
-        string(P.Description));
+      Fields.Clear;
+      Fields.Add(TPointNumber.ToText(P.PointNumber));
+      Fields.Add(FloatToStrF(C1, ffFixed, 18, APlaces, CommaFormat));
+      Fields.Add(FloatToStrF(C2, ffFixed, 18, APlaces, CommaFormat));
+      Fields.Add(FloatToStrF(P.Z, ffFixed, 18, APlaces, CommaFormat));
+      Fields.Add(IntToStr(P.Quality));
+      Fields.Add(string(P.Description));
+      // A description with the delimiter goes in quotes
+      Lines.Add(Fields.DelimitedText);
     end;
+    Lines.SaveToFile(FileName);
   finally
-    CloseFile(TxtFile);
+    Fields.Free;
+    Lines.Free;
   end;
 end;
 
@@ -218,9 +224,8 @@ end;
 function TPointDictionary.ReadText(const FileName: string; ADelimiter: Char;
   APoints: TList<TPoint>): Integer;
 var
-  TxtFile: TextFile;
+  Lines, Fields: TStringList;
   Line: string;
-  Fields: TStringList;
   Coords, P: TPoint;
   Number: Int64;
   Quality: Integer;
@@ -228,16 +233,16 @@ begin
   CheckFileExists(FileName);
   Result := 0;
 
-  AssignFile(TxtFile, FileName);
-  Reset(TxtFile);
+  Lines := TStringList.Create;
   Fields := TStringList.Create;
   try
+    // UTF-8 with BOM too, like the notebooks
+    Lines.LoadFromFile(FileName);
     Fields.Delimiter := ADelimiter;
     Fields.StrictDelimiter := True;
 
-    while not Eof(TxtFile) do
+    for Line in Lines do
     begin
-      ReadLn(TxtFile, Line);
       if Trim(Line) = '' then
         Continue;                    // empty lines are not counted
 
@@ -274,7 +279,7 @@ begin
     end;
   finally
     Fields.Free;
-    CloseFile(TxtFile);
+    Lines.Free;
   end;
 end;
 

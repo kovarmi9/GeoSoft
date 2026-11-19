@@ -100,7 +100,7 @@ begin
   AProt.Text('Měřítko délek = ' + Num(AAlg.Scale, 7));
   AProt.Text('Or. posun = ' + Ang(AAlg.Info.phi) +
     '    m0 = √([pvv] / (n - 1)) = ' + Ang(AAlg.Info.m0) +
-    '    Mezní = ' + Ang(MEZNI_DFI));
+    '    Mezní = ' + Ang(MAX_DPHI));
   AProt.Text('Normovaná odchylka = v·√p, v je odchylka a p váha orientace');
   AProt.Text(LengthLimitSource);
 end;

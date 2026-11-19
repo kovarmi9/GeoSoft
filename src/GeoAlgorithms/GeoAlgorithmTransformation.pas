@@ -11,9 +11,9 @@ uses
 
 const
   // Task 65 has no distances, so Typ carries the role of the row
-  DRUH_IDENTICKY = 1;   // identical point in the key
-  DRUH_KONTROLNI = 2;   // identical point left out of the key
-  DRUH_URCOVANY  = 3;   // point computed by the key
+  POINT_IDENTICAL  = 1;   // identical point in the key
+  POINT_CHECK      = 2;   // identical point left out of the key
+  POINT_DETERMINED = 3;   // point computed by the key
 
 type
   // In the order of the combo box on the form
@@ -75,7 +75,7 @@ begin
   LocalPoints[0].X := ARow.Xm;
   Transformed := AKey.Calculate(LocalPoints);
 
-  if ARow.Typ = DRUH_URCOVANY then
+  if ARow.Typ = POINT_DETERMINED then
   begin
     ARow.Y := Transformed[0].Y;
     ARow.X := Transformed[0].X;
@@ -101,7 +101,7 @@ begin
     AFrame.Rows[I].M2 := NaN;
     AFrame.Rows[I].M4 := NaN;
     // The target of a determined point is computed, never read
-    if AFrame.Rows[I].Typ = DRUH_URCOVANY then
+    if AFrame.Rows[I].Typ = POINT_DETERMINED then
     begin
       AFrame.Rows[I].Y := NaN;
       AFrame.Rows[I].X := NaN;
@@ -153,7 +153,7 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    if (Row.Typ <> DRUH_IDENTICKY) or (Row.CB = 0) or
+    if (Row.Typ <> POINT_IDENTICAL) or (Row.CB = 0) or
        IsNan(Row.Y) or IsNan(Row.X) or IsNan(Row.Ym) or IsNan(Row.Xm) then
       Continue;
 
@@ -223,7 +223,7 @@ begin
     for I := 0 to AFrame.Count - 1 do
     begin
       Row := AFrame.Rows[I];
-      if (Row.Typ <> DRUH_KONTROLNI) and (Row.Typ <> DRUH_URCOVANY) then
+      if (Row.Typ <> POINT_CHECK) and (Row.Typ <> POINT_DETERMINED) then
         Continue;
       if IsNan(Row.Ym) or IsNan(Row.Xm) then
         Continue;
@@ -291,8 +291,8 @@ begin
   begin
     Row := AFrame.Rows[I];
     case Row.Typ of
-      DRUH_URCOVANY:  Measured := not IsNan(Row.X);
-      DRUH_KONTROLNI: Measured := not IsNan(Row.M4);   // M4 is Sxy
+      POINT_DETERMINED: Measured := not IsNan(Row.X);
+      POINT_CHECK:      Measured := not IsNan(Row.M4);   // M4 is Sxy
     else
       Measured := False;          // identical points make the circle
     end;
@@ -325,11 +325,11 @@ begin
   begin
     Row := AFrame.Rows[I];
     Sxy := Row.M4;
-    if (Row.Typ = DRUH_KONTROLNI) and not IsNan(Sxy) then
+    if (Row.Typ = POINT_CHECK) and not IsNan(Sxy) then
       Inc(FInfo.CheckCount);
-    if (Row.Typ = DRUH_URCOVANY) and not IsNan(Row.X) then
+    if (Row.Typ = POINT_DETERMINED) and not IsNan(Row.X) then
       Inc(FInfo.DeterminedCount);
-    if (Row.Typ <> DRUH_IDENTICKY) or IsNan(Sxy) then
+    if (Row.Typ <> POINT_IDENTICAL) or IsNan(Sxy) then
       Continue;
 
     // One code for all, or -1

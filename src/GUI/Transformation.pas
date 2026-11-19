@@ -188,11 +188,11 @@ begin
 
     // Not in the list is determined, the box only splits the given ones
     if not Given then
-      Row.Typ := DRUH_URCOVANY
+      Row.Typ := POINT_DETERMINED
     else if Row.Checked then
-      Row.Typ := DRUH_IDENTICKY
+      Row.Typ := POINT_IDENTICAL
     else
-      Row.Typ := DRUH_KONTROLNI;
+      Row.Typ := POINT_CHECK;
 
     AddRow(Row, R);
   end;
@@ -270,7 +270,7 @@ begin
   Unnumbered := 0;
   for I := 0 to FFrame.Count - 1 do
   begin
-    if (FFrame.Rows[I].Typ <> DRUH_URCOVANY) or IsNan(FFrame.Rows[I].X) then
+    if (FFrame.Rows[I].Typ <> POINT_DETERMINED) or IsNan(FFrame.Rows[I].X) then
       Continue;
 
     PointNumber := FFrame.Rows[I].CB;

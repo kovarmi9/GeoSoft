@@ -156,11 +156,11 @@ begin
   begin
     FdPhi[I] := TPolarMethodAlgorithm.ResultOf(Station,
       AFrame.Rows[I], FStations[AIndex].phi, 1).dPhi;
-    if Abs(FdPhi[I]) > MEZNI_DFI then
+    if Abs(FdPhi[I]) > MAX_DPHI then
       AddWarning(Format('Orientace %s: odchylka dfi = %.4f g překračuje ' +
         'mezní hodnotu %.2f g - Návod pro obnovu katastrálního operátu, ' +
         'bod 4.3.5.1.2 c)', [TPointNumber.ToDisplay(AFrame.Rows[I].CB),
-        FdPhi[I], MEZNI_DFI]));
+        FdPhi[I], MAX_DPHI]));
   end;
   Result := True;
 end;

@@ -66,7 +66,7 @@ begin
     end;
     AProt.Line;
     AProt.Text('Or. posun = ' + Ang(AAlg.Stations[J].phi) +
-      '    Mezní dfi = ' + Ang(MEZNI_DFI));
+      '    Mezní dfi = ' + Ang(MAX_DPHI));
   end;
 
   // 5. Determined points

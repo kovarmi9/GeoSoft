@@ -53,7 +53,7 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    if (Row.Typ <> DRUH_IDENTICKY) or IsNan(Row.M4) then
+    if (Row.Typ <> POINT_IDENTICAL) or IsNan(Row.M4) then
       Continue;
     AProt.Text(Format(IDENTICAL_LINE, [LineId(AFrame, I), 'Z:',
       PointId(Row.CBm), CoordPair(Row.Xm, Row.Ym)]));
@@ -63,10 +63,10 @@ begin
   AProt.Line;
 
   // 4. Checks, the residuals of the key and of the check points
-  WriteResiduals(AProt, AFrame, DRUH_IDENTICKY, 'ODCHYLKY TRANSFORMACE');
+  WriteResiduals(AProt, AFrame, POINT_IDENTICAL, 'ODCHYLKY TRANSFORMACE');
   WriteSummary(AProt, AFrame, AAlg);
   if AAlg.Info.CheckCount > 0 then
-    WriteResiduals(AProt, AFrame, DRUH_KONTROLNI, 'KONTROLNÍ BODY (mimo klíč)');
+    WriteResiduals(AProt, AFrame, POINT_CHECK, 'KONTROLNÍ BODY (mimo klíč)');
   WriteKey(AProt, AAlg);
 
   // 5. Determined points
@@ -180,7 +180,7 @@ begin
   for I := 0 to AFrame.Count - 1 do
   begin
     Row := AFrame.Rows[I];
-    if (Row.Typ <> DRUH_URCOVANY) or IsNan(Row.X) then
+    if (Row.Typ <> POINT_DETERMINED) or IsNan(Row.X) then
       Continue;
     AProt.Text(Format(DETERMINED_LINE, [LineId(AFrame, I), 'Z:',
       PointId(Row.CBm), CoordPair(Row.Xm, Row.Ym), '', '']));

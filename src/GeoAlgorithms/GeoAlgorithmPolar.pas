@@ -10,11 +10,11 @@ uses
   GeoAlgorithmTransformSimilarity, PointNumber;
 
 const
-  TYP_DELKY_VODOROVNA = 0;   // horizontal length
-  TYP_DELKY_SIKMA     = 2;   // slope length with zenith angle
+  LENGTH_HORIZONTAL = 0;   // horizontal length
+  LENGTH_SLOPE      = 2;   // slope length with zenith angle
 
   // [gon], Návod pro obnovu KO 4.3.5.1.2 c), for m0 and v·√p
-  MEZNI_DFI = 0.08;
+  MAX_DPHI = 0.08;
 
 type
   // Role of a frame row
@@ -27,7 +27,7 @@ type
     Ds:      Double;   // computed minus measured [m]
     Limit:   Double;   // ud of the distance, KatV 13.5 and 13.6
     p:       Double;   // weight, its length over the longest one
-    Normed:  Double;   // dPhi · √p, compared with MEZNI_DFI
+    Normed:  Double;   // dPhi · √p, compared with MAX_DPHI
     dZ:      Double;   // height from the station minus the given one
   end;
 
@@ -428,10 +428,10 @@ begin
       Inc(NDir);
       SumPvv := SumPvv + R.p * Sqr(R.dPhi);
 
-      if Abs(R.Normed) > MEZNI_DFI then
+      if Abs(R.Normed) > MAX_DPHI then
         AddWarning(Format('Orientace %s: normovaná odchylka %.4f g ' +
           'překračuje mezní hodnotu %.2f g - Návod pro obnovu katastrálního ' +
-          'operátu, bod 4.3.5.1.2 c)', [PtNo, R.Normed, MEZNI_DFI]));
+          'operátu, bod 4.3.5.1.2 c)', [PtNo, R.Normed, MAX_DPHI]));
     end;
 
     // KatV 13.5, the difference is less than ud
@@ -446,10 +446,10 @@ begin
   if NDir > 1 then
   begin
     FInfo.m0 := Sqrt(SumPvv / (NDir - 1));
-    if FInfo.m0 > MEZNI_DFI then
+    if FInfo.m0 > MAX_DPHI then
       AddWarning(Format('Střední chyba m0 = %.4f g překračuje mezní ' +
         'hodnotu %.2f g - Návod pro obnovu katastrálního operátu, ' +
-        'bod 4.3.5.1.2 c)', [FInfo.m0, MEZNI_DFI]));
+        'bod 4.3.5.1.2 c)', [FInfo.m0, MAX_DPHI]));
   end;
 end;
 

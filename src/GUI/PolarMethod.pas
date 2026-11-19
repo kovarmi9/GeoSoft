@@ -297,9 +297,9 @@ var
   procedure Add(AGridRow: Integer);
   begin
     if GSettings.Polar.SlopeLengths then
-      Row.Typ := TYP_DELKY_SIKMA
+      Row.Typ := LENGTH_SLOPE
     else
-      Row.Typ := TYP_DELKY_VODOROVNA;
+      Row.Typ := LENGTH_HORIZONTAL;
     AddRow(Row, AGridRow);
   end;
 
@@ -509,7 +509,7 @@ begin
   // The notebook says which lengths were measured
   if Typ in AFrame.Fields then
   begin
-    GSettings.Polar.SlopeLengths := AFrame.Rows[0].Typ = TYP_DELKY_SIKMA;
+    GSettings.Polar.SlopeLengths := AFrame.Rows[0].Typ = LENGTH_SLOPE;
     ApplyColumnsToGrids;
   end;
 

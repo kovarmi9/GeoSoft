@@ -102,6 +102,8 @@ type
 
     /// <summary>Saves a computed point, asks if its number exists.</summary>
     procedure StorePoint(var ARow: TGeoRow);
+    /// <summary>Stores frame row I, False without a point number.</summary>
+    function StoreFrameRow(I: Integer; const AName: string): Boolean;
 
     /// <summary>Adds a frame row and remembers its grid row.</summary>
     procedure AddRow(const ARow: TGeoRow; AGridRow: Integer = -1);
@@ -117,6 +119,8 @@ type
     function LoadGridPoint(AGrid: TGeoFieldsGrid; ARow: Integer): Boolean;
     /// <summary>Given rows from the list, stops on a missing one.</summary>
     function CheckGivenPoints(AGrid: TGeoFieldsGrid; AFirst, ALast: Integer; const AMessage: string): Boolean;
+    /// <summary>Puts the cursor on the point number of row ARow.</summary>
+    procedure FocusPointCell(AGrid: TGeoFieldsGrid; ARow: Integer);
 
     /// <summary>True for a point this form added to the list itself.</summary>
     function IsNewPoint(APointNumber: Int64): Boolean;
@@ -375,6 +379,24 @@ begin
   end;                              // keep and Esc leave the old point
 end;
 
+// A number given in the dialog goes back to the frame
+function TCalcBaseForm.StoreFrameRow(I: Integer; const AName: string): Boolean;
+var
+  Row: TGeoRow;
+begin
+  Row := FFrame.Rows[I];
+  Result := Row.CB <> 0;
+  if not Result then
+  begin
+    ShowMessage('Zadejte číslo ' + AName + ', výsledek se neuložil.');
+    SkipJobProtocol;
+    Exit;
+  end;
+  StorePoint(Row);
+  FFrame.Rows[I].CB := Row.CB;
+  FFrame.Rows[I].Stored := Row.Stored;
+end;
+
 // The grids have one header row, so the grid row is Č.
 procedure TCalcBaseForm.AddRow(const ARow: TGeoRow; AGridRow: Integer);
 begin
@@ -435,12 +457,18 @@ begin
     if not LoadGridPoint(AGrid, R) then
     begin
       ShowMessage(Format(AMessage, [AGrid.Cells[0, R]]));
-      AGrid.Row := R;
-      AGrid.Col := AGrid.FieldToCol(CB);
-      if AGrid.CanFocus then
-        AGrid.SetFocus;
+      FocusPointCell(AGrid, R);
       Exit(False);
     end;
+end;
+
+// The message names a row, so leave the cursor standing in it
+procedure TCalcBaseForm.FocusPointCell(AGrid: TGeoFieldsGrid; ARow: Integer);
+begin
+  AGrid.Row := ARow;
+  AGrid.Col := AGrid.FieldToCol(CB);
+  if AGrid.CanFocus then
+    AGrid.SetFocus;
 end;
 
 function TCalcBaseForm.IsNewPoint(APointNumber: Int64): Boolean;

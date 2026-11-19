@@ -129,8 +129,6 @@ begin
 end;
 
 procedure TLineIntersectionForm.CalculateClick(Sender: TObject);
-var
-  Row: TGeoRow;
 begin
   // Both lines need their points from the list
   if not CheckGivenPoints(Grid, 1, LINE_POINTS, 'Zadejte bod %s.') then
@@ -143,20 +141,12 @@ begin
     Exit;
   end;
 
-  Row := FFrame.Rows[LINE_POINTS];
-  if Row.CB = 0 then
-  begin
-    ShowMessage('Zadejte číslo průsečíku, výsledek se neuložil.');
-    SkipJobProtocol;
-    Exit;
-  end;
-
   // A number given in the dialog goes to the grid
-  Row.Popis := ShortString(GPointPrefix.Popis);
-  StorePoint(Row);
-  FFrame.Rows[LINE_POINTS].CB := Row.CB;
-  FFrame.Rows[LINE_POINTS].Stored := Row.Stored;
-  Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] := TPointNumber.ToText(Row.CB);
+  FFrame.Rows[LINE_POINTS].Popis := ShortString(GPointPrefix.Popis);
+  if not StoreFrameRow(LINE_POINTS, 'průsečíku') then
+    Exit;
+  Grid.Cells[Grid.FieldToCol(CB), RESULT_ROW] :=
+    TPointNumber.ToText(FFrame.Rows[LINE_POINTS].CB);
   ShowProtocol;
 end;
 

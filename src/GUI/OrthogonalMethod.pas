@@ -40,6 +40,7 @@ type
     FDetailCB: TArray<string>;    // number each detail row was filled for
     procedure FillRowFromPoint(Grid: TGeoFieldsGrid; R: Integer; const P: Point.TPoint);
     function  LoadBasePoint(R: Integer; out P: Point.TPoint): Boolean;
+    procedure AddBaseline(AGridRow: Integer);
     procedure Recompute;
   protected
     function BuildFrame: Boolean; override;
@@ -116,42 +117,34 @@ begin
   Result := True;
 end;
 
+procedure TOrthogonalMethodForm.AddBaseline(AGridRow: Integer);
+var
+  Row: TGeoRow;
+  ListPoint: Point.TPoint;
+begin
+  GridBaseline.GetGeoRow(AGridRow, Row);
+
+  if TPointDictionary.GetInstance.PointExists(Row.CB) then
+  begin
+    // The list decides, the cell only shows it
+    ListPoint := TPointDictionary.GetInstance.GetPoint(Row.CB);
+    Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
+    // A given point brings its own quality, the toolbar is for new ones
+    Row.KK := ListPoint.Quality;
+  end
+  else
+  begin
+    Row.X := NaN;  Row.Y := NaN;
+  end;
+
+  AddRow(Row, -1);              // P and K are no rows of the detail grid
+end;
+
 // Rows 0 and 1 are the measuring line, the rest are the detail points
 function TOrthogonalMethodForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
-
-  // Every frame row remembers its detail grid row, -1 for P and K
-  procedure Add(AGridRow: Integer);
-  begin
-    AddRow(Row, AGridRow);
-  end;
-
-  procedure AddBaseline(AGridRow: Integer);
-  var
-    PointNumber: Int64;
-    ListPoint: Point.TPoint;
-  begin
-    GridBaseline.GetGeoRow(AGridRow, Row);
-
-    PointNumber := Row.CB;
-    if TPointDictionary.GetInstance.PointExists(PointNumber) then
-    begin
-      // The list decides, the cell only shows it
-      ListPoint := TPointDictionary.GetInstance.GetPoint(PointNumber);
-      Row.X := ListPoint.X;  Row.Y := ListPoint.Y;  Row.Z := ListPoint.Z;
-      // A given point brings its own quality, the toolbar is for new ones
-      Row.KK := ListPoint.Quality;
-    end
-    else
-    begin
-      Row.X := NaN;  Row.Y := NaN;
-    end;
-
-    Add(-1);
-  end;
-
 begin
   Result := True;
   FFrame.ClearData;
@@ -168,7 +161,7 @@ begin
     // An old result read from the grid would look like a fresh one
     Row.X := NaN;  Row.Y := NaN;
 
-    Add(R);
+    AddRow(Row, R);
   end;
 end;
 
@@ -245,29 +238,16 @@ end;
 
 procedure TOrthogonalMethodForm.CalculateClick(Sender: TObject);
 var
-  StartPoint, EndPoint: Point.TPoint;
-
-  // The message names a row, so leave the cursor standing in it
-  procedure FocusRow(ARow: Integer);
-  begin
-    GridBaseline.Row := ARow;
-    GridBaseline.Col := GridBaseline.FieldToCol(CB);
-    if GridBaseline.CanFocus then
-      GridBaseline.SetFocus;
-  end;
-
+  R: Integer;
+  ListPoint: Point.TPoint;
 begin
   // The tape has to start and end on a known point
-  if not LoadBasePoint(1, StartPoint) then
-  begin
-    FocusRow(1);
-    Exit;
-  end;
-  if not LoadBasePoint(2, EndPoint) then
-  begin
-    FocusRow(2);
-    Exit;
-  end;
+  for R := 1 to 2 do
+    if not LoadBasePoint(R, ListPoint) then
+    begin
+      FocusPointCell(GridBaseline, R);
+      Exit;
+    end;
 
   Recompute;
   if not FAlg.Baseline.Valid then

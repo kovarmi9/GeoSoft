@@ -21,6 +21,7 @@ type
   private
     FAlg: TLineAdjustmentAlgorithm;
     procedure Recompute;
+    procedure TakeFromListWithHeight(var ARow: TGeoRow);
   protected
     function BuildFrame: Boolean; override;
     procedure ApplyCoordOrderToGrids; override;
@@ -62,43 +63,28 @@ begin
   ApplyColumns(GridPoints, []);
 end;
 
+// The list decides the coordinates, before this form moved the point
+procedure TLineAdjustmentForm.TakeFromListWithHeight(var ARow: TGeoRow);
+var
+  ListPoint: Point.TPoint;
+begin
+  TakeFromList(ARow);
+  if OriginalPoint(ARow.CB, ListPoint) then
+  begin
+    ARow.Z := ListPoint.Z;           // a moved point keeps its height
+    if Trim(string(ARow.Popis)) = '' then
+      ARow.Popis := ShortString(ListPoint.Description);
+  end;
+  ARow.Xm := ARow.X;
+  ARow.Ym := ARow.Y;
+end;
+
 // Fills Y, X and KK of A or B from the list, offers to add a new point
 // Rows 0 and 1 are A and B, the rest are the points to move
 function TLineAdjustmentForm.BuildFrame: Boolean;
 var
   R: Integer;
   Row: TGeoRow;
-  PointNumber: Int64;
-  ListPoint: Point.TPoint;
-
-  // Every frame row remembers its grid row, -1 for A and B
-  procedure Add(AGridRow: Integer);
-  begin
-    AddRow(Row, AGridRow);
-  end;
-
-  // The list decides the coordinates, before this form moved the point
-  procedure TakeFromList;
-  begin
-    PointNumber := Row.CB;
-    if OriginalPoint(PointNumber, ListPoint) then
-    begin
-      Row.X := ListPoint.X;
-      Row.Y := ListPoint.Y;
-      Row.Z := ListPoint.Z;           // a moved point keeps its height
-      Row.KK := ListPoint.Quality;
-      if Trim(string(Row.Popis)) = '' then
-        Row.Popis := ShortString(ListPoint.Description);
-    end
-    else
-    begin
-      Row.X := NaN;
-      Row.Y := NaN;
-    end;
-    Row.Xm := Row.X;
-    Row.Ym := Row.Y;
-  end;
-
 begin
   Result := True;
   FFrame.ClearData;
@@ -106,8 +92,8 @@ begin
   for R := 1 to 2 do
   begin
     GridLine.GetGeoRow(R, Row);
-    TakeFromList;
-    Add(-1);
+    TakeFromListWithHeight(Row);
+    AddRow(Row, -1);            // A and B are no rows of the point grid
   end;
 
   for R := GridPoints.FixedRows to GridPoints.RowCount - 1 do
@@ -115,9 +101,9 @@ begin
     GridPoints.GetGeoRow(R, Row);
     if Row.CB = 0 then
       Continue;
-    TakeFromList;
+    TakeFromListWithHeight(Row);
     Row.Kol := NaN;            // an old result is no input
-    Add(R);
+    AddRow(Row, R);
   end;
 end;
 

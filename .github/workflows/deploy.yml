@@ -27,7 +27,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install documentation dependencies
-        run: pip install mkdocs mkdocs-material mkdocs-include-markdown-plugin
+        run: pip install mkdocs mkdocs-material
 
       - name: Deploy documentation
         run: mkdocs gh-deploy --force --clean --remote-branch gh-pages

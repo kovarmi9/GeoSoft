@@ -161,8 +161,6 @@ begin
 end;
 
 procedure TResectionForm.CalculateClick(Sender: TObject);
-var
-  Row: TGeoRow;
 begin
   // All three given points from the list
   if not CheckGivenPoints(Grid, Grid.FixedRows,
@@ -176,19 +174,10 @@ begin
     Exit;
   end;
 
-  Row := FFrame.Rows[RESECTION_POINTS];
-  if Row.CB = 0 then
-  begin
-    ShowMessage('Zadejte číslo stanoviska, výsledek se neuložil.');
-    SkipJobProtocol;
-    Exit;
-  end;
-
   // A number given in the dialog goes to the edit
-  StorePoint(Row);
-  FFrame.Rows[RESECTION_POINTS].CB := Row.CB;
-  FFrame.Rows[RESECTION_POINTS].Stored := Row.Stored;
-  EditStationNo.Text := TPointNumber.ToText(Row.CB);
+  if not StoreFrameRow(RESECTION_POINTS, 'stanoviska') then
+    Exit;
+  EditStationNo.Text := TPointNumber.ToText(FFrame.Rows[RESECTION_POINTS].CB);
   ShowProtocol;
 end;
 

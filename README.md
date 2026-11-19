@@ -5,12 +5,12 @@ in S-JTSK (Delphi, VCL).
 
 ## Features
 
-* Coordinate list: import and export, point number prefixes
-* Orthogonal and polar method
+* Coordinate list: .yxz and .xyz files, TXT and CSV import and export, point number prefixes
+* Polar method (fixed and free station), orthogonal method
 * Line adjustment, line intersection
 * Distance and forward intersection, resection
 * Rectangular measurements (with adjustment), check measurements
-* Transformation (congruent, similarity, affine)
+* Coordinate transformation (congruent, similarity, affine)
 * Parcel area
 * Technical levelling (one way, there and back)
 * Calculation protocols and the job protocol

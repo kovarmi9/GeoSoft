@@ -82,14 +82,14 @@ object dbtestForm: TdbtestForm
   object Connection: TLiteConnection
     Options.Direct = True
     LoginPrompt = False
-    Left = 496
-    Top = 216
+    Left = 400
+    Top = 224
   end
   object PointsTable: TLiteTable
-    TableName = 'Points'
-    Options.DefaultValues = True
-    Options.QueryRecCount = True
     Connection = Connection
+    Options.QueryRecCount = True
+    Options.DefaultValues = True
+    TableName = 'Points'
     AfterPost = PointsTableChanged
     AfterDelete = PointsTableChanged
     Left = 144

@@ -68,7 +68,7 @@ uses
   ProtocolParcelArea in '..\Protocols\ProtocolParcelArea.pas',
   LiteDACTest in 'LiteDACTest.pas' {LiteDACTestForm},
   AITest in 'AITest.pas' {AITestForm},
-  Firedactest in 'Firedactest.pas' {FireDACTestForm};
+  FireDACTest in 'FireDACTest.pas' {FireDACTestForm};
 
 {$R *.res}
 

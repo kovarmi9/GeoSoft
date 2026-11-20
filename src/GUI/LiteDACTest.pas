@@ -6,7 +6,7 @@ interface
 
 uses
   System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Grids, Vcl.DBGrids, Vcl.DBCtrls, Data.DB,
+  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Grids, Vcl.DBGrids, Data.DB,
   MemDS, DBAccess, LiteAccess, LiteCall, LiteConsts, Vcl.Buttons;
 
 type
@@ -19,7 +19,6 @@ type
     ButtonOpen: TButton;
     ButtonFromList: TButton;
     ButtonToList: TButton;
-    Navigator: TDBNavigator;
     PointsGrid: TDBGrid;
     OpenDialog: TOpenDialog;
     procedure ButtonOpenClick(Sender: TObject);
@@ -41,11 +40,8 @@ procedure TLiteDACTestForm.ButtonOpenClick(Sender: TObject);
 begin
   if not OpenDialog.Execute then
     Exit;
-  Connection.Disconnect;
   Connection.Database := OpenDialog.FileName;
   PointsTable.Open;
-  ButtonFromList.Enabled := True;
-  ButtonToList.Enabled := True;
 end;
 
 procedure TLiteDACTestForm.ButtonFromListClick(Sender: TObject);

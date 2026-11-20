@@ -35,39 +35,29 @@ object FireDACTestForm: TFireDACTestForm
     object ButtonOpen: TButton
       Left = 8
       Top = 8
-      Width = 100
+      Width = 75
       Height = 25
-      Caption = 'Otev'#345#237't .db'
+      Caption = 'Otev'#345#237't'
       TabOrder = 0
       OnClick = ButtonOpenClick
     end
     object ButtonFromList: TButton
-      Left = 114
+      Left = 89
       Top = 8
-      Width = 130
+      Width = 75
       Height = 25
-      Caption = 'Ze seznamu do .db'
-      Enabled = False
+      Caption = 'Do .db'
       TabOrder = 1
       OnClick = ButtonFromListClick
     end
     object ButtonToList: TButton
-      Left = 250
+      Left = 170
       Top = 8
-      Width = 130
+      Width = 75
       Height = 25
-      Caption = 'Z .db do seznamu'
-      Enabled = False
+      Caption = 'Ze .db'
       TabOrder = 2
       OnClick = ButtonToListClick
-    end
-    object Navigator: TDBNavigator
-      Left = 386
-      Top = 8
-      Width = 230
-      Height = 25
-      DataSource = PointsSource
-      TabOrder = 3
     end
   end
   object OpenDialog: TOpenDialog

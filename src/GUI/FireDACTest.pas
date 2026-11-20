@@ -13,7 +13,7 @@ uses
   FireDAC.Comp.Client, FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
   FireDAC.DApt, FireDAC.Comp.DataSet, FireDAC.Phys.SQLite,
   FireDAC.Phys.SQLiteDef, FireDAC.Stan.ExprFuncs,
-  FireDAC.Phys.SQLiteWrapper.Stat, Vcl.DBCtrls, Vcl.Buttons;
+  FireDAC.Phys.SQLiteWrapper.Stat;
 
 type
   /// <summary>Shows a .db list file in a grid.</summary>
@@ -23,7 +23,6 @@ type
     ButtonOpen: TButton;
     ButtonFromList: TButton;
     ButtonToList: TButton;
-    Navigator: TDBNavigator;
     OpenDialog: TOpenDialog;
     Connection: TFDConnection;
     PointsTable: TFDTable;
@@ -48,11 +47,8 @@ procedure TFireDACTestForm.ButtonOpenClick(Sender: TObject);
 begin
   if not OpenDialog.Execute then
     Exit;
-  Connection.Close;
   Connection.Params.Database := OpenDialog.FileName;
   PointsTable.Open;
-  ButtonFromList.Enabled := True;
-  ButtonToList.Enabled := True;
 end;
 
 procedure TFireDACTestForm.ButtonFromListClick(Sender: TObject);

@@ -23,6 +23,23 @@ object GeoSoftForm: TGeoSoftForm
     TabOrder = 0
     OnClick = Button1Click
   end
+  object Button2: TButton
+    Left = 56
+    Top = 128
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 56
+    Top = 184
+    Width = 75
+    Height = 25
+    Caption = 'Button3'
+    TabOrder = 2
+    OnClick = Button3Click
+  end
   object MainMenu: TMainMenu
     Left = 584
     Top = 192

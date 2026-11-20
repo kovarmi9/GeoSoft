@@ -34,6 +34,8 @@ type
     MenuTechnicalLevelling: TMenuItem;
     MenuProtocol: TMenuItem;
     Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
     procedure MenuFileOpenClick(Sender: TObject);
     procedure MenuFileNewClick(Sender: TObject);
     procedure MenuShowListClick(Sender: TObject);
@@ -56,6 +58,7 @@ type
     procedure MenuTechnicalLevellingClick(Sender: TObject);
     procedure MenuProtocolClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -72,7 +75,8 @@ implementation
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   CheckMeasurements, PolarMethod, PointsManagement,
   SettingsDialog, LineAdjustment, LineIntersection, DistanceIntersection,
-  ForwardIntersection, RectangularAdjustment, Resection, Levelling, dbtest;
+  ForwardIntersection, RectangularAdjustment, Resection, Levelling, dbtest,
+  aitest;
 
 // File menu: picks a list file and shows it
 procedure TGeoSoftForm.MenuFileOpenClick(Sender: TObject);
@@ -114,6 +118,11 @@ end;
 procedure TGeoSoftForm.Button1Click(Sender: TObject);
 begin
   dbtestForm.Show;
+end;
+
+procedure TGeoSoftForm.Button3Click(Sender: TObject);
+begin
+  aitestForm.Show;
 end;
 
 procedure TGeoSoftForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

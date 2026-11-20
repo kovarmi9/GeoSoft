@@ -205,8 +205,16 @@
         <DCCReference Include="..\Protocols\ProtocolLevelling.pas"/>
         <DCCReference Include="..\Protocols\ProtocolTransformation.pas"/>
         <DCCReference Include="..\Protocols\ProtocolParcelArea.pas"/>
-        <DCCReference Include="dbtest.pas">
-            <Form>dbtestForm</Form>
+        <DCCReference Include="LiteDACTest.pas">
+            <Form>LiteDACTestForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="AITest.pas">
+            <Form>AITestForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
+        <DCCReference Include="Firedactest.pas">
+            <Form>FireDACTestForm</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Base">

@@ -66,14 +66,16 @@ uses
   ProtocolLevelling in '..\Protocols\ProtocolLevelling.pas',
   ProtocolTransformation in '..\Protocols\ProtocolTransformation.pas',
   ProtocolParcelArea in '..\Protocols\ProtocolParcelArea.pas',
-  dbtest in 'dbtest.pas' {dbtestForm};
+  LiteDACTest in 'LiteDACTest.pas' {LiteDACTestForm},
+  AITest in 'AITest.pas' {AITestForm},
+  Firedactest in 'Firedactest.pas' {FireDACTestForm};
 
 {$R *.res}
 
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.CreateForm(TGeoSoftForm, GeoSoftForm);
+ Application.CreateForm(TGeoSoftForm, GeoSoftForm);
   Application.CreateForm(TPointsManagementForm, PointsManagementForm);
   Application.CreateForm(TParcelAreaForm, ParcelAreaForm);
   Application.CreateForm(TOrthogonalMethodForm, OrthogonalMethodForm);
@@ -88,6 +90,8 @@ begin
   Application.CreateForm(TRectangularAdjustmentForm, RectangularAdjustmentForm);
   Application.CreateForm(TResectionForm, ResectionForm);
   Application.CreateForm(TLevellingForm, LevellingForm);
-  Application.CreateForm(TdbtestForm, dbtestForm);
+  Application.CreateForm(TLiteDACTestForm, LiteDACTestForm);
+  Application.CreateForm(TAITestForm, AITestForm);
+  Application.CreateForm(TFireDACTestForm, FireDACTestForm);
   Application.Run;
 end.

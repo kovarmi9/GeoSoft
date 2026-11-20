@@ -58,6 +58,7 @@ type
     procedure MenuTechnicalLevellingClick(Sender: TObject);
     procedure MenuProtocolClick(Sender: TObject);
     procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
   private
     { Private declarations }
@@ -75,8 +76,8 @@ implementation
 uses ParcelArea, OrthogonalMethod, Transformation, RectangularMeasurements,
   CheckMeasurements, PolarMethod, PointsManagement,
   SettingsDialog, LineAdjustment, LineIntersection, DistanceIntersection,
-  ForwardIntersection, RectangularAdjustment, Resection, Levelling, dbtest,
-  aitest;
+  ForwardIntersection, RectangularAdjustment, Resection, Levelling, LiteDACTest,
+  FireDACTest, AITest;
 
 // File menu: picks a list file and shows it
 procedure TGeoSoftForm.MenuFileOpenClick(Sender: TObject);
@@ -117,12 +118,17 @@ end;
 
 procedure TGeoSoftForm.Button1Click(Sender: TObject);
 begin
-  dbtestForm.Show;
+  LiteDACTestForm.Show;
+end;
+
+procedure TGeoSoftForm.Button2Click(Sender: TObject);
+begin
+  FireDACTestForm.Show;
 end;
 
 procedure TGeoSoftForm.Button3Click(Sender: TObject);
 begin
-  aitestForm.Show;
+  AITestForm.Show;
 end;
 
 procedure TGeoSoftForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);

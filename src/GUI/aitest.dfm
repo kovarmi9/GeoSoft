@@ -1,7 +1,7 @@
-object aitestForm: TaitestForm
+object AITestForm: TAITestForm
   Left = 0
   Top = 0
-  Caption = 'aitestForm'
+  Caption = 'AITestForm'
   ClientHeight = 441
   ClientWidth = 624
   Color = clBtnFace

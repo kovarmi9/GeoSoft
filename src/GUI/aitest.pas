@@ -1,4 +1,4 @@
-unit aitest;
+unit AITest;
 
 interface
 
@@ -7,7 +7,7 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs;
 
 type
-  TaitestForm = class(TForm)
+  TAITestForm = class(TForm)
   private
     { Private declarations }
   public
@@ -15,7 +15,7 @@ type
   end;
 
 var
-  aitestForm: TaitestForm;
+  AITestForm: TAITestForm;
 
 implementation
 

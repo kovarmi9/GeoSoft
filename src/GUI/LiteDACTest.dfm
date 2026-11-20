@@ -1,28 +1,25 @@
-object dbtestForm: TdbtestForm
+object LiteDACTestForm: TLiteDACTestForm
   Left = 0
   Top = 0
-  Caption = 'Seznam sou'#345'adnic v datab'#225'zi'
   ClientHeight = 441
-  ClientWidth = 760
+  ClientWidth = 624
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OnCreate = FormCreate
   TextHeight = 15
   object PanelButtons: TPanel
     Left = 0
     Top = 0
-    Width = 760
-    Height = 33
+    Width = 624
+    Height = 41
     Align = alTop
-    BevelOuter = bvNone
     TabOrder = 0
     object ButtonOpen: TButton
-      Left = 4
-      Top = 4
+      Left = 8
+      Top = 8
       Width = 100
       Height = 25
       Caption = 'Otev'#345#237't .db'
@@ -30,38 +27,39 @@ object dbtestForm: TdbtestForm
       OnClick = ButtonOpenClick
     end
     object ButtonFromList: TButton
-      Left = 108
-      Top = 4
+      Left = 114
+      Top = 8
       Width = 130
       Height = 25
       Caption = 'Ze seznamu do .db'
+      Enabled = False
       TabOrder = 1
       OnClick = ButtonFromListClick
     end
     object ButtonToList: TButton
-      Left = 242
-      Top = 4
+      Left = 250
+      Top = 8
       Width = 130
       Height = 25
       Caption = 'Z .db do seznamu'
+      Enabled = False
       TabOrder = 2
       OnClick = ButtonToListClick
     end
     object Navigator: TDBNavigator
-      Left = 520
-      Top = 0
-      Width = 240
-      Height = 33
+      Left = 386
+      Top = 8
+      Width = 230
+      Height = 25
       DataSource = PointsSource
-      Align = alRight
       TabOrder = 3
     end
   end
   object PointsGrid: TDBGrid
     Left = 0
-    Top = 33
-    Width = 760
-    Height = 389
+    Top = 41
+    Width = 624
+    Height = 400
     Align = alClient
     DataSource = PointsSource
     TabOrder = 1
@@ -71,14 +69,6 @@ object dbtestForm: TdbtestForm
     TitleFont.Name = 'Segoe UI'
     TitleFont.Style = []
   end
-  object StatusBar: TStatusBar
-    Left = 0
-    Top = 422
-    Width = 760
-    Height = 19
-    Panels = <>
-    SimplePanel = True
-  end
   object Connection: TLiteConnection
     Options.Direct = True
     LoginPrompt = False
@@ -87,11 +77,18 @@ object dbtestForm: TdbtestForm
   end
   object PointsTable: TLiteTable
     Connection = Connection
-    Options.QueryRecCount = True
+    DataTypeMap = <
+      item
+        FieldName = 'PointNumber'
+        FieldType = ftLargeint
+      end
+      item
+        FieldName = 'Description'
+        FieldType = ftWideString
+        FieldLength = 32
+      end>
     Options.DefaultValues = True
     TableName = 'Points'
-    AfterPost = PointsTableChanged
-    AfterDelete = PointsTableChanged
     Left = 144
     Top = 224
   end

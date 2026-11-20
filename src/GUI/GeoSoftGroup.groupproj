@@ -3,6 +3,9 @@
         <ProjectGuid>{328C889B-FAA2-47C3-8328-7473AD5BC662}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
+        <Projects Include="..\..\GeoComponents\GeoComponentsR.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="GeoSoft.dproj">
             <Dependencies/>
         </Projects>
@@ -14,6 +17,15 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
+    <Target Name="GeoComponentsR">
+        <MSBuild Projects="..\..\GeoComponents\GeoComponentsR.dproj"/>
+    </Target>
+    <Target Name="GeoComponentsR:Clean">
+        <MSBuild Projects="..\..\GeoComponents\GeoComponentsR.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="GeoComponentsR:Make">
+        <MSBuild Projects="..\..\GeoComponents\GeoComponentsR.dproj" Targets="Make"/>
+    </Target>
     <Target Name="GeoSoft">
         <MSBuild Projects="GeoSoft.dproj"/>
     </Target>
@@ -24,13 +36,13 @@
         <MSBuild Projects="GeoSoft.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="GeoSoft"/>
+        <CallTarget Targets="GeoComponentsR;GeoSoft"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="GeoSoft:Clean"/>
+        <CallTarget Targets="GeoComponentsR:Clean;GeoSoft:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="GeoSoft:Make"/>
+        <CallTarget Targets="GeoComponentsR:Make;GeoSoft:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
